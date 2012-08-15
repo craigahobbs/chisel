@@ -76,7 +76,7 @@ class TestRequest(unittest.TestCase):
         self.rq = RequestHandler()
         TestLoggerHandler(self.rq)
 
-    def sendRequest(self, rq, method, pathInfo, contentLength, request, queryString = None):
+    def sendRequest(self, rq, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):
 
         # WSGI environment
         environ = {
@@ -97,8 +97,10 @@ class TestRequest(unittest.TestCase):
             responseHeaders = _responseHeaders
 
         # Make the WSGI call
-        response = rq(environ, start_response)
-        return Struct(json.loads("".join(response)))
+        response = "".join(rq(environ, start_response))
+        if decodeJSON:
+            return Struct(json.loads("".join(response)))
+        return response
 
     def test_success(self):
 
@@ -219,3 +221,20 @@ class TestRequest(unittest.TestCase):
         response = self.sendRequest(rq, "GET", "/myAction", None, "", queryString = queryString)
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.sum, 15)
+
+    def test_jsonp(self):
+
+        # Request handler
+        rq = RequestHandler()
+        def myAction(ctx, input):
+            numSum = 0
+            for num in input.nums:
+                numSum += int(num)
+            return { "sum": numSum }
+        rq.addModuleAction(myAction)
+
+        # Execute the request
+        request = { "jsonp": "myfunc", "nums": [ 1, 2, 3, 4, 5 ] }
+        queryString = encodeQueryString(request)
+        response = self.sendRequest(rq, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
+        self.assertEqual(response, 'myfunc({"sum":15})')

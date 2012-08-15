@@ -41,13 +41,16 @@ def serializeJSON(o, pretty = False):
     # Serialize to a JSON string
     return json.dumps(o,
                       sort_keys = True,
-                      indent = pretty,
+                      indent = 0 if pretty else None,
                       separators = (', ', ': ') if pretty else (',', ':'),
                       default = default)
 
 
 # API server response handler
 class RequestHandler:
+
+    # JSONP callback reserved member name
+    jsonpMember = "jsonp"
 
     # Class initializer
     def __init__(self):
@@ -125,13 +128,19 @@ class RequestHandler:
                                    "Request for unknown action '%s'" % (actionName))
 
         # Get the request
+        jsonpFunction = None
         if envRequestMethod == "GET":
 
             # Parse the query string
-            if envQueryString:
-                request = decodeQueryString(envQueryString)
-            else:
+            if not envQueryString:
                 request = {}
+            else:
+                request = decodeQueryString(envQueryString)
+
+                # JSONP?
+                if RequestHandler.jsonpMember in request:
+                    jsonpFunction = str(request[RequestHandler.jsonpMember])
+                    del request[RequestHandler.jsonpMember]
 
         elif envRequestMethod != "POST":
 
@@ -157,7 +166,7 @@ class RequestHandler:
 
         # Call the action callback
         try:
-            return moduleAction.callback(None, Struct(request))
+            return moduleAction.callback(None, Struct(request)), jsonpFunction
         except Exception, e:
             raise RequestException("UnexpectedError", str(e))
 
@@ -165,20 +174,24 @@ class RequestHandler:
     def __call__(self, environ, start_response):
 
         # Handle the request
+        jsonpFunction = None
         try:
-            response = self.handleRequest(environ, start_response)
+            response, jsonpFunction = self.handleRequest(environ, start_response)
         except RequestException, e:
             response = { "error": e.error, "message": e.message }
         except Exception, e:
             response = { "error": "UnexpectedError", "message": str(e) }
 
         # Serialize the response
-        responseBody = serializeJSON(response)
+        if jsonpFunction:
+            responseBody = [jsonpFunction, "(", serializeJSON(response), ")"]
+        else:
+            responseBody = [serializeJSON(response)]
 
         # Send the response
         responseHeaders = [
             ("Content-Type", "application/json"),
-            ("Content-Length", str(len(responseBody)))
+            ("Content-Length", str(sum([len(s) for s in responseBody])))
             ]
         start_response("200 OK", responseHeaders)
 
