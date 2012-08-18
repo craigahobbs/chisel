@@ -30,7 +30,7 @@ class Member:
 # Struct type class
 class TypeStruct:
 
-    typeName = None
+    TypeName = None
 
     def __init__(self):
 
@@ -58,7 +58,7 @@ class TypeStruct:
 
             # Validate the member value
             try:
-                memberValueNew = member.type.validate(value[member.name])
+                memberValueNew = member.type.validate(value[member.name], isLoose)
             except ValueError, e:
                 if str(e):
                     raise e
@@ -94,7 +94,7 @@ class TypeArray:
         for ix in xrange(0, len(value)):
             arrayValue = value[ix]
             try:
-                arrayValueNew = self.type.validate(arrayValue)
+                arrayValueNew = self.type.validate(arrayValue, isLoose)
             except ValueError, e:
                 if str(e):
                     raise e

@@ -47,6 +47,28 @@ class TestStructValidation(unittest.TestCase):
         self.assertTrue(isinstance(s.f[1], str))
         self.assertEqual(s.f[1], "Bar")
 
+        # Validate success - loosely
+        s = m.validate({ "a": "5",
+                         "b": "Hello",
+                         "c": { "d": "true", "e": "5.5" },
+                         "f": [ "Foo", "Bar" ]
+                         }, isLoose = True)
+        self.assertTrue(isinstance(s, Struct))
+        self.assertTrue(isinstance(s.a, int))
+        self.assertEqual(s.a, 5)
+        self.assertTrue(isinstance(s.b, str))
+        self.assertEqual(s.b, "Hello")
+        self.assertTrue(isinstance(s.c, Struct))
+        self.assertTrue(isinstance(s.c.d, bool))
+        self.assertEqual(s.c.d, True)
+        self.assertTrue(isinstance(s.c.e, float))
+        self.assertEqual(s.c.e, 5.5)
+        self.assertTrue(isinstance(s.f, list))
+        self.assertTrue(isinstance(s.f[0], str))
+        self.assertEqual(s.f[0], "Foo")
+        self.assertTrue(isinstance(s.f[1], str))
+        self.assertEqual(s.f[1], "Bar")
+
         # Validate failure - missing member
         try:
             s = m.validate({ "a": 5,
