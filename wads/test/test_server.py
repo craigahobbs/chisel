@@ -237,4 +237,4 @@ class TestRequest(unittest.TestCase):
         request = { "jsonp": "myfunc", "nums": [ 1, 2, 3, 4, 5 ] }
         queryString = encodeQueryString(request)
         response = self.sendRequest(rq, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
-        self.assertEqual(response, 'myfunc({"sum":15})')
+        self.assertEqual(response, 'myfunc({"sum":15});')

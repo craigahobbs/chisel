@@ -184,7 +184,7 @@ class RequestHandler:
 
         # Serialize the response
         if jsonpFunction:
-            responseBody = [jsonpFunction, "(", serializeJSON(response), ")"]
+            responseBody = [jsonpFunction, "(", serializeJSON(response), ");"]
         else:
             responseBody = [serializeJSON(response)]
 
