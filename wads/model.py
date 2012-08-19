@@ -7,6 +7,15 @@
 from .struct import Struct
 
 
+# Specification class
+class Spec:
+
+    def __init__(self):
+
+        self.actions = {}
+        self.types = {}
+
+
 # Action class
 class Action:
 
@@ -27,6 +36,22 @@ class Member:
         self.isOptional = False
 
 
+# Type validation exception
+class ValidationError(Exception):
+
+    def __init__(self, msg):
+
+        Exception.__init__(self, msg)
+
+    @classmethod
+    def memberError(cls, typeInst, value, member):
+
+        memberDescription = (" for member '%s'" % (".".join(member))) if member else ""
+        msg = "Invalid value %r (type %r)%s, expected '%s'" % \
+            (value, type(value).__name__, memberDescription, typeInst.__class__.__name__)
+        return cls(msg)
+
+
 # Struct type class
 class TypeStruct:
 
@@ -36,13 +61,13 @@ class TypeStruct:
 
         self.members = []
 
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         # Convert value to Struct, if necessary
         if isinstance(value, dict):
             value = Struct(value)
         elif not isinstance(value, Struct):
-            raise ValueError("Expected struct type, got %r" % (type(value)))
+            raise ValidationError.memberError(self, value, _member)
 
         # Validate members
         memberNames = {}
@@ -54,23 +79,17 @@ class TypeStruct:
             # Is the required member not present?
             memberValue = value[member.name]
             if not member.isOptional and memberValue is None:
-                raise ValueError("Required member %r missing" % (member.name))
+                raise ValidationError("Required member %r missing" % (member.name))
 
             # Validate the member value
-            try:
-                memberValueNew = member.type.validate(value[member.name], isLoose)
-            except ValueError, e:
-                if str(e):
-                    raise e
-                else:
-                    raise ValueError("Invalid value %r of type %r for member %r" % (memberValue, type(memberValue).__name__, member.name))
+            memberValueNew = member.type.validate(value[member.name], isLoose, _member = _member + (member.name,))
             if memberValueNew is not memberValue:
                 value[member.name] = memberValueNew
 
         # Check for invalid members
         for valueKey in value:
             if valueKey not in memberNames:
-                raise ValueError("Invalid member %r" % (member.name))
+                raise ValidationError("Invalid member %r" % (member.name))
 
         return value
 
@@ -84,22 +103,16 @@ class TypeArray:
 
         self.type = type
 
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         # Validate list value type
         if not isinstance(value, list):
-            raise ValueError("Expected list type, got %r" % (type(value)))
+            raise ValidationError.memberError(self, value, _member)
 
         # Validate the list contents
         for ix in xrange(0, len(value)):
             arrayValue = value[ix]
-            try:
-                arrayValueNew = self.type.validate(arrayValue, isLoose)
-            except ValueError, e:
-                if str(e):
-                    raise e
-                else:
-                    raise ValueError("Invalid list value %r of type %r" % (arrayValue, type(arrayValue).__name__))
+            arrayValueNew = self.type.validate(arrayValue, isLoose, _member = _member + (str(ix),))
             if arrayValueNew is not arrayValue:
                 value[ix] = arrayValueNew
 
@@ -111,16 +124,12 @@ class TypeString:
 
     TypeName = "string"
 
-    def __init__(self):
-
-        pass
-
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         if isinstance(value, str):
             return value
         else:
-            raise ValueError()
+            raise ValidationError.memberError(self, value, _member)
 
 
 # "int" type class
@@ -128,11 +137,7 @@ class TypeInt:
 
     TypeName = "int"
 
-    def __init__(self):
-
-        pass
-
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         if isinstance(value, int):
             return value
@@ -141,7 +146,7 @@ class TypeInt:
         elif isLoose and isinstance(value, str):
             return int(value)
         else:
-            raise ValueError()
+            raise ValidationError.memberError(self, value, _member)
 
 
 # "float" type class
@@ -149,11 +154,7 @@ class TypeFloat:
 
     TypeName = "float"
 
-    def __init__(self):
-
-        pass
-
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         if isinstance(value, float):
             return value
@@ -162,7 +163,7 @@ class TypeFloat:
         elif isLoose and isinstance(value, str):
             return float(value)
         else:
-            raise ValueError()
+            raise ValidationError.memberError(self, value, _member)
 
 
 # "bool" type class
@@ -170,15 +171,11 @@ class TypeBool:
 
     TypeName = "bool"
 
-    def __init__(self):
-
-        pass
-
-    def validate(self, value, isLoose = False):
+    def validate(self, value, isLoose = False, _member = ()):
 
         if isinstance(value, bool):
             return value
         elif isLoose and isinstance(value, str) and value in ("true", "false"):
             return value in ("true")
         else:
-            raise ValueError()
+            raise ValidationError.memberError(self, value, _member)

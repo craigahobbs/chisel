@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from wads import Struct
+from wads import Struct, ValidationError
 from wads.model import Member, TypeStruct, TypeArray, TypeString, TypeInt, TypeFloat, TypeBool
 
 import unittest
@@ -76,7 +76,7 @@ class TestStructValidation(unittest.TestCase):
                              "f": [ "Foo", "Bar" ]
                              })
             self.assertTrue(False)
-        except ValueError, e:
+        except ValidationError, e:
             self.assertEqual(str(e), "Required member 'b' missing")
 
         # Validate failure - invalid int member type
@@ -87,5 +87,16 @@ class TestStructValidation(unittest.TestCase):
                              "f": [ "Foo", "Bar" ]
                              })
             self.assertTrue(False)
-        except ValueError, e:
-            self.assertEqual(str(e), "Invalid value '5' of type 'str' for member 'a'")
+        except ValidationError, e:
+            self.assertEqual(str(e), "Invalid value '5' (type 'str') for member 'a', expected 'TypeInt'")
+
+        # Validate failure - invalid array member type
+        try:
+            s = m.validate({ "a": 5,
+                             "b": "Hello",
+                             "c": { "d": True, "e": 5.5 },
+                             "f": [ 5, "Bar" ]
+                             })
+            self.assertTrue(False)
+        except ValidationError, e:
+            self.assertEqual(str(e), "Invalid value 5 (type 'int') for member 'f.0', expected 'TypeString'")
