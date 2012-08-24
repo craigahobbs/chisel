@@ -191,7 +191,7 @@ def parseSpec(inSpec, fileName = ""):
 
             # Duplicate enum value?
             if memId in curType.values:
-                errors.append("%s:%d: error: Duplicate enumeration '%s'" % (fileName, ixLine[0], memId))
+                errors.append("%s:%d: error: Duplicate enumeration value '%s'" % (fileName, ixLine[0], memId))
 
             # Add the enum value
             curType.values.append(memId)

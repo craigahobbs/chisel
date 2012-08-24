@@ -153,10 +153,10 @@ class TypeDict:
 # Enumeration type
 class TypeEnum:
 
-    def __init__(self, values = [], typeName = "enum"):
+    def __init__(self, values = None, typeName = "enum"):
 
         self.typeName = typeName
-        self.values = values
+        self.values = values or []
 
     def validate(self, value, isLoose = False, _member = ()):
 
