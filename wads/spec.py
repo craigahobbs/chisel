@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .model import Model, Action, Member, TypeStruct, TypeArray, TypeDict, TypeString, TypeInt, TypeFloat, TypeBool
+from .model import Model, Action, Member, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
 from .struct import Struct
 
 import re
@@ -17,9 +17,10 @@ _rePartAttr = "(\\[\s*(?P<attrs>" + _rePartId + "(\s*,\s*" + _rePartId + ")*)?\\
 _reFindAttr = re.compile(_rePartId + "(?:\s*,\s*|\s*\Z)")
 _reLineCont = re.compile("\\\s*$")
 _reComment = re.compile("^\s*(#.*)?$")
-_reDefinition = re.compile("^(?P<type>action|struct)\s+(?P<id>" + _rePartId + ")\s*$")
+_reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
 _reSection = re.compile("^\s+(?P<type>input|output)\s*$")
 _reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
+_reValue = re.compile("^\s+(?P<id>" + _rePartId + ")\s*$")
 
 # Types
 _types = {
@@ -72,6 +73,7 @@ def parseSpec(inSpec, fileName = ""):
         mDefinition = _reDefinition.search(line)
         mSection = _reSection.search(line)
         mMember = _reMember.search(line)
+        mValue = _reValue.search(line)
 
         # Comment?
         if mComment:
@@ -97,7 +99,7 @@ def parseSpec(inSpec, fileName = ""):
                 model.actions[curAction.name] = curAction
 
             # Struct definition
-            else:
+            elif defType == "struct":
 
                 # Type already defined?
                 if defId in _types or defId in model.types:
@@ -105,7 +107,19 @@ def parseSpec(inSpec, fileName = ""):
 
                 # Create the new struct type
                 curAction = None
-                curType = TypeStruct(defId)
+                curType = TypeStruct(typeName = defId)
+                model.types[curType.typeName] = curType
+
+            # Enum definition
+            else:
+
+                # Type already defined?
+                if defId in _types or defId in model.types:
+                    errors.append("%s:%d: error: Type '%s' already defined" % (fileName, ixLine[0], defId))
+
+                # Create the new enum type
+                curAction = None
+                curType = TypeEnum(typeName = defId)
                 model.types[curType.typeName] = curType
 
         # Section?
@@ -164,6 +178,23 @@ def parseSpec(inSpec, fileName = ""):
             member = Member(memId, memTypeInst)
             member.isOptional = memIsOptional
             curType.members.append(member)
+
+        # Enum value?
+        elif mValue:
+
+            memId = mValue.group("id")
+
+            # Not in an enum scope?
+            if not isinstance(curType, TypeEnum):
+                errors.append("%s:%d: error: Enumeration value outside of enum scope" % (fileName, ixLine[0]))
+                continue
+
+            # Duplicate enum value?
+            if memId in curType.values:
+                errors.append("%s:%d: error: Duplicate enumeration '%s'" % (fileName, ixLine[0], memId))
+
+            # Add the enum value
+            curType.values.append(memId)
 
         # Unrecognized line syntax
         else:

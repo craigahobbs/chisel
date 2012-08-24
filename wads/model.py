@@ -56,7 +56,7 @@ class ValidationError(Exception):
         return ValidationError(msg)
 
 
-# Struct type class
+# Struct type
 class TypeStruct:
 
     def __init__(self, typeName = "struct"):
@@ -96,7 +96,7 @@ class TypeStruct:
         return value
 
 
-# Array type class
+# Array type
 class TypeArray:
 
     def __init__(self, type, typeName = "array"):
@@ -120,7 +120,7 @@ class TypeArray:
         return value
 
 
-# Dict type class
+# Dict type
 class TypeDict:
 
     def __init__(self, type, typeName = "dict"):
@@ -150,7 +150,25 @@ class TypeDict:
         return value
 
 
-# "string" type class
+# Enumeration type
+class TypeEnum:
+
+    def __init__(self, values = [], typeName = "enum"):
+
+        self.typeName = typeName
+        self.values = values
+
+    def validate(self, value, isLoose = False, _member = ()):
+
+        if not isinstance(value, str):
+            raise ValidationError.memberError(self, value, _member)
+        elif value not in self.values:
+            raise ValidationError("Invalid enumeration value '%s' for '%s'" % (value, self.typeName))
+        else:
+            return value
+
+
+# String type
 class TypeString:
 
     def __init__(self, typeName = "string"):
@@ -165,7 +183,7 @@ class TypeString:
             raise ValidationError.memberError(self, value, _member)
 
 
-# "int" type class
+# Int type
 class TypeInt:
 
     def __init__(self, typeName = "int"):
@@ -184,7 +202,7 @@ class TypeInt:
             raise ValidationError.memberError(self, value, _member)
 
 
-# "float" type class
+# Float type
 class TypeFloat:
 
     def __init__(self, typeName = "float"):
@@ -203,7 +221,7 @@ class TypeFloat:
             raise ValidationError.memberError(self, value, _member)
 
 
-# "bool" type class
+# Bool type
 class TypeBool:
 
     def __init__(self, typeName = "bool"):

@@ -5,7 +5,7 @@
 #
 
 from wads import Struct, parseSpec, ValidationError
-from wads.model import TypeStruct, TypeArray, TypeDict, TypeString, TypeInt, TypeFloat, TypeBool
+from wads.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
 
 import unittest
 
@@ -35,6 +35,11 @@ class TestParseSpec(unittest.TestCase):
     def test_simple(self):
 
         m, errors = parseSpec("""
+# This is an enum
+enum MyEnum
+    Foo
+    Bar
+
 # This is the struct
 struct MyStruct
 
@@ -64,10 +69,17 @@ action MyAction
         bool c
 """)
 
-        # Check errors
+        # Check errors & counts
         self.assertEqual(len(errors), 0)
+        self.assertEqual(len(m.types), 3)
+        self.assertEqual(len(m.actions), 1)
 
-        # Check types
+        # Check enum types
+        self.assertTrue(isinstance(m.types["MyEnum"], TypeEnum))
+        self.assertEqual(m.types["MyEnum"].typeName, "MyEnum")
+        self.assertEqual(m.types["MyEnum"].values, ["Foo", "Bar"])
+
+        # Check struct types
         self.assertStructMembers(m, "MyStruct",
                                  (("a", TypeString, False),
                                   ("b", TypeInt, False)))
@@ -85,8 +97,6 @@ action MyAction
         self.assertTrue(isinstance(m.types["MyStruct2"].members[6].type.type, TypeFloat))
 
         # Check actions
-        self.assertEqual(len(m.actions), 1)
-        self.assertTrue("MyAction" in m.actions)
         self.assertActionMembers(m, "MyAction",
                                 (("a", TypeInt, False),
                                  ("b", TypeString, True)),

@@ -5,7 +5,7 @@
 #
 
 from wads import Struct, ValidationError
-from wads.model import Member, TypeStruct, TypeArray, TypeDict, TypeString, TypeInt, TypeFloat, TypeBool
+from wads.model import Member, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
 
 import unittest
 
@@ -25,13 +25,15 @@ class TestStructValidation(unittest.TestCase):
         m.members.append(Member("c", mc))
         m.members.append(Member("f", TypeArray(TypeString())))
         m.members.append(Member("g", TypeDict(TypeInt()), isOptional = True))
+        m.members.append(Member("h", TypeEnum(values = ["Foo", "Bar"]), isOptional = True))
 
         # Validate success
         s = m.validate({ "a": 5,
                          "b": "Hello",
                          "c": Struct({ "d": True, "e": 5.5 }),
                          "f": [ "Foo", "Bar" ],
-                         "g": { "Foo": 5 }
+                         "g": { "Foo": 5 },
+                         "h": "Foo"
                          })
         self.assertTrue(isinstance(s, dict))
         self.assertTrue(isinstance(s["a"], int))
@@ -48,6 +50,8 @@ class TestStructValidation(unittest.TestCase):
         self.assertEqual(s["f"][0], "Foo")
         self.assertTrue(isinstance(s["f"][1], str))
         self.assertEqual(s["f"][1], "Bar")
+        self.assertEqual(s["g"]["Foo"], 5)
+        self.assertEqual(s["h"], "Foo")
 
         # Validate success - loosely
         s = m.validate(Struct({ "a": "5",
@@ -121,8 +125,20 @@ class TestStructValidation(unittest.TestCase):
                              "b": "Hello",
                              "c": { "d": True, "e": 5.5 },
                              "f": [ "Foo", "Bar" ],
-                             "g": { "Foo": "Bar" }
+                             "g": Struct({ "Foo": "Bar" })
                              })
             self.assertTrue(False)
         except ValidationError, e:
             self.assertEqual(str(e), "Invalid value 'Bar' (type 'str') for member 'g.Foo', expected type 'int'")
+
+        # Validate failure - invalid enum value
+        try:
+            s = m.validate({ "a": 5,
+                             "b": "Hello",
+                             "c": { "d": True, "e": 5.5 },
+                             "f": [ "Foo", "Bar" ],
+                             "h": "Bonk"
+                             })
+            self.assertTrue(False)
+        except ValidationError, e:
+            self.assertEqual(str(e), "Invalid enumeration value 'Bonk' for 'enum'")
