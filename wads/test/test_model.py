@@ -88,7 +88,7 @@ class TestStructValidation(unittest.TestCase):
                              })
             self.assertTrue(False)
         except ValidationError, e:
-            self.assertEqual(str(e), "Invalid value '5' (type 'str') for member 'a', expected 'TypeInt'")
+            self.assertEqual(str(e), "Invalid value '5' (type 'str') for member 'a', expected type 'int'")
 
         # Validate failure - invalid array member type
         try:
@@ -99,4 +99,4 @@ class TestStructValidation(unittest.TestCase):
                              })
             self.assertTrue(False)
         except ValidationError, e:
-            self.assertEqual(str(e), "Invalid value 5 (type 'int') for member 'f.0', expected 'TypeString'")
+            self.assertEqual(str(e), "Invalid value 5 (type 'int') for member 'f.0', expected type 'string'")

@@ -8,12 +8,12 @@ from .struct import Struct
 
 
 # Specification class
-class Spec:
+class Model:
 
     def __init__(self):
 
-        self.actions = {}
         self.types = {}
+        self.actions = {}
 
 
 # Action class
@@ -43,22 +43,22 @@ class ValidationError(Exception):
 
         Exception.__init__(self, msg)
 
-    @classmethod
-    def memberError(cls, typeInst, value, member):
+    @staticmethod
+    def memberError(typeInst, value, member):
 
+        valueTypeName = type(value).__name__ if isinstance(value.__class__, type) else value.__class__.__name__
         memberDescription = (" for member '%s'" % (".".join(member))) if member else ""
-        msg = "Invalid value %r (type %r)%s, expected '%s'" % \
-            (value, type(value).__name__, memberDescription, typeInst.__class__.__name__)
-        return cls(msg)
+        msg = "Invalid value %r (type %r)%s, expected type '%s'" % \
+            (value, valueTypeName, memberDescription, typeInst.typeName)
+        return ValidationError(msg)
 
 
 # Struct type class
 class TypeStruct:
 
-    TypeName = None
+    def __init__(self, typeName = "struct"):
 
-    def __init__(self):
-
+        self.typeName = typeName
         self.members = []
 
     def validate(self, value, isLoose = False, _member = ()):
@@ -99,8 +99,9 @@ class TypeArray:
 
     TypeName = None
 
-    def __init__(self, type):
+    def __init__(self, type, typeName = "array"):
 
+        self.typeName = typeName
         self.type = type
 
     def validate(self, value, isLoose = False, _member = ()):
@@ -122,7 +123,9 @@ class TypeArray:
 # "string" type class
 class TypeString:
 
-    TypeName = "string"
+    def __init__(self, typeName = "string"):
+
+        self.typeName = typeName
 
     def validate(self, value, isLoose = False, _member = ()):
 
@@ -135,7 +138,9 @@ class TypeString:
 # "int" type class
 class TypeInt:
 
-    TypeName = "int"
+    def __init__(self, typeName = "int"):
+
+        self.typeName = typeName
 
     def validate(self, value, isLoose = False, _member = ()):
 
@@ -152,7 +157,9 @@ class TypeInt:
 # "float" type class
 class TypeFloat:
 
-    TypeName = "float"
+    def __init__(self, typeName = "float"):
+
+        self.typeName = typeName
 
     def validate(self, value, isLoose = False, _member = ()):
 
@@ -169,7 +176,9 @@ class TypeFloat:
 # "bool" type class
 class TypeBool:
 
-    TypeName = "bool"
+    def __init__(self, typeName = "bool"):
+
+        self.typeName = typeName
 
     def validate(self, value, isLoose = False, _member = ()):
 
