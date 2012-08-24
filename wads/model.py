@@ -29,11 +29,11 @@ class Action:
 # Struct member
 class Member:
 
-    def __init__(self, name, type):
+    def __init__(self, name, type, isOptional = False):
 
         self.name = name
         self.type = type
-        self.isOptional = False
+        self.isOptional = isOptional
 
 
 # Type validation exception
@@ -46,8 +46,11 @@ class ValidationError(Exception):
     @staticmethod
     def memberError(typeInst, value, member):
 
-        valueTypeName = type(value).__name__ if isinstance(value.__class__, type) else value.__class__.__name__
-        memberDescription = (" for member '%s'" % (".".join(member))) if member else ""
+        if isinstance(value, Struct):
+            valueTypeName = "struct"
+        else:
+            valueTypeName = value.__class__.__name__
+        memberDescription = (" for member '%s'" % (".".join([str(x) for x in member]))) if member else ""
         msg = "Invalid value %r (type %r)%s, expected type '%s'" % \
             (value, valueTypeName, memberDescription, typeInst.typeName)
         return ValidationError(msg)
@@ -63,10 +66,8 @@ class TypeStruct:
 
     def validate(self, value, isLoose = False, _member = ()):
 
-        # Convert value to Struct, if necessary
-        if isinstance(value, dict):
-            value = Struct(value)
-        elif not isinstance(value, Struct):
+        # Validate dict value type
+        if not isinstance(value, dict) and not isinstance(value, Struct):
             raise ValidationError.memberError(self, value, _member)
 
         # Validate members
@@ -77,14 +78,15 @@ class TypeStruct:
             memberNames[member.name] = member
 
             # Is the required member not present?
-            memberValue = value[member.name]
-            if not member.isOptional and memberValue is None:
-                raise ValidationError("Required member %r missing" % (member.name))
-
-            # Validate the member value
-            memberValueNew = member.type.validate(value[member.name], isLoose, _member = _member + (member.name,))
-            if memberValueNew is not memberValue:
-                value[member.name] = memberValueNew
+            memberValue = (value if isinstance(value, dict) else value()).get(member.name)
+            if memberValue is None:
+                if not member.isOptional:
+                    raise ValidationError("Required member %r missing" % (member.name))
+            else:
+                # Validate the member value
+                memberValueNew = member.type.validate(memberValue, isLoose, _member = _member + (member.name,))
+                if memberValueNew is not memberValue:
+                    value[member.name] = memberValueNew
 
         # Check for invalid members
         for valueKey in value:
@@ -96,8 +98,6 @@ class TypeStruct:
 
 # Array type class
 class TypeArray:
-
-    TypeName = None
 
     def __init__(self, type, typeName = "array"):
 
@@ -116,6 +116,36 @@ class TypeArray:
             arrayValueNew = self.type.validate(arrayValue, isLoose, _member = _member + (str(ix),))
             if arrayValueNew is not arrayValue:
                 value[ix] = arrayValueNew
+
+        return value
+
+
+# Dict type class
+class TypeDict:
+
+    def __init__(self, type, typeName = "dict"):
+
+        self.typeName = typeName
+        self.type = type
+
+    def validate(self, value, isLoose = False, _member = ()):
+
+        # Validate dict value type
+        if not isinstance(value, dict) and not isinstance(value, Struct):
+            raise ValidationError.memberError(self, value, _member)
+
+        # Validate the dict key/value pairs
+        for key in value:
+
+            # Dict keys must be strings
+            if not isinstance(key, str):
+                raise ValidationError.memberError(TypeString(), key, _member + (key,))
+
+            # Validate the value
+            dictValue = value[key]
+            dictValueNew = self.type.validate(dictValue, isLoose, _member = _member + (key,))
+            if dictValueNew is not dictValue:
+                value[key] = dictValueNew
 
         return value
 

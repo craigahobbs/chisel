@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .model import Model, Action, Member, TypeStruct, TypeArray, TypeString, TypeInt, TypeFloat, TypeBool
+from .model import Model, Action, Member, TypeStruct, TypeArray, TypeDict, TypeString, TypeInt, TypeFloat, TypeBool
 from .struct import Struct
 
 import re
@@ -19,7 +19,7 @@ _reLineCont = re.compile("\\\s*$")
 _reComment = re.compile("^\s*(#.*)?$")
 _reDefinition = re.compile("^(?P<type>action|struct)\s+(?P<id>" + _rePartId + ")\s*$")
 _reSection = re.compile("^\s+(?P<type>input|output)\s*$")
-_reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")(?P<isArray>\\[\\])?\s+(?P<id>" + _rePartId + ")\s*$")
+_reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
 
 # Types
 _types = {
@@ -128,6 +128,7 @@ def parseSpec(inSpec, fileName = ""):
             memIsOptional = "optional" in memAttrs
             memTypeName = mMember.group("type")
             memIsArray = mMember.group("isArray")
+            memIsDict = mMember.group("isDict")
             memId = mMember.group("id")
 
             # Not in a struct scope?
@@ -145,9 +146,11 @@ def parseSpec(inSpec, fileName = ""):
                     errors.append("%s:%d: error: Unknown member type '%s'" % (fileName, ixLine[0], memTypeName))
                     continue
 
-            # Array type?
+            # Array or dict type?
             if memIsArray:
-                memTypeInst = TypeArray(memTypeInst, typeName = "array")
+                memTypeInst = TypeArray(memTypeInst)
+            elif memIsDict:
+                memTypeInst = TypeDict(memTypeInst)
 
             # Unknown attributes?
             for attr in [attr for attr in memAttrs if attr not in ("optional")]:
@@ -164,7 +167,6 @@ def parseSpec(inSpec, fileName = ""):
 
         # Unrecognized line syntax
         else:
-
             errors.append("%s:%d: error: Syntax error" % (fileName, ixLine[0]))
 
     return model, errors

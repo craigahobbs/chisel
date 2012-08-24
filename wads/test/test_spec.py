@@ -5,13 +5,32 @@
 #
 
 from wads import Struct, parseSpec, ValidationError
-from wads.model import TypeStruct, TypeArray, TypeString, TypeInt, TypeFloat, TypeBool
+from wads.model import TypeStruct, TypeArray, TypeDict, TypeString, TypeInt, TypeFloat, TypeBool
 
 import unittest
 
 
 # Struct validation tests
 class TestParseSpec(unittest.TestCase):
+
+    def assertMembers(self, struct, members):
+        self.assertEqual(len(struct.members), len(members))
+        for ixMember in xrange(0, len(members)):
+            name, type, isOptional = members[ixMember]
+            self.assertTrue(isinstance(struct, TypeStruct))
+            self.assertEqual(struct.members[ixMember].name, name)
+            self.assertTrue(isinstance(struct.members[ixMember].type, type))
+            self.assertEqual(struct.members[ixMember].isOptional, isOptional)
+
+    def assertStructMembers(self, model, typeName, members):
+        self.assertEqual(model.types[typeName].typeName, typeName)
+        self.assertMembers(model.types[typeName], members)
+
+    def assertActionMembers(self, model, actionName, inputMembers, outputMembers):
+        self.assertEqual(model.actions[actionName].inputType.typeName, "struct")
+        self.assertEqual(model.actions[actionName].outputType.typeName, "struct")
+        self.assertMembers(model.actions[actionName].inputType, inputMembers)
+        self.assertMembers(model.actions[actionName].outputType, outputMembers)
 
     def test_simple(self):
 
@@ -34,6 +53,7 @@ struct MyStruct2
     bool d
     int[] e
     [optional] MyStruct[] f
+    [optional] float{} g
 
 # The action
 action MyAction
@@ -48,58 +68,26 @@ action MyAction
         self.assertEqual(len(errors), 0)
 
         # Check types
-        self.assertEqual(len(errors), 0)
-        self.assertTrue("MyStruct" in m.types)
-        self.assertTrue("MyStruct2" in m.types)
-        self.assertTrue(isinstance(m.types["MyStruct"], TypeStruct))
-        self.assertEqual(m.types["MyStruct"].typeName, "MyStruct")
-        self.assertEqual(len(m.types["MyStruct"].members), 2)
-        self.assertEqual(m.types["MyStruct"].members[0].name, "a")
-        self.assertTrue(isinstance(m.types["MyStruct"].members[0].type, TypeString))
-        self.assertFalse(m.types["MyStruct"].members[0].isOptional)
-        self.assertEqual(m.types["MyStruct"].members[1].name, "b")
-        self.assertTrue(isinstance(m.types["MyStruct"].members[1].type, TypeInt))
-        self.assertFalse(m.types["MyStruct"].members[1].isOptional)
-        self.assertTrue(isinstance(m.types["MyStruct2"], TypeStruct))
-        self.assertEqual(m.types["MyStruct2"].typeName, "MyStruct2")
-        self.assertEqual(len(m.types["MyStruct2"].members), 6)
-        self.assertEqual(m.types["MyStruct2"].members[0].name, "a")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[0].type, TypeInt))
-        self.assertFalse(m.types["MyStruct2"].members[0].isOptional)
-        self.assertEqual(m.types["MyStruct2"].members[1].name, "b")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[1].type, TypeFloat))
-        self.assertTrue(m.types["MyStruct2"].members[1].isOptional)
-        self.assertEqual(m.types["MyStruct2"].members[2].name, "c")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[2].type, TypeString))
-        self.assertFalse(m.types["MyStruct2"].members[2].isOptional)
-        self.assertEqual(m.types["MyStruct2"].members[3].name, "d")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[3].type, TypeBool))
-        self.assertFalse(m.types["MyStruct2"].members[3].isOptional)
-        self.assertEqual(m.types["MyStruct2"].members[4].name, "e")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[4].type, TypeArray))
+        self.assertStructMembers(m, "MyStruct",
+                                 (("a", TypeString, False),
+                                  ("b", TypeInt, False)))
+        self.assertStructMembers(m, "MyStruct2",
+                                 (("a", TypeInt, False),
+                                  ("b", TypeFloat, True),
+                                  ("c", TypeString, False),
+                                  ("d", TypeBool, False),
+                                  ("e", TypeArray, False),
+                                  ("f", TypeArray, True),
+                                  ("g", TypeDict, True)))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[4].type.type, TypeInt))
-        self.assertFalse(m.types["MyStruct2"].members[4].isOptional)
-        self.assertEqual(m.types["MyStruct2"].members[5].name, "f")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[5].type, TypeArray))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[5].type.type, TypeStruct))
         self.assertEqual(m.types["MyStruct2"].members[5].type.type.typeName, "MyStruct")
-        self.assertTrue(m.types["MyStruct2"].members[5].isOptional)
+        self.assertTrue(isinstance(m.types["MyStruct2"].members[6].type.type, TypeFloat))
 
         # Check actions
         self.assertEqual(len(m.actions), 1)
         self.assertTrue("MyAction" in m.actions)
-        self.assertTrue(isinstance(m.actions["MyAction"].inputType, TypeStruct))
-        self.assertEqual(m.actions["MyAction"].inputType.typeName, "struct")
-        self.assertEqual(len(m.actions["MyAction"].inputType.members), 2)
-        self.assertEqual(m.actions["MyAction"].inputType.members[0].name, "a")
-        self.assertTrue(isinstance(m.actions["MyAction"].inputType.members[0].type, TypeInt))
-        self.assertFalse(m.actions["MyAction"].inputType.members[0].isOptional)
-        self.assertEqual(m.actions["MyAction"].inputType.members[1].name, "b")
-        self.assertTrue(isinstance(m.actions["MyAction"].inputType.members[1].type, TypeString))
-        self.assertTrue(m.actions["MyAction"].inputType.members[1].isOptional)
-        self.assertTrue(isinstance(m.actions["MyAction"].outputType, TypeStruct))
-        self.assertEqual(m.actions["MyAction"].outputType.typeName, "struct")
-        self.assertEqual(len(m.actions["MyAction"].outputType.members), 1)
-        self.assertEqual(m.actions["MyAction"].outputType.members[0].name, "c")
-        self.assertTrue(isinstance(m.actions["MyAction"].outputType.members[0].type, TypeBool))
-        self.assertFalse(m.actions["MyAction"].outputType.members[0].isOptional)
+        self.assertActionMembers(m, "MyAction",
+                                (("a", TypeInt, False),
+                                 ("b", TypeString, True)),
+                                (("c", TypeBool, False),))
