@@ -8,6 +8,6 @@ __all__ = [ "server", "struct", "url" ]
 
 from .model import ValidationError
 from .server import serializeJSON, RequestHandler
-from .spec import parseSpec
+from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString, encodeQueryString

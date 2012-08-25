@@ -4,9 +4,10 @@
 # See README.md for license.
 #
 
-from wads import Struct, parseSpec, ValidationError
+from wads import Struct, SpecParser, ValidationError
 from wads.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
 
+from StringIO import StringIO
 import unittest
 
 
@@ -34,7 +35,8 @@ class TestParseSpec(unittest.TestCase):
 
     def test_simple(self):
 
-        m, errors = parseSpec("""
+        parser = SpecParser()
+        parser.parse(StringIO("""
 # This is an enum
 enum MyEnum
     Foo
@@ -67,10 +69,12 @@ action MyAction
         [optional] string b
     output
         bool c
-""")
+"""))
+        parser.finalize()
+        m = parser.model
 
         # Check errors & counts
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(parser.errors), 0)
         self.assertEqual(len(m.types), 3)
         self.assertEqual(len(m.actions), 1)
 
@@ -101,3 +105,52 @@ action MyAction
                                 (("a", TypeInt, False),
                                  ("b", TypeString, True)),
                                 (("c", TypeBool, False),))
+
+    def test_multiple(self):
+
+        parser = SpecParser()
+        parser.parse(StringIO("""
+action MyAction
+    input
+        MyStruct2 a
+    output
+        MyStruct b
+
+struct MyStruct
+    string c
+"""))
+        parser.parse(StringIO("""
+action MyAction2
+    input
+        MyStruct d
+    output
+        MyStruct2 e
+
+struct MyStruct2
+    string f
+"""))
+        parser.finalize()
+        m = parser.model
+
+        # Check errors & counts
+        self.assertEqual(len(parser.errors), 0)
+        self.assertEqual(len(m.types), 2)
+        self.assertEqual(len(m.actions), 2)
+
+        # Check struct types
+        self.assertStructMembers(m, "MyStruct",
+                                 (("c", TypeString, False),))
+        self.assertStructMembers(m, "MyStruct2",
+                                 (("f", TypeString, False),))
+
+        # Check actions
+        self.assertActionMembers(m, "MyAction",
+                                (("a", TypeStruct, False),),
+                                (("b", TypeStruct, False),))
+        self.assertEqual(m.actions["MyAction"].inputType.members[0].type.typeName, "MyStruct2")
+        self.assertEqual(m.actions["MyAction"].outputType.members[0].type.typeName, "MyStruct")
+        self.assertActionMembers(m, "MyAction2",
+                                (("d", TypeStruct, False),),
+                                (("e", TypeStruct, False),))
+        self.assertEqual(m.actions["MyAction2"].inputType.members[0].type.typeName, "MyStruct")
+        self.assertEqual(m.actions["MyAction2"].outputType.members[0].type.typeName, "MyStruct2")
