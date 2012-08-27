@@ -17,10 +17,11 @@ class TestParseSpec(unittest.TestCase):
     def assertMembers(self, struct, members):
         self.assertEqual(len(struct.members), len(members))
         for ixMember in xrange(0, len(members)):
-            name, type, isOptional = members[ixMember]
+            name, typeInstOrType, isOptional = members[ixMember]
             self.assertTrue(isinstance(struct, TypeStruct))
             self.assertEqual(struct.members[ixMember].name, name)
-            self.assertTrue(isinstance(struct.members[ixMember].type, type))
+            self.assertTrue(struct.members[ixMember].typeInst is typeInstOrType or
+                            isinstance(struct.members[ixMember].typeInst, typeInstOrType))
             self.assertEqual(struct.members[ixMember].isOptional, isOptional)
 
     def assertStructMembers(self, model, typeName, members):
@@ -36,7 +37,7 @@ class TestParseSpec(unittest.TestCase):
     def test_simple(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""
+        parser.parse(StringIO("""\
 # This is an enum
 enum MyEnum
     Foo
@@ -95,10 +96,10 @@ action MyAction
                                   ("e", TypeArray, False),
                                   ("f", TypeArray, True),
                                   ("g", TypeDict, True)))
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[4].type.type, TypeInt))
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[5].type.type, TypeStruct))
-        self.assertEqual(m.types["MyStruct2"].members[5].type.type.typeName, "MyStruct")
-        self.assertTrue(isinstance(m.types["MyStruct2"].members[6].type.type, TypeFloat))
+        self.assertTrue(isinstance(m.types["MyStruct2"].members[4].typeInst.typeInst, TypeInt))
+        self.assertTrue(isinstance(m.types["MyStruct2"].members[5].typeInst.typeInst, TypeStruct))
+        self.assertEqual(m.types["MyStruct2"].members[5].typeInst.typeInst.typeName, "MyStruct")
+        self.assertTrue(isinstance(m.types["MyStruct2"].members[6].typeInst.typeInst, TypeFloat))
 
         # Check actions
         self.assertActionMembers(m, "MyAction",
@@ -109,17 +110,24 @@ action MyAction
     def test_multiple(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""
+        parser.parse(StringIO("""\
+enum MyEnum
+    A
+    B
+
 action MyAction
     input
         MyStruct2 a
     output
         MyStruct b
+        MyEnum2 c
 
 struct MyStruct
     string c
+    MyEnum2 d
+    MyStruct2 e
 """))
-        parser.parse(StringIO("""
+        parser.parse(StringIO("""\
 action MyAction2
     input
         MyStruct d
@@ -128,29 +136,73 @@ action MyAction2
 
 struct MyStruct2
     string f
+    MyEnum2 g
+
+enum MyEnum2
+    C
+    D
 """))
         parser.finalize()
         m = parser.model
 
         # Check errors & counts
         self.assertEqual(len(parser.errors), 0)
-        self.assertEqual(len(m.types), 2)
+        self.assertEqual(len(m.types), 4)
         self.assertEqual(len(m.actions), 2)
+
+        # Check enum types
+        self.assertTrue(isinstance(m.types["MyEnum"], TypeEnum))
+        self.assertEqual(m.types["MyEnum"].typeName, "MyEnum")
+        self.assertEqual(m.types["MyEnum"].values, ["A", "B"])
+        self.assertTrue(isinstance(m.types["MyEnum2"], TypeEnum))
+        self.assertEqual(m.types["MyEnum2"].typeName, "MyEnum2")
+        self.assertEqual(m.types["MyEnum2"].values, ["C", "D"])
 
         # Check struct types
         self.assertStructMembers(m, "MyStruct",
-                                 (("c", TypeString, False),))
+                                 (("c", TypeString, False),
+                                  ("d", m.types["MyEnum2"], False),
+                                  ("e", m.types["MyStruct2"], False)))
         self.assertStructMembers(m, "MyStruct2",
-                                 (("f", TypeString, False),))
+                                 (("f", TypeString, False),
+                                  ("g", m.types["MyEnum2"], False)))
 
         # Check actions
         self.assertActionMembers(m, "MyAction",
                                 (("a", TypeStruct, False),),
-                                (("b", TypeStruct, False),))
-        self.assertEqual(m.actions["MyAction"].inputType.members[0].type.typeName, "MyStruct2")
-        self.assertEqual(m.actions["MyAction"].outputType.members[0].type.typeName, "MyStruct")
+                                (("b", TypeStruct, False),
+                                 ("c", m.types["MyEnum2"], False)))
+        self.assertEqual(m.actions["MyAction"].inputType.members[0].typeInst.typeName, "MyStruct2")
+        self.assertEqual(m.actions["MyAction"].outputType.members[0].typeInst.typeName, "MyStruct")
         self.assertActionMembers(m, "MyAction2",
                                 (("d", TypeStruct, False),),
                                 (("e", TypeStruct, False),))
-        self.assertEqual(m.actions["MyAction2"].inputType.members[0].type.typeName, "MyStruct")
-        self.assertEqual(m.actions["MyAction2"].outputType.members[0].type.typeName, "MyStruct2")
+        self.assertEqual(m.actions["MyAction2"].inputType.members[0].typeInst.typeName, "MyStruct")
+        self.assertEqual(m.actions["MyAction2"].outputType.members[0].typeInst.typeName, "MyStruct2")
+
+    def test_unknown_type(self):
+
+        parser = SpecParser()
+        parser.parse(StringIO("""\
+struct Foo
+    MyBadType a
+
+action MyAction
+    input
+        MyBadType2 a
+    output
+        MyBadType b
+"""), fileName = "foo")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 3)
+        self.assertEqual(len(m.types), 1)
+        self.assertEqual(len(m.actions), 1)
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         ["foo:2: error: Unknown member type 'MyBadType'",
+                          "foo:6: error: Unknown member type 'MyBadType2'",
+                          "foo:8: error: Unknown member type 'MyBadType'"])

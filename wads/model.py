@@ -29,10 +29,10 @@ class Action:
 # Struct member
 class Member:
 
-    def __init__(self, name, type, isOptional = False):
+    def __init__(self, name, typeInst, isOptional = False):
 
         self.name = name
-        self.type = type
+        self.typeInst = typeInst
         self.isOptional = isOptional
 
 
@@ -84,7 +84,7 @@ class TypeStruct:
                     raise ValidationError("Required member %r missing" % (member.name))
             else:
                 # Validate the member value
-                memberValueNew = member.type.validate(memberValue, isLoose, _member = _member + (member.name,))
+                memberValueNew = member.typeInst.validate(memberValue, isLoose, _member = _member + (member.name,))
                 if memberValueNew is not memberValue:
                     value[member.name] = memberValueNew
 
@@ -99,10 +99,10 @@ class TypeStruct:
 # Array type
 class TypeArray:
 
-    def __init__(self, type, typeName = "array"):
+    def __init__(self, typeInst, typeName = "array"):
 
         self.typeName = typeName
-        self.type = type
+        self.typeInst = typeInst
 
     def validate(self, value, isLoose = False, _member = ()):
 
@@ -113,7 +113,7 @@ class TypeArray:
         # Validate the list contents
         for ix in xrange(0, len(value)):
             arrayValue = value[ix]
-            arrayValueNew = self.type.validate(arrayValue, isLoose, _member = _member + (str(ix),))
+            arrayValueNew = self.typeInst.validate(arrayValue, isLoose, _member = _member + (str(ix),))
             if arrayValueNew is not arrayValue:
                 value[ix] = arrayValueNew
 
@@ -123,10 +123,10 @@ class TypeArray:
 # Dict type
 class TypeDict:
 
-    def __init__(self, type, typeName = "dict"):
+    def __init__(self, typeInst, typeName = "dict"):
 
         self.typeName = typeName
-        self.type = type
+        self.typeInst = typeInst
 
     def validate(self, value, isLoose = False, _member = ()):
 
@@ -143,7 +143,7 @@ class TypeDict:
 
             # Validate the value
             dictValue = value[key]
-            dictValueNew = self.type.validate(dictValue, isLoose, _member = _member + (key,))
+            dictValueNew = self.typeInst.validate(dictValue, isLoose, _member = _member + (key,))
             if dictValueNew is not dictValue:
                 value[key] = dictValueNew
 
