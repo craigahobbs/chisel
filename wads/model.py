@@ -91,7 +91,7 @@ class TypeStruct:
         # Check for invalid members
         for valueKey in value:
             if valueKey not in memberNames:
-                raise ValidationError("Invalid member %r" % (member.name))
+                raise ValidationError("Invalid member %r" % (valueKey))
 
         return value
 
@@ -138,7 +138,7 @@ class TypeDict:
         for key in value:
 
             # Dict keys must be strings
-            if not isinstance(key, str):
+            if not isinstance(key, basestring):
                 raise ValidationError.memberError(TypeString(), key, _member + (key,))
 
             # Validate the value
@@ -160,7 +160,7 @@ class TypeEnum:
 
     def validate(self, value, isLoose = False, _member = ()):
 
-        if not isinstance(value, str):
+        if not isinstance(value, basestring):
             raise ValidationError.memberError(self, value, _member)
         elif value not in self.values:
             raise ValidationError("Invalid enumeration value '%s' for '%s'" % (value, self.typeName))
@@ -177,7 +177,7 @@ class TypeString:
 
     def validate(self, value, isLoose = False, _member = ()):
 
-        if isinstance(value, str):
+        if isinstance(value, basestring):
             return value
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -196,7 +196,7 @@ class TypeInt:
             return value
         elif isinstance(value, float) and int(value) == value:
             return int(value)
-        elif isLoose and isinstance(value, str):
+        elif isLoose and isinstance(value, basestring):
             return int(value)
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -215,7 +215,7 @@ class TypeFloat:
             return value
         elif isinstance(value, int):
             return float(value)
-        elif isLoose and isinstance(value, str):
+        elif isLoose and isinstance(value, basestring):
             return float(value)
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -232,7 +232,7 @@ class TypeBool:
 
         if isinstance(value, bool):
             return value
-        elif isLoose and isinstance(value, str) and value in ("true", "false"):
+        elif isLoose and isinstance(value, basestring) and value in ("true", "false"):
             return value in ("true")
         else:
             raise ValidationError.memberError(self, value, _member)

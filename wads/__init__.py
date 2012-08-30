@@ -7,7 +7,7 @@
 __all__ = [ "server", "struct", "url" ]
 
 from .model import ValidationError
-from .server import serializeJSON, RequestHandler
+from .server import serializeJSON, Application
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString, encodeQueryString
