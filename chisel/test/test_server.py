@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from wads import encodeQueryString, Application, SpecParser, Struct
+from chisel import encodeQueryString, Application, SpecParser, Struct
 
 import json
 import logging

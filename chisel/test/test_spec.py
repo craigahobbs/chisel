@@ -4,8 +4,8 @@
 # See README.md for license.
 #
 
-from wads import Struct, SpecParser, ValidationError
-from wads.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
+from chisel import Struct, SpecParser, ValidationError
+from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
 
 from StringIO import StringIO
 import unittest

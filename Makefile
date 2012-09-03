@@ -8,7 +8,7 @@
 # Run unit tests
 .PHONY: test
 test:
-	python -m unittest discover -t . -s wads/test -p 'test_*.py' $(if $(VERBOSE),-v,)
+	python -m unittest discover -t . -s chisel/test -p 'test_*.py' $(if $(VERBOSE),-v,)
 
 # Build the source distribution
 .PHONY: sdist

@@ -13,12 +13,12 @@ def read(fname):
         return fh.read()
 
 setup(
-    name = "wads",
+    name = "chisel",
     version = "0.1.0",
     author = "Craig Hobbs",
     author_email = "craigahobbs@gmail.com",
-    description = ("Web APIs Dirt-Simple (WADS)"),
+    description = ("Chisel - JSON web APIs made dirt simple"),
     keywords = "json api server framework",
-    packages = ['wads'],
+    packages = ['chisel'],
     long_description = read('README.txt')
     )

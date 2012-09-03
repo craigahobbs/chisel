@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from wads import decodeQueryString, encodeQueryString, Struct
+from chisel import decodeQueryString, encodeQueryString, Struct
 
 import unittest
 

@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from wads import Struct
+from chisel import Struct
 
 import unittest
 
