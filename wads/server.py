@@ -4,6 +4,7 @@
 # See README.md for license.
 #
 
+from .model import ValidationError, TypeStruct, Member, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString
@@ -35,18 +36,18 @@ def serializeJSON(o, pretty = False):
 # API server response handler
 class Application:
 
-    # File extensions
-    specFileExtension = ".chsl"
-    moduleFileExtension = ".py"
-
-    # JSONP callback reserved member name
-    jsonpMember = "jsonp"
-
     # Class initializer
     def __init__(self):
 
         self._actionCallbacks = {}
         self._actionModels = {}
+
+        # File extensions
+        self.specFileExtension = ".chsl"
+        self.moduleFileExtension = ".py"
+
+        # JSONP callback reserved member name
+        self.jsonpMember = "jsonp"
 
     # Logger accessor
     def getLogger(self):
@@ -141,17 +142,29 @@ class Application:
         for actionModel in parser.model.actions.itervalues():
             self.addActionModel(actionModel)
 
-    # Request exception helper class
-    class _RequestException(Exception):
-        def __init__(self, error, message):
-            Exception.__init__(self, message)
-            self.error = error
+    # Helper to form an error response
+    def _errorResponse(self, error, message):
 
-    # Request exception helper method
-    def _requestException(self, error, message):
+        response = Struct()
+        response.error = error
+        response.message = message
+        return response
 
-        self.getLogger().info(message)
-        raise self._RequestException(error, message)
+    # Helper to create an error response type instance
+    def _errorResponseTypeInst(self, errorTypeInst = None):
+
+        errorResponseTypeInst = TypeStruct()
+        if errorTypeInst is None:
+            errorTypeInst = TypeEnum(("InvalidContentLength",
+                                      "InvalidInput",
+                                      "InvalidOutput",
+                                      "IOError",
+                                      "UnexpectedError",
+                                      "UnknownAction",
+                                      "UnknownRequestMethod"))
+        errorResponseTypeInst.members.append(Member("error", errorTypeInst))
+        errorResponseTypeInst.members.append(Member("message", TypeString(), isOptional = True))
+        return errorResponseTypeInst
 
     # Request handling helper method
     def _handleRequest(self, environ, start_response):
@@ -162,16 +175,14 @@ class Application:
         envContentLength = environ.get("CONTENT_LENGTH")
         envWsgiInput = environ["wsgi.input"]
 
-        # Match an action
-        actionName = envPathInfo.split("/")[-1]
-        actionCallback = self._actionCallbacks.get(actionName)
-        actionModel = self._actionModels.get(actionName)
-        if actionCallback is None or actionModel is None:
-            self._requestException("UnknownAction", "Request for unknown action '%s'" % (actionName))
-
-        # Get the request
+        # Server error return helper
         jsonpFunction = None
-        if envRequestMethod == "GET":
+        def serverError(error, message):
+            return self._errorResponseTypeInst(), self._errorResponse(error, message), jsonpFunction
+
+        # Get the request content
+        isGetRequest = (envRequestMethod == "GET")
+        if isGetRequest:
 
             # Parse the query string
             if not envQueryString:
@@ -186,7 +197,7 @@ class Application:
 
         elif envRequestMethod != "POST":
 
-            self._requestException("UnknownRequestMethod", "Unknown request method '%s'" % (envRequestMethod))
+            return serverError("UnknownRequestMethod", "Unknown request method '%s'" % (envRequestMethod))
 
         else: # POST
 
@@ -194,41 +205,58 @@ class Application:
             try:
                 contentLength = int(envContentLength)
             except:
-                self._requestException("InvalidContentLength", "Invalid content length '%s'" % (envContentLength))
+                return serverError("InvalidContentLength", "Invalid content length '%s'" % (envContentLength))
 
             # Read the request content
             try:
                 requestBody = envWsgiInput.read(contentLength)
             except:
-                self._requestException("InvalidInput", "Error reading request content")
+                return serverError("IOError", "Error reading request content")
 
-            # De-serialize and validate the JSON request
+            # De-serialize the JSON request
             try:
-                request = actionModel.inputType.validate(json.loads(requestBody))
+                request = json.loads(requestBody)
             except Exception, e:
-                self._requestException("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+                return serverError("InvalidInput", "Invalid request JSON: %s" % (str(e)))
 
-        # Call the action callback and validate the response
+        # Match an action
+        actionName = envPathInfo.split("/")[-1]
+        actionCallback = self._actionCallbacks.get(actionName)
+        actionModel = self._actionModels.get(actionName)
+        if actionCallback is None or actionModel is None:
+            return serverError("UnknownAction", "Request for unknown action '%s'" % (actionName))
+
+        # Validate the request
         try:
-            response = actionModel.outputType.validate(actionCallback.callback(None, Struct(request)))
-        except ValidationException, e:
-            self._requestException("InvalidOutput", str(e))
-        except Exception, e:
-            self._requestException("UnexpectedError", str(e))
+            request = actionModel.inputType.validate(request, acceptString = isGetRequest)
+        except ValidationError, e:
+            return serverError("InvalidInput", str(e))
 
-        return response, jsonpFunction
+        # Call the action callback
+        response = actionCallback.callback(None, Struct(request))
+
+        # Error response?
+        if "error" in response:
+            responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
+        else:
+            responseTypeInst = actionModel.outputType
+
+        return responseTypeInst, response, jsonpFunction
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
-        # Handle the request
+        # Handle the request and validate the response
         jsonpFunction = None
         try:
-            response, jsonpFunction = self._handleRequest(environ, start_response)
-        except self._RequestException, e:
-            response = { "error": e.error, "message": str(e) }
+            responseTypeInst, response, jsonpFunction = self._handleRequest(environ, start_response)
+            response = responseTypeInst.validate(response)
+        except ValidationError, e:
+            response = self._errorResponse("InvalidOutput", str(e))
+            assert self._errorResponseTypeInst().validate(response)
         except Exception, e:
-            response = { "error": "UnexpectedError", "message": str(e) }
+            response = self._errorResponse("UnexpectedError", str(e))
+            assert self._errorResponseTypeInst().validate(response)
 
         # Serialize the response
         if jsonpFunction:

@@ -14,13 +14,13 @@ import re
 class SpecParser:
 
     # Parser regex
-    _rePartId = "([_A-Za-z]\w*)"
+    _rePartId = "([A-Za-z]\w*)"
     _rePartAttr = "(\\[\s*(?P<attrs>" + _rePartId + "(\s*,\s*" + _rePartId + ")*)?\\])"
     _reFindAttr = re.compile(_rePartId + "(?:\s*,\s*|\s*\Z)")
     _reLineCont = re.compile("\\\s*$")
     _reComment = re.compile("^\s*(#.*)?$")
     _reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
-    _reSection = re.compile("^\s+(?P<type>input|output)\s*$")
+    _reSection = re.compile("^\s+(?P<type>input|output|error)\s*$")
     _reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
     _reValue = re.compile("^\s+(?P<id>" + _rePartId + ")\s*$")
 
@@ -172,7 +172,7 @@ class SpecParser:
                     self.model.types[self._curType.typeName] = self._curType
 
                 # Enum definition
-                else:
+                elif defType == "enum":
 
                     # Type already defined?
                     if defId in self._types or defId in self.model.types:
@@ -194,7 +194,12 @@ class SpecParser:
                     continue
 
                 # Set the action section type
-                self._curType = self._curAction.inputType if sectType == "input" else self._curAction.outputType
+                if sectType == "input":
+                    self._curType = self._curAction.inputType
+                elif sectType == "output":
+                    self._curType = self._curAction.outputType
+                elif sectType == "error":
+                    self._curType = self._curAction.errorType
 
             # Struct member?
             elif mMember:

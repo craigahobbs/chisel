@@ -22,8 +22,9 @@ class Action:
     def __init__(self, name):
 
         self.name = name
-        self.inputType = TypeStruct()
-        self.outputType = TypeStruct()
+        self.inputType = TypeStruct(typeName = name + "_Input")
+        self.outputType = TypeStruct(typeName = name + "_Output")
+        self.errorType = TypeEnum(typeName = name + "_Error")
 
 
 # Struct member
@@ -64,7 +65,7 @@ class TypeStruct:
         self.typeName = typeName
         self.members = []
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         # Validate dict value type
         if not isinstance(value, dict) and not isinstance(value, Struct):
@@ -81,17 +82,17 @@ class TypeStruct:
             memberValue = (value if isinstance(value, dict) else value()).get(member.name)
             if memberValue is None:
                 if not member.isOptional:
-                    raise ValidationError("Required member %r missing" % (member.name))
+                    raise ValidationError("Required member %r missing" % (".".join(_member + (member.name,))))
             else:
                 # Validate the member value
-                memberValueNew = member.typeInst.validate(memberValue, isLoose, _member = _member + (member.name,))
+                memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
                 if memberValueNew is not memberValue:
                     value[member.name] = memberValueNew
 
         # Check for invalid members
         for valueKey in value:
             if valueKey not in memberNames:
-                raise ValidationError("Invalid member %r" % (valueKey))
+                raise ValidationError("Invalid member %r" % (".".join(_member + (valueKey,))))
 
         return value
 
@@ -104,7 +105,7 @@ class TypeArray:
         self.typeName = typeName
         self.typeInst = typeInst
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         # Validate list value type
         if not isinstance(value, list):
@@ -113,7 +114,7 @@ class TypeArray:
         # Validate the list contents
         for ix in xrange(0, len(value)):
             arrayValue = value[ix]
-            arrayValueNew = self.typeInst.validate(arrayValue, isLoose, _member = _member + (str(ix),))
+            arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (str(ix),))
             if arrayValueNew is not arrayValue:
                 value[ix] = arrayValueNew
 
@@ -128,7 +129,7 @@ class TypeDict:
         self.typeName = typeName
         self.typeInst = typeInst
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         # Validate dict value type
         if not isinstance(value, dict) and not isinstance(value, Struct):
@@ -143,7 +144,7 @@ class TypeDict:
 
             # Validate the value
             dictValue = value[key]
-            dictValueNew = self.typeInst.validate(dictValue, isLoose, _member = _member + (key,))
+            dictValueNew = self.typeInst.validate(dictValue, acceptString = acceptString, _member = _member + (key,))
             if dictValueNew is not dictValue:
                 value[key] = dictValueNew
 
@@ -156,14 +157,12 @@ class TypeEnum:
     def __init__(self, values = None, typeName = "enum"):
 
         self.typeName = typeName
-        self.values = values or []
+        self.values = [] if values is None else values
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
-        if not isinstance(value, basestring):
+        if not isinstance(value, basestring) or value not in self.values:
             raise ValidationError.memberError(self, value, _member)
-        elif value not in self.values:
-            raise ValidationError("Invalid enumeration value '%s' for '%s'" % (value, self.typeName))
         else:
             return value
 
@@ -175,7 +174,7 @@ class TypeString:
 
         self.typeName = typeName
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, basestring):
             return value
@@ -190,13 +189,13 @@ class TypeInt:
 
         self.typeName = typeName
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, int):
             return value
         elif isinstance(value, float) and int(value) == value:
             return int(value)
-        elif isLoose and isinstance(value, basestring):
+        elif acceptString and isinstance(value, basestring):
             return int(value)
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -209,13 +208,13 @@ class TypeFloat:
 
         self.typeName = typeName
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, float):
             return value
         elif isinstance(value, int):
             return float(value)
-        elif isLoose and isinstance(value, basestring):
+        elif acceptString and isinstance(value, basestring):
             return float(value)
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -228,11 +227,11 @@ class TypeBool:
 
         self.typeName = typeName
 
-    def validate(self, value, isLoose = False, _member = ()):
+    def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, bool):
             return value
-        elif isLoose and isinstance(value, basestring) and value in ("true", "false"):
+        elif acceptString and isinstance(value, basestring) and value in ("true", "false"):
             return value in ("true")
         else:
             raise ValidationError.memberError(self, value, _member)

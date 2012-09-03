@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-__all__ = [ "server", "struct", "url" ]
+__all__ = [ "model", "server", "spec", "struct", "url" ]
 
 from .model import ValidationError
 from .server import serializeJSON, Application

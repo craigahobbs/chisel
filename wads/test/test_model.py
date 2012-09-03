@@ -53,12 +53,12 @@ class TestStructValidation(unittest.TestCase):
         self.assertEqual(s["g"]["Foo"], 5)
         self.assertEqual(s["h"], "Foo")
 
-        # Validate success - loosely
+        # Validate success - accept strings
         s = m.validate(Struct({ "a": "5",
                                 "b": "Hello",
                                 "c": { "d": "true", "e": "5.5" },
                                 "f": [ "Foo", "Bar" ]
-                                }), isLoose = True)
+                                }), acceptString = True)
         self.assertTrue(isinstance(s, Struct))
         self.assertTrue(isinstance(s.a, int))
         self.assertEqual(s.a, 5)
@@ -84,6 +84,17 @@ class TestStructValidation(unittest.TestCase):
             self.assertTrue(False)
         except ValidationError, e:
             self.assertEqual(str(e), "Required member 'b' missing")
+
+        # Validate failure - invalid member
+        try:
+            s = m.validate(Struct({ "a": 5,
+                                    "b": "Hello",
+                                    "c": { "d": True, "e": 5.5, "bad": "bad value" },
+                                    "f": [ "Foo", "Bar" ],
+                                    }))
+            self.assertTrue(False)
+        except ValidationError, e:
+            self.assertEqual(str(e), "Invalid member 'c.bad'")
 
         # Validate failure - invalid int member type
         try:
@@ -141,4 +152,4 @@ class TestStructValidation(unittest.TestCase):
                              })
             self.assertTrue(False)
         except ValidationError, e:
-            self.assertEqual(str(e), "Invalid enumeration value 'Bonk' for 'enum'")
+            self.assertEqual(str(e), "Invalid value 'Bonk' (type 'str') for member 'h', expected type 'enum'")

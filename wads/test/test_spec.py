@@ -14,25 +14,37 @@ import unittest
 # Struct validation tests
 class TestParseSpec(unittest.TestCase):
 
-    def assertMembers(self, struct, members):
-        self.assertEqual(len(struct.members), len(members))
+    def assertStruct(self, structTypeInst, members):
+        self.assertEqual(len(structTypeInst.members), len(members))
         for ixMember in xrange(0, len(members)):
             name, typeInstOrType, isOptional = members[ixMember]
-            self.assertTrue(isinstance(struct, TypeStruct))
-            self.assertEqual(struct.members[ixMember].name, name)
-            self.assertTrue(struct.members[ixMember].typeInst is typeInstOrType or
-                            isinstance(struct.members[ixMember].typeInst, typeInstOrType))
-            self.assertEqual(struct.members[ixMember].isOptional, isOptional)
+            self.assertTrue(isinstance(structTypeInst, TypeStruct))
+            self.assertEqual(structTypeInst.members[ixMember].name, name)
+            self.assertTrue(structTypeInst.members[ixMember].typeInst is typeInstOrType or
+                            isinstance(structTypeInst.members[ixMember].typeInst, typeInstOrType))
+            self.assertEqual(structTypeInst.members[ixMember].isOptional, isOptional)
 
-    def assertStructMembers(self, model, typeName, members):
+    def assertStructByName(self, model, typeName, members):
         self.assertEqual(model.types[typeName].typeName, typeName)
-        self.assertMembers(model.types[typeName], members)
+        self.assertStruct(model.types[typeName], members)
 
-    def assertActionMembers(self, model, actionName, inputMembers, outputMembers):
-        self.assertEqual(model.actions[actionName].inputType.typeName, "struct")
-        self.assertEqual(model.actions[actionName].outputType.typeName, "struct")
-        self.assertMembers(model.actions[actionName].inputType, inputMembers)
-        self.assertMembers(model.actions[actionName].outputType, outputMembers)
+    def assertEnum(self, enumTypeInst, values = None):
+        values = [] if values is None else values
+        self.assertEqual(len(enumTypeInst.values), len(values))
+        for enumValue in values:
+            self.assertTrue(enumValue in enumTypeInst.values)
+
+    def assertEnumByName(self, model, typeName, values):
+        self.assertEqual(model.types[typeName].typeName, typeName)
+        self.assertEnum(model.types[typeName], values)
+
+    def assertAction(self, model, actionName, inputMembers, outputMembers, errorValues = None):
+        self.assertEqual(model.actions[actionName].inputType.typeName, actionName + "_Input")
+        self.assertEqual(model.actions[actionName].outputType.typeName, actionName + "_Output")
+        self.assertEqual(model.actions[actionName].errorType.typeName, actionName + "_Error")
+        self.assertStruct(model.actions[actionName].inputType, inputMembers)
+        self.assertStruct(model.actions[actionName].outputType, outputMembers)
+        self.assertEnum(model.actions[actionName].errorType, errorValues)
 
     def test_simple(self):
 
@@ -70,6 +82,9 @@ action MyAction
         [optional] string b
     output
         bool c
+    error
+        Error1
+        Error2
 """))
         parser.finalize()
         m = parser.model
@@ -80,32 +95,34 @@ action MyAction
         self.assertEqual(len(m.actions), 1)
 
         # Check enum types
-        self.assertTrue(isinstance(m.types["MyEnum"], TypeEnum))
-        self.assertEqual(m.types["MyEnum"].typeName, "MyEnum")
-        self.assertEqual(m.types["MyEnum"].values, ["Foo", "Bar"])
+        self.assertEnumByName(m, "MyEnum",
+                              ("Foo",
+                               "Bar"))
 
         # Check struct types
-        self.assertStructMembers(m, "MyStruct",
-                                 (("a", TypeString, False),
-                                  ("b", TypeInt, False)))
-        self.assertStructMembers(m, "MyStruct2",
-                                 (("a", TypeInt, False),
-                                  ("b", TypeFloat, True),
-                                  ("c", TypeString, False),
-                                  ("d", TypeBool, False),
-                                  ("e", TypeArray, False),
-                                  ("f", TypeArray, True),
-                                  ("g", TypeDict, True)))
+        self.assertStructByName(m, "MyStruct",
+                                (("a", TypeString, False),
+                                 ("b", TypeInt, False)))
+        self.assertStructByName(m, "MyStruct2",
+                                (("a", TypeInt, False),
+                                 ("b", TypeFloat, True),
+                                 ("c", TypeString, False),
+                                 ("d", TypeBool, False),
+                                 ("e", TypeArray, False),
+                                 ("f", TypeArray, True),
+                                 ("g", TypeDict, True)))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[4].typeInst.typeInst, TypeInt))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[5].typeInst.typeInst, TypeStruct))
         self.assertEqual(m.types["MyStruct2"].members[5].typeInst.typeInst.typeName, "MyStruct")
         self.assertTrue(isinstance(m.types["MyStruct2"].members[6].typeInst.typeInst, TypeFloat))
 
         # Check actions
-        self.assertActionMembers(m, "MyAction",
-                                (("a", TypeInt, False),
-                                 ("b", TypeString, True)),
-                                (("c", TypeBool, False),))
+        self.assertAction(m, "MyAction",
+                          (("a", TypeInt, False),
+                           ("b", TypeString, True)),
+                          (("c", TypeBool, False),),
+                          ("Error1",
+                           "Error2"))
 
     def test_multiple(self):
 
@@ -151,32 +168,32 @@ enum MyEnum2
         self.assertEqual(len(m.actions), 2)
 
         # Check enum types
-        self.assertTrue(isinstance(m.types["MyEnum"], TypeEnum))
-        self.assertEqual(m.types["MyEnum"].typeName, "MyEnum")
-        self.assertEqual(m.types["MyEnum"].values, ["A", "B"])
-        self.assertTrue(isinstance(m.types["MyEnum2"], TypeEnum))
-        self.assertEqual(m.types["MyEnum2"].typeName, "MyEnum2")
-        self.assertEqual(m.types["MyEnum2"].values, ["C", "D"])
+        self.assertEnumByName(m, "MyEnum",
+                              ("A",
+                               "B"))
+        self.assertEnumByName(m, "MyEnum2",
+                              ("C",
+                               "D"))
 
         # Check struct types
-        self.assertStructMembers(m, "MyStruct",
-                                 (("c", TypeString, False),
-                                  ("d", m.types["MyEnum2"], False),
-                                  ("e", m.types["MyStruct2"], False)))
-        self.assertStructMembers(m, "MyStruct2",
-                                 (("f", TypeString, False),
-                                  ("g", m.types["MyEnum2"], False)))
+        self.assertStructByName(m, "MyStruct",
+                                (("c", TypeString, False),
+                                 ("d", m.types["MyEnum2"], False),
+                                 ("e", m.types["MyStruct2"], False)))
+        self.assertStructByName(m, "MyStruct2",
+                                (("f", TypeString, False),
+                                 ("g", m.types["MyEnum2"], False)))
 
         # Check actions
-        self.assertActionMembers(m, "MyAction",
-                                (("a", TypeStruct, False),),
-                                (("b", TypeStruct, False),
-                                 ("c", m.types["MyEnum2"], False)))
+        self.assertAction(m, "MyAction",
+                          (("a", TypeStruct, False),),
+                          (("b", TypeStruct, False),
+                           ("c", m.types["MyEnum2"], False)))
         self.assertEqual(m.actions["MyAction"].inputType.members[0].typeInst.typeName, "MyStruct2")
         self.assertEqual(m.actions["MyAction"].outputType.members[0].typeInst.typeName, "MyStruct")
-        self.assertActionMembers(m, "MyAction2",
-                                (("d", TypeStruct, False),),
-                                (("e", TypeStruct, False),))
+        self.assertAction(m, "MyAction2",
+                          (("d", TypeStruct, False),),
+                          (("e", TypeStruct, False),))
         self.assertEqual(m.actions["MyAction2"].inputType.members[0].typeInst.typeName, "MyStruct")
         self.assertEqual(m.actions["MyAction2"].outputType.members[0].typeInst.typeName, "MyStruct2")
 

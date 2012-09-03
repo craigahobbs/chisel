@@ -143,6 +143,62 @@ action myActionGet
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.c, 12)
 
+    def test_error(self):
+
+        # Application instance
+        app = self.app
+        def myAction(ctx, input):
+            output = Struct()
+            if input.a == 0:
+                output.error = "MyError"
+                output.message = "My message"
+            elif input.a == 1:
+                output.error = "MyError"
+            elif input.a == 2:
+                output.error = "BadError"
+                output.message = "My bad message"
+            else:
+                output.b = input.a * 2
+            return output
+        app.addActionCallback(myAction)
+        app.loadSpecs(StringIO("""\
+action myAction
+    input
+        int a
+    output
+        int b
+    error
+        MyError
+"""))
+
+        # Requests
+        requestErrorMessage = '{ "a": 0 }'
+        requestError = '{ "a": 1 }'
+        requestBadError = '{ "a": 2 }'
+        request = '{ "a": 3 }'
+
+        # Error with message
+        response = self.sendRequest(app, "POST", "/myAction", len(requestErrorMessage), requestErrorMessage)
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "MyError")
+        self.assertEqual(response.message, "My message")
+
+        # Error with NO message
+        response = self.sendRequest(app, "POST", "/myAction", len(requestError), requestError)
+        self.assertEqual(len(response()), 1)
+        self.assertEqual(response.error, "MyError")
+
+        # Bad error enum value
+        response = self.sendRequest(app, "POST", "/myAction", len(requestBadError), requestBadError)
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidOutput")
+        self.assertEqual(response.message, "Invalid value 'BadError' (type 'str') for member 'error', expected type 'myAction_Error'")
+
+        # Non-error
+        response = self.sendRequest(app, "POST", "/myAction", len(request), request)
+        self.assertEqual(len(response()), 1)
+        self.assertEqual(response.b, 6)
+
     def test_complex_response(self):
 
         # Request handler
