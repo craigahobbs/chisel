@@ -39,8 +39,8 @@ class Application:
     # Class initializer
     def __init__(self):
 
-        self._actionCallbacks = {}
         self._actionModels = {}
+        self._actionCallbacks = {}
 
         # File extensions
         self.specFileExtension = ".chsl"
@@ -54,20 +54,16 @@ class Application:
 
         return logging.getLogger()
 
-    # Action callback helper class
-    class _ActionCallback:
-        def __init__(self, actionCallback, actionName = None):
-            self.name = actionName or actionCallback.func_name
-            self.callback = actionCallback
-
     # Add a single action callback
-    def addActionCallback(self, actionCallback):
+    def addActionCallback(self, actionCallback, actionName = None):
 
-        actionCallback = self._ActionCallback(actionCallback)
-        if actionCallback.name not in self._actionCallbacks:
-            self._actionCallbacks[actionCallback.name] = actionCallback
+        actionName = actionCallback.func_name if actionName is None else actionName
+        if actionName not in self._actionModels:
+            raise Exception("No model defined for action callback '%s'" % (actionName))
+        elif actionName in self._actionCallbacks:
+            raise Exception("Redefinition of action callback '%s'" % (actionName))
         else:
-            raise Exception("Redefinition of action callback '%s'" % (actionCallback.name))
+            self._actionCallbacks[actionName] = actionCallback
 
     # Recursively load all modules in a directory
     def loadModules(self, modulePath):
@@ -101,14 +97,15 @@ class Application:
     # Add a single action model
     def addActionModel(self, actionModel):
 
-        if actionModel.name not in self._actionModels:
-            self._actionModels[actionModel.name] = actionModel
-        else:
+        if actionModel.name in self._actionModels:
             raise Exception("Redefinition of action model '%s'" % (actionModel.name))
+        else:
+            self._actionModels[actionModel.name] = actionModel
 
     # Load spec(s) from a directory path, file path, or stream
     def loadSpecs(self, spec, parser = None):
 
+        isFinal = parser is None
         parser = parser or SpecParser()
 
         # Is spec a path string?
@@ -122,25 +119,26 @@ class Application:
                     for filename in filenames:
                         (base, ext) = os.path.splitext(filename)
                         if ext == self.specFileExtension:
-                            self.loadSpec(os.path.join(dirpath, filename), parser = parser)
+                            self.loadSpecs(os.path.join(dirpath, filename), parser = parser)
 
             # Assume file path...
             else:
                 with open(spec, "rb") as fhSpec:
-                    self.loadSpec(fhSpec, parser = parser)
+                    self.loadSpecs(fhSpec, parser = parser)
 
         # Assume stream...
         else:
             parser.parse(spec)
 
         # Finalize parsing
-        parser.finalize()
-        if parser.errors:
-            raise Exception("\n".join(parser.errors))
+        if isFinal:
+            parser.finalize()
+            if parser.errors:
+                raise Exception("\n".join(parser.errors))
 
-        # Add action models
-        for actionModel in parser.model.actions.itervalues():
-            self.addActionModel(actionModel)
+            # Add action models
+            for actionModel in parser.model.actions.itervalues():
+                self.addActionModel(actionModel)
 
     # Is a response an error response?
     @staticmethod
@@ -228,9 +226,9 @@ class Application:
         # Match an action
         actionName = envPathInfo.split("/")[-1]
         actionCallback = self._actionCallbacks.get(actionName)
-        actionModel = self._actionModels.get(actionName)
-        if actionCallback is None or actionModel is None:
+        if actionCallback is None:
             return serverError("UnknownAction", "Request for unknown action '%s'" % (actionName))
+        actionModel = self._actionModels[actionName]
 
         # Validate the request
         try:
@@ -239,7 +237,7 @@ class Application:
             return serverError("InvalidInput", str(e))
 
         # Call the action callback
-        response = actionCallback.callback(None, Struct(request))
+        response = actionCallback(None, Struct(request))
 
         # Error response?
         if self.isErrorResponse(response):

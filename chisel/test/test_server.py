@@ -50,12 +50,13 @@ class TestLoadModules(unittest.TestCase):
     def test_loadModules(self):
 
         app = self.app
+        app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_server_modules"))
         app.loadModules(os.path.join(os.path.dirname(__file__), "test_server_modules"))
         self.assertEqual(len(TestLoggerHandler.records), 0)
         self.assertEqual(len(app._actionCallbacks), 3)
-        self.assertEqual(app._actionCallbacks["myAction1"].callback.func_name, "myAction1")
-        self.assertEqual(app._actionCallbacks["myAction2"].callback.func_name, "myAction2")
-        self.assertEqual(app._actionCallbacks["myAction3"].callback.func_name, "myAction3")
+        self.assertEqual(app._actionCallbacks["myAction1"].func_name, "myAction1")
+        self.assertEqual(app._actionCallbacks["myAction2"].func_name, "myAction2")
+        self.assertEqual(app._actionCallbacks["myAction3"].func_name, "myAction3")
 
     def test_loadModules_badModulePath(self):
 
@@ -105,13 +106,6 @@ class TestRequest(unittest.TestCase):
 
         # Application instance
         app = self.app
-        def myActionPost(ctx, input):
-            return { "c": input.a + input.b }
-        def myActionGet(ctx, input):
-            self.assertEqual(len(input()), 0)
-            return { "d": "OK" }
-        app.addActionCallback(myActionPost)
-        app.addActionCallback(myActionGet)
         app.loadSpecs(StringIO("""\
 action myActionPost
     input
@@ -124,6 +118,13 @@ action myActionGet
     output
         string d
 """))
+        def myActionPost(ctx, input):
+            return { "c": input.a + input.b }
+        def myActionGet(ctx, input):
+            self.assertEqual(len(input()), 0)
+            return { "d": "OK" }
+        app.addActionCallback(myActionPost)
+        app.addActionCallback(myActionGet)
 
         # Requests
         request = '{ "a": 5, "b": 7 }'
@@ -150,6 +151,15 @@ action myActionGet
 
         # Application instance
         app = self.app
+        app.loadSpecs(StringIO("""\
+action myAction
+    input
+        int a
+    output
+        int b
+    error
+        MyError
+"""))
         def myAction(ctx, input):
             output = Struct()
             if input.a == 0:
@@ -164,15 +174,6 @@ action myActionGet
                 output.b = input.a * 2
             return output
         app.addActionCallback(myAction)
-        app.loadSpecs(StringIO("""\
-action myAction
-    input
-        int a
-    output
-        int b
-    error
-        MyError
-"""))
 
         # Requests
         requestErrorMessage = '{ "a": 0 }'
@@ -210,9 +211,6 @@ action myAction
 
         # Request handler
         app = self.app
-        def myAction(ctx, input):
-            return { "a": { "b": [1, 2, 3] } }
-        app.addActionCallback(myAction)
         app.loadSpecs(StringIO("""\
 struct MyStruct
     int[] b
@@ -221,6 +219,9 @@ action myAction
     output
         MyStruct a
 """))
+        def myAction(ctx, input):
+            return { "a": { "b": [1, 2, 3] } }
+        app.addActionCallback(myAction)
 
         # Get the complex response
         status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "")
@@ -237,15 +238,15 @@ action myAction
 
         # Request handler
         app = Application()
-        def myActionRaise(ctx, input):
-            raise Exception("Barf")
-        app.addActionCallback(myActionRaise)
         app.loadSpecs(StringIO("""\
 action myActionRaise
     input
         int a
         int b
 """))
+        def myActionRaise(ctx, input):
+            raise Exception("Barf")
+        app.addActionCallback(myActionRaise)
 
         # Requests
         request = '{ "a": 5, "b": 7 }'
@@ -304,12 +305,6 @@ action myActionRaise
 
         # Request handler
         app = Application()
-        def myAction(ctx, input):
-            numSum = 0
-            for num in input.nums:
-                numSum += int(num)
-            return { "sum": numSum }
-        app.addActionCallback(myAction)
         app.loadSpecs(StringIO("""\
 action myAction
     input
@@ -317,6 +312,12 @@ action myAction
     output
         int sum
 """))
+        def myAction(ctx, input):
+            numSum = 0
+            for num in input.nums:
+                numSum += int(num)
+            return { "sum": numSum }
+        app.addActionCallback(myAction)
 
         # Execute the request
         request = { "nums": [ 1, 2, 3, 4, 5 ] }
@@ -330,12 +331,6 @@ action myAction
 
         # Request handler
         app = Application()
-        def myAction(ctx, input):
-            numSum = 0
-            for num in input.nums:
-                numSum += int(num)
-            return { "sum": numSum }
-        app.addActionCallback(myAction)
         app.loadSpecs(StringIO("""\
 action myAction
     input
@@ -343,6 +338,12 @@ action myAction
     output
         int sum
 """))
+        def myAction(ctx, input):
+            numSum = 0
+            for num in input.nums:
+                numSum += int(num)
+            return { "sum": numSum }
+        app.addActionCallback(myAction)
 
         # Execute the request
         request = { "jsonp": "myfunc", "nums": [ 1, 2, 3, 4, 5 ] }
@@ -357,3 +358,12 @@ action myAction
         status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
         self.assertEqual(status, "200 OK")
         self.assertTrue(response.startswith('myfunc({"error":"InvalidInput","message":'))
+
+    def test_fail_no_action_model(self):
+
+        # Request handler
+        app = Application()
+        def myAction(ctx, input):
+            return {}
+        with self.assertRaises(Exception):
+            app.addActionCallback(myAction)

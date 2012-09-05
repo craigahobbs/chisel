@@ -1,0 +1,8 @@
+action myAction1
+
+action myAction2
+    input
+        int a
+        int b
+    output
+        int c
