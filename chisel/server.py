@@ -142,6 +142,12 @@ class Application:
         for actionModel in parser.model.actions.itervalues():
             self.addActionModel(actionModel)
 
+    # Is a response an error response?
+    @staticmethod
+    def isErrorResponse(response):
+
+        return "error" in response
+
     # Helper to form an error response
     def _errorResponse(self, error, message):
 
@@ -236,7 +242,7 @@ class Application:
         response = actionCallback.callback(None, Struct(request))
 
         # Error response?
-        if "error" in response:
+        if self.isErrorResponse(response):
             responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
         else:
             responseTypeInst = actionModel.outputType
@@ -264,11 +270,17 @@ class Application:
         else:
             responseBody = [serializeJSON(response)]
 
+        # Determine the HTTP status
+        if self.isErrorResponse(response) and jsonpFunction is None:
+            status = "500 Internal Server Error"
+        else:
+            status = "200 OK"
+
         # Send the response
         responseHeaders = [
             ("Content-Type", "application/json"),
             ("Content-Length", str(sum([len(s) for s in responseBody])))
             ]
-        start_response("200 OK", responseHeaders)
+        start_response(status, responseHeaders)
 
         return responseBody

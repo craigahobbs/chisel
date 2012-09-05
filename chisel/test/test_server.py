@@ -89,17 +89,17 @@ class TestRequest(unittest.TestCase):
             environ["CONTENT_LENGTH"] = str(contentLength)
 
         # WSGI start_response
-        status = None
-        responseHeaders = None
+        status = []
+        responseHeaders = []
         def start_response(_status, _responseHeaders):
-            status = _status
-            responseHeaders = _responseHeaders
+            status.append(_status)
+            responseHeaders.append(_responseHeaders)
 
         # Make the WSGI call
         response = "".join(app(environ, start_response))
         if decodeJSON:
-            return Struct(json.loads("".join(response)))
-        return response
+            response = Struct(json.loads("".join(response)))
+        return status[0], responseHeaders[0], response
 
     def test_success(self):
 
@@ -129,17 +129,20 @@ action myActionGet
         request = '{ "a": 5, "b": 7 }'
 
         # GET
-        response = self.sendRequest(app, "GET", "/myActionGet", None, "")
+        status, headers, response = self.sendRequest(app, "GET", "/myActionGet", None, "")
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.d, "OK")
 
         # POST
-        response = self.sendRequest(app, "POST", "/myActionPost", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionPost", len(request), request)
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.c, 12)
 
         # Non-root POST
-        response = self.sendRequest(app, "POST", "/api/myActionPost", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/api/myActionPost", len(request), request)
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.c, 12)
 
@@ -178,24 +181,28 @@ action myAction
         request = '{ "a": 3 }'
 
         # Error with message
-        response = self.sendRequest(app, "POST", "/myAction", len(requestErrorMessage), requestErrorMessage)
+        status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestErrorMessage), requestErrorMessage)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "MyError")
         self.assertEqual(response.message, "My message")
 
         # Error with NO message
-        response = self.sendRequest(app, "POST", "/myAction", len(requestError), requestError)
+        status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestError), requestError)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.error, "MyError")
 
         # Bad error enum value
-        response = self.sendRequest(app, "POST", "/myAction", len(requestBadError), requestBadError)
+        status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestBadError), requestBadError)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidOutput")
         self.assertEqual(response.message, "Invalid value 'BadError' (type 'str') for member 'error', expected type 'myAction_Error'")
 
         # Non-error
-        response = self.sendRequest(app, "POST", "/myAction", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/myAction", len(request), request)
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.b, 6)
 
@@ -216,7 +223,8 @@ action myAction
 """))
 
         # Get the complex response
-        response = self.sendRequest(app, "GET", "/myAction", None, "")
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "")
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertTrue(isinstance(response.a, Struct))
         self.assertTrue(isinstance(response.a.b, list))
@@ -244,43 +252,50 @@ action myActionRaise
         requestInvalid = '{ "a: 5, "b": 7 }'
 
         # Unknown action
-        response = self.sendRequest(app, "POST", "/myActionUnknown", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionUnknown", len(request), request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnknownAction")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Unknown request method
-        response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request)
+        status, headers, response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnknownRequestMethod")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Invalid content length
-        response = self.sendRequest(app, "POST", "/myActionRaise", None, request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", None, request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Invalid content length (2)
-        response = self.sendRequest(app, "POST", "/myActionRaise", "asdf", request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", "asdf", request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Invalid content length (3)
-        response = self.sendRequest(app, "POST", "/myActionRaise", "", request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", "", request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Invalid input
-        response = self.sendRequest(app, "POST", "/myActionRaise", len(requestInvalid), requestInvalid)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(requestInvalid), requestInvalid)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidInput")
         self.assertTrue(isinstance(response.message, unicode))
 
         # Unexpected error
-        response = self.sendRequest(app, "POST", "/myActionRaise", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(request), request)
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
@@ -306,7 +321,8 @@ action myAction
         # Execute the request
         request = { "nums": [ 1, 2, 3, 4, 5 ] }
         queryString = encodeQueryString(request)
-        response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString)
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString)
+        self.assertEqual(status, "200 OK")
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.sum, 15)
 
@@ -331,5 +347,13 @@ action myAction
         # Execute the request
         request = { "jsonp": "myfunc", "nums": [ 1, 2, 3, 4, 5 ] }
         queryString = encodeQueryString(request)
-        response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
+        self.assertEqual(status, "200 OK")
         self.assertEqual(response, 'myfunc({"sum":15});')
+
+        # JSONP error request
+        request = { "jsonp": "myfunc", "nums": "bad" }
+        queryString = encodeQueryString(request)
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(response.startswith('myfunc({"error":"InvalidInput","message":'))
