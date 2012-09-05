@@ -20,7 +20,7 @@ class SpecParser:
     _reLineCont = re.compile("\\\s*$")
     _reComment = re.compile("^\s*(#.*)?$")
     _reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
-    _reSection = re.compile("^\s+(?P<type>input|output|error)\s*$")
+    _reSection = re.compile("^\s+(?P<type>input|output|errors)\s*$")
     _reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
     _reValue = re.compile("^\s+(?P<id>" + _rePartId + ")\s*$")
 
@@ -152,7 +152,7 @@ class SpecParser:
 
                     # Action already defined?
                     if defId in self.model.actions:
-                        error("Action '%s' already defined" % (defId))
+                        self._error("Action '%s' already defined" % (defId))
 
                     # Create the new action
                     self._curAction = Action(defId)
@@ -164,7 +164,7 @@ class SpecParser:
 
                     # Type already defined?
                     if defId in self._types or defId in self.model.types:
-                        error("Redefinition of type '%s'" % (defId))
+                        self._error("Redefinition of type '%s'" % (defId))
 
                     # Create the new struct type
                     self._curAction = None
@@ -176,7 +176,7 @@ class SpecParser:
 
                     # Type already defined?
                     if defId in self._types or defId in self.model.types:
-                        error("Redefinition of type '%s'" % (defId))
+                        self._error("Redefinition of type '%s'" % (defId))
 
                     # Create the new enum type
                     self._curAction = None
@@ -190,7 +190,7 @@ class SpecParser:
 
                 # Not in an action scope?
                 if not self._curAction:
-                    error("Action section outside of action scope")
+                    self._error("Action section outside of action scope")
                     continue
 
                 # Set the action section type
@@ -198,7 +198,7 @@ class SpecParser:
                     self._curType = self._curAction.inputType
                 elif sectType == "output":
                     self._curType = self._curAction.outputType
-                elif sectType == "error":
+                elif sectType == "errors":
                     self._curType = self._curAction.errorType
 
             # Struct member?
@@ -213,16 +213,16 @@ class SpecParser:
 
                 # Not in a struct scope?
                 if not isinstance(self._curType, TypeStruct):
-                    error("Member outside of struct scope")
+                    self._error("Member outside of struct scope")
                     continue
 
                 # Unknown attributes?
                 for attr in [attr for attr in memAttrs if attr not in ("optional")]:
-                    error("Unknown attribute '%s'" % (attr))
+                    self._error("Unknown attribute '%s'" % (attr))
 
                 # Member ID already defined?
                 if memId in self._curType.members:
-                    error("Member '%s' already defined" % (memTypeName))
+                    self._error("Member '%s' already defined" % (memTypeName))
 
                 # Add the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
@@ -239,16 +239,16 @@ class SpecParser:
 
                 # Not in an enum scope?
                 if not isinstance(self._curType, TypeEnum):
-                    error("Enumeration value outside of enum scope")
+                    self._error("Enumeration value outside of enum scope")
                     continue
 
                 # Duplicate enum value?
                 if memId in self._curType.values:
-                    error("Duplicate enumeration value '%s'" % (memId))
+                    self._error("Duplicate enumeration value '%s'" % (memId))
 
                 # Add the enum value
                 self._curType.values.append(memId)
 
             # Unrecognized line syntax
             else:
-                error("Syntax error")
+                self._error("Syntax error")

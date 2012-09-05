@@ -28,7 +28,7 @@ def serializeJSON(o, pretty = False):
     # Serialize to a JSON string
     return json.dumps(o,
                       sort_keys = True,
-                      indent = 0 if pretty else None,
+                      indent = 2 if pretty else None,
                       separators = (", ", ": ") if pretty else (",", ":"),
                       default = default)
 
