@@ -6,6 +6,10 @@
 
 from .struct import Struct
 
+from datetime import datetime, timedelta, tzinfo
+import time
+import re
+
 
 # Specification class
 class Model:
@@ -27,14 +31,19 @@ class Action:
         self.errorType = TypeEnum(typeName = name + "_Error")
 
 
-# Struct member
-class Member:
+# Python json module "default" function
+def jsonDefault(obj):
 
-    def __init__(self, name, typeInst, isOptional = False):
-
-        self.name = name
-        self.typeInst = typeInst
-        self.isOptional = isOptional
+    if isinstance(obj, Struct):
+        return obj()
+    elif isinstance(obj, datetime):
+        if obj.tzinfo is None:
+            dt = datetime(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond, TypeDatetime.TZLocal())
+        else:
+            dt = obj
+        return dt.isoformat()
+    else:
+        return obj
 
 
 # Type validation exception
@@ -59,6 +68,12 @@ class ValidationError(Exception):
 
 # Struct type
 class TypeStruct:
+
+    class Member:
+        def __init__(self, name, typeInst, isOptional = False):
+            self.name = name
+            self.typeInst = typeInst
+            self.isOptional = isOptional
 
     def __init__(self, typeName = "struct"):
 
@@ -235,3 +250,96 @@ class TypeBool:
             return value in ("true")
         else:
             raise ValidationError.memberError(self, value, _member)
+
+
+# Datetime type
+class TypeDatetime:
+
+    def __init__(self, typeName = "datetime"):
+
+        self.typeName = typeName
+
+    def validate(self, value, acceptString = False, _member = ()):
+
+        if isinstance(value, datetime):
+            return value
+        elif isinstance(value, basestring):
+            return TypeDatetime.parseISO8601Datetime(value)
+        else:
+            raise ValidationError.memberError(self, value, _member)
+
+    # ISO 8601 regex
+    _reISO8601 = re.compile("^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})" +
+                            "(T(?P<hour>\d{2}):(?P<min>\d{2}?):(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?" +
+                            "(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$")
+
+    # GMT tzinfo class for parseISO8601Datetime
+    class TZUTC(tzinfo):
+
+        def utcoffset(self, dt):
+            return timedelta(0)
+
+        def dst(self, dt):
+            return timedelta(0)
+
+        def tzname(self, dt):
+            return "UTC"
+
+    # Local time zone tzinfo class (for jsonDefault)
+    class TZLocal(tzinfo):
+
+        def utcoffset(self, dt):
+            if self._isdst(dt):
+                return self._dstOffset()
+            else:
+                return self._stdOffset()
+
+        def dst(self, dt):
+            if self._isdst(dt):
+                return self._dstOffset() - self._stdOffset()
+            else:
+                return timedelta(0)
+
+        def tzname(self, dt):
+            return time.tzname[self._isdst(dt)]
+
+        @classmethod
+        def _stdOffset(cls):
+            return timedelta(seconds = -time.timezone)
+
+        @classmethod
+        def _dstOffset(cls):
+            if time.daylight:
+                return timedelta(seconds = -time.altzone)
+            else:
+                return cls._stdOffset()
+
+        @classmethod
+        def _isdst(cls, dt):
+            tt = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0)
+            stamp = time.mktime(tt)
+            tt = time.localtime(stamp)
+            return tt.tm_isdst > 0
+
+    # Static helper function to parse ISO 8601 date/time
+    @classmethod
+    def parseISO8601Datetime(cls, s):
+
+        # Match ISO 8601?
+        m = cls._reISO8601.search(s)
+        if not m:
+            raise ValueError("Expected ISO 8601 date/time")
+
+        # Extract ISO 8601 components
+        year = int(m.group("year"))
+        month = int(m.group("month"))
+        day = int(m.group("day"))
+        hour = int(m.group("hour")) if m.group("hour") else 0
+        minute = int(m.group("min")) if m.group("min") else 0
+        sec = int(m.group("sec")) if m.group("sec") else 0
+        microsec = int(float("." + m.group("fracsec")) * 1000000) if m.group("fracsec") else 0
+        offhour = int(m.group("offsign") + m.group("offhour")) if m.group("offhour") else 0
+        offmin = int(m.group("offsign") + m.group("offmin")) if m.group("offmin") else 0
+
+        return (datetime(year, month, day, hour, minute, sec, microsec, cls.TZUTC()) -
+                timedelta(hours = offhour, minutes = offmin))

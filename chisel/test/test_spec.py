@@ -5,7 +5,7 @@
 #
 
 from chisel import Struct, SpecParser, ValidationError
-from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
+from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
 from StringIO import StringIO
 import unittest
@@ -74,6 +74,7 @@ struct MyStruct2
     int[] e
     [optional] MyStruct[] f
     [optional] float{} g
+    [optional] datetime h
 
 # The action
 action MyAction
@@ -110,7 +111,8 @@ action MyAction
                                  ("d", TypeBool, False),
                                  ("e", TypeArray, False),
                                  ("f", TypeArray, True),
-                                 ("g", TypeDict, True)))
+                                 ("g", TypeDict, True),
+                                 ("h", TypeDatetime, True)))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[4].typeInst.typeInst, TypeInt))
         self.assertTrue(isinstance(m.types["MyStruct2"].members[5].typeInst.typeInst, TypeStruct))
         self.assertEqual(m.types["MyStruct2"].members[5].typeInst.typeInst.typeName, "MyStruct")

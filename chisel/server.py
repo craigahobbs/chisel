@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .model import ValidationError, TypeStruct, Member, TypeEnum, TypeString
+from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString
@@ -19,18 +19,11 @@ import uuid
 # Helper function to serialize structs as JSON
 def serializeJSON(o, pretty = False):
 
-    # Unwrap struct objects during JSON serialization
-    def default(o):
-        if isinstance(o, Struct):
-            return o()
-        return o
-
-    # Serialize to a JSON string
     return json.dumps(o,
                       sort_keys = True,
                       indent = 2 if pretty else None,
                       separators = (", ", ": ") if pretty else (",", ":"),
-                      default = default)
+                      default = jsonDefault)
 
 
 # API server response handler
@@ -166,8 +159,8 @@ class Application:
                                       "UnexpectedError",
                                       "UnknownAction",
                                       "UnknownRequestMethod"))
-        errorResponseTypeInst.members.append(Member("error", errorTypeInst))
-        errorResponseTypeInst.members.append(Member("message", TypeString(), isOptional = True))
+        errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
+        errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
         return errorResponseTypeInst
 
     # Request handling helper method

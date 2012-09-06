@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .model import Model, Action, Member, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
+from .model import Model, Action, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 from .struct import Struct
 
 import re
@@ -29,7 +29,8 @@ class SpecParser:
         "string": TypeString,
         "int": TypeInt,
         "float": TypeFloat,
-        "bool": TypeBool
+        "bool": TypeBool,
+        "datetime": TypeDatetime
         }
 
     def __init__(self):
@@ -226,7 +227,7 @@ class SpecParser:
 
                 # Add the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
-                member = Member(memId, self._getTypeInst(memTypeRef) or memTypeRef)
+                member = TypeStruct.Member(memId, self._getTypeInst(memTypeRef) or memTypeRef)
                 member.isOptional = memIsOptional
                 self._curType.members.append(member)
                 if isinstance(member.typeInst, self._TypeRef):

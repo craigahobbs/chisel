@@ -5,27 +5,30 @@
 #
 
 from chisel import Struct, ValidationError
-from chisel.model import Member, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool
+from chisel.model import jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
+from datetime import datetime, timedelta, tzinfo
+import re
 import unittest
 
 
-# Struct validation tests
+# Model validation tests
 class TestStructValidation(unittest.TestCase):
 
-    def test_simple(self):
+    def test_struct(self):
 
         # Build a type model
         m = TypeStruct()
-        m.members.append(Member("a", TypeInt()))
-        m.members.append(Member("b", TypeString()))
+        m.members.append(TypeStruct.Member("a", TypeInt()))
+        m.members.append(TypeStruct.Member("b", TypeString()))
         mc = TypeStruct()
-        mc.members.append(Member("d", TypeBool()))
-        mc.members.append(Member("e", TypeFloat()))
-        m.members.append(Member("c", mc))
-        m.members.append(Member("f", TypeArray(TypeString())))
-        m.members.append(Member("g", TypeDict(TypeInt()), isOptional = True))
-        m.members.append(Member("h", TypeEnum(values = ["Foo", "Bar"]), isOptional = True))
+        mc.members.append(TypeStruct.Member("d", TypeBool()))
+        mc.members.append(TypeStruct.Member("e", TypeFloat()))
+        m.members.append(TypeStruct.Member("c", mc))
+        m.members.append(TypeStruct.Member("f", TypeArray(TypeString())))
+        m.members.append(TypeStruct.Member("g", TypeDict(TypeInt()), isOptional = True))
+        m.members.append(TypeStruct.Member("h", TypeEnum(values = ["Foo", "Bar"]), isOptional = True))
+        m.members.append(TypeStruct.Member("i", TypeDatetime(), isOptional = True))
 
         # Validate success
         s = m.validate({ "a": 5,
@@ -33,7 +36,8 @@ class TestStructValidation(unittest.TestCase):
                          "c": Struct({ "d": True, "e": 5.5 }),
                          "f": [ "Foo", "Bar" ],
                          "g": { "Foo": 5 },
-                         "h": "Foo"
+                         "h": "Foo",
+                         "i": "2012-09-06T06:49:00-07:00"
                          })
         self.assertTrue(isinstance(s, dict))
         self.assertTrue(isinstance(s["a"], int))
@@ -52,6 +56,16 @@ class TestStructValidation(unittest.TestCase):
         self.assertEqual(s["f"][1], "Bar")
         self.assertEqual(s["g"]["Foo"], 5)
         self.assertEqual(s["h"], "Foo")
+        self.assertTrue(isinstance(s["i"], datetime))
+        self.assertEqual(s["i"].year, 2012)
+        self.assertEqual(s["i"].month, 9)
+        self.assertEqual(s["i"].day, 6)
+        self.assertEqual(s["i"].hour, 13)
+        self.assertEqual(s["i"].minute, 49)
+        self.assertEqual(s["i"].second, 0)
+        self.assertEqual(s["i"].microsecond, 0)
+        self.assertEqual(s["i"].tzinfo.utcoffset(s["i"]), timedelta(0))
+        self.assertEqual(s["i"].tzinfo.dst(s["i"]), timedelta(0))
 
         # Validate success - accept strings
         s = m.validate(Struct({ "a": "5",
@@ -153,3 +167,88 @@ class TestStructValidation(unittest.TestCase):
             self.assertTrue(False)
         except ValidationError, e:
             self.assertEqual(str(e), "Invalid value 'Bonk' (type 'str') for member 'h', expected type 'enum'")
+
+    def test_datetime(self):
+
+        t = TypeDatetime()
+
+        v = t.validate("2012-09-06T07:05:00Z")
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T07:05:00+00:00")
+
+        v = t.validate("2012-09-06")
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T00:00:00+00:00")
+
+        v = t.validate("2012-09-06T07:05:00-07:00")
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00+00:00")
+
+        v = t.validate("2012-09-06T07:05:00.5-07:00")
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00.500000+00:00")
+
+        v = t.validate("2012-09-06T07:05:00,5-07:00")
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00.500000+00:00")
+
+        v = t.validate(datetime(2012, 9, 6, 7, 5, 0, 0, TypeDatetime.TZUTC()))
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(jsonDefault(v), "2012-09-06T07:05:00+00:00")
+
+        v = t.validate(datetime(2012, 9, 6, 7, 5, 0, 0, TypeDatetime.TZLocal()))
+        self.assertTrue(isinstance(v, datetime))
+        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZLocal))
+        self.assertTrue(v.isoformat().startswith("2012-09-06T07:05:00"))
+        v2 = t.validate(jsonDefault(v))
+        self.assertTrue(isinstance(v2, datetime))
+        self.assertTrue(isinstance(v2.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(v, v2)
+
+        v = t.validate(datetime(2012, 9, 6, 7, 5))
+        self.assertTrue(isinstance(v, datetime))
+        self.assertEqual(v.tzinfo, None)
+        self.assertTrue(jsonDefault(v).startswith("2012-09-06T07:05:00"))
+        v2 = t.validate(jsonDefault(v))
+        self.assertTrue(isinstance(v2, datetime))
+        self.assertTrue(isinstance(v2.tzinfo, TypeDatetime.TZUTC))
+        self.assertEqual(datetime(2012, 9, 6, 7, 5, tzinfo = TypeDatetime.TZLocal()), v2)
+
+        with self.assertRaises(ValidationError):
+            t.validate(17)
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-09-06T07:05:00")
+
+        with self.assertRaises(ValueError):
+            t.validate("12-09-06T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("0000-09-06T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-00-06T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-13-06T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-12-00T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-12-32T07:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-12-30T24:05:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-12-30T23:60:00Z")
+
+        with self.assertRaises(ValueError):
+            t.validate("2012-12-30T23:59:60Z")
