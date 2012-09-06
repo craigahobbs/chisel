@@ -157,7 +157,7 @@ action myAction
         int a
     output
         int b
-    error
+    errors
         MyError
 """))
         def myAction(ctx, input):

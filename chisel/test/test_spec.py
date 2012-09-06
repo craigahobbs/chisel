@@ -82,7 +82,7 @@ action MyAction
         [optional] string b
     output
         bool c
-    error
+    errors
         Error1
         Error2
 """))
