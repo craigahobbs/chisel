@@ -168,6 +168,193 @@ class TestStructValidation(unittest.TestCase):
         except ValidationError, e:
             self.assertEqual(str(e), "Invalid value 'Bonk' (type 'str') for member 'h', expected type 'enum'")
 
+    def test_int_constraint(self):
+
+        t = TypeInt()
+        t.constraint_lt = 5
+        self.assertEqual(t.validate(4), 4)
+        self.assertEqual(t.validate(0), 0)
+        self.assertEqual(t.validate(-4), -4)
+        with self.assertRaises(ValidationError):
+            t.validate(5)
+        with self.assertRaises(ValidationError):
+            t.validate(50)
+
+        t = TypeInt()
+        t.constraint_lte = 5
+        self.assertEqual(t.validate(5), 5)
+        self.assertEqual(t.validate(0), 0)
+        self.assertEqual(t.validate(-4), -4)
+        with self.assertRaises(ValidationError):
+            t.validate(6)
+        with self.assertRaises(ValidationError):
+            t.validate(60)
+
+        t = TypeInt()
+        t.constraint_gt = 5
+        self.assertEqual(t.validate(6), 6)
+        self.assertEqual(t.validate(60), 60)
+        with self.assertRaises(ValidationError):
+            t.validate(5)
+        with self.assertRaises(ValidationError):
+            t.validate(0)
+        with self.assertRaises(ValidationError):
+            t.validate(-5)
+
+        t = TypeInt()
+        t.constraint_gte = 5
+        self.assertEqual(t.validate(5), 5)
+        self.assertEqual(t.validate(50), 50)
+        with self.assertRaises(ValidationError):
+            t.validate(4)
+        with self.assertRaises(ValidationError):
+            t.validate(0)
+        with self.assertRaises(ValidationError):
+            t.validate(-5)
+
+        t = TypeInt()
+        t.constraint_gte = 5
+        t.constraint_lte = 10
+        self.assertEqual(t.validate(5), 5)
+        self.assertEqual(t.validate(8), 8)
+        self.assertEqual(t.validate(10), 10)
+        with self.assertRaises(ValidationError):
+            t.validate(4)
+        with self.assertRaises(ValidationError):
+            t.validate(11)
+
+        t = TypeInt()
+        t.constraint_gt = 4.5
+        t.constraint_lt = 10.5
+        self.assertEqual(t.validate(5), 5)
+        self.assertEqual(t.validate(8), 8)
+        self.assertEqual(t.validate(10), 10)
+        with self.assertRaises(ValidationError):
+            t.validate(4)
+        with self.assertRaises(ValidationError):
+            t.validate(11)
+
+    def test_float_constraint(self):
+
+        t = TypeFloat()
+        t.constraint_lt = 5.5
+        self.assertEqual(t.validate(5.4), 5.4)
+        self.assertEqual(t.validate(0), 0)
+        self.assertEqual(t.validate(-4), -4)
+        with self.assertRaises(ValidationError):
+            t.validate(5.5)
+        with self.assertRaises(ValidationError):
+            t.validate(50)
+
+        t = TypeFloat()
+        t.constraint_lte = 5.5
+        self.assertEqual(t.validate(5.5), 5.5)
+        self.assertEqual(t.validate(0), 0)
+        self.assertEqual(t.validate(-4), -4)
+        with self.assertRaises(ValidationError):
+            t.validate(5.6)
+        with self.assertRaises(ValidationError):
+            t.validate(60)
+
+        t = TypeFloat()
+        t.constraint_gt = 5.5
+        self.assertEqual(t.validate(5.6), 5.6)
+        self.assertEqual(t.validate(60), 60)
+        with self.assertRaises(ValidationError):
+            t.validate(5.5)
+        with self.assertRaises(ValidationError):
+            t.validate(0)
+        with self.assertRaises(ValidationError):
+            t.validate(-5)
+
+        t = TypeFloat()
+        t.constraint_gte = 5.5
+        self.assertEqual(t.validate(5.5), 5.5)
+        self.assertEqual(t.validate(50), 50)
+        with self.assertRaises(ValidationError):
+            t.validate(5.4)
+        with self.assertRaises(ValidationError):
+            t.validate(0)
+        with self.assertRaises(ValidationError):
+            t.validate(-5)
+
+        t = TypeFloat()
+        t.constraint_gte = 4.5
+        t.constraint_lte = 10.5
+        self.assertEqual(t.validate(4.5), 4.5)
+        self.assertEqual(t.validate(8), 8)
+        self.assertEqual(t.validate(10.5), 10.5)
+        with self.assertRaises(ValidationError):
+            t.validate(4.4)
+        with self.assertRaises(ValidationError):
+            t.validate(10.6)
+
+    def test_string_constraint(self):
+
+        t = TypeString()
+        t.constraint_len_lt = 5
+        self.assertEqual(t.validate("abcd"), "abcd")
+        self.assertEqual(t.validate("abc"), "abc")
+        self.assertEqual(t.validate(""), "")
+        with self.assertRaises(ValidationError):
+            t.validate("abcde")
+
+        t = TypeString()
+        t.constraint_len_lte = 5
+        self.assertEqual(t.validate("abcde"), "abcde")
+        self.assertEqual(t.validate("abcd"), "abcd")
+        self.assertEqual(t.validate(""), "")
+        with self.assertRaises(ValidationError):
+            t.validate("abcdef")
+
+        t = TypeString()
+        t.constraint_len_gt = 5
+        self.assertEqual(t.validate("abcdef"), "abcdef")
+        self.assertEqual(t.validate("abcdefg"), "abcdefg")
+        with self.assertRaises(ValidationError):
+            t.validate("abcde")
+        with self.assertRaises(ValidationError):
+            t.validate("")
+
+        t = TypeString()
+        t.constraint_len_gte = 5
+        self.assertEqual(t.validate("abcde"), "abcde")
+        self.assertEqual(t.validate("abcdef"), "abcdef")
+        with self.assertRaises(ValidationError):
+            t.validate("abcd")
+        with self.assertRaises(ValidationError):
+            t.validate("")
+
+        t = TypeString()
+        t.constraint_len_gte = 5
+        t.constraint_len_lte = 8
+        self.assertEqual(t.validate("abcde"), "abcde")
+        self.assertEqual(t.validate("abcdef"), "abcdef")
+        self.assertEqual(t.validate("abcdefgh"), "abcdefgh")
+        self.assertEqual(t.validate("abcdefg"), "abcdefg")
+        with self.assertRaises(ValidationError):
+            t.validate("abcd")
+        with self.assertRaises(ValidationError):
+            t.validate("abcdefghi")
+
+        t = TypeString()
+        t.constraint_regex = re.compile("^[A-Za-z]\w+$")
+        self.assertEqual(t.validate("abcde"), "abcde")
+        self.assertEqual(t.validate("abc1_2"), "abc1_2")
+        with self.assertRaises(ValidationError):
+            t.validate(" abc1_2")
+        with self.assertRaises(ValidationError):
+            t.validate("99")
+
+        t = TypeString()
+        t.constraint_regex = re.compile("abc")
+        self.assertEqual(t.validate("abcde"), "abcde")
+        self.assertEqual(t.validate("__abcde__"), "__abcde__")
+        with self.assertRaises(ValidationError):
+            t.validate(" ab_c1_2")
+        with self.assertRaises(ValidationError):
+            t.validate("99")
+
     def test_datetime(self):
 
         t = TypeDatetime()

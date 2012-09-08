@@ -225,3 +225,177 @@ action MyAction
                          ["foo:2: error: Unknown member type 'MyBadType'",
                           "foo:6: error: Unknown member type 'MyBadType2'",
                           "foo:8: error: Unknown member type 'MyBadType'"])
+
+    def test_attributes(self):
+
+        parser = SpecParser()
+        parser.parse(StringIO("""\
+struct MyStruct
+    [optional,> 1,<= 10.5] int i1
+    [>= 1, < 10, optional ] int i2
+    [ > 1, <= 10.5] float f1
+    [>= 1.5, < 10 ] float f2
+    [len > 5, len < 101] string s1
+    [ len >= 5, len <= 100 ] string s2
+    [regex = "^[A-Za-z]\w*$" ] string s3
+    [regex = "^\\\".*?\\\"$" ] string s4
+    [regex = "[abc]\\\\" ] string s5
+    [> 5] int[] ai1
+    [< 15] int{} di1
+"""), fileName = "foo")
+        parser.finalize()
+        m = parser.model
+        s = parser.model.types["MyStruct"]
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 0)
+        self.assertEqual(len(m.types), 1)
+        self.assertEqual(len(m.actions), 0)
+
+        # Check struct members
+        self.assertStructByName(m, "MyStruct",
+                                (("i1", TypeInt, True),
+                                 ("i2", TypeInt, True),
+                                 ("f1", TypeFloat, False),
+                                 ("f2", TypeFloat, False),
+                                 ("s1", TypeString, False),
+                                 ("s2", TypeString, False),
+                                 ("s3", TypeString, False),
+                                 ("s4", TypeString, False),
+                                 ("s5", TypeString, False),
+                                 ("ai1", TypeArray, False),
+                                 ("di1", TypeDict, False)))
+
+        # Check i1 constraints
+        i1 = s.members[0].typeInst
+        self.assertEqual(i1.constraint_lt, None)
+        self.assertEqual(i1.constraint_lte, 10.5)
+        self.assertEqual(i1.constraint_gt, 1)
+        self.assertEqual(i1.constraint_gte, None)
+
+        # Check i2 constraints
+        i2 = s.members[1].typeInst
+        self.assertEqual(i2.constraint_lt, 10)
+        self.assertEqual(i2.constraint_lte, None)
+        self.assertEqual(i2.constraint_gt, None)
+        self.assertEqual(i2.constraint_gte, 1)
+
+        # Check f1 constraints
+        f1 = s.members[2].typeInst
+        self.assertEqual(f1.constraint_lt, None)
+        self.assertEqual(f1.constraint_lte, 10.5)
+        self.assertEqual(f1.constraint_gt, 1)
+        self.assertEqual(f1.constraint_gte, None)
+
+        # Check f2 constraints
+        f2 = s.members[3].typeInst
+        self.assertEqual(f2.constraint_lt, 10)
+        self.assertEqual(f2.constraint_lte, None)
+        self.assertEqual(f2.constraint_gt, None)
+        self.assertEqual(f2.constraint_gte, 1.5)
+
+        # Check s1 constraints
+        s1 = s.members[4].typeInst
+        self.assertEqual(s1.constraint_len_lt, 101)
+        self.assertEqual(s1.constraint_len_lte, None)
+        self.assertEqual(s1.constraint_len_gt, 5)
+        self.assertEqual(s1.constraint_len_gte, None)
+        self.assertEqual(s1.constraint_regex, None)
+
+        # Check s2 constraints
+        s2 = s.members[5].typeInst
+        self.assertEqual(s2.constraint_len_lt, None)
+        self.assertEqual(s2.constraint_len_lte, 100)
+        self.assertEqual(s2.constraint_len_gt, None)
+        self.assertEqual(s2.constraint_len_gte, 5)
+        self.assertEqual(s2.constraint_regex, None)
+
+        # Check s3 constraints
+        s3 = s.members[6].typeInst
+        self.assertEqual(s3.constraint_len_lt, None)
+        self.assertEqual(s3.constraint_len_lte, None)
+        self.assertEqual(s3.constraint_len_gt, None)
+        self.assertEqual(s3.constraint_len_gte, None)
+        self.assertTrue(s3.constraint_regex.search("A_12"))
+
+        # Check s4 constraints
+        s4 = s.members[7].typeInst
+        self.assertEqual(s4.constraint_len_lt, None)
+        self.assertEqual(s4.constraint_len_lte, None)
+        self.assertEqual(s4.constraint_len_gt, None)
+        self.assertEqual(s4.constraint_len_gte, None)
+        self.assertTrue(s4.constraint_regex.search("\"abc\""))
+
+        # Check s5 constraints
+        s5 = s.members[8].typeInst
+        self.assertEqual(s5.constraint_len_lt, None)
+        self.assertEqual(s5.constraint_len_lte, None)
+        self.assertEqual(s5.constraint_len_gt, None)
+        self.assertEqual(s5.constraint_len_gte, None)
+        self.assertTrue(s5.constraint_regex.search("fooa\\bar"))
+
+        # Check ai1 constraints
+        ai1 = s.members[9].typeInst.typeInst
+        self.assertEqual(ai1.constraint_lt, None)
+        self.assertEqual(ai1.constraint_lte, None)
+        self.assertEqual(ai1.constraint_gt, 5)
+        self.assertEqual(ai1.constraint_gte, None)
+
+        # Check di1 constraints
+        di1 = s.members[10].typeInst.typeInst
+        self.assertEqual(di1.constraint_lt, 15)
+        self.assertEqual(di1.constraint_lte, None)
+        self.assertEqual(di1.constraint_gt, None)
+        self.assertEqual(di1.constraint_gte, None)
+
+    def test_attributes_fail(self):
+
+        def checkFail(errors, spec):
+            parser = SpecParser()
+            parser.parse(StringIO(spec))
+            parser.finalize()
+            self.assertEqual(len(parser.errors), len(errors))
+            self.assertEqual(parser.errors, errors)
+
+        checkFail([":2: error: Invalid attribute 'len > 1'"],
+"""\
+struct MyStruct
+    [len > 1] int i
+""")
+
+        checkFail([":2: error: Invalid attribute 'len < 10'"],
+"""\
+struct MyStruct
+    [len < 10] float f
+""")
+
+        checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
+"""\
+struct MyStruct
+    [ regex = "^[abcd]$" ] int i
+""")
+
+        checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
+"""\
+struct MyStruct
+    [ regex = "^[abcd]$" ] float f
+""")
+
+        checkFail([":2: error: Invalid attribute '>5'",
+                   ":2: error: Invalid attribute '<7'"],
+"""\
+struct MyStruct
+    [>5, <7] string s
+""")
+
+        checkFail([":6: error: Invalid attribute '>=1'",
+                   ":7: error: Invalid attribute '<=2'"],
+"""\
+enum MyEnum
+    Foo
+    Bar
+
+struct MyStruct
+    [>=1] MyStruct a
+    [<=2] MyEnum b
+""")

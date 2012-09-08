@@ -15,13 +15,18 @@ class SpecParser:
 
     # Parser regex
     _rePartId = "([A-Za-z]\w*)"
-    _rePartAttr = "(\\[\s*(?P<attrs>" + _rePartId + "(\s*,\s*" + _rePartId + ")*)?\\])"
-    _reFindAttr = re.compile(_rePartId + "(?:\s*,\s*|\s*\Z)")
+    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>[1-9]\d*(\.\d+)?)|" + \
+        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>[1-9]\d*)|regex\s*=\s*\"(?P<regex>.*?)(?<![^\\\\]\\\\)\")"
+    _reAttrGroup = re.compile(_rePartAttrGroup)
+    _rePartAttr = re.sub("\\(\\?P<[^>]+>", "(", _rePartAttrGroup)
+    _reFindAttrs = re.compile(_rePartAttr + "(?:\s*,\s*|\s*\Z)")
+    _rePartAttrs = "(\\[\s*(?P<attrs>" + _rePartAttr + "(\s*,\s*" + _rePartAttr + ")*)\s*\\])"
     _reLineCont = re.compile("\\\s*$")
     _reComment = re.compile("^\s*(#.*)?$")
     _reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
     _reSection = re.compile("^\s+(?P<type>input|output|errors)\s*$")
-    _reMember = re.compile("^\s+(" + _rePartAttr + "\s+)?(?P<type>" + _rePartId + ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
+    _reMember = re.compile("^\s+(" + _rePartAttrs + "\s+)?(?P<type>" + _rePartId +
+                           ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
     _reValue = re.compile("^\s+(?P<id>" + _rePartId + ")\s*$")
 
     # Types
@@ -205,8 +210,7 @@ class SpecParser:
             # Struct member?
             elif mMember:
 
-                memAttrs = self._reFindAttr.findall(mMember.group("attrs")) if mMember.group("attrs") else []
-                memIsOptional = "optional" in memAttrs
+                memAttrs = self._reFindAttrs.findall(mMember.group("attrs")) if mMember.group("attrs") else []
                 memTypeName = mMember.group("type")
                 memIsArray = mMember.group("isArray")
                 memIsDict = mMember.group("isDict")
@@ -217,21 +221,60 @@ class SpecParser:
                     self._error("Member outside of struct scope")
                     continue
 
-                # Unknown attributes?
-                for attr in [attr for attr in memAttrs if attr not in ("optional")]:
-                    self._error("Unknown attribute '%s'" % (attr))
-
                 # Member ID already defined?
-                if memId in self._curType.members:
+                if [m for m in self._curType.members if m.name == memId]:
                     self._error("Member '%s' already defined" % (memTypeName))
 
-                # Add the struct member
+                # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
                 member = TypeStruct.Member(memId, self._getTypeInst(memTypeRef) or memTypeRef)
-                member.isOptional = memIsOptional
-                self._curType.members.append(member)
                 if isinstance(member.typeInst, self._TypeRef):
                     self._typeRefs.append(member)
+
+                # Get the member type for setting attributes (only for built-in types!)
+                if isinstance(member.typeInst, TypeArray) or isinstance(member.typeInst, TypeDict):
+                    memTypeInst = member.typeInst.typeInst
+                elif not isinstance(member.typeInst, TypeStruct) and not isinstance(member.typeInst, TypeEnum) and \
+                        not isinstance(member.typeInst, self._TypeRef):
+                    memTypeInst = member.typeInst
+                else:
+                    memTypeInst = None
+
+                # Apply member attributes - type attributes only apply to built-in types
+                for memAttr in memAttrs:
+                    mAttr = self._reAttrGroup.match(memAttr[0])
+                    if mAttr.group("optional"):
+                        member.isOptional = True
+                    elif mAttr.group("op"):
+                        if mAttr.group("op") == "<" and hasattr(memTypeInst, "constraint_lt"):
+                            memTypeInst.constraint_lt = float(mAttr.group("opnum"))
+                        elif mAttr.group("op") == "<=" and hasattr(memTypeInst, "constraint_lte"):
+                            memTypeInst.constraint_lte = float(mAttr.group("opnum"))
+                        elif mAttr.group("op") == ">" and hasattr(memTypeInst, "constraint_gt"):
+                            memTypeInst.constraint_gt = float(mAttr.group("opnum"))
+                        elif mAttr.group("op") == ">=" and hasattr(memTypeInst, "constraint_gte"):
+                            memTypeInst.constraint_gte = float(mAttr.group("opnum"))
+                        else:
+                            self._error("Invalid attribute '%s'" % (memAttr[0]))
+                    elif mAttr.group("lop"):
+                        if mAttr.group("lop") == "<" and hasattr(memTypeInst, "constraint_len_lt"):
+                            memTypeInst.constraint_len_lt = int(mAttr.group("lopnum"))
+                        elif mAttr.group("lop") == "<=" and hasattr(memTypeInst, "constraint_len_lte"):
+                            memTypeInst.constraint_len_lte = int(mAttr.group("lopnum"))
+                        elif mAttr.group("lop") == ">" and hasattr(memTypeInst, "constraint_len_gt"):
+                            memTypeInst.constraint_len_gt = int(mAttr.group("lopnum"))
+                        elif mAttr.group("lop") == ">=" and hasattr(memTypeInst, "constraint_len_gte"):
+                            memTypeInst.constraint_len_gte = int(mAttr.group("lopnum"))
+                        else:
+                            self._error("Invalid attribute '%s'" % (memAttr[0]))
+                    elif mAttr.group("regex"):
+                        if hasattr(memTypeInst, "constraint_regex"):
+                            memTypeInst.constraint_regex = re.compile(mAttr.group("regex"))
+                        else:
+                            self._error("Invalid attribute '%s'" % (memAttr[0]))
+
+                # Add the struct member
+                self._curType.members.append(member)
 
             # Enum value?
             elif mValue:

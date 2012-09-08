@@ -188,13 +188,32 @@ class TypeString:
     def __init__(self, typeName = "string"):
 
         self.typeName = typeName
+        self.constraint_len_lt = None
+        self.constraint_len_lte = None
+        self.constraint_len_gt = None
+        self.constraint_len_gte = None
+        self.constraint_regex = None
 
     def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, basestring):
-            return value
+            result = value
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Check contraints
+        if self.constraint_len_lt is not None and not len(result) < self.constraint_len_lt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_len_lte is not None and not len(result) <= self.constraint_len_lte:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_len_gt is not None and not len(result) > self.constraint_len_gt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_len_gte is not None and not len(result) >= self.constraint_len_gte:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_regex is not None and not self.constraint_regex.search(result):
+            raise ValidationError.memberError(self, value, _member)
+
+        return result
 
 
 # Int type
@@ -203,17 +222,33 @@ class TypeInt:
     def __init__(self, typeName = "int"):
 
         self.typeName = typeName
+        self.constraint_lt = None
+        self.constraint_lte = None
+        self.constraint_gt = None
+        self.constraint_gte = None
 
     def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, int):
-            return value
+            result = value
         elif isinstance(value, float) and int(value) == value:
-            return int(value)
+            result = int(value)
         elif acceptString and isinstance(value, basestring):
-            return int(value)
+            result = int(value)
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Check contraints
+        if self.constraint_lt is not None and not result < self.constraint_lt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_lte is not None and not result <= self.constraint_lte:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_gt is not None and not result > self.constraint_gt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_gte is not None and not result >= self.constraint_gte:
+            raise ValidationError.memberError(self, value, _member)
+
+        return result
 
 
 # Float type
@@ -222,17 +257,33 @@ class TypeFloat:
     def __init__(self, typeName = "float"):
 
         self.typeName = typeName
+        self.constraint_lt = None
+        self.constraint_lte = None
+        self.constraint_gt = None
+        self.constraint_gte = None
 
     def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, float):
-            return value
+            result = value
         elif isinstance(value, int):
-            return float(value)
+            result = float(value)
         elif acceptString and isinstance(value, basestring):
-            return float(value)
+            result = float(value)
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Check contraints
+        if self.constraint_lt is not None and not result < self.constraint_lt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_lte is not None and not result <= self.constraint_lte:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_gt is not None and not result > self.constraint_gt:
+            raise ValidationError.memberError(self, value, _member)
+        if self.constraint_gte is not None and not result >= self.constraint_gte:
+            raise ValidationError.memberError(self, value, _member)
+
+        return result
 
 
 # Bool type
