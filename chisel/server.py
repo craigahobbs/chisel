@@ -35,6 +35,12 @@ class Application:
         self._actionModels = {}
         self._actionCallbacks = {}
 
+        # Action handler context creation callback function
+        self.contextCallback = None
+
+        # Additional HTTP headers callback function
+        self.headersCallback = None
+
         # File extensions
         self.specFileExtension = ".chsl"
         self.moduleFileExtension = ".py"
@@ -174,8 +180,11 @@ class Application:
 
         # Server error return helper
         jsonpFunction = None
+        actionContext = None
         def serverError(error, message):
-            return self._errorResponseTypeInst(), self._errorResponse(error, message), jsonpFunction
+            response = self._errorResponse(error, message)
+            assert self._errorResponseTypeInst().validate(response)
+            return jsonpFunction, actionContext, response
 
         # Get the request content
         isGetRequest = (envRequestMethod == "GET")
@@ -230,7 +239,11 @@ class Application:
             return serverError("InvalidInput", str(e))
 
         # Call the action callback
-        response = actionCallback(None, Struct(request))
+        actionContext = self.contextCallback and self.contextCallback()
+        try:
+            response = actionCallback(actionContext, Struct(request))
+        except Exception, e:
+            return serverError("UnexpectedError", str(e))
 
         # Error response?
         if self.isErrorResponse(response):
@@ -238,22 +251,19 @@ class Application:
         else:
             responseTypeInst = actionModel.outputType
 
-        return responseTypeInst, response, jsonpFunction
+        # Validate the response
+        try:
+            response = responseTypeInst.validate(response)
+        except ValidationError, e:
+            return serverError("InvalidOutput", str(e))
+
+        return jsonpFunction, actionContext, response
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
-        # Handle the request and validate the response
-        jsonpFunction = None
-        try:
-            responseTypeInst, response, jsonpFunction = self._handleRequest(environ, start_response)
-            response = responseTypeInst.validate(response)
-        except ValidationError, e:
-            response = self._errorResponse("InvalidOutput", str(e))
-            assert self._errorResponseTypeInst().validate(response)
-        except Exception, e:
-            response = self._errorResponse("UnexpectedError", str(e))
-            assert self._errorResponseTypeInst().validate(response)
+        # Handle the request
+        jsonpFunction, actionContext, response = self._handleRequest(environ, start_response)
 
         # Serialize the response
         if jsonpFunction:
@@ -272,6 +282,8 @@ class Application:
             ("Content-Type", "application/json"),
             ("Content-Length", str(sum([len(s) for s in responseBody])))
             ]
+        if self.headersCallback:
+            responseHeaders.extend(self.headersCallback(actionContext))
         start_response(status, responseHeaders)
 
         return responseBody

@@ -367,3 +367,38 @@ action myAction
             return {}
         with self.assertRaises(Exception):
             app.addActionCallback(myAction)
+
+    def test_callbacks(self):
+
+        # Action context callback
+        def myContext():
+            ctx = Struct()
+            ctx.foo = 19
+            return ctx
+
+        # Action header callback
+        def myHeaders(ctx):
+            return [("X-Bar", "Foo bar %d" % (ctx.foo))]
+
+        # Request handler
+        app = Application()
+        app.contextCallback = myContext
+        app.headersCallback = myHeaders
+        app.loadSpecs(StringIO("""\
+action myAction1
+    input
+        int a
+    output
+        int b
+"""))
+        def myAction1(ctx, input):
+            return { "b": input.a * ctx.foo }
+        app.addActionCallback(myAction1)
+
+        # Check context creation
+        request = '{ "a": 3 }'
+        status, headers, response = self.sendRequest(app, "POST", "/myAction1", len(request), request)
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(len(response()), 1)
+        self.assertEqual(response.b, 3 * 19)
+        self.assertTrue(("X-Bar", "Foo bar 19") in headers)
