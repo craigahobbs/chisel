@@ -46,6 +46,7 @@ class TestParseSpec(unittest.TestCase):
         self.assertStruct(model.actions[actionName].outputType, outputMembers)
         self.assertEnum(model.actions[actionName].errorType, errorValues)
 
+    # Test valid spec parsing
     def test_simple(self):
 
         parser = SpecParser()
@@ -126,6 +127,7 @@ action MyAction
                           ("Error1",
                            "Error2"))
 
+    # Test multiple parse calls per parser instance
     def test_multiple(self):
 
         parser = SpecParser()
@@ -199,6 +201,7 @@ enum MyEnum2
         self.assertEqual(m.actions["MyAction2"].inputType.members[0].typeInst.typeName, "MyStruct")
         self.assertEqual(m.actions["MyAction2"].outputType.members[0].typeInst.typeName, "MyStruct2")
 
+    # Test members referencing unknown user types
     def test_unknown_type(self):
 
         parser = SpecParser()
@@ -226,6 +229,7 @@ action MyAction
                           "foo:6: error: Unknown member type 'MyBadType2'",
                           "foo:8: error: Unknown member type 'MyBadType'"])
 
+    # Test valid attribute usage
     def test_attributes(self):
 
         parser = SpecParser()
@@ -348,6 +352,7 @@ struct MyStruct
         self.assertEqual(di1.constraint_gt, None)
         self.assertEqual(di1.constraint_gte, None)
 
+    # Test invalid member attribute usage
     def test_attributes_fail(self):
 
         def checkFail(errors, spec):
@@ -357,30 +362,35 @@ struct MyStruct
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)
 
+        # Invalid len> attribute usage
         checkFail([":2: error: Invalid attribute 'len > 1'"],
 """\
 struct MyStruct
     [len > 1] int i
 """)
 
+        # Invalid len< attribute usage
         checkFail([":2: error: Invalid attribute 'len < 10'"],
 """\
 struct MyStruct
     [len < 10] float f
 """)
 
+        # Invalid regex attribute usage
         checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
 """\
 struct MyStruct
     [ regex = "^[abcd]$" ] int i
 """)
 
+        # Invalid regex attribute usage
         checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
 """\
 struct MyStruct
     [ regex = "^[abcd]$" ] float f
 """)
 
+        # Invalid > and < attribute usage
         checkFail([":2: error: Invalid attribute '>5'",
                    ":2: error: Invalid attribute '<7'"],
 """\
@@ -388,6 +398,7 @@ struct MyStruct
     [>5, <7] string s
 """)
 
+        # Invalid >= and <= attribute usage
         checkFail([":6: error: Invalid attribute '>=1'",
                    ":7: error: Invalid attribute '<=2'"],
 """\
@@ -398,4 +409,11 @@ enum MyEnum
 struct MyStruct
     [>=1] MyStruct a
     [<=2] MyEnum b
+""")
+
+        # Invalid regex
+        checkFail([":2: error: Invalid attribute 'regex=\"a(\"'"],
+"""\
+struct MyStruct
+    [regex="a("] string a
 """)

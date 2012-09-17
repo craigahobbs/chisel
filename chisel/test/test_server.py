@@ -254,7 +254,7 @@ action myActionRaise
 
         # Unknown action
         status, headers, response = self.sendRequest(app, "POST", "/myActionUnknown", len(request), request)
-        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(status, "404 Not Found")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnknownAction")
         self.assertTrue(isinstance(response.message, unicode))
@@ -381,9 +381,7 @@ action myAction
             return [("X-Bar", "Foo bar %d" % (ctx.foo))]
 
         # Request handler
-        app = Application()
-        app.contextCallback = myContext
-        app.headersCallback = myHeaders
+        app = Application(contextCallback = myContext, headersCallback = myHeaders)
         app.loadSpecs(StringIO("""\
 action myAction1
     input

@@ -269,7 +269,10 @@ class SpecParser:
                             self._error("Invalid attribute '%s'" % (memAttr[0]))
                     elif mAttr.group("regex"):
                         if hasattr(memTypeInst, "constraint_regex"):
-                            memTypeInst.constraint_regex = re.compile(mAttr.group("regex"))
+                            try:
+                                memTypeInst.constraint_regex = re.compile(mAttr.group("regex"))
+                            except:
+                                self._error("Invalid attribute '%s'" % (memAttr[0]))
                         else:
                             self._error("Invalid attribute '%s'" % (memAttr[0]))
 

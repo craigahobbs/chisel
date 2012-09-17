@@ -4,6 +4,7 @@
 # See README.md for license.
 #
 
+from .doc import joinUrl, docIndex, docAction
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
@@ -14,6 +15,7 @@ import json
 import logging
 import os
 import uuid
+from wsgiref.util import application_uri
 
 
 # Helper function to serialize structs as JSON
@@ -30,23 +32,32 @@ def serializeJSON(o, pretty = False):
 class Application:
 
     # Class initializer
-    def __init__(self):
+    def __init__(self,
+                 contextCallback = None,
+                 headersCallback = None,
+                 docUriDir = "doc",
+                 jsonpMemberName = "jsonp",
+                 specFileExtension = ".chsl",
+                 moduleFileExtension = ".py"):
 
         self._actionModels = {}
         self._actionCallbacks = {}
 
         # Action handler context creation callback function
-        self.contextCallback = None
+        self.contextCallback = contextCallback
 
         # Additional HTTP headers callback function
-        self.headersCallback = None
+        self.headersCallback = headersCallback
 
-        # File extensions
-        self.specFileExtension = ".chsl"
-        self.moduleFileExtension = ".py"
+        # The generated spec documentation URL directory name
+        self._docUriDir = docUriDir
 
         # JSONP callback reserved member name
-        self.jsonpMember = "jsonp"
+        self.jsonpMemberName = jsonpMemberName
+
+        # File extensions
+        self.specFileExtension = specFileExtension
+        self.moduleFileExtension = moduleFileExtension
 
     # Logger accessor
     def getLogger(self):
@@ -170,7 +181,7 @@ class Application:
         return errorResponseTypeInst
 
     # Request handling helper method
-    def _handleRequest(self, environ, start_response):
+    def _handleRequest(self, environ):
 
         envRequestMethod = environ.get("REQUEST_METHOD")
         envPathInfo = environ.get("PATH_INFO")
@@ -186,6 +197,13 @@ class Application:
             assert self._errorResponseTypeInst().validate(response)
             return jsonpFunction, actionContext, response
 
+        # Match an action
+        actionName = envPathInfo.split("/")[-1]
+        actionCallback = self._actionCallbacks.get(actionName)
+        if actionCallback is None:
+            return serverError("UnknownAction", "Request for unknown action '%s'" % (actionName))
+        actionModel = self._actionModels[actionName]
+
         # Get the request content
         isGetRequest = (envRequestMethod == "GET")
         if isGetRequest:
@@ -197,9 +215,9 @@ class Application:
                 request = decodeQueryString(envQueryString)
 
                 # JSONP?
-                if self.jsonpMember in request:
-                    jsonpFunction = str(request[self.jsonpMember])
-                    del request[self.jsonpMember]
+                if self.jsonpMemberName in request:
+                    jsonpFunction = str(request[self.jsonpMemberName])
+                    del request[self.jsonpMemberName]
 
         elif envRequestMethod != "POST":
 
@@ -224,13 +242,6 @@ class Application:
                 request = json.loads(requestBody)
             except Exception, e:
                 return serverError("InvalidInput", "Invalid request JSON: %s" % (str(e)))
-
-        # Match an action
-        actionName = envPathInfo.split("/")[-1]
-        actionCallback = self._actionCallbacks.get(actionName)
-        if actionCallback is None:
-            return serverError("UnknownAction", "Request for unknown action '%s'" % (actionName))
-        actionModel = self._actionModels[actionName]
 
         # Validate the request
         try:
@@ -262,24 +273,57 @@ class Application:
     # WSGI entry point
     def __call__(self, environ, start_response):
 
-        # Handle the request
-        jsonpFunction, actionContext, response = self._handleRequest(environ, start_response)
+        envRequestMethod = environ.get("REQUEST_METHOD")
+        envPathInfo = environ.get("PATH_INFO")
 
-        # Serialize the response
-        if jsonpFunction:
-            responseBody = [jsonpFunction, "(", serializeJSON(response), ");"]
-        else:
-            responseBody = [serializeJSON(response)]
+        # Doc request?
+        pathParts = envPathInfo.strip("/").split("/")
+        if envRequestMethod == "GET" and pathParts[-1] == self._docUriDir:
 
-        # Determine the HTTP status
-        if self.isErrorResponse(response) and jsonpFunction is None:
-            status = "500 Internal Server Error"
-        else:
             status = "200 OK"
+            contentType = "text/html"
+            responseBody = docIndex(joinUrl(application_uri(environ), self._docUriDir), self._actionModels)
+
+        # Action doc request?
+        elif envRequestMethod == "GET" and len(pathParts) >= 2 and pathParts[-2] == self._docUriDir:
+
+            actionModel = self._actionModels.get(pathParts[-1])
+            if actionModel is None:
+
+                status = "404 Not Found"
+                contentType = "text/plain"
+                responseBody = "Not Found"
+
+            else:
+
+                status = "200 OK"
+                contentType = "text/html"
+                responseBody = docAction(joinUrl(application_uri(environ), self._docUriDir), actionModel)
+
+        else:
+
+            # Handle the request
+            jsonpFunction, actionContext, response = self._handleRequest(environ)
+
+            # Serialize the response
+            contentType = "application/json"
+            if jsonpFunction:
+                responseBody = [jsonpFunction, "(", serializeJSON(response), ");"]
+            else:
+                responseBody = [serializeJSON(response)]
+
+            # Determine the HTTP status
+            if self.isErrorResponse(response) and jsonpFunction is None:
+                if response["error"] == "UnknownAction":
+                    status = "404 Not Found"
+                else:
+                    status = "500 Internal Server Error"
+            else:
+                status = "200 OK"
 
         # Send the response
         responseHeaders = [
-            ("Content-Type", "application/json"),
+            ("Content-Type", contentType),
             ("Content-Length", str(sum([len(s) for s in responseBody])))
             ]
         if self.headersCallback:
