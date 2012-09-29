@@ -23,12 +23,13 @@ class Model:
 # Action class
 class Action:
 
-    def __init__(self, name):
+    def __init__(self, name, doc = None):
 
         self.name = name
         self.inputType = TypeStruct(typeName = name + "_Input")
         self.outputType = TypeStruct(typeName = name + "_Output")
         self.errorType = TypeEnum(typeName = name + "_Error")
+        self.doc = [] if doc is None else doc
 
 
 # Python json module "default" function
@@ -70,15 +71,17 @@ class ValidationError(Exception):
 class TypeStruct:
 
     class Member:
-        def __init__(self, name, typeInst, isOptional = False):
+        def __init__(self, name, typeInst, isOptional = False, doc = None):
             self.name = name
             self.typeInst = typeInst
             self.isOptional = isOptional
+            self.doc = [] if doc is None else doc
 
-    def __init__(self, typeName = "struct"):
+    def __init__(self, typeName = "struct", doc = None):
 
         self.typeName = typeName
         self.members = []
+        self.doc = [] if doc is None else doc
 
     def validate(self, value, acceptString = False, _member = ()):
 
@@ -169,10 +172,18 @@ class TypeDict:
 # Enumeration type
 class TypeEnum:
 
-    def __init__(self, values = None, typeName = "enum"):
+    class Value:
+        def __init__(self, value, doc = None):
+            self.value = value
+            self.doc = [] if doc is None else doc
+        def __cmp__(self, other):
+            return cmp(self.value, other)
+
+    def __init__(self, typeName = "enum", doc = None):
 
         self.typeName = typeName
-        self.values = [] if values is None else values
+        self.values = []
+        self.doc = [] if doc is None else doc
 
     def validate(self, value, acceptString = False, _member = ()):
 

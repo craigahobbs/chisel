@@ -246,6 +246,7 @@ struct MyStruct
     [regex = "[abc]\\\\" ] string s5
     [> 5] int[] ai1
     [< 15] int{} di1
+    [ > 0, <= 10] int i3
 """), fileName = "foo")
         parser.finalize()
         m = parser.model
@@ -268,7 +269,9 @@ struct MyStruct
                                  ("s4", TypeString, False),
                                  ("s5", TypeString, False),
                                  ("ai1", TypeArray, False),
-                                 ("di1", TypeDict, False)))
+                                 ("di1", TypeDict, False),
+                                 ("i3", TypeInt, False),
+                                 ))
 
         # Check i1 constraints
         i1 = s.members[0].typeInst
@@ -352,6 +355,13 @@ struct MyStruct
         self.assertEqual(di1.constraint_gt, None)
         self.assertEqual(di1.constraint_gte, None)
 
+        # Check i3 constraints
+        i3 = s.members[11].typeInst
+        self.assertEqual(i3.constraint_lt, None)
+        self.assertEqual(i3.constraint_lte, 10)
+        self.assertEqual(i3.constraint_gt, 0)
+        self.assertEqual(i3.constraint_gte, None)
+
     # Test invalid member attribute usage
     def test_attributes_fail(self):
 
@@ -417,3 +427,93 @@ struct MyStruct
 struct MyStruct
     [regex="a("] string a
 """)
+
+    # Test documentation comments
+    def test_doc(self):
+
+        parser = SpecParser()
+        parser.parse(StringIO("""\
+# My enum
+enum MyEnum
+
+  # MyEnum value 1
+  MyEnumValue1
+
+  #
+  # MyEnum value 2
+  #
+  # Second line
+  #
+  MyEnumValue2
+
+#- Hidden comment
+enum MyEnum2
+
+  #- Hidden comment
+  MyEnum2Value1
+
+# My struct
+struct MyStruct
+
+  # MyStruct member a
+  int a
+
+  #
+  # MyStruct member b
+  #
+  string[] b
+
+#- Hidden comment
+struct MyStruct2
+
+  #- Hidden comment
+  int a
+
+# My action
+action MyAction
+
+  input
+
+    # My input member
+    float a
+
+  output
+
+    # My output member
+    datetime b
+"""))
+        parser.finalize()
+        self.assertEqual(len(parser.errors), 0)
+        m = parser.model
+
+        # Check model documentation comments
+        self.assertEqual(m.types["MyEnum"].doc,
+                         ["My enum"])
+        self.assertEqual(m.types["MyEnum"].values[0].doc,
+                         ["MyEnum value 1"])
+        self.assertEqual(m.types["MyEnum"].values[1].doc,
+                         ["", "MyEnum value 2", "", "Second line", ""])
+        self.assertEqual(m.types["MyEnum2"].doc,
+                         [])
+        self.assertEqual(m.types["MyEnum2"].values[0].doc,
+                         [])
+        self.assertEqual(m.types["MyStruct"].doc,
+                         ["My struct"])
+        self.assertEqual(m.types["MyStruct"].members[0].doc,
+                         ["MyStruct member a"])
+        self.assertEqual(m.types["MyStruct"].members[1].doc,
+                         ["", "MyStruct member b", ""])
+        self.assertEqual(m.types["MyStruct2"].doc,
+                         [])
+        self.assertEqual(m.types["MyStruct2"].members[0].doc,
+                         [])
+        self.assertEqual(m.actions["MyAction"].doc,
+                         ["My action"])
+        self.assertEqual(m.actions["MyAction"].inputType.doc,
+                         [])
+        self.assertEqual(m.actions["MyAction"].inputType.members[0].doc,
+                         ["My input member"])
+        self.assertEqual(m.actions["MyAction"].outputType.doc,
+                         [])
+        self.assertEqual(m.actions["MyAction"].outputType.members[0].doc,
+                         ["My output member"])

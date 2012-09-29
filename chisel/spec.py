@@ -15,14 +15,14 @@ class SpecParser:
 
     # Parser regex
     _rePartId = "([A-Za-z]\w*)"
-    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>[1-9]\d*(\.\d+)?)|" + \
-        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>[1-9]\d*)|regex\s*=\s*\"(?P<regex>.*?)(?<![^\\\\]\\\\)\")"
+    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>[0-9]\d*(\.\d+)?)|" + \
+        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>[0-9]\d*)|regex\s*=\s*\"(?P<regex>.*?)(?<![^\\\\]\\\\)\")"
     _reAttrGroup = re.compile(_rePartAttrGroup)
     _rePartAttr = re.sub("\\(\\?P<[^>]+>", "(", _rePartAttrGroup)
     _reFindAttrs = re.compile(_rePartAttr + "(?:\s*,\s*|\s*\Z)")
     _rePartAttrs = "(\\[\s*(?P<attrs>" + _rePartAttr + "(\s*,\s*" + _rePartAttr + ")*)\s*\\])"
     _reLineCont = re.compile("\\\s*$")
-    _reComment = re.compile("^\s*(#.*)?$")
+    _reComment = re.compile("^\s*(#-.*|#(?P<doc>.*))?$")
     _reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
     _reSection = re.compile("^\s+(?P<type>input|output|errors)\s*$")
     _reMember = re.compile("^\s+(" + _rePartAttrs + "\s+)?(?P<type>" + _rePartId +
@@ -55,6 +55,7 @@ class SpecParser:
         self._parseLine = 0
         self._curAction = None
         self._curType = None
+        self._curDoc = []
 
         # Do the work
         self._parse()
@@ -145,7 +146,9 @@ class SpecParser:
             # Comment?
             if mComment:
 
-                continue
+                doc = mComment.group("doc")
+                if doc is not None:
+                    self._curDoc.append(doc.strip())
 
             # Definition?
             elif mDefinition:
@@ -161,8 +164,9 @@ class SpecParser:
                         self._error("Action '%s' already defined" % (defId))
 
                     # Create the new action
-                    self._curAction = Action(defId)
+                    self._curAction = Action(defId, doc = self._curDoc)
                     self._curType = None
+                    self._curDoc = []
                     self.model.actions[self._curAction.name] = self._curAction
 
                 # Struct definition
@@ -174,7 +178,8 @@ class SpecParser:
 
                     # Create the new struct type
                     self._curAction = None
-                    self._curType = TypeStruct(typeName = defId)
+                    self._curType = TypeStruct(typeName = defId, doc = self._curDoc)
+                    self._curDoc = []
                     self.model.types[self._curType.typeName] = self._curType
 
                 # Enum definition
@@ -186,7 +191,8 @@ class SpecParser:
 
                     # Create the new enum type
                     self._curAction = None
-                    self._curType = TypeEnum(typeName = defId)
+                    self._curType = TypeEnum(typeName = defId, doc = self._curDoc)
+                    self._curDoc = []
                     self.model.types[self._curType.typeName] = self._curType
 
             # Section?
@@ -223,11 +229,12 @@ class SpecParser:
 
                 # Member ID already defined?
                 if [m for m in self._curType.members if m.name == memId]:
-                    self._error("Member '%s' already defined" % (memTypeName))
+                    self._error("Member '%s' already defined" % (memId))
 
                 # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
-                member = TypeStruct.Member(memId, self._getTypeInst(memTypeRef) or memTypeRef)
+                member = TypeStruct.Member(memId, self._getTypeInst(memTypeRef) or memTypeRef, doc = self._curDoc)
+                self._curDoc = []
                 if isinstance(member.typeInst, self._TypeRef):
                     self._typeRefs.append(member)
 
@@ -294,7 +301,9 @@ class SpecParser:
                     self._error("Duplicate enumeration value '%s'" % (memId))
 
                 # Add the enum value
-                self._curType.values.append(memId)
+                value = TypeEnum.Value(memId, doc = self._curDoc)
+                self._curDoc = []
+                self._curType.values.append(value)
 
             # Unrecognized line syntax
             else:

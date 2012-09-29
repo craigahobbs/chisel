@@ -27,7 +27,10 @@ class TestStructValidation(unittest.TestCase):
         m.members.append(TypeStruct.Member("c", mc))
         m.members.append(TypeStruct.Member("f", TypeArray(TypeString())))
         m.members.append(TypeStruct.Member("g", TypeDict(TypeInt()), isOptional = True))
-        m.members.append(TypeStruct.Member("h", TypeEnum(values = ["Foo", "Bar"]), isOptional = True))
+        me = TypeEnum()
+        me.values.append(TypeEnum.Value("Foo"))
+        me.values.append(TypeEnum.Value("Bar"))
+        m.members.append(TypeStruct.Member("h", me, isOptional = True))
         m.members.append(TypeStruct.Member("i", TypeDatetime(), isOptional = True))
 
         # Validate success

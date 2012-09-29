@@ -12,7 +12,7 @@ import os
 import re
 from StringIO import StringIO
 import unittest
-
+from wsgiref.util import setup_testing_defaults
 
 # Test logging handler
 class TestLoggerHandler:
@@ -47,6 +47,7 @@ class TestLoadModules(unittest.TestCase):
         self.app = Application()
         TestLoggerHandler(self.app)
 
+    # Test succussful module directory load
     def test_loadModules(self):
 
         app = self.app
@@ -58,6 +59,7 @@ class TestLoadModules(unittest.TestCase):
         self.assertEqual(app._actionCallbacks["myAction2"].func_name, "myAction2")
         self.assertEqual(app._actionCallbacks["myAction3"].func_name, "myAction3")
 
+    # Verify that exception is raised when invalid module path is loaded
     def test_loadModules_badModulePath(self):
 
         app = self.app
@@ -75,6 +77,7 @@ class TestRequest(unittest.TestCase):
         self.app = Application()
         TestLoggerHandler(self.app)
 
+    # Request/response helper
     @staticmethod
     def sendRequest(app, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):
 
@@ -88,6 +91,7 @@ class TestRequest(unittest.TestCase):
             environ["QUERY_STRING"] = queryString
         if contentLength is not None:
             environ["CONTENT_LENGTH"] = str(contentLength)
+        setup_testing_defaults(environ)
 
         # WSGI start_response
         status = []
@@ -102,6 +106,7 @@ class TestRequest(unittest.TestCase):
             response = Struct(json.loads("".join(response)))
         return status[0], responseHeaders[0], response
 
+    # Test successful action handling
     def test_success(self):
 
         # Application instance
@@ -147,6 +152,7 @@ action myActionGet
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.c, 12)
 
+    # Test action-level error handling
     def test_error(self):
 
         # Application instance
@@ -207,6 +213,7 @@ action myAction
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.b, 6)
 
+    # Test complex (nested) container response
     def test_complex_response(self):
 
         # Request handler
@@ -234,6 +241,7 @@ action myAction
         self.assertEqual(response.a.b[1], 2)
         self.assertEqual(response.a.b[2], 3)
 
+    # Test server-level error handling
     def test_fail(self):
 
         # Request handler
@@ -301,6 +309,7 @@ action myActionRaise
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
 
+    # Test passing complex struct as query string
     def test_query(self):
 
         # Request handler
@@ -327,6 +336,7 @@ action myAction
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.sum, 15)
 
+    # Test JSONP response
     def test_jsonp(self):
 
         # Request handler
@@ -359,6 +369,7 @@ action myAction
         self.assertEqual(status, "200 OK")
         self.assertTrue(response.startswith('myfunc({"error":"InvalidInput","message":'))
 
+    # Verify that exception is raised when action is added with no model
     def test_fail_no_action_model(self):
 
         # Request handler
@@ -368,7 +379,8 @@ action myAction
         with self.assertRaises(Exception):
             app.addActionCallback(myAction)
 
-    def test_callbacks(self):
+    # Test context callback and header callback functionality
+    def test_context(self):
 
         # Action context callback
         def myContext():
@@ -400,3 +412,65 @@ action myAction1
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.b, 3 * 19)
         self.assertTrue(("X-Bar", "Foo bar 19") in headers)
+
+    # Test doc URL handling
+    def test_doc(self):
+
+        # Request handler
+        app = Application()
+        app.loadSpecs(StringIO("""\
+action myAction
+    input
+        int a
+    output
+        int b
+"""))
+        def myAction(ctx, input):
+            return { "b": input.a * ctx.foo }
+        app.addActionCallback(myAction)
+
+        # Test doc index request
+        status, headers, response = self.sendRequest(app, "GET", "/doc", None, "", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/html") in headers)
+        self.assertTrue("<!doctype html>" in response)
+        self.assertTrue(">myAction</a>" in response)
+
+        # Test doc index request (trailing slash)
+        status, headers, response = self.sendRequest(app, "GET", "/doc/", None, "", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/html") in headers)
+        self.assertTrue("<!doctype html>" in response)
+        self.assertTrue(">myAction</a>" in response)
+
+        # Test doc index page POST
+        status, headers, response = self.sendRequest(app, "POST", "/doc", "2", "{}", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "application/json") in headers)
+        self.assertTrue('"error":"UnknownAction"' in response)
+
+        # Test doc action page
+        status, headers, response = self.sendRequest(app, "GET", "/doc/myAction", None, "", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/html") in headers)
+        self.assertTrue("<!doctype html>" in response)
+        self.assertTrue(">myAction</h1>" in response)
+
+        # Test doc action page (trailing slash)
+        status, headers, response = self.sendRequest(app, "GET", "/doc/myAction/", None, "", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/html") in headers)
+        self.assertTrue("<!doctype html>" in response)
+        self.assertTrue(">myAction</h1>" in response)
+
+        # Test unknown doc action page handling
+        status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction", None, "", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertTrue("Not Found" in response)
+
+        # Test unknown doc action page handling (trailing slash)
+        status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction/", None, "", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertTrue("Not Found" in response)

@@ -14,6 +14,7 @@ import imp
 import json
 import logging
 import os
+import urllib
 import uuid
 from wsgiref.util import application_uri
 
@@ -113,7 +114,7 @@ class Application:
             self._actionModels[actionModel.name] = actionModel
 
     # Load spec(s) from a directory path, file path, or stream
-    def loadSpecs(self, spec, parser = None):
+    def loadSpecs(self, spec, parser = None, specFileName = None):
 
         isFinal = parser is None
         parser = parser or SpecParser()
@@ -129,16 +130,16 @@ class Application:
                     for filename in filenames:
                         (base, ext) = os.path.splitext(filename)
                         if ext == self.specFileExtension:
-                            self.loadSpecs(os.path.join(dirpath, filename), parser = parser)
+                            self.loadSpecs(os.path.join(dirpath, filename), parser = parser, specFileName = filename)
 
             # Assume file path...
             else:
                 with open(spec, "rb") as fhSpec:
-                    self.loadSpecs(fhSpec, parser = parser)
+                    self.loadSpecs(fhSpec, parser = parser, specFileName = spec)
 
         # Assume stream...
         else:
-            parser.parse(spec)
+            parser.parse(spec, fileName = specFileName)
 
         # Finalize parsing
         if isFinal:
@@ -169,13 +170,14 @@ class Application:
 
         errorResponseTypeInst = TypeStruct()
         if errorTypeInst is None:
-            errorTypeInst = TypeEnum(("InvalidContentLength",
-                                      "InvalidInput",
-                                      "InvalidOutput",
-                                      "IOError",
-                                      "UnexpectedError",
-                                      "UnknownAction",
-                                      "UnknownRequestMethod"))
+            errorTypeInst = TypeEnum()
+            errorTypeInst.values.append(TypeEnum.Value("InvalidContentLength"))
+            errorTypeInst.values.append(TypeEnum.Value("InvalidInput"))
+            errorTypeInst.values.append(TypeEnum.Value("InvalidOutput"))
+            errorTypeInst.values.append(TypeEnum.Value("IOError"))
+            errorTypeInst.values.append(TypeEnum.Value("UnexpectedError"))
+            errorTypeInst.values.append(TypeEnum.Value("UnknownAction"))
+            errorTypeInst.values.append(TypeEnum.Value("UnknownRequestMethod"))
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
         return errorResponseTypeInst
@@ -282,7 +284,9 @@ class Application:
 
             status = "200 OK"
             contentType = "text/html"
-            responseBody = docIndex(joinUrl(application_uri(environ), self._docUriDir), self._actionModels)
+            responseBody = docIndex(joinUrl(application_uri(environ), urllib.quote(self._docUriDir)),
+                                    [actionModel for actionModel in self._actionModels.itervalues() \
+                                         if actionModel.name in self._actionCallbacks])
 
         # Action doc request?
         elif envRequestMethod == "GET" and len(pathParts) >= 2 and pathParts[-2] == self._docUriDir:
