@@ -203,7 +203,6 @@ class TypeString:
         self.constraint_len_lte = None
         self.constraint_len_gt = None
         self.constraint_len_gte = None
-        self.constraint_regex = None
 
     def validate(self, value, acceptString = False, _member = ()):
 
@@ -220,8 +219,6 @@ class TypeString:
         if self.constraint_len_gt is not None and not len(result) > self.constraint_len_gt:
             raise ValidationError.memberError(self, value, _member)
         if self.constraint_len_gte is not None and not len(result) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, value, _member)
-        if self.constraint_regex is not None and not self.constraint_regex.search(result):
             raise ValidationError.memberError(self, value, _member)
 
         return result

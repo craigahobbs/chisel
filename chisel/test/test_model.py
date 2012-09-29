@@ -340,24 +340,6 @@ class TestStructValidation(unittest.TestCase):
         with self.assertRaises(ValidationError):
             t.validate("abcdefghi")
 
-        t = TypeString()
-        t.constraint_regex = re.compile("^[A-Za-z]\w+$")
-        self.assertEqual(t.validate("abcde"), "abcde")
-        self.assertEqual(t.validate("abc1_2"), "abc1_2")
-        with self.assertRaises(ValidationError):
-            t.validate(" abc1_2")
-        with self.assertRaises(ValidationError):
-            t.validate("99")
-
-        t = TypeString()
-        t.constraint_regex = re.compile("abc")
-        self.assertEqual(t.validate("abcde"), "abcde")
-        self.assertEqual(t.validate("__abcde__"), "__abcde__")
-        with self.assertRaises(ValidationError):
-            t.validate(" ab_c1_2")
-        with self.assertRaises(ValidationError):
-            t.validate("99")
-
     def test_datetime(self):
 
         t = TypeDatetime()

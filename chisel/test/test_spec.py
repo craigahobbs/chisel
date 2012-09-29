@@ -241,9 +241,6 @@ struct MyStruct
     [>= 1.5, < 10 ] float f2
     [len > 5, len < 101] string s1
     [ len >= 5, len <= 100 ] string s2
-    [regex = "^[A-Za-z]\w*$" ] string s3
-    [regex = "^\\\".*?\\\"$" ] string s4
-    [regex = "[abc]\\\\" ] string s5
     [> 5] int[] ai1
     [< 15] int{} di1
     [ > 0, <= 10] int i3
@@ -265,9 +262,6 @@ struct MyStruct
                                  ("f2", TypeFloat, False),
                                  ("s1", TypeString, False),
                                  ("s2", TypeString, False),
-                                 ("s3", TypeString, False),
-                                 ("s4", TypeString, False),
-                                 ("s5", TypeString, False),
                                  ("ai1", TypeArray, False),
                                  ("di1", TypeDict, False),
                                  ("i3", TypeInt, False),
@@ -307,7 +301,6 @@ struct MyStruct
         self.assertEqual(s1.constraint_len_lte, None)
         self.assertEqual(s1.constraint_len_gt, 5)
         self.assertEqual(s1.constraint_len_gte, None)
-        self.assertEqual(s1.constraint_regex, None)
 
         # Check s2 constraints
         s2 = s.members[5].typeInst
@@ -315,48 +308,23 @@ struct MyStruct
         self.assertEqual(s2.constraint_len_lte, 100)
         self.assertEqual(s2.constraint_len_gt, None)
         self.assertEqual(s2.constraint_len_gte, 5)
-        self.assertEqual(s2.constraint_regex, None)
-
-        # Check s3 constraints
-        s3 = s.members[6].typeInst
-        self.assertEqual(s3.constraint_len_lt, None)
-        self.assertEqual(s3.constraint_len_lte, None)
-        self.assertEqual(s3.constraint_len_gt, None)
-        self.assertEqual(s3.constraint_len_gte, None)
-        self.assertTrue(s3.constraint_regex.search("A_12"))
-
-        # Check s4 constraints
-        s4 = s.members[7].typeInst
-        self.assertEqual(s4.constraint_len_lt, None)
-        self.assertEqual(s4.constraint_len_lte, None)
-        self.assertEqual(s4.constraint_len_gt, None)
-        self.assertEqual(s4.constraint_len_gte, None)
-        self.assertTrue(s4.constraint_regex.search("\"abc\""))
-
-        # Check s5 constraints
-        s5 = s.members[8].typeInst
-        self.assertEqual(s5.constraint_len_lt, None)
-        self.assertEqual(s5.constraint_len_lte, None)
-        self.assertEqual(s5.constraint_len_gt, None)
-        self.assertEqual(s5.constraint_len_gte, None)
-        self.assertTrue(s5.constraint_regex.search("fooa\\bar"))
 
         # Check ai1 constraints
-        ai1 = s.members[9].typeInst.typeInst
+        ai1 = s.members[6].typeInst.typeInst
         self.assertEqual(ai1.constraint_lt, None)
         self.assertEqual(ai1.constraint_lte, None)
         self.assertEqual(ai1.constraint_gt, 5)
         self.assertEqual(ai1.constraint_gte, None)
 
         # Check di1 constraints
-        di1 = s.members[10].typeInst.typeInst
+        di1 = s.members[7].typeInst.typeInst
         self.assertEqual(di1.constraint_lt, 15)
         self.assertEqual(di1.constraint_lte, None)
         self.assertEqual(di1.constraint_gt, None)
         self.assertEqual(di1.constraint_gte, None)
 
         # Check i3 constraints
-        i3 = s.members[11].typeInst
+        i3 = s.members[8].typeInst
         self.assertEqual(i3.constraint_lt, None)
         self.assertEqual(i3.constraint_lte, 10)
         self.assertEqual(i3.constraint_gt, 0)
@@ -386,20 +354,6 @@ struct MyStruct
     [len < 10] float f
 """)
 
-        # Invalid regex attribute usage
-        checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
-"""\
-struct MyStruct
-    [ regex = "^[abcd]$" ] int i
-""")
-
-        # Invalid regex attribute usage
-        checkFail([":2: error: Invalid attribute 'regex = \"^[abcd]$\"'"],
-"""\
-struct MyStruct
-    [ regex = "^[abcd]$" ] float f
-""")
-
         # Invalid > and < attribute usage
         checkFail([":2: error: Invalid attribute '>5'",
                    ":2: error: Invalid attribute '<7'"],
@@ -421,11 +375,11 @@ struct MyStruct
     [<=2] MyEnum b
 """)
 
-        # Invalid regex
-        checkFail([":2: error: Invalid attribute 'regex=\"a(\"'"],
+        # Unknown attribute syntax
+        checkFail([":2: error: Syntax error"],
 """\
 struct MyStruct
-    [regex="a("] string a
+    [regex="abc"] string a
 """)
 
     # Test documentation comments
