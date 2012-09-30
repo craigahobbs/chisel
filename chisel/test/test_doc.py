@@ -31,7 +31,7 @@ class HTMLValidator(HTMLParser):
         self.elements = []
 
     def handle_starttag(self, tag, attrs):
-        if tag not in ("br", "img", "meta"):
+        if tag not in ("br", "img", "link", "meta"):
             self.elements.append(tag)
 
     def handle_endtag(self, tag):

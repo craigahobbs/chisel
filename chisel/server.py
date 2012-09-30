@@ -36,6 +36,7 @@ class Application:
     def __init__(self,
                  contextCallback = None,
                  headersCallback = None,
+                 docCssUri = None,
                  docUriDir = "doc",
                  jsonpMemberName = "jsonp",
                  specFileExtension = ".chsl",
@@ -49,6 +50,9 @@ class Application:
 
         # Additional HTTP headers callback function
         self.headersCallback = headersCallback
+
+        # CSS URL for generated documentation pages
+        self._docCssUri = docCssUri
 
         # The generated spec documentation URL directory name
         self._docUriDir = docUriDir
@@ -286,7 +290,8 @@ class Application:
             contentType = "text/html"
             responseBody = docIndex(joinUrl(application_uri(environ), urllib.quote(self._docUriDir)),
                                     [actionModel for actionModel in self._actionModels.itervalues() \
-                                         if actionModel.name in self._actionCallbacks])
+                                         if actionModel.name in self._actionCallbacks],
+                                    docCssUri = self._docCssUri)
 
         # Action doc request?
         elif envRequestMethod == "GET" and len(pathParts) >= 2 and pathParts[-2] == self._docUriDir:
@@ -302,7 +307,7 @@ class Application:
 
                 status = "200 OK"
                 contentType = "text/html"
-                responseBody = docAction(joinUrl(application_uri(environ), self._docUriDir), actionModel)
+                responseBody = docAction(joinUrl(application_uri(environ), self._docUriDir), actionModel, docCssUri = self._docCssUri)
 
         else:
 

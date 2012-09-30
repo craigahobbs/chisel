@@ -45,7 +45,8 @@ class Element:
         # Initial newline and indent as necessary...
         if not self.isInline:
             out.write("\n")
-            out.write(indentCur)
+            if not self.isText:
+                out.write(indentCur)
 
         # Text element?
         if self.isText:
@@ -80,13 +81,14 @@ class Element:
 
 
 # Generate the top-level action documentation index
-def docIndex(docRootUri, actionModels):
+def docIndex(docRootUri, actionModels, docCssUri = None):
 
     # Index page header
     root = Element("html")
     head = root.addChild("head")
     head.addChild("meta", isClosed = False, charset = "UTF-8")
     head.addChild("title").addChild("Actions", isText = True, isInline = True)
+    _addStyle(head, docCssUri)
     body = root.addChild("body", _class = "chsl-index-body")
     body.addChild("h1") \
         .addChild("Actions", isText = True, isInline = True)
@@ -106,7 +108,7 @@ def docIndex(docRootUri, actionModels):
 
 
 # Generate the documentation for an action
-def docAction(docRootUri, actionModel):
+def docAction(docRootUri, actionModel, docCssUri = None):
 
     # Find all user types referenced by the action
     userTypes = {}
@@ -126,6 +128,7 @@ def docAction(docRootUri, actionModel):
     head = root.addChild("head")
     head.addChild("meta", isClosed = False, charset = "UTF-8")
     head.addChild("title").addChild(actionModel.name, isText = True, isInline = True)
+    _addStyle(head, docCssUri)
     body = root.addChild("body", _class = "chsl-action-body")
     header = body.addChild("div", _class = "chsl-header");
     header.addChild("a", href = docRootUri) \
@@ -157,6 +160,22 @@ def docAction(docRootUri, actionModel):
     root.serialize(out)
     return out.getvalue()
 
+
+# Add style DOM helper
+def _addStyle(parent, docCssUri = None):
+
+    # External CSS URL provided?
+    if docCssUri is not None:
+
+        # External style
+        parent.addChild("link", isClosed = False, _type = "text/css", rel = "stylesheet", href = docCssUri)
+
+    else:
+
+        # Default style
+        parent.addChild("style", _type = "text/css") \
+            .addChild("""\
+/* TODO */""", isText = True)
 
 # Is user type?
 def _isUserType(typeInst):
