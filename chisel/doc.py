@@ -94,7 +94,7 @@ def docIndex(docRootUri, actionModels, docCssUri = None):
         .addChild("Actions", isText = True, isInline = True)
 
     # Action docs hyperlinks
-    ul = body.addChild("ul")
+    ul = body.addChild("ul", _class = "chsl-action-list")
     for actionModel in sorted(actionModels, key = lambda x: x.name):
         li = ul.addChild("li")
         li.addChild("a", isInline = True, href = joinUrl(docRootUri, urllib.quote(actionModel.name))) \
@@ -175,7 +175,101 @@ def _addStyle(parent, docCssUri = None):
         # Default style
         parent.addChild("style", _type = "text/css") \
             .addChild("""\
-/* TODO */""", isText = True)
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    border-style: none none solid none;
+    border-width: 1px;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-action-list {
+    list-style: none;
+    margin: 0 .2em;
+}
+ul.chsl-action-list li {
+    margin: 0.75em 0.5em;
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+}
+.chsl-emphasis {
+    font-style:italic;
+}""", isText = True)
 
 # Is user type?
 def _isUserType(typeInst):
@@ -213,35 +307,35 @@ def _addTypeName(parent, typeInst):
 # Type attributes HTML helper
 def _addTypeAttr(parent, typeInst):
 
-    # Contraint DOM helper
-    def contraintDom(ul, lhs, op, rhs):
+    # Constraint DOM helper
+    def constraintDom(ul, lhs, op, rhs):
         li = ul.addChild("li")
         li.addChild("span", isInline = True, _class = "chsl-emphasis").addChild(lhs, isText = True)
         if op and rhs:
             li.addChild(" %s %f" % (op, rhs), isText = True, isInline = True)
 
-    # Add contraint DOM elements
-    ul = parent.addChild("ul", _class = "chsl-contraint-list")
+    # Add constraint DOM elements
+    ul = parent.addChild("ul", _class = "chsl-constraint-list")
     if hasattr(typeInst, "constraint_gt") and typeInst.constraint_gt is not None:
-        contraintDom(ul, "value", ">", typeInst.constraint_gt)
+        constraintDom(ul, "value", ">", typeInst.constraint_gt)
     if hasattr(typeInst, "constraint_gte") and typeInst.constraint_gte is not None:
-        contraintDom(ul, "value", ">=", typeInst.constraint_gte)
+        constraintDom(ul, "value", ">=", typeInst.constraint_gte)
     if hasattr(typeInst, "constraint_lt") and typeInst.constraint_lt is not None:
-        contraintDom(ul, "value", "<", typeInst.constraint_lt)
+        constraintDom(ul, "value", "<", typeInst.constraint_lt)
     if hasattr(typeInst, "constraint_lte") and typeInst.constraint_lte is not None:
-        contraintDom(ul, "value", "<=", typeInst.constraint_lte)
+        constraintDom(ul, "value", "<=", typeInst.constraint_lte)
     if hasattr(typeInst, "constraint_len_gt") and typeInst.constraint_len_gt is not None:
-        contraintDom(ul, "len", ">", typeInst.constraint_len_gt)
+        constraintDom(ul, "len", ">", typeInst.constraint_len_gt)
     if hasattr(typeInst, "constraint_len_gte") and typeInst.constraint_len_gte is not None:
-        contraintDom(ul, "len", ">=", typeInst.constraint_len_gte)
+        constraintDom(ul, "len", ">=", typeInst.constraint_len_gte)
     if hasattr(typeInst, "constraint_len_lt") and typeInst.constraint_len_lt is not None:
-        contraintDom(ul, "len", "<", typeInst.constraint_len_lt)
+        constraintDom(ul, "len", "<", typeInst.constraint_len_lt)
     if hasattr(typeInst, "constraint_len_lte") and typeInst.constraint_len_lte is not None:
-        contraintDom(ul, "len", "<=", typeInst.constraint_len_lte)
+        constraintDom(ul, "len", "<=", typeInst.constraint_len_lte)
 
-    # No contraints?
+    # No constraints?
     if not ul.children:
-        contraintDom(ul, "None", None, None)
+        constraintDom(ul, "None", None, None)
 
 # Add text DOM elements
 def _addText(parent, texts):
@@ -285,7 +379,7 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
 
     # Section title
     parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
-        .addChild("a", isInline = True) \
+        .addChild("a", isInline = True, _class = "linktarget") \
         .addChild(title, isText = True)
     _addDocText(parent, typeInst.doc)
 
@@ -327,7 +421,7 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
 
     # Section title
     parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
-        .addChild("a", isInline = True) \
+        .addChild("a", isInline = True, _class = "linktarget") \
         .addChild(title, isText = True)
     _addDocText(parent, typeInst.doc)
 
