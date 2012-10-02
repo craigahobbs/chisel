@@ -311,8 +311,8 @@ def _addTypeAttr(parent, typeInst):
     def constraintDom(ul, lhs, op, rhs):
         li = ul.addChild("li")
         li.addChild("span", isInline = True, _class = "chsl-emphasis").addChild(lhs, isText = True)
-        if op and rhs:
-            li.addChild(" %s %f" % (op, rhs), isText = True, isInline = True)
+        if op is not None and rhs is not None:
+            li.addChild(" %s %g" % (op, rhs), isText = True, isInline = True)
 
     # Add constraint DOM elements
     ul = parent.addChild("ul", _class = "chsl-constraint-list")
