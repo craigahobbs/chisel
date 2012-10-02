@@ -290,7 +290,7 @@ def _addTypeName(parent, typeInst):
         typeExtra = "[]"
     elif isinstance(typeInst, TypeDict):
         baseTypeInst = typeInst.typeInst
-        typeExtra = "[]"
+        typeExtra = "{}"
     else:
         baseTypeInst = typeInst
         typeExtra = None
