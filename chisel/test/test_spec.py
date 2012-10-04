@@ -7,7 +7,7 @@
 from chisel import Struct, SpecParser, ValidationError
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
-gfrom StringIO import StringIO
+from StringIO import StringIO
 import unittest
 
 
