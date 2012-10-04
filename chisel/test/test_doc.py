@@ -8,7 +8,6 @@ from chisel import SpecParser
 from chisel.doc import joinUrl, docIndex, docAction
 
 from HTMLParser import HTMLParser
-from StringIO import StringIO
 import unittest
 
 
@@ -57,10 +56,10 @@ class TestDoc(unittest.TestCase):
 
         # Create the action models
         specParser = SpecParser()
-        specParser.parse(StringIO("""\
+        specParser.parse("""\
 action myAction1
 action myAction2
-"""))
+""")
 
         # Validate the HTML
         html = docIndex("/", specParser.model.actions.itervalues())
@@ -72,10 +71,10 @@ action myAction2
 
         # Create the action models
         specParser = SpecParser()
-        specParser.parse(StringIO("""\
+        specParser.parse("""\
 action myAction1
 action myAction2
-"""))
+""")
 
         # Validate the HTML
         html = docAction("/", specParser.model.actions["myAction1"])

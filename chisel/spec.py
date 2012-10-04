@@ -4,10 +4,12 @@
 # See README.md for license.
 #
 
-from .model import Model, Action, TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
+from .model import Model, Action, TypeStruct, TypeArray, TypeDict, TypeEnum, \
+    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 from .struct import Struct
 
 import re
+from StringIO import StringIO
 
 
 # Specification language parser class
@@ -50,7 +52,10 @@ class SpecParser:
     def parse(self, stream, fileName = ""):
 
         # Set the parser state
-        self._parseStream = stream
+        if isinstance(stream, basestring):
+            self._parseStream = StringIO(stream)
+        else:
+            self._parseStream = stream
         self._parseFileName = fileName
         self._parseLine = 0
         self._curAction = None

@@ -4,8 +4,9 @@
 # See README.md for license.
 #
 
-__all__ = [ "model", "server", "spec", "struct", "url" ]
+__all__ = [ "app", "model", "server", "spec", "struct", "url" ]
 
+from .app import ChiselApplication
 from .model import ValidationError
 from .server import serializeJSON, Application
 from .spec import SpecParser

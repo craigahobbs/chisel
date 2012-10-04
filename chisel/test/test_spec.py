@@ -7,7 +7,7 @@
 from chisel import Struct, SpecParser, ValidationError
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
-from StringIO import StringIO
+gfrom StringIO import StringIO
 import unittest
 
 
@@ -49,6 +49,7 @@ class TestParseSpec(unittest.TestCase):
     # Test valid spec parsing
     def test_simple(self):
 
+        # Parse with IO stream here - everywhere else we'll just use string
         parser = SpecParser()
         parser.parse(StringIO("""\
 # This is an enum
@@ -131,7 +132,7 @@ action MyAction
     def test_multiple(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""\
+        parser.parse("""\
 enum MyEnum
     A
     B
@@ -147,8 +148,8 @@ struct MyStruct
     string c
     MyEnum2 d
     MyStruct2 e
-"""))
-        parser.parse(StringIO("""\
+""")
+        parser.parse("""\
 action MyAction2
     input
         MyStruct d
@@ -162,7 +163,7 @@ struct MyStruct2
 enum MyEnum2
     C
     D
-"""))
+""")
         parser.finalize()
         m = parser.model
 
@@ -205,7 +206,7 @@ enum MyEnum2
     def test_unknown_type(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""\
+        parser.parse("""\
 struct Foo
     MyBadType a
 
@@ -214,7 +215,7 @@ action MyAction
         MyBadType2 a
     output
         MyBadType b
-"""), fileName = "foo")
+""", fileName = "foo")
         parser.finalize()
         m = parser.model
 
@@ -233,7 +234,7 @@ action MyAction
     def test_attributes(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""\
+        parser.parse("""\
 struct MyStruct
     [optional,> 1,<= 10.5] int i1
     [>= 1, < 10, optional ] int i2
@@ -244,7 +245,7 @@ struct MyStruct
     [> 5] int[] ai1
     [< 15] int{} di1
     [ > 0, <= 10] int i3
-"""), fileName = "foo")
+""", fileName = "foo")
         parser.finalize()
         m = parser.model
         s = parser.model.types["MyStruct"]
@@ -335,7 +336,7 @@ struct MyStruct
 
         def checkFail(errors, spec):
             parser = SpecParser()
-            parser.parse(StringIO(spec))
+            parser.parse(spec)
             parser.finalize()
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)
@@ -386,7 +387,7 @@ struct MyStruct
     def test_doc(self):
 
         parser = SpecParser()
-        parser.parse(StringIO("""\
+        parser.parse("""\
 # My enum
 enum MyEnum
 
@@ -435,7 +436,7 @@ action MyAction
 
     # My output member
     datetime b
-"""))
+""")
         parser.finalize()
         self.assertEqual(len(parser.errors), 0)
         m = parser.model

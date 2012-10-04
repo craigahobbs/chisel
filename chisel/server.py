@@ -20,12 +20,12 @@ from wsgiref.util import application_uri
 
 
 # Helper function to serialize structs as JSON
-def serializeJSON(o, pretty = False):
+def serializeJSON(o, isPretty = False):
 
     return json.dumps(o,
                       sort_keys = True,
-                      indent = 2 if pretty else None,
-                      separators = (", ", ": ") if pretty else (",", ":"),
+                      indent = 2 if isPretty else None,
+                      separators = (", ", ": ") if isPretty else (",", ":"),
                       default = jsonDefault)
 
 
@@ -34,6 +34,7 @@ class Application:
 
     # Class initializer
     def __init__(self,
+                 isDebug = False,
                  contextCallback = None,
                  headersCallback = None,
                  docCssUri = None,
@@ -44,12 +45,13 @@ class Application:
 
         self._actionModels = {}
         self._actionCallbacks = {}
+        self._isDebug = isDebug
 
         # Action handler context creation callback function
-        self.contextCallback = contextCallback
+        self._contextCallback = contextCallback
 
         # Additional HTTP headers callback function
-        self.headersCallback = headersCallback
+        self._headersCallback = headersCallback
 
         # CSS URL for generated documentation pages
         self._docCssUri = docCssUri
@@ -58,11 +60,11 @@ class Application:
         self._docUriDir = docUriDir
 
         # JSONP callback reserved member name
-        self.jsonpMemberName = jsonpMemberName
+        self._jsonpMemberName = jsonpMemberName
 
         # File extensions
-        self.specFileExtension = specFileExtension
-        self.moduleFileExtension = moduleFileExtension
+        self._specFileExtension = specFileExtension
+        self._moduleFileExtension = moduleFileExtension
 
     # Logger accessor
     def getLogger(self):
@@ -90,7 +92,7 @@ class Application:
             for dirpath, dirnames, filenames in os.walk(modulePath):
                 for filename in filenames:
                     (base, ext) = os.path.splitext(filename)
-                    if ext == self.moduleFileExtension:
+                    if ext == self._moduleFileExtension:
                         self.loadModules(os.path.join(dirpath, filename))
 
         else:
@@ -133,7 +135,7 @@ class Application:
                 for dirpath, dirnames, filenames in os.walk(spec):
                     for filename in filenames:
                         (base, ext) = os.path.splitext(filename)
-                        if ext == self.specFileExtension:
+                        if ext == self._specFileExtension:
                             self.loadSpecs(os.path.join(dirpath, filename), parser = parser, specFileName = filename)
 
             # Assume file path...
@@ -221,9 +223,9 @@ class Application:
                 request = decodeQueryString(envQueryString)
 
                 # JSONP?
-                if self.jsonpMemberName in request:
-                    jsonpFunction = str(request[self.jsonpMemberName])
-                    del request[self.jsonpMemberName]
+                if self._jsonpMemberName in request:
+                    jsonpFunction = str(request[self._jsonpMemberName])
+                    del request[self._jsonpMemberName]
 
         elif envRequestMethod != "POST":
 
@@ -256,7 +258,7 @@ class Application:
             return serverError("InvalidInput", str(e))
 
         # Call the action callback
-        actionContext = self.contextCallback and self.contextCallback()
+        actionContext = self._contextCallback and self._contextCallback()
         try:
             response = actionCallback(actionContext, Struct(request))
         except Exception, e:
@@ -317,9 +319,9 @@ class Application:
             # Serialize the response
             contentType = "application/json"
             if jsonpFunction:
-                responseBody = [jsonpFunction, "(", serializeJSON(response), ");"]
+                responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isDebug), ");"]
             else:
-                responseBody = [serializeJSON(response)]
+                responseBody = [serializeJSON(response, isPretty = self._isDebug)]
 
             # Determine the HTTP status
             if self.isErrorResponse(response) and jsonpFunction is None:
@@ -335,8 +337,8 @@ class Application:
             ("Content-Type", contentType),
             ("Content-Length", str(sum([len(s) for s in responseBody])))
             ]
-        if self.headersCallback:
-            responseHeaders.extend(self.headersCallback(actionContext))
+        if self._headersCallback:
+            responseHeaders.extend(self._headersCallback(actionContext))
         start_response(status, responseHeaders)
 
         return responseBody
