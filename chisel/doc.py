@@ -436,7 +436,7 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
         table = parent.addChild("table")
         tr = table.addChild("tr")
         tr.addChild("th").addChild("Value", isText = True, isInline = True)
-        tr.addChild("th").addChild("Description", isText = True, IsInline = True)
+        tr.addChild("th").addChild("Description", isText = True, isInline = True)
 
         # Enum value rows
         for value in typeInst.values:
