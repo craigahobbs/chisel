@@ -16,7 +16,7 @@ class TestStruct(unittest.TestCase):
 
         s = { "a": 7, "_a": "7", "b": { "c": "+x y + z", "d": [ 2, -4, 6 ] } }
         queryString = encodeQueryString(s)
-        self.assertEqual(queryString, encodeQueryString(Struct(dict(s))))
+        self.assertEqual(queryString, encodeQueryString(Struct(**s)))
         self.assertEqual(queryString, "_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6")
         s2 = decodeQueryString(queryString)
         self.assertEqual(s2, { "a": "7", "_a": "7", "b": { "c": "+x y + z", "d": [ "2", "-4", "6" ] } })

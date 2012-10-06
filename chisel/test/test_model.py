@@ -36,9 +36,9 @@ class TestStructValidation(unittest.TestCase):
         # Validate success
         s = m.validate({ "a": 5,
                          "b": "Hello",
-                         "c": Struct({ "d": True, "e": 5.5 }),
+                         "c": Struct(d = True, e = 5.5),
                          "f": [ "Foo", "Bar" ],
-                         "g": { "Foo": 5 },
+                         "g": { "Foo": 5L },
                          "h": "Foo",
                          "i": "2012-09-06T06:49:00-07:00"
                          })
@@ -86,7 +86,8 @@ class TestStructValidation(unittest.TestCase):
         self.assertEqual(s.c.d, True)
         self.assertTrue(isinstance(s.c.e, float))
         self.assertEqual(s.c.e, 5.5)
-        self.assertTrue(isinstance(s.f, list))
+        self.assertTrue(isinstance(s.f, Struct))
+        self.assertTrue(isinstance(s.f(), list))
         self.assertTrue(isinstance(s.f[0], basestring))
         self.assertEqual(s.f[0], "Foo")
         self.assertTrue(isinstance(s.f[1], basestring))

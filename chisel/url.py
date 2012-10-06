@@ -14,10 +14,12 @@ def encodeQueryString(o):
     # Get the flattened list of URL-quoted name/value pairs
     members = []
     def iterateItems(o, parent):
-        if isinstance(o, dict) or isinstance(o, Struct):
+        if isinstance(o, Struct):
+            o = o()
+        if isinstance(o, dict):
             for member in o:
                 iterateItems(o[member], parent + (urllib.quote(str(member)),))
-        elif isinstance(o, list):
+        elif isinstance(o, (list, tuple)):
             for ix in xrange(0, len(o)):
                 iterateItems(o[ix], parent + (str(ix),))
         elif o is not None:

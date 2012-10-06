@@ -7,48 +7,59 @@
 # Class-syntax wrapper around built-in dictionaries.
 class Struct(object):
 
-    def __init__(self, members = None):
+    def __init__(self, _wrap_ = None, **members):
 
-        # Set the member dictionary
-        if members is None:
-            members = {}
-        elif isinstance(members, Struct):
-            members = members()
-        object.__setattr__(self, "__members", members)
-
-        # Wrap all dictionary member attributes
-        for name, value in members.iteritems():
-            if isinstance(value, dict):
-                members[name] = Struct(value)
+        if _wrap_ is not None:
+            assert isinstance(_wrap_, (dict, list, tuple))
+            object.__setattr__(self, "_container", _wrap_)
+        else:
+            object.__setattr__(self, "_container", members)
 
     def __call__(self):
 
-        return object.__getattribute__(self, "__members")
+        return object.__getattribute__(self, "_container")
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, key):
 
-        return self[name]
+        container = self()
+        if isinstance(container, dict):
+            return self[key]
+        else:
+            return type(container).__getattribute__(container, key)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, key, value):
 
-        self[name] = value
+        container = self()
+        if isinstance(container, dict):
+            self[key] = value
+        else:
+            return type(container).__setattr__(container, key, value)
 
     def __getitem__(self, key):
 
-        # Get the member - return None if unset
-        return self().get(key)
+        # Lookup the value in the container - return None if not found
+        container = self()
+        if isinstance(container, dict):
+            value = container.get(key)
+        elif isinstance(key, (int, long)) and key >= 0 and key < len(container):
+            value = container[key]
+        else:
+            value = None
+
+        # Return the value - wrap containers
+        return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
 
     def __setitem__(self, key, value):
 
-        # Wrap dictionary values
-        if isinstance(value, dict):
-            value = Struct(value)
-
         # Delete member if value is None
+        container = self()
         if value is None:
-            del self()[key]
+            if isinstance(container, dict) and key in container:
+                del container[key]
+            elif isinstance(key, (int, long)) and key >= 0 and key < len(container):
+                del container[key]
         else:
-            self()[key] = value
+            container[key] = value
 
     def __contains__(self, item):
 
@@ -60,12 +71,16 @@ class Struct(object):
 
     def __iter__(self):
 
-        return iter(self())
+        class WrapIter:
+            def __init__(self, it):
+                self._it = it
+            def next(self):
+                # Return the value - wrap containers
+                value = self._it.next()
+                return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
+
+        return WrapIter(iter(self()))
 
     def __cmp__(self, other):
 
-        #  Unwrap other structs
-        if isinstance(other, Struct):
-            return cmp(self(), other())
-        else:
-            return cmp(self(), other)
+        return cmp(self(), other() if isinstance(other, Struct) else other)

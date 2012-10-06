@@ -86,7 +86,7 @@ class TypeStruct:
     def validate(self, value, acceptString = False, _member = ()):
 
         # Validate dict value type
-        if not isinstance(value, dict) and not isinstance(value, Struct):
+        if not isinstance(value() if isinstance(value, Struct) else value, dict):
             raise ValidationError.memberError(self, value, _member)
 
         # Validate members
@@ -126,7 +126,7 @@ class TypeArray:
     def validate(self, value, acceptString = False, _member = ()):
 
         # Validate list value type
-        if not isinstance(value, list):
+        if not isinstance(value() if isinstance(value, Struct) else value, (list, tuple)):
             raise ValidationError.memberError(self, value, _member)
 
         # Validate the list contents
@@ -150,7 +150,7 @@ class TypeDict:
     def validate(self, value, acceptString = False, _member = ()):
 
         # Validate dict value type
-        if not isinstance(value, dict) and not isinstance(value, Struct):
+        if not isinstance(value() if isinstance(value, Struct) else value, dict):
             raise ValidationError.memberError(self, value, _member)
 
         # Validate the dict key/value pairs
@@ -237,7 +237,7 @@ class TypeInt:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if isinstance(value, int) or isinstance(value, long):
+        if isinstance(value, (int, long)):
             result = value
         elif isinstance(value, float) and int(value) == value:
             result = int(value)
