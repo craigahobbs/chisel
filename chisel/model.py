@@ -237,7 +237,7 @@ class TypeInt:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if isinstance(value, int):
+        if isinstance(value, int) or isinstance(value, long):
             result = value
         elif isinstance(value, float) and int(value) == value:
             result = int(value)
