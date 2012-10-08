@@ -12,10 +12,20 @@ from .spec import SpecParser
 from .server import Application
 
 
+# Chisel application resource type
+class ResourceType:
+
+    def __init__(self, typeName, openFn, closeFn):
+
+        self.typeName = typeName
+        self.openFn = openFn
+        self.closeFn = closeFn
+
+
 # The chisel WSGI application
 class ChiselApplication:
 
-    def __init__(self, configPath = None):
+    def __init__(self, configPath = None, resourceTypes = None):
 
         # Config path
         if configPath is None:
@@ -24,7 +34,7 @@ class ChiselApplication:
         # API application helper context callback
         def contextCallback():
             ctx = Struct()
-            ctx.odbc = self._pyodbc
+            ctx.resources = self._resources
             return ctx
 
         # Create the API application helper application
@@ -37,12 +47,21 @@ class ChiselApplication:
         for modulePath in self._config.modulePaths:
             self._api.loadModules(modulePath)
 
-        # Create pyodbc connections
-        self._pyodbc = {}
-        if self._config.odbcConnections:
-            import pyodbc
-            for odbcConnection in self._config.odbcConnections:
-                self._pyodbc[odbcConnection.name] = pyodbc.connect(odbcConnection.connectionString)
+        # Create resource factories
+        self._resources = {}
+        if self._config.resources:
+            for resource in self._config.resources:
+
+                # Find the resource type
+                if resourceTypes:
+                    resourceType = [resourceType for resourceType in resourceTypes if resourceType.typeName == resource.type]
+                else:
+                    resourceType = []
+                if not resourceType:
+                    raise Exception("Resource type '%s' not found" % (resource.type))
+
+                # Add the resource factory
+                self._resources[resource.name] = self._ResourceFactory(resource.name, resourceType[0], resource.resourceString)
 
     # WSGI entry point
     def __call__(self, environ, start_response):
@@ -52,16 +71,19 @@ class ChiselApplication:
 
     # Configuration file specification
     configSpec = """\
-# pyodbc connections
-struct ODBCConnection
+# Resource description
+struct Resource
 
-    # Connection name
+    # Resource name
     string name
 
-    # pyodbc connection string - see http://code.google.com/p/pyodbc/wiki/ConnectionStrings
-    string connectionString
+    # Resource type
+    string type
 
-# The chisel application configuration file model
+    # Resource string (e.g. connection string)
+    string resourceString
+
+# The chisel application configuration file
 struct ChiselConfig
 
     # Specification directories (top-level only)
@@ -76,8 +98,8 @@ struct ChiselConfig
     # External CSS for generated documenation HTML
     [optional] string docCssUri
 
-    # pyodbc connections
-    [optional] ODBCConnection[] odbcConnections
+    # Resources
+    [optional] Resource[] resources
 """
 
     # Load the configuration file
@@ -94,9 +116,38 @@ struct ChiselConfig
         with open(configPath, "rb") as fh:
             return configModel.validate(Struct(json.load(fh)))
 
+    # Resource factory - create a resource context manager
+    class _ResourceFactory:
+
+        def __init__(self, name, resourceType, resourceString):
+
+            self._name = name
+            self._resourceType = resourceType
+            self._resourceString = resourceString
+
+        def __call__(self):
+
+            return self.ResourceContext(self._resourceType.openFn(self._resourceString), self._resourceType)
+
+        # Resource context manager
+        class ResourceContext:
+
+            def __init__(self, resource, resourceType):
+
+                self._resource = resource
+                self._resourceType = resourceType
+
+            def __enter__(self):
+
+                return self._resource
+
+            def __exit__(self, exc_type, exc_value, traceback):
+
+                self._resourceType.closeFn(self._resource)
+
     # Run as stand-alone server
     @staticmethod
-    def serve():
+    def serve(resourceTypes = None):
 
         import optparse
         from wsgiref.util import setup_testing_defaults
@@ -118,7 +169,7 @@ struct ChiselConfig
             return
 
         # Stand-alone server WSGI entry point
-        application = ChiselApplication(opts.configPath)
+        application = ChiselApplication(configPath = opts.configPath, resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
             setup_testing_defaults(environ)
             return application(environ, start_response)
