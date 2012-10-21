@@ -50,21 +50,30 @@ def jsonDefault(obj):
 # Type validation exception
 class ValidationError(Exception):
 
-    def __init__(self, msg):
+    def __init__(self, msg, member = None):
 
         Exception.__init__(self, msg)
+        self.member = member
 
-    @staticmethod
-    def memberError(typeInst, value, member):
+    @classmethod
+    def memberSyntax(cls, members):
 
-        if isinstance(value, Struct):
-            valueTypeName = "struct"
+        if not members:
+            return None
         else:
-            valueTypeName = value.__class__.__name__
-        memberDescription = (" for member '%s'" % (".".join([str(x) for x in member]))) if member else ""
-        msg = "Invalid value %r (type %r)%s, expected type '%s'" % \
-            (value, valueTypeName, memberDescription, typeInst.typeName)
-        return ValidationError(msg)
+            return "".join([((".%s" if isinstance(x, basestring) else "[%d]") % (x)) for x in members]).lstrip(".")
+
+    @classmethod
+    def memberError(cls, typeInst, value, members):
+
+        # Format the error string
+        if isinstance(value, Struct):
+            value = value()
+        memberSyntax = cls.memberSyntax(members)
+        msg = "Invalid value %r (type '%s')%s, expected type '%s'" % \
+            (value, value.__class__.__name__, " for member '%s'" % (memberSyntax) if memberSyntax else "", typeInst.typeName)
+
+        return ValidationError(msg, member = memberSyntax)
 
 
 # Struct type
@@ -100,7 +109,7 @@ class TypeStruct:
             memberValue = (value if isinstance(value, dict) else value()).get(member.name)
             if memberValue is None:
                 if not member.isOptional:
-                    raise ValidationError("Required member %r missing" % (".".join(_member + (member.name,))))
+                    raise ValidationError("Required member '%s' missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
             else:
                 # Validate the member value
                 memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
@@ -110,7 +119,7 @@ class TypeStruct:
         # Check for invalid members
         for valueKey in value:
             if valueKey not in memberNames:
-                raise ValidationError("Invalid member %r" % (".".join(_member + (valueKey,))))
+                raise ValidationError("Invalid member '%s'" % (ValidationError.memberSyntax((_member + (valueKey,)))))
 
         return value
 
@@ -132,7 +141,7 @@ class TypeArray:
         # Validate the list contents
         for ix in xrange(0, len(value)):
             arrayValue = value[ix]
-            arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (str(ix),))
+            arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (ix,))
             if arrayValueNew is not arrayValue:
                 value[ix] = arrayValueNew
 
@@ -237,12 +246,15 @@ class TypeInt:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if isinstance(value, (int, long)):
+        if isinstance(value, (int, long)) and not isinstance(value, bool):
             result = value
         elif isinstance(value, float) and int(value) == value:
             result = int(value)
         elif acceptString and isinstance(value, basestring):
-            result = int(value)
+            try:
+                result = int(value)
+            except:
+                raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
@@ -274,10 +286,13 @@ class TypeFloat:
 
         if isinstance(value, float):
             result = value
-        elif isinstance(value, int):
+        elif isinstance(value, (int, long)) and not isinstance(value, bool):
             result = float(value)
         elif acceptString and isinstance(value, basestring):
-            result = float(value)
+            try:
+                result = float(value)
+            except:
+                raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
@@ -323,7 +338,10 @@ class TypeDatetime:
         if isinstance(value, datetime):
             return value
         elif isinstance(value, basestring):
-            return TypeDatetime.parseISO8601Datetime(value)
+            try:
+                return TypeDatetime.parseISO8601Datetime(value)
+            except ValueError:
+                raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
