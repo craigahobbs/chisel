@@ -4,41 +4,47 @@
 # See README.md for license.
 #
 
-from chisel import Struct, SpecParser, ValidationError
-from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
+from chisel import SpecParser
+from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
+    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
 from StringIO import StringIO
 import unittest
 
 
-# Struct validation tests
+# Spec parser unit tests
 class TestParseSpec(unittest.TestCase):
 
+    # Helper method to assert struct type member properties
     def assertStruct(self, structTypeInst, members):
+        self.assertTrue(isinstance(structTypeInst, TypeStruct))
         self.assertEqual(len(structTypeInst.members), len(members))
         for ixMember in xrange(0, len(members)):
             name, typeInstOrType, isOptional = members[ixMember]
-            self.assertTrue(isinstance(structTypeInst, TypeStruct))
             self.assertEqual(structTypeInst.members[ixMember].name, name)
             self.assertTrue(structTypeInst.members[ixMember].typeInst is typeInstOrType or
                             isinstance(structTypeInst.members[ixMember].typeInst, typeInstOrType))
             self.assertEqual(structTypeInst.members[ixMember].isOptional, isOptional)
 
+    # Helper method to assert struct type member properties (by struct name)
     def assertStructByName(self, model, typeName, members):
         self.assertEqual(model.types[typeName].typeName, typeName)
         self.assertStruct(model.types[typeName], members)
 
-    def assertEnum(self, enumTypeInst, values = None):
-        values = [] if values is None else values
+    # Helper method to assert enum type values
+    def assertEnum(self, enumTypeInst, values):
+        self.assertTrue(isinstance(enumTypeInst, TypeEnum))
         self.assertEqual(len(enumTypeInst.values), len(values))
         for enumValue in values:
             self.assertTrue(enumValue in enumTypeInst.values)
 
+    # Helper method to assert enum type values (by enum name)
     def assertEnumByName(self, model, typeName, values):
         self.assertEqual(model.types[typeName].typeName, typeName)
         self.assertEnum(model.types[typeName], values)
 
-    def assertAction(self, model, actionName, inputMembers, outputMembers, errorValues = None):
+    # Helper method to assert action properties
+    def assertAction(self, model, actionName, inputMembers, outputMembers, errorValues):
         self.assertEqual(model.actions[actionName].inputType.typeName, actionName + "_Input")
         self.assertEqual(model.actions[actionName].outputType.typeName, actionName + "_Output")
         self.assertEqual(model.actions[actionName].errorType.typeName, actionName + "_Error")
@@ -47,7 +53,7 @@ class TestParseSpec(unittest.TestCase):
         self.assertEnum(model.actions[actionName].errorType, errorValues)
 
     # Test valid spec parsing
-    def test_simple(self):
+    def test_spec_simple(self):
 
         # Parse with IO stream here - everywhere else we'll just use string
         parser = SpecParser()
@@ -88,6 +94,21 @@ action MyAction
     errors
         Error1
         Error2
+
+# The second action
+action MyAction2
+    input
+        MyStruct foo
+        MyStruct2[] bar
+
+# The third action
+action MyAction3
+    output
+        int a
+        datetime b
+
+# The fourth action
+action MyAction4
 """))
         parser.finalize()
         m = parser.model
@@ -95,7 +116,7 @@ action MyAction
         # Check errors & counts
         self.assertEqual(len(parser.errors), 0)
         self.assertEqual(len(m.types), 3)
-        self.assertEqual(len(m.actions), 1)
+        self.assertEqual(len(m.actions), 4)
 
         # Check enum types
         self.assertEnumByName(m, "MyEnum",
@@ -127,10 +148,27 @@ action MyAction
                           (("c", TypeBool, False),),
                           ("Error1",
                            "Error2"))
+        self.assertAction(m, "MyAction2",
+                          (("foo", m.types["MyStruct"], False),
+                           ("bar", TypeArray, False)),
+                          (),
+                          ())
+        self.assertTrue(isinstance(m.actions["MyAction2"].inputType.members[1].typeInst.typeInst, TypeStruct))
+        self.assertEqual(m.actions["MyAction2"].inputType.members[1].typeInst.typeInst.typeName, "MyStruct2")
+        self.assertAction(m, "MyAction3",
+                          (),
+                          (("a", TypeInt, False),
+                           ("b", TypeDatetime, False)),
+                          ())
+        self.assertAction(m, "MyAction4",
+                          (),
+                          (),
+                          ())
 
     # Test multiple parse calls per parser instance
-    def test_multiple(self):
+    def test_spec_multiple(self):
 
+        # Parse spec strings
         parser = SpecParser()
         parser.parse("""\
 enum MyEnum
@@ -193,18 +231,21 @@ enum MyEnum2
         self.assertAction(m, "MyAction",
                           (("a", TypeStruct, False),),
                           (("b", TypeStruct, False),
-                           ("c", m.types["MyEnum2"], False)))
+                           ("c", m.types["MyEnum2"], False)),
+                          ())
         self.assertEqual(m.actions["MyAction"].inputType.members[0].typeInst.typeName, "MyStruct2")
         self.assertEqual(m.actions["MyAction"].outputType.members[0].typeInst.typeName, "MyStruct")
         self.assertAction(m, "MyAction2",
                           (("d", TypeStruct, False),),
-                          (("e", TypeStruct, False),))
+                          (("e", TypeStruct, False),),
+                          ())
         self.assertEqual(m.actions["MyAction2"].inputType.members[0].typeInst.typeName, "MyStruct")
         self.assertEqual(m.actions["MyAction2"].outputType.members[0].typeInst.typeName, "MyStruct2")
 
     # Test members referencing unknown user types
-    def test_unknown_type(self):
+    def test_spec_error_unknown_type(self):
 
+        # Parse spec string
         parser = SpecParser()
         parser.parse("""\
 struct Foo
@@ -230,9 +271,218 @@ action MyAction
                           "foo:6: error: Unknown member type 'MyBadType2'",
                           "foo:8: error: Unknown member type 'MyBadType'"])
 
-    # Test valid attribute usage
-    def test_attributes(self):
+    # Error - redefinition of struct
+    def test_spec_error_struct_redefinition(self):
 
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+struct Foo
+    int a
+
+enum Foo
+    A
+    B
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 1)
+        self.assertEqual(len(m.types), 1)
+        self.assertEqual(len(m.actions), 0)
+
+        # Check types
+        self.assertEnumByName(m, "Foo", ("A", "B"))
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":4: error: Redefinition of type 'Foo'"])
+
+    # Error - redefinition of enum
+    def test_spec_error_enum_redefinition(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+enum Foo
+    A
+    B
+
+struct Foo
+    int a
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 1)
+        self.assertEqual(len(m.types), 1)
+        self.assertEqual(len(m.actions), 0)
+
+        # Check types
+        self.assertStructByName(m, "Foo",
+                                (("a", TypeInt, False),))
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":5: error: Redefinition of type 'Foo'"])
+
+    # Error - redefinition of user type
+    def test_spec_error_action_redefinition(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+action MyAction
+    input
+        int a
+
+action MyAction
+    input
+        string b
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 1)
+        self.assertEqual(len(m.types), 0)
+        self.assertEqual(len(m.actions), 1)
+
+        # Check actions
+        self.assertAction(m, "MyAction",
+                          (("b", TypeString, False),),
+                          (),
+                          ())
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":5: error: Redefinition of action 'MyAction'"])
+
+    # Error - invalid action section usage
+    def test_spec_error_action_section(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+action MyAction
+
+struct MyStruct
+    int a
+
+    input
+    output
+    errors
+
+input
+output
+errors
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 6)
+        self.assertEqual(len(m.types), 1)
+        self.assertEqual(len(m.actions), 1)
+
+        # Check types
+        self.assertStructByName(m, "MyStruct",
+                                (("a", TypeInt, False),))
+
+        # Check actions
+        self.assertAction(m, "MyAction", (), (), ())
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":6: error: Action section outside of action scope",
+                          ":7: error: Action section outside of action scope",
+                          ":8: error: Action section outside of action scope",
+                          ":10: error: Syntax error",
+                          ":11: error: Syntax error",
+                          ":12: error: Syntax error"])
+
+    # Error - member definition outside struct scope
+    def test_spec_error_member(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+action MyAction
+    int abc
+
+struct MyStruct
+
+enum MyEnum
+
+    int bcd
+
+int cde
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 3)
+        self.assertEqual(len(m.types), 2)
+        self.assertEqual(len(m.actions), 1)
+
+        # Check types
+        self.assertStructByName(m, "MyStruct", ())
+        self.assertEnumByName(m, "MyEnum", ())
+
+        # Check actions
+        self.assertAction(m, "MyAction", (), (), ())
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":2: error: Member outside of struct scope",
+                          ":8: error: Member outside of struct scope",
+                          ":10: error: Syntax error"])
+
+    # Error - enum value definition outside enum scope
+    def test_spec_error_member(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        parser.parse("""\
+enum MyEnum
+Value1
+
+struct MyStruct
+
+    Value2
+
+action MyAction
+    input
+        MyError
+""")
+        parser.finalize()
+        m = parser.model
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 3)
+        self.assertEqual(len(m.types), 2)
+        self.assertEqual(len(m.actions), 1)
+
+        # Check types
+        self.assertStructByName(m, "MyStruct", ())
+        self.assertEnumByName(m, "MyEnum", ())
+
+        # Check actions
+        self.assertAction(m, "MyAction", (), (), ())
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":2: error: Syntax error",
+                          ":6: error: Enumeration value outside of enum scope",
+                          ":10: error: Enumeration value outside of enum scope"])
+
+    # Test valid attribute usage
+    def test_spec_attributes(self):
+
+        # Parse spec string
         parser = SpecParser()
         parser.parse("""\
 struct MyStruct
@@ -332,7 +582,7 @@ struct MyStruct
         self.assertEqual(i3.constraint_gte, None)
 
     # Test invalid member attribute usage
-    def test_attributes_fail(self):
+    def test_spec_error_attributes(self):
 
         def checkFail(errors, spec):
             parser = SpecParser()
@@ -384,8 +634,9 @@ struct MyStruct
 """)
 
     # Test documentation comments
-    def test_doc(self):
+    def test_spec_doc(self):
 
+        # Parse spec string
         parser = SpecParser()
         parser.parse("""\
 # My enum

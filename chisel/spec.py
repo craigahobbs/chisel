@@ -166,7 +166,7 @@ class SpecParser:
 
                     # Action already defined?
                     if defId in self.model.actions:
-                        self._error("Action '%s' already defined" % (defId))
+                        self._error("Redefinition of action '%s'" % (defId))
 
                     # Create the new action
                     self._curAction = Action(defId, doc = self._curDoc)
