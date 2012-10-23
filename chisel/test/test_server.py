@@ -48,7 +48,7 @@ class TestLoadModules(unittest.TestCase):
         TestLoggerHandler(self.app)
 
     # Test succussful module directory load
-    def test_loadModules(self):
+    def test_server_loadModules(self):
 
         app = self.app
         app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_server_modules"))
@@ -60,7 +60,7 @@ class TestLoadModules(unittest.TestCase):
         self.assertEqual(app._actionCallbacks["myAction3"].func_name, "myAction3")
 
     # Verify that exception is raised when invalid module path is loaded
-    def test_loadModules_badModulePath(self):
+    def test_server_loadModules_badModulePath(self):
 
         app = self.app
         with self.assertRaises(Exception):
@@ -107,7 +107,7 @@ class TestRequest(unittest.TestCase):
         return status[0], responseHeaders[0], response
 
     # Test successful action handling
-    def test_success(self):
+    def test_server_success(self):
 
         # Application instance
         app = self.app
@@ -153,7 +153,7 @@ action myActionGet
         self.assertEqual(response.c, 12)
 
     # Test action-level error handling
-    def test_error(self):
+    def test_server_error(self):
 
         # Application instance
         app = self.app
@@ -214,7 +214,7 @@ action myAction
         self.assertEqual(response.b, 6)
 
     # Test complex (nested) container response
-    def test_complex_response(self):
+    def test_server_complex_response(self):
 
         # Request handler
         app = self.app
@@ -243,7 +243,7 @@ action myAction
         self.assertEqual(response.a.b[2], 3)
 
     # Test server-level error handling
-    def test_fail(self):
+    def test_server_fail(self):
 
         # Request handler
         app = Application()
@@ -311,7 +311,7 @@ action myActionRaise
         self.assertTrue(isinstance(response.message, unicode))
 
     # Test passing complex struct as query string
-    def test_query(self):
+    def test_server_query(self):
 
         # Request handler
         app = Application()
@@ -338,7 +338,7 @@ action myAction
         self.assertEqual(response.sum, 15)
 
     # Test JSONP response
-    def test_jsonp(self):
+    def test_server_jsonp(self):
 
         # Request handler
         app = Application()
@@ -371,7 +371,7 @@ action myAction
         self.assertTrue(response.startswith('myfunc({"error":"InvalidInput","message":'))
 
     # Verify that exception is raised when action is added with no model
-    def test_fail_no_action_model(self):
+    def test_server_fail_no_action_model(self):
 
         # Request handler
         app = Application()
@@ -381,7 +381,7 @@ action myAction
             app.addActionCallback(myAction)
 
     # Test context callback and header callback functionality
-    def test_context(self):
+    def test_server_context(self):
 
         # Action context callback
         def myContext():
@@ -415,7 +415,7 @@ action myAction1
         self.assertTrue(("X-Bar", "Foo bar 19") in headers)
 
     # Test doc URL handling
-    def test_doc(self):
+    def test_server_doc(self):
 
         # Request handler
         app = Application()

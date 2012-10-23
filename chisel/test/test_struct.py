@@ -13,7 +13,7 @@ import unittest
 class TestStruct(unittest.TestCase):
 
     # Test basic Struct functionality
-    def test_struct(self):
+    def test_struct_basic(self):
 
         s = Struct()
 
@@ -44,7 +44,7 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.d.b, None)
 
     # Test key/value pair initialization
-    def test_set_struct(self):
+    def test_struct_set_struct(self):
 
         s = Struct(a = 17,
                    b = Struct(c = "foo"),
@@ -69,7 +69,7 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.e, (1,2,3))
 
     # Test callable behavior - gets the wrapped container
-    def test_dict(self):
+    def test_struct_dict(self):
 
         s = Struct(a = 17, b = 19, c = { "a": 14 })
         self.assertTrue(isinstance(s(), dict))
@@ -78,7 +78,7 @@ class TestStruct(unittest.TestCase):
         self.assertTrue(isinstance(s()["c"], dict))
 
     # Test container comparison
-    def test_cmp(self):
+    def test_struct_cmp(self):
 
         s1 = { "a": 17, "b": 19, "c": { "d": 20 },  "d": [1,2,3], "e": (1,2,3) }
         s2 = Struct(**s1)
@@ -101,7 +101,7 @@ class TestStruct(unittest.TestCase):
         self.assertTrue(s2.e, Struct(a = (1,2,3)).a)
 
     # Test indexed-container syntax access
-    def test_index_access(self):
+    def test_struct_index_access(self):
 
         s = Struct(a = 17, b = 19, c = [1,2,3], d = (1,2,3))
 
@@ -131,7 +131,7 @@ class TestStruct(unittest.TestCase):
             s["d"][1] = 20
 
     # Test "contained" behavior
-    def test_contains(self):
+    def test_struct_contains(self):
 
         s = Struct(a = 17, b = Struct(a = "foo", b = "bar"), c = [1,2,3], d = (1,2,3))
         self.assertTrue("a" in s)
@@ -147,7 +147,7 @@ class TestStruct(unittest.TestCase):
         self.assertFalse("e" in s)
 
     # Test iterator behavior
-    def test_iter(self):
+    def test_struct_iter(self):
 
         s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3], e = (1,2,3))
 
@@ -169,7 +169,7 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(me, [1,2,3])
 
     # Test that set to None does del
-    def test_none(self):
+    def test_struct_none(self):
 
         s = Struct(a = 17, b = 19, c = [1,2,3], d = (1,2,3))
 

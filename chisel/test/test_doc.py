@@ -14,7 +14,7 @@ import unittest
 # joinUrl tests
 class TestJoinUrl(unittest.TestCase):
 
-    def test_joinUrl(self):
+    def test_doc_joinUrl(self):
 
         self.assertEqual("http://foo/bar", joinUrl("http://foo", "bar"))
         self.assertEqual("http://foo/bar", joinUrl("http://foo/", "bar"))
@@ -52,7 +52,7 @@ class HTMLValidator(HTMLParser):
 class TestDoc(unittest.TestCase):
 
     # Test documentation index HTML generation
-    def test_docIndex(self):
+    def test_doc_docIndex(self):
 
         # Create the action models
         specParser = SpecParser()
@@ -67,7 +67,7 @@ action myAction2
 
 
     # Test action model HTML generation
-    def test_docAction(self):
+    def test_doc_docAction(self):
 
         # Create the action models
         specParser = SpecParser()

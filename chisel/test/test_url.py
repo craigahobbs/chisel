@@ -12,7 +12,7 @@ import unittest
 # Tests for URL utilities
 class TestStruct(unittest.TestCase):
 
-    def test_simple(self):
+    def test_url_simple(self):
 
         s = { "a": 7, "_a": "7", "b": { "c": "+x y + z", "d": [ 2, -4, 6 ] } }
         queryString = encodeQueryString(s)
@@ -21,7 +21,7 @@ class TestStruct(unittest.TestCase):
         s2 = decodeQueryString(queryString)
         self.assertEqual(s2, { "a": "7", "_a": "7", "b": { "c": "+x y + z", "d": [ "2", "-4", "6" ] } })
 
-    def test_array(self):
+    def test_url_array(self):
 
         a = [1, 2, 3]
         queryString = encodeQueryString(a)

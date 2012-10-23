@@ -25,7 +25,7 @@ class TestModelValidation(unittest.TestCase):
             self.assertEqual(str(e), errorStr)
 
     # Test successful validation
-    def test_struct(self):
+    def test_model_struct(self):
 
         # The struct model
         m = TypeStruct()
@@ -157,7 +157,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 'bad' (type 'str') for member 'j[0].a', expected type 'int'")
 
     # array type
-    def test_array(self):
+    def test_model_array(self):
 
         # Array models
         mInt = TypeArray(TypeInt())
@@ -209,7 +209,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value True (type 'bool') for member '[0].a', expected type 'int'")
 
     # dict type
-    def test_dict(self):
+    def test_model_dict(self):
 
         # Dictionary model
         mInt = TypeDict(TypeInt())
@@ -251,7 +251,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 2 (type 'int') for member 'a[1]', expected type 'string'")
 
     # enum type
-    def test_enum(self):
+    def test_model_enum(self):
 
         # Enum model
         m = TypeEnum(typeName = "FooBar")
@@ -288,7 +288,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value None (type 'NoneType'), expected type 'FooBar'")
 
     # string type
-    def test_string(self):
+    def test_model_string(self):
 
         # String model
         m = TypeString()
@@ -312,7 +312,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value None (type 'NoneType'), expected type 'string'")
 
     # string type constraints
-    def test_string_constraint(self):
+    def test_model_string_constraint(self):
 
         # Length less-than
         m = TypeString()
@@ -377,7 +377,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 'abcdefgh' (type 'str'), expected type 'string'")
 
     # int type
-    def test_int(self):
+    def test_model_int(self):
 
         # Int model
         m = TypeInt()
@@ -429,7 +429,7 @@ class TestModelValidation(unittest.TestCase):
                                    acceptString = True)
 
     # int type constraints
-    def test_int_constraint(self):
+    def test_model_int_constraint(self):
 
         # Less-than
         m = TypeInt()
@@ -498,7 +498,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 11 (type 'int'), expected type 'int'")
 
     # float type
-    def test_float(self):
+    def test_model_float(self):
 
         # Float model
         m = TypeFloat()
@@ -546,7 +546,7 @@ class TestModelValidation(unittest.TestCase):
                                    acceptString = True)
 
     # float type constraints
-    def test_float_constraint(self):
+    def test_model_float_constraint(self):
 
         # Less-than
         m = TypeFloat()
@@ -621,7 +621,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 10.5 (type 'float'), expected type 'float'")
 
     # bool type
-    def test_bool(self):
+    def test_model_bool(self):
 
         # Bool model
         m = TypeBool()
@@ -660,7 +660,7 @@ class TestModelValidation(unittest.TestCase):
                                    acceptString = True)
 
     # datetime type
-    def test_datetime(self):
+    def test_model_datetime(self):
 
         # Datetime model
         m = TypeDatetime()
