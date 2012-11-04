@@ -14,30 +14,6 @@ from StringIO import StringIO
 import unittest
 from wsgiref.util import setup_testing_defaults
 
-# Test logging handler
-class TestLoggerHandler:
-
-    records = []
-
-    def __init__(self, app):
-
-        self.level = logging.NOTSET
-        del TestLoggerHandler.records[:]
-
-        # Add this as the only logger handler
-        logger = app.getLogger()
-        del logger.handlers[:]
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(self)
-
-    def handle(self, record):
-        TestLoggerHandler.records.append(record)
-
-    @staticmethod
-    def assertRegex(u, msg, levelno):
-        u.assertEqual(1, len([x for x in TestLoggerHandler.records if
-                              x.levelno == levelno and re.search(msg, x.msg)]))
-
 
 # Server module loading tests
 class TestLoadModules(unittest.TestCase):
@@ -45,7 +21,6 @@ class TestLoadModules(unittest.TestCase):
     def setUp(self):
 
         self.app = Application()
-        TestLoggerHandler(self.app)
 
     # Test succussful module directory load
     def test_server_loadModules(self):
@@ -53,7 +28,6 @@ class TestLoadModules(unittest.TestCase):
         app = self.app
         app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_server_modules"))
         app.loadModules(os.path.join(os.path.dirname(__file__), "test_server_modules"))
-        self.assertEqual(len(TestLoggerHandler.records), 0)
         self.assertEqual(len(app._actionCallbacks), 3)
         self.assertEqual(app._actionCallbacks["myAction1"].func_name, "myAction1")
         self.assertEqual(app._actionCallbacks["myAction2"].func_name, "myAction2")
@@ -65,8 +39,6 @@ class TestLoadModules(unittest.TestCase):
         app = self.app
         with self.assertRaises(Exception):
             app.loadModules("_DIRECTORY_DOES_NOT_EXIST_")
-        self.assertEqual(len(TestLoggerHandler.records), 1)
-        TestLoggerHandler.assertRegex(self, "No such file or directory: '_DIRECTORY_DOES_NOT_EXIST_'", logging.ERROR)
 
 
 # Server application object tests
@@ -75,7 +47,6 @@ class TestRequest(unittest.TestCase):
     def setUp(self):
 
         self.app = Application()
-        TestLoggerHandler(self.app)
 
     # Request/response helper
     @staticmethod
@@ -384,7 +355,7 @@ action myAction
     def test_server_context(self):
 
         # Action context callback
-        def myContext():
+        def myContext(environ):
             ctx = Struct()
             ctx.foo = 19
             return ctx

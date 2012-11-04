@@ -12,7 +12,6 @@ from .url import decodeQueryString
 
 import imp
 import json
-import logging
 import os
 import urllib
 import uuid
@@ -34,7 +33,7 @@ class Application:
 
     # Class initializer
     def __init__(self,
-                 isDebug = False,
+                 isPretty = False,
                  contextCallback = None,
                  headersCallback = None,
                  docCssUri = None,
@@ -45,7 +44,7 @@ class Application:
 
         self._actionModels = {}
         self._actionCallbacks = {}
-        self._isDebug = isDebug
+        self._isPretty = isPretty
 
         # Action handler context creation callback function
         self._contextCallback = contextCallback
@@ -65,11 +64,6 @@ class Application:
         # File extensions
         self._specFileExtension = specFileExtension
         self._moduleFileExtension = moduleFileExtension
-
-    # Logger accessor
-    def getLogger(self):
-
-        return logging.getLogger()
 
     # Add a single action callback
     def addActionCallback(self, actionCallback, actionName = None):
@@ -108,7 +102,6 @@ class Application:
                     self.addActionCallback(actionCallback)
 
             except Exception, e:
-                self.getLogger().error("Error loading module '%s': %s" % (modulePath, str(e)))
                 raise e
 
     # Add a single action model
@@ -227,11 +220,7 @@ class Application:
                     jsonpFunction = str(request[self._jsonpMemberName])
                     del request[self._jsonpMemberName]
 
-        elif envRequestMethod != "POST":
-
-            return serverError("UnknownRequestMethod", "Unknown request method '%s'" % (envRequestMethod))
-
-        else: # POST
+        elif envRequestMethod == "POST":
 
             # Parse content length
             try:
@@ -251,6 +240,9 @@ class Application:
             except Exception, e:
                 return serverError("InvalidInput", "Invalid request JSON: %s" % (str(e)))
 
+        else:
+            return serverError("UnknownRequestMethod", "Unknown request method '%s'" % (envRequestMethod))
+
         # Validate the request
         try:
             request = actionModel.inputType.validate(request, acceptString = isGetRequest)
@@ -258,7 +250,7 @@ class Application:
             return serverError("InvalidInput", str(e))
 
         # Call the action callback
-        actionContext = self._contextCallback and self._contextCallback()
+        actionContext = self._contextCallback and self._contextCallback(environ)
         try:
             response = actionCallback(actionContext, Struct(request))
         except Exception, e:
@@ -319,9 +311,9 @@ class Application:
             # Serialize the response
             contentType = "application/json"
             if jsonpFunction:
-                responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isDebug), ");"]
+                responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isPretty), ");"]
             else:
-                responseBody = [serializeJSON(response, isPretty = self._isDebug)]
+                responseBody = [serializeJSON(response, isPretty = self._isPretty)]
 
             # Determine the HTTP status
             if self.isErrorResponse(response) and jsonpFunction is None:

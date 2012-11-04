@@ -5,7 +5,9 @@
 #
 
 import json
+import logging
 import os
+import re
 
 from .model import Struct
 from .spec import SpecParser
@@ -27,30 +29,25 @@ class ChiselApplication:
 
     def __init__(self, configPath = None, resourceTypes = None):
 
-        # Config path
+        # Load the config file
         if configPath is None:
             configPath = os.environ["CHISEL_CONFIG"]
-
-        # API application helper context callback
-        def contextCallback():
-            ctx = Struct()
-            ctx.resources = self._resources
-            return ctx
+        config = self.loadConfig(configPath)
+        self._logLevel = self._getLogLevel(config)
 
         # Create the API application helper application
-        self._config = self.loadConfig(configPath)
-        self._api = Application(isDebug = self._config.isDebug if self._config.isDebug is not None else False,
-                                contextCallback = contextCallback,
-                                docCssUri = self._config.docCssUri)
-        for specPath in self._config.specPaths:
+        self._api = Application(isPretty = config.prettyOutput,
+                                contextCallback = self._contextCallback,
+                                docCssUri = config.docCssUri)
+        for specPath in config.specPaths:
             self._api.loadSpecs(specPath)
-        for modulePath in self._config.modulePaths:
+        for modulePath in config.modulePaths:
             self._api.loadModules(modulePath)
 
         # Create resource factories
         self._resources = {}
-        if self._config.resources:
-            for resource in self._config.resources:
+        if config.resources:
+            for resource in config.resources:
 
                 # Find the resource type
                 if resourceTypes:
@@ -58,7 +55,7 @@ class ChiselApplication:
                 else:
                     resourceType = []
                 if not resourceType:
-                    raise Exception("Resource type '%s' not found" % (resource.type))
+                    raise Exception("Resource type %r not found" % (resource.type))
 
                 # Add the resource factory
                 self._resources[resource.name] = self._ResourceFactory(resource.name, resourceType[0], resource.resourceString)
@@ -69,8 +66,30 @@ class ChiselApplication:
         # Delegate to API application helper
         return self._api(environ, start_response)
 
+    # API application helper context callback
+    def _contextCallback(self, environ):
+
+        # Create the logger
+        logger = logging.getLoggerClass()("")
+        logger.addHandler(logging.StreamHandler(environ["wsgi.errors"]))
+        logger.setLevel(self._logLevel)
+
+        # Create the action context
+        ctx = Struct()
+        ctx.resources = self._resources
+        ctx.environ = environ
+        ctx.logger = logger
+        return ctx
+
     # Configuration file specification
     configSpec = """\
+# Log level
+enum LogLevel
+    Debug
+    Info
+    Warning
+    Error
+
 # Resource description
 struct Resource
 
@@ -92,8 +111,11 @@ struct ChiselConfig
     # Module directories (top-level only)
     string[] modulePaths
 
-    # General application configuration (default is false)
-    [optional] bool isDebug
+    # Pretty JSON output (default is False)
+    [optional] bool prettyOutput
+
+    # Logger output level (default is Warning)
+    [optional] LogLevel logLevel
 
     # External CSS for generated documenation HTML
     [optional] string docCssUri
@@ -112,9 +134,25 @@ struct ChiselConfig
         configParser.finalize()
         configModel = configParser.model.types["ChiselConfig"]
 
-        # Load the config file
+        # Read the config file and strip comments
         with open(configPath, "rb") as fh:
-            return configModel.validate(Struct(json.load(fh)))
+            config = fh.read()
+        config = re.sub("^\s*#.*$", "", config, flags = re.MULTILINE)
+
+        # Load the config file
+        return configModel.validate(Struct(json.loads(config)))
+
+    # Get the Python logging level
+    def _getLogLevel(self, configSpec):
+
+        if configSpec.logLevel == "Debug":
+            return logging.DEBUG
+        elif configSpec.logLevel == "Info":
+            return logging.INFO
+        elif configSpec.logLevel == "Error":
+            return logging.ERROR
+        else:
+            return logging.WARNING
 
     # Resource factory - create a resource context manager
     class _ResourceFactory:
@@ -162,6 +200,8 @@ struct ChiselConfig
         optParser.add_option("--config-spec", dest = "configSpec", action = "store_true",
                              help = "Dump configuration file specification")
         (opts, args) = optParser.parse_args()
+        if not opts.configPath:
+            optParser.error("Configuration file path required")
 
         # Dump configuration specification
         if opts.configSpec:
