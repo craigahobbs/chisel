@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .doc import joinUrl, docIndex, docAction
+from .doc import joinUrl, createIndexHtml, createActionHtml
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
@@ -16,16 +16,6 @@ import os
 import urllib
 import uuid
 from wsgiref.util import application_uri
-
-
-# Helper function to serialize structs as JSON
-def serializeJSON(o, isPretty = False):
-
-    return json.dumps(o,
-                      sort_keys = True,
-                      indent = 2 if isPretty else None,
-                      separators = (", ", ": ") if isPretty else (",", ":"),
-                      default = jsonDefault)
 
 
 # API server response handler
@@ -157,11 +147,13 @@ class Application:
         return "error" in response
 
     # Helper to form an error response
-    def _errorResponse(self, error, message):
+    def _errorResponse(self, error, message, member = None):
 
         response = Struct()
         response.error = error
         response.message = message
+        if member:
+            response.member = member
         return response
 
     # Helper to create an error response type instance
@@ -179,6 +171,7 @@ class Application:
             errorTypeInst.values.append(TypeEnum.Value("UnknownRequestMethod"))
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
+        errorResponseTypeInst.members.append(TypeStruct.Member("member", TypeString(), isOptional = True))
         return errorResponseTypeInst
 
     # Request handling helper method
@@ -193,8 +186,8 @@ class Application:
         # Server error return helper
         jsonpFunction = None
         actionContext = None
-        def serverError(error, message):
-            response = self._errorResponse(error, message)
+        def serverError(error, message, member = None):
+            response = self._errorResponse(error, message, member)
             assert self._errorResponseTypeInst().validate(response)
             return jsonpFunction, actionContext, response
 
@@ -247,7 +240,7 @@ class Application:
         try:
             request = actionModel.inputType.validate(request, acceptString = isGetRequest)
         except ValidationError, e:
-            return serverError("InvalidInput", str(e))
+            return serverError("InvalidInput", str(e), e.member)
 
         # Call the action callback
         actionContext = self._contextCallback and self._contextCallback(environ)
@@ -266,7 +259,7 @@ class Application:
         try:
             response = responseTypeInst.validate(response)
         except ValidationError, e:
-            return serverError("InvalidOutput", str(e))
+            return serverError("InvalidOutput", str(e), e.member)
 
         return jsonpFunction, actionContext, response
 
@@ -282,10 +275,10 @@ class Application:
 
             status = "200 OK"
             contentType = "text/html"
-            responseBody = docIndex(joinUrl(application_uri(environ), urllib.quote(self._docUriDir)),
-                                    [actionModel for actionModel in self._actionModels.itervalues() \
-                                         if actionModel.name in self._actionCallbacks],
-                                    docCssUri = self._docCssUri)
+            responseBody = createIndexHtml(joinUrl(application_uri(environ), urllib.quote(self._docUriDir)),
+                                           [actionModel for actionModel in self._actionModels.itervalues() \
+                                                if actionModel.name in self._actionCallbacks],
+                                           docCssUri = self._docCssUri)
 
         # Action doc request?
         elif envRequestMethod == "GET" and len(pathParts) >= 2 and pathParts[-2] == self._docUriDir:
@@ -301,12 +294,19 @@ class Application:
 
                 status = "200 OK"
                 contentType = "text/html"
-                responseBody = docAction(joinUrl(application_uri(environ), self._docUriDir), actionModel, docCssUri = self._docCssUri)
+                responseBody = createActionHtml(joinUrl(application_uri(environ), self._docUriDir), actionModel,
+                                                docCssUri = self._docCssUri)
 
         else:
 
             # Handle the request
             jsonpFunction, actionContext, response = self._handleRequest(environ)
+
+            # Helper function to serialize structs as JSON
+            def serializeJSON(o, isPretty = False):
+                return json.dumps(o, sort_keys = True, default = jsonDefault,
+                                  indent = 2 if isPretty else None,
+                                  separators = (", ", ": ") if isPretty else (",", ":"))
 
             # Serialize the response
             contentType = "application/json"

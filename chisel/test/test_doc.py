@@ -5,7 +5,7 @@
 #
 
 from chisel import SpecParser
-from chisel.doc import joinUrl, docIndex, docAction
+from chisel.doc import joinUrl, createIndexHtml, createActionHtml
 
 from HTMLParser import HTMLParser
 import unittest
@@ -52,7 +52,7 @@ class HTMLValidator(HTMLParser):
 class TestDoc(unittest.TestCase):
 
     # Test documentation index HTML generation
-    def test_doc_docIndex(self):
+    def test_doc_createIndexHtml(self):
 
         # Create the action models
         specParser = SpecParser()
@@ -62,12 +62,12 @@ action myAction2
 """)
 
         # Validate the HTML
-        html = docIndex("/", specParser.model.actions.itervalues())
+        html = createIndexHtml("/", specParser.model.actions.itervalues())
         HTMLValidator.validate(html)
 
 
     # Test action model HTML generation
-    def test_doc_docAction(self):
+    def test_doc_createActionHtml(self):
 
         # Create the action models
         specParser = SpecParser()
@@ -77,5 +77,5 @@ action myAction2
 """)
 
         # Validate the HTML
-        html = docAction("/", specParser.model.actions["myAction1"])
+        html = createActionHtml("/", specParser.model.actions["myAction1"])
         HTMLValidator.validate(html)

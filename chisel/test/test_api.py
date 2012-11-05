@@ -4,7 +4,8 @@
 # See README.md for license.
 #
 
-from chisel import encodeQueryString, Application, SpecParser, Struct
+from chisel import encodeQueryString, SpecParser, Struct
+from chisel.api import Application
 
 import json
 import logging
@@ -174,9 +175,10 @@ action myAction
         # Bad error enum value
         status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestBadError), requestBadError)
         self.assertEqual(status, "500 Internal Server Error")
-        self.assertEqual(len(response()), 2)
+        self.assertEqual(len(response()), 3)
         self.assertEqual(response.error, "InvalidOutput")
         self.assertEqual(response.message, "Invalid value 'BadError' (type 'str') for member 'error', expected type 'myAction_Error'")
+        self.assertEqual(response.member, "error")
 
         # Non-error
         status, headers, response = self.sendRequest(app, "POST", "/myAction", len(request), request)
@@ -339,7 +341,8 @@ action myAction
         queryString = encodeQueryString(request)
         status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
         self.assertEqual(status, "200 OK")
-        self.assertTrue(response.startswith('myfunc({"error":"InvalidInput","message":'))
+        self.assertNotEqual(response.find('"error":"InvalidInput"'), -1)
+        self.assertNotEqual(response.find('"member":"nums"'), -1)
 
     # Verify that exception is raised when action is added with no model
     def test_server_fail_no_action_model(self):

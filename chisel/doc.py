@@ -81,7 +81,7 @@ class Element:
 
 
 # Generate the top-level action documentation index
-def docIndex(docRootUri, actionModels, docCssUri = None):
+def createIndexHtml(docRootUri, actionModels, docCssUri = None):
 
     # Index page header
     root = Element("html")
@@ -108,7 +108,7 @@ def docIndex(docRootUri, actionModels, docCssUri = None):
 
 
 # Generate the documentation for an action
-def docAction(docRootUri, actionModel, docCssUri = None):
+def createActionHtml(docRootUri, actionModel, docCssUri = None):
 
     # Find all user types referenced by the action
     userTypes = {}

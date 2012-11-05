@@ -6,9 +6,8 @@
 
 __all__ = [ "app", "model", "server", "spec", "struct", "url" ]
 
-from .app import ChiselApplication, ResourceType
+from .app import Application, ResourceType
 from .model import ValidationError
-from .server import serializeJSON, Application
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString, encodeQueryString

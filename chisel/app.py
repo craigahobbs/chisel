@@ -9,9 +9,9 @@ import logging
 import os
 import re
 
+import api
 from .model import Struct
 from .spec import SpecParser
-from .server import Application
 
 
 # Chisel application resource type
@@ -25,7 +25,7 @@ class ResourceType:
 
 
 # The chisel WSGI application
-class ChiselApplication:
+class Application:
 
     def __init__(self, configPath = None, resourceTypes = None):
 
@@ -36,7 +36,7 @@ class ChiselApplication:
         self._logLevel = self._getLogLevel(config)
 
         # Create the API application helper application
-        self._api = Application(isPretty = config.prettyOutput,
+        self._api = api.Application(isPretty = config.prettyOutput,
                                 contextCallback = self._contextCallback,
                                 docCssUri = config.docCssUri)
         for specPath in config.specPaths:
@@ -78,7 +78,7 @@ class ChiselApplication:
         ctx = Struct()
         ctx.resources = self._resources
         ctx.environ = environ
-        ctx.logger = logger
+        ctx.log = logger
         return ctx
 
     # Configuration file specification
@@ -125,12 +125,12 @@ struct ChiselConfig
 """
 
     # Load the configuration file
-    @staticmethod
-    def loadConfig(configPath):
+    @classmethod
+    def loadConfig(cls, configPath):
 
         # Create the configuration file model
         configParser = SpecParser()
-        configParser.parse(ChiselApplication.configSpec)
+        configParser.parse(cls.configSpec)
         configParser.finalize()
         configModel = configParser.model.types["ChiselConfig"]
 
@@ -184,8 +184,8 @@ struct ChiselConfig
                 self._resourceType.closeFn(self._resource)
 
     # Run as stand-alone server
-    @staticmethod
-    def serve(resourceTypes = None):
+    @classmethod
+    def serve(cls, resourceTypes = None):
 
         import optparse
         from wsgiref.util import setup_testing_defaults
@@ -205,11 +205,11 @@ struct ChiselConfig
 
         # Dump configuration specification
         if opts.configSpec:
-            print ChiselApplication.configSpec
+            print cls.configSpec
             return
 
         # Stand-alone server WSGI entry point
-        application = ChiselApplication(configPath = opts.configPath, resourceTypes = resourceTypes)
+        application = cls(configPath = opts.configPath, resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
             setup_testing_defaults(environ)
             return application(environ, start_response)
