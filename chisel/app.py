@@ -188,8 +188,8 @@ struct ChiselConfig
     def serve(cls, resourceTypes = None):
 
         import optparse
-        from wsgiref.util import setup_testing_defaults
-        from wsgiref.simple_server import make_server
+        import wsgiref.util
+        import wsgiref.simple_server
 
         # Command line options
         optParser = optparse.OptionParser()
@@ -211,10 +211,10 @@ struct ChiselConfig
         # Stand-alone server WSGI entry point
         application = cls(configPath = opts.configPath, resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
-            setup_testing_defaults(environ)
+            wsgiref.util.setup_testing_defaults(environ)
             return application(environ, start_response)
 
         # Start the stand-alone server
         print "Serving on port %d..." % (opts.port)
-        httpd = make_server('', opts.port, application_simple_server)
+        httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
         httpd.serve_forever()

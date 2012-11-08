@@ -13,7 +13,7 @@ import os
 import re
 from StringIO import StringIO
 import unittest
-from wsgiref.util import setup_testing_defaults
+import wsgiref.util
 
 
 # Server module loading tests
@@ -63,7 +63,7 @@ class TestRequest(unittest.TestCase):
             environ["QUERY_STRING"] = queryString
         if contentLength is not None:
             environ["CONTENT_LENGTH"] = str(contentLength)
-        setup_testing_defaults(environ)
+        wsgiref.util.setup_testing_defaults(environ)
 
         # WSGI start_response
         status = []
