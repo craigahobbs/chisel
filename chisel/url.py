@@ -10,16 +10,13 @@ import urllib
 
 
 # Encode an object as a URL query string
-def encodeQueryString(o):
+def encodeQueryString(o, encoding = "utf-8"):
 
     # Helper to quote strings
     def quote(o):
-        if isinstance(o, str):
-            return urllib.quote(o)
-        elif isinstance(o, unicode):
-            return urllib.quote(o.encode("utf-8"))
-        else:
-            return urllib.quote(str(o))
+        if not isinstance(o, basestring):
+            o = str(o)
+        return urllib.quote(o.encode(encoding) if isinstance(o, unicode) else o)
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
@@ -46,7 +43,7 @@ def encodeQueryString(o):
 
 
 # Decode an object from a URL query string
-def decodeQueryString(queryString):
+def decodeQueryString(queryString, encoding = "utf-8"):
 
     # Helper to make a key - int means array index
     def makeKey(keyString):
@@ -55,21 +52,20 @@ def decodeQueryString(queryString):
         except:
             return keyString
 
-    # Split-out and unquote the flattened keys and values
-    keysValues = []
-    for keysValueString in queryString.split("&"):
-        if keysValueString:
-            keysValue = keysValueString.split("=")
-            if len(keysValue) == 2:
-                keys = [makeKey(urllib.unquote(key)) for key in keysValue[0].split(".")]
-                value = urllib.unquote(keysValue[1])
-                keysValues.append((keys, value, keysValueString))
-            else:
-                raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
-
     # Build the object
     oResult = [None]
-    for keys, value, keysValueString in keysValues:
+    for keysValueString in queryString.split("&"):
+
+        # Ignore empty key/value strings
+        if not keysValueString:
+            continue
+
+        # Split the key/value string
+        keysValue = keysValueString.split("=")
+        if len(keysValue) != 2:
+            raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+        keys = [makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split(".")]
+        value = urllib.unquote(keysValue[1]).decode(encoding)
 
         # Find/create the object on which to set the value
         oParent = oResult

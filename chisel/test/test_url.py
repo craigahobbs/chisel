@@ -60,8 +60,8 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(decodeQueryString(s), o)
 
         # Decode unicode string
-        s = u"a=7&b=9"
-        o = { u"a": u"7", u"b": u"9" }
+        s = "a=abc%EA%80%80&b.0=c&b.1=d"
+        o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
         self.assertEqual(decodeQueryString(s), o)
 
     def test_url_decodeQueryStringDegenerate(self):
