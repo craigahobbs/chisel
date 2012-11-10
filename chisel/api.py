@@ -206,7 +206,10 @@ class Application:
             if not envQueryString:
                 request = {}
             else:
-                request = decodeQueryString(envQueryString)
+                try:
+                    request = decodeQueryString(envQueryString)
+                except ValueError, e:
+                    return serverError("InvalidInput", str(e))
 
                 # JSONP?
                 if self._jsonpMemberName in request:

@@ -8,71 +8,113 @@ from .struct import Struct
 
 import urllib
 
+
 # Encode an object as a URL query string
 def encodeQueryString(o):
 
+    # Helper to quote strings
+    def quote(o):
+        if isinstance(o, str):
+            return urllib.quote(o)
+        elif isinstance(o, unicode):
+            return urllib.quote(o.encode("utf-8"))
+        else:
+            return urllib.quote(str(o))
+
     # Get the flattened list of URL-quoted name/value pairs
-    members = []
+    keysValues = []
     def iterateItems(o, parent):
+
+        # Get the wrapped object of a Struct
         if isinstance(o, Struct):
             o = o()
+
+        # Add the object keys
         if isinstance(o, dict):
             for member in o:
-                iterateItems(o[member], parent + (urllib.quote(str(member)),))
+                iterateItems(o[member], parent + (quote(member),))
         elif isinstance(o, (list, tuple)):
             for ix in xrange(0, len(o)):
-                iterateItems(o[ix], parent + (str(ix),))
+                iterateItems(o[ix], parent + (quote(ix),))
         elif o is not None:
-            members.append((parent, urllib.quote(str(o))))
+            keysValues.append((parent, quote(o)))
+
     iterateItems(o, ())
 
     # Join the object query string
-    return "&".join(["=".join(('.'.join(k), v)) for k, v in sorted(members)])
+    return "&".join(["=".join((".".join(k), v)) for k, v in sorted(keysValues)])
 
 
 # Decode an object from a URL query string
 def decodeQueryString(queryString):
 
-    # Split-out and unquote the flattened members
-    members = [([urllib.unquote(k) for k in kq.split('.')], v) for
-               kq, v in [kv.split('=') for kv in queryString.split('&')]]
-
-    # Integer member?
-    def isArrayMember(member):
+    # Helper to make a key - int means array index
+    def makeKey(keyString):
         try:
-            int(member)
-            return True
+            return int(keyString)
         except:
-            return False
+            return keyString
 
-    # Create the top-level container
-    if members and isArrayMember(members[0][0][0]):
-        o = []
-    else:
-        o = {}
-
-    # Construct the object
-    for key, value in sorted(members):
-        oCur = o
-        nMembers = len(key)
-        for ixMember in xrange(0, nMembers - 1):
-            member = key[ixMember]
-            memberNext = key[ixMember + 1]
-
-            # Create the sub-container
-            oNext = None if isinstance(oCur, list) else oCur.get(member)
-            if oNext is None:
-                oNext = [] if isArrayMember(memberNext) else {}
-            if isinstance(oCur, list):
-                oCur.append(oNext)
+    # Split-out and unquote the flattened keys and values
+    keysValues = []
+    for keysValueString in queryString.split("&"):
+        if keysValueString:
+            keysValue = keysValueString.split("=")
+            if len(keysValue) == 2:
+                keys = [makeKey(urllib.unquote(key)) for key in keysValue[0].split(".")]
+                value = urllib.unquote(keysValue[1])
+                keysValues.append((keys, value, keysValueString))
             else:
-                oCur[member] = oNext
-            oCur = oNext
+                raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
 
-        # Set the member value
-        if isinstance(oCur, list):
-            oCur.append(value)
-        else:
-            oCur[key[-1]] = urllib.unquote(value)
+    # Build the object
+    oResult = [None]
+    for keys, value, keysValueString in keysValues:
 
-    return o
+        # Find/create the object on which to set the value
+        oParent = oResult
+        keyParent = 0
+        for key in keys:
+
+            # Array key?
+            if isinstance(key, (int, long)):
+
+                # Create this key's container, if necessary
+                o = oParent[keyParent]
+                if o is None:
+                    o = oParent[keyParent] = []
+                elif not isinstance(o, list):
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+
+                # Create the index for this key
+                if key == len(o):
+                    o.extend([None])
+                elif key < 0 or key > len(o):
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+
+                # Update the parent object and key
+                oParent = o
+                keyParent = key
+
+            # Dictionary key
+            else:
+
+                # Create this key's container, if necessary
+                o = oParent[keyParent]
+                if o is None:
+                    o = oParent[keyParent] = {}
+                elif not isinstance(o, dict):
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+
+                # Create the index for this key
+                if o.get(key) is None:
+                    o[key] = None
+
+                # Update the parent object and key
+                oParent = o
+                keyParent = key
+
+        # Set the value
+        oParent[keyParent] = value
+
+    return oResult[0] if (oResult[0] is not None) else {}
