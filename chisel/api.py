@@ -208,7 +208,7 @@ class Application:
             else:
                 try:
                     request = decodeQueryString(envQueryString)
-                except ValueError, e:
+                except Exception, e:
                     return serverError("InvalidInput", str(e))
 
                 # JSONP?

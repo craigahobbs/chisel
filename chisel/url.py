@@ -14,9 +14,7 @@ def encodeQueryString(o, encoding = "utf-8"):
 
     # Helper to quote strings
     def quote(o):
-        if not isinstance(o, basestring):
-            o = str(o)
-        return urllib.quote(o.encode(encoding) if isinstance(o, unicode) else o)
+        return urllib.quote((o if isinstance(o, basestring) else str(o)).encode(encoding))
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []

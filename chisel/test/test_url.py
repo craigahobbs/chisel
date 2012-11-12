@@ -139,9 +139,21 @@ class TestUrl(unittest.TestCase):
         s = "a.0=0&a.1=1&a.3=3"
         assertDecodeError(s, "Invalid key/value pair 'a.3=3'")
 
+        # Initial index too large
+        s = "a.1=0"
+        assertDecodeError(s, "Invalid key/value pair 'a.1=0'")
+
         # Negative index
         s = "a.0=0&a.1=1&a.-3=3"
         assertDecodeError(s, "Invalid key/value pair 'a.-3=3'")
+
+        # First dict, then list
+        s = "a.b=0&a.0=0"
+        assertDecodeError(s, "Invalid key/value pair 'a.0=0'")
+
+        # First list, then dict
+        s = "a.0=0&a.b=0"
+        assertDecodeError(s, "Invalid key/value pair 'a.b=0'")
 
     def test_url_encodeQueryString(self):
 
