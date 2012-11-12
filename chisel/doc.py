@@ -5,7 +5,10 @@
 #
 
 import cgi
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import urllib
 import xml.sax.saxutils as saxutils
 

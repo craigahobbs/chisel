@@ -9,7 +9,10 @@ from chisel.doc import joinUrl, createIndexHtml, createActionHtml, Element
 
 from HTMLParser import HTMLParser
 import unittest
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 
 
 # joinUrl tests

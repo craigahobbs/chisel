@@ -9,7 +9,10 @@ from .model import Model, Action, TypeStruct, TypeArray, TypeDict, TypeEnum, \
 from .struct import Struct
 
 import re
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 
 
 # Specification language parser class

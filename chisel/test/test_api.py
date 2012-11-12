@@ -11,7 +11,10 @@ import json
 import logging
 import os
 import re
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import unittest
 import wsgiref.util
 
