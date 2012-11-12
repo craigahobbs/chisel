@@ -213,7 +213,7 @@ class Application:
 
                 # JSONP?
                 if self._jsonpMemberName in request:
-                    jsonpFunction = str(request[self._jsonpMemberName])
+                    jsonpFunction = request[self._jsonpMemberName]
                     del request[self._jsonpMemberName]
 
         elif envRequestMethod == "POST":
