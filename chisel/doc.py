@@ -38,12 +38,16 @@ class Element:
         self.children.append(child)
         return child
 
-    def serialize(self, out, indent = "  ", indentIndex = 0):
+    def serialize(self, out, indent = "  "):
+
+        self._serialize(out, indent, 0, True)
+
+    def _serialize(self, out, indent, indentIndex, isRoot):
 
         indentCur = indent * indentIndex
 
         # Initial newline and indent as necessary...
-        if not self.isInline:
+        if not self.isInline and not isRoot:
             out.write("\n")
             if not self.isText:
                 out.write(indentCur)
@@ -56,7 +60,7 @@ class Element:
         # Element open
         out.write("<")
         out.write(self.name)
-        for attrKey, attrValue in self.attrs.iteritems():
+        for attrKey, attrValue in sorted(self.attrs.iteritems(), key = lambda x: x[0].lstrip("_")):
             out.write(" ")
             out.write(attrKey.lstrip("_"))
             out.write("=")
@@ -68,7 +72,7 @@ class Element:
         # Children elements
         childPrevInline = self.isInline
         for child in self.children:
-            child.serialize(out, indent = indent, indentIndex = indentIndex + 1)
+            child._serialize(out, indent, indentIndex + 1, False)
             childPrevInline = child.isInline
 
         # Element close
@@ -118,8 +122,8 @@ def createActionHtml(docRootUri, actionModel, docCssUri = None):
             if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
                 if baseType.typeName not in userTypes:
                     userTypes[baseType.typeName] = baseType
-            if isinstance(baseType, TypeStruct):
-                findUserTypes(baseType)
+                    if isinstance(baseType, TypeStruct):
+                        findUserTypes(baseType)
     findUserTypes(actionModel.inputType)
     findUserTypes(actionModel.outputType)
 
