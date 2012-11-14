@@ -11,10 +11,7 @@ import json
 import logging
 import os
 import re
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+from StringIO import StringIO
 import unittest
 import wsgiref.util
 
@@ -22,35 +19,27 @@ import wsgiref.util
 # Server module loading tests
 class TestLoadModules(unittest.TestCase):
 
-    def setUp(self):
-
-        self.app = Application()
-
     # Test succussful module directory load
-    def test_server_loadModules(self):
+    def test_api_loadModules(self):
 
-        app = self.app
-        app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_server_modules"))
-        app.loadModules(os.path.join(os.path.dirname(__file__), "test_server_modules"))
+        app = Application()
+        app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_api_files"))
+        app.loadModules(os.path.join(os.path.dirname(__file__), "test_api_files"))
         self.assertEqual(len(app._actionCallbacks), 3)
         self.assertEqual(app._actionCallbacks["myAction1"].func_name, "myAction1")
         self.assertEqual(app._actionCallbacks["myAction2"].func_name, "myAction2")
         self.assertEqual(app._actionCallbacks["myAction3"].func_name, "myAction3")
 
     # Verify that exception is raised when invalid module path is loaded
-    def test_server_loadModules_badModulePath(self):
+    def test_api_loadModules_badModulePath(self):
 
-        app = self.app
+        app = Application
         with self.assertRaises(Exception):
             app.loadModules("_DIRECTORY_DOES_NOT_EXIST_")
 
 
 # Server application object tests
 class TestRequest(unittest.TestCase):
-
-    def setUp(self):
-
-        self.app = Application()
 
     # Request/response helper
     @staticmethod
@@ -82,10 +71,10 @@ class TestRequest(unittest.TestCase):
         return status[0], responseHeaders[0], response
 
     # Test successful action handling
-    def test_server_success(self):
+    def test_api_success(self):
 
         # Application instance
-        app = self.app
+        app = Application()
         app.loadSpecs(StringIO("""\
 action myActionPost
     input
@@ -128,10 +117,10 @@ action myActionGet
         self.assertEqual(response.c, 12)
 
     # Test action-level error handling
-    def test_server_error(self):
+    def test_api_error(self):
 
         # Application instance
-        app = self.app
+        app = Application()
         app.loadSpecs(StringIO("""\
 action myAction
     input
@@ -190,10 +179,10 @@ action myAction
         self.assertEqual(response.b, 6)
 
     # Test complex (nested) container response
-    def test_server_complex_response(self):
+    def test_api_complex_response(self):
 
         # Request handler
-        app = self.app
+        app = Application()
         app.loadSpecs(StringIO("""\
 struct MyStruct
     int[] b
@@ -219,7 +208,7 @@ action myAction
         self.assertEqual(response.a.b[2], 3)
 
     # Test server-level error handling
-    def test_server_fail(self):
+    def test_api_fail(self):
 
         # Request handler
         app = Application()
@@ -287,7 +276,7 @@ action myActionRaise
         self.assertTrue(isinstance(response.message, unicode))
 
     # Test passing complex struct as query string
-    def test_server_query(self):
+    def test_api_query(self):
 
         # Request handler
         app = Application()
@@ -314,7 +303,7 @@ action myAction
         self.assertEqual(response.sum, 15)
 
     # Test JSONP response
-    def test_server_jsonp(self):
+    def test_api_jsonp(self):
 
         # Request handler
         app = Application()
@@ -348,7 +337,7 @@ action myAction
         self.assertNotEqual(response.find('"member":"nums"'), -1)
 
     # Verify that exception is raised when action is added with no model
-    def test_server_fail_no_action_model(self):
+    def test_api_fail_no_action_model(self):
 
         # Request handler
         app = Application()
@@ -358,7 +347,7 @@ action myAction
             app.addActionCallback(myAction)
 
     # Test context callback and header callback functionality
-    def test_server_context(self):
+    def test_api_context(self):
 
         # Action context callback
         def myContext(environ):
@@ -392,7 +381,7 @@ action myAction1
         self.assertTrue(("X-Bar", "Foo bar 19") in headers)
 
     # Test doc URL handling
-    def test_server_doc(self):
+    def test_api_doc(self):
 
         # Request handler
         app = Application()

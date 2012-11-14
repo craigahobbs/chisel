@@ -181,7 +181,7 @@ class Application:
         envPathInfo = environ.get("PATH_INFO")
         envQueryString = environ.get("QUERY_STRING")
         envContentLength = environ.get("CONTENT_LENGTH")
-        envWsgiInput = environ["wsgi.input"]
+        envWsgiInput = environ.get("wsgi.input")
 
         # Server error return helper
         jsonpFunction = None

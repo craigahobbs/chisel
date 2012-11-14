@@ -1,0 +1,11 @@
+{
+    "specPaths": ["test_app_files"],
+    "modulePaths": ["test_app_files"],
+    "resources": [
+        {
+            "name": "testResource",
+            "type": "test_app_resource",
+            "resourceString": "Hello"
+        }
+    ]
+}

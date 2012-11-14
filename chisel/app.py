@@ -37,8 +37,8 @@ class Application:
 
         # Create the API application helper application
         self._api = api.Application(isPretty = config.prettyOutput,
-                                contextCallback = self._contextCallback,
-                                docCssUri = config.docCssUri)
+                                    contextCallback = self._contextCallback,
+                                    docCssUri = config.docCssUri)
         for specPath in config.specPaths:
             self._api.loadSpecs(specPath)
         for modulePath in config.modulePaths:
@@ -55,7 +55,7 @@ class Application:
                 else:
                     resourceType = []
                 if not resourceType:
-                    raise Exception("Resource type %r not found" % (resource.type))
+                    raise Exception("Unknown resource type '%s'" % (resource.type))
 
                 # Add the resource factory
                 self._resources[resource.name] = self._ResourceFactory(resource.name, resourceType[0], resource.resourceString)
@@ -71,7 +71,7 @@ class Application:
 
         # Create the logger
         logger = logging.getLoggerClass()("")
-        logger.addHandler(logging.StreamHandler(environ["wsgi.errors"]))
+        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
         logger.setLevel(self._logLevel)
 
         # Create the action context
