@@ -232,12 +232,12 @@ class SpecParser:
 
                 # Not in a struct scope?
                 if not isinstance(self._curType, TypeStruct):
-                    self._error("Member outside of struct scope")
+                    self._error("Member definition outside of struct scope")
                     continue
 
                 # Member ID already defined?
                 if [m for m in self._curType.members if m.name == memId]:
-                    self._error("Member '%s' already defined" % (memId))
+                    self._error("Redefinition of member '%s'" % (memId))
 
                 # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)

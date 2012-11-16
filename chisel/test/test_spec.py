@@ -75,7 +75,7 @@ struct MyStruct
 # This is the second struct
 struct MyStruct2
     int a
-    [optional] \
+    [optional] \\
         float b
     string c
     bool d
@@ -593,14 +593,14 @@ struct MyStruct
 
         # Invalid len> attribute usage
         checkFail([":2: error: Invalid attribute 'len > 1'"],
-"""\
+                  """\
 struct MyStruct
     [len > 1] int i
 """)
 
         # Invalid len< attribute usage
         checkFail([":2: error: Invalid attribute 'len < 10'"],
-"""\
+                  """\
 struct MyStruct
     [len < 10] float f
 """)
@@ -608,7 +608,7 @@ struct MyStruct
         # Invalid > and < attribute usage
         checkFail([":2: error: Invalid attribute '>5'",
                    ":2: error: Invalid attribute '<7'"],
-"""\
+                  """\
 struct MyStruct
     [>5, <7] string s
 """)
@@ -616,7 +616,7 @@ struct MyStruct
         # Invalid >= and <= attribute usage
         checkFail([":6: error: Invalid attribute '>=1'",
                    ":7: error: Invalid attribute '<=2'"],
-"""\
+                  """\
 enum MyEnum
     Foo
     Bar
@@ -628,9 +628,38 @@ struct MyStruct
 
         # Unknown attribute syntax
         checkFail([":2: error: Syntax error"],
-"""\
+                  """\
 struct MyStruct
     [regex="abc"] string a
+""")
+
+        # Member definition outside of struct scope
+        checkFail([":1: error: Member definition outside of struct scope",
+                   ":5: error: Member definition outside of struct scope"],
+                  """\
+    string a
+
+enum MyEnum
+    Foo
+    int b
+""")
+
+        # Member redefinition
+        checkFail([":4: error: Redefinition of member 'b'"],
+                  """\
+struct MyStruct
+    string b
+    int a
+    float b
+""")
+
+        # Duplicate enumeration value
+        checkFail([":4: error: Duplicate enumeration value 'bar'"],
+                  """\
+enum MyEnum
+    bar
+    foo
+    bar
 """)
 
     # Test documentation comments

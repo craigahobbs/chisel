@@ -232,6 +232,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnknownAction")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Request for unknown action 'myActionUnknown'")
 
         # Unknown request method
         status, headers, response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request)
@@ -239,6 +240,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnknownRequestMethod")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Unknown request method 'UNKNOWN'")
 
         # Invalid content length
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", None, request)
@@ -246,6 +248,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Invalid content length 'None'")
 
         # Invalid content length (2)
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", "asdf", request)
@@ -253,6 +256,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Invalid content length 'asdf'")
 
         # Invalid content length (3)
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", "", request)
@@ -260,6 +264,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidContentLength")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Invalid content length ''")
 
         # Invalid input
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(requestInvalid), requestInvalid)
@@ -267,6 +272,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidInput")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertTrue(response.message.startswith("Invalid request JSON:"))
 
         # Unexpected error
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(request), request)
@@ -274,6 +280,16 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Barf")
+
+        # Invalid query string
+        queryString = "a=7&b&c=9"
+        status, headers, response = self.sendRequest(app, "GET", "/myActionRaise", None, "", queryString = queryString)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidInput")
+        self.assertTrue(isinstance(response.message, unicode))
+        self.assertEqual(response.message, "Invalid key/value pair 'b'")
 
     # Test passing complex struct as query string
     def test_api_query(self):
@@ -336,15 +352,56 @@ action myAction
         self.assertNotEqual(response.find('"error":"InvalidInput"'), -1)
         self.assertNotEqual(response.find('"member":"nums"'), -1)
 
-    # Verify that exception is raised when action is added with no model
-    def test_api_fail_no_action_model(self):
+    def test_api_fail_init(self):
 
-        # Request handler
+        # Verify that exception is raised when action is added with no model
         app = Application()
         def myAction(ctx, input):
             return {}
-        with self.assertRaises(Exception):
+        try:
             app.addActionCallback(myAction)
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), "No model defined for action callback 'myAction'")
+
+        # Verify that exception is raised when action callback is redefined
+        app = Application()
+        app.loadSpecs(StringIO("""\
+action myAction
+"""))
+        def myAction(ctx, input):
+            return {}
+        app.addActionCallback(myAction)
+        try:
+            app.addActionCallback(myAction)
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), "Redefinition of action callback 'myAction'")
+
+        # Verify that exception is raised when action model is redefined
+        app = Application()
+        app.loadSpecs(StringIO("""\
+action myAction
+"""))
+        try:
+            app.loadSpecs(StringIO("""\
+action myAction
+"""))
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), "Redefinition of action model 'myAction'")
+
+        # Verify that exception is raised when action spec has errors
+        app = Application()
+        try:
+            app.loadSpecs(StringIO("""\
+action myAction
+    int a
+    string b
+"""))
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), ":2: error: Member definition outside of struct scope\n:3: error: Member definition outside of struct scope")
 
     # Test context callback and header callback functionality
     def test_api_context(self):

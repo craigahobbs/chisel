@@ -13,6 +13,30 @@ import re
 import unittest
 
 
+# jsonDefault tests
+class TestJsonDefault(unittest.TestCase):
+
+    def test_model_jsonDefault(self):
+
+        # Test unwrapping of Struct-wrapped objects
+        o = Struct(a = 3, b = 5)
+        self.assertTrue(jsonDefault(o) is o())
+
+        # Test formatting of datetime objects with tzinfo
+        o = datetime(2012, 11, 16, tzinfo = TypeDatetime.TZUTC())
+        self.assertEqual(jsonDefault(o), "2012-11-16T00:00:00+00:00")
+
+        # Test formatting of datetime objects without tzinfo
+        o = datetime(2012, 11, 16)
+        self.assertTrue(re.search("^2012-11-16T00:00:00[+-]\\d\\d:\\d\\d$", jsonDefault(o)))
+
+        # Test unknown class instance
+        class MyType:
+            pass
+        o = MyType()
+        self.assertTrue(jsonDefault(o) is o)
+
+
 # Model validation tests
 class TestModelValidation(unittest.TestCase):
 
@@ -217,6 +241,9 @@ class TestModelValidation(unittest.TestCase):
 
         # Success - int dict
         self.assertEqual(mInt.validate({ "a": 1, "abc": 17 }), { "a": 1, "abc": 17 })
+
+        # Success - int dict - acceptString
+        self.assertEqual(mInt.validate({ "a": "1", "abc": "17" }, acceptString = True), { "a": 1, "abc": 17 })
 
         # Success - array dict
         self.assertEqual(mArray.validate({ "a": ["foo", "bar"], "abc": [] }), { "a": ["foo", "bar"], "abc": [] })

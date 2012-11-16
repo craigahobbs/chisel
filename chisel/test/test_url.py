@@ -64,6 +64,11 @@ class TestUrl(unittest.TestCase):
         o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
         self.assertEqual(decodeQueryString(s), o)
 
+        # Keys and values with special characters
+        s = "a%26b%3Dc%2ed=a%26b%3Dc.d"
+        o = { "a&b=c.d": "a&b=c.d" }
+        self.assertEqual(decodeQueryString(s), o)
+
     def test_url_decodeQueryStringDegenerate(self):
 
         def assertDecodeError(s, err):
@@ -187,9 +192,9 @@ class TestUrl(unittest.TestCase):
         s = ""
         self.assertEqual(encodeQueryString(o), s)
 
-        # Keys and values with special characters (keys with '.' won't round trip)
-        o = { "a.b.c": "7 + 7 = 14" }
-        s = "a.b.c=7%20%2B%207%20%3D%2014"
+        # Keys and values with special characters
+        o = { "a&b=c.d": "a&b=c.d" }
+        s = "a%26b%3Dc.d=a%26b%3Dc.d"
         self.assertEqual(encodeQueryString(o), s)
 
         # Unicode keys and values

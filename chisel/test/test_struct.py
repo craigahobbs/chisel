@@ -191,3 +191,20 @@ class TestStruct(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             s.d[1] = None
+
+    # Test non-dict attribute get/set
+    def test_struct_non_dict_container_attr(self):
+
+        s = Struct(a = [1, 2, 3])
+
+        # Test list attribute get
+        self.assertEqual(s.a.count(2), 1)
+        s.a.append(2)
+        self.assertEqual(s.a.count(2), 2)
+
+        # Test list attribute set (not likely to ever occur)
+        try:
+            s.a.foo = 19
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), "'list' object has no attribute 'foo'")

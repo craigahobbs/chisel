@@ -82,17 +82,13 @@ class Application:
         else:
 
             # Load the module file
-            try:
-                moduleName = str(uuid.uuid1())
-                with open(modulePath, "rb") as fModule:
-                    module = imp.load_source(moduleName, modulePath, fModule)
+            moduleName = str(uuid.uuid1())
+            with open(modulePath, "rb") as fModule:
+                module = imp.load_source(moduleName, modulePath, fModule)
 
-                # Get the module's actions
-                for actionCallback in module.actions():
-                    self.addActionCallback(actionCallback)
-
-            except Exception, e:
-                raise e
+            # Get the module's actions
+            for actionCallback in module.actions():
+                self.addActionCallback(actionCallback)
 
     # Add a single action model
     def addActionModel(self, actionModel):
@@ -103,7 +99,7 @@ class Application:
             self._actionModels[actionModel.name] = actionModel
 
     # Load spec(s) from a directory path, file path, or stream
-    def loadSpecs(self, spec, parser = None, specFileName = None):
+    def loadSpecs(self, spec, parser = None, specFileName = ""):
 
         isFinal = parser is None
         parser = parser or SpecParser()
