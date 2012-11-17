@@ -69,17 +69,17 @@ class Struct(object):
 
         return len(self())
 
+    class _WrapIter:
+        def __init__(self, it):
+            self._it = it
+        def next(self):
+            # Return the value - wrap containers
+            value = self._it.next()
+            return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
+
     def __iter__(self):
 
-        class WrapIter:
-            def __init__(self, it):
-                self._it = it
-            def next(self):
-                # Return the value - wrap containers
-                value = self._it.next()
-                return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
-
-        return WrapIter(iter(self()))
+        return Struct._WrapIter(iter(self()))
 
     def __cmp__(self, other):
 
