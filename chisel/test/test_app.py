@@ -72,5 +72,5 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(appData["status"], ["200 OK"])
         self.assertEqual(appData["open"], ["Hello"])
         self.assertEqual(appData["close"], [1])
-        self.assertTrue(environ["wsgi.errors"].getvalue().find("Some info") == -1)
-        self.assertTrue(environ["wsgi.errors"].getvalue().find("A warning") != -1)
+        self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
+        self.assertTrue("A warning" in environ["wsgi.errors"].getvalue())

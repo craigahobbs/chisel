@@ -65,9 +65,11 @@ class TestRequest(unittest.TestCase):
             responseHeaders.append(_responseHeaders)
 
         # Make the WSGI call
-        response = "".join(app(environ, start_response))
+        responseList = app(environ, start_response)
+        assert isinstance(responseList, (list, tuple))
+        response = "".join(responseList)
         if decodeJSON:
-            response = Struct(json.loads("".join(response)))
+            response = Struct(json.loads(response))
         return status[0], responseHeaders[0], response
 
     # Test successful action handling
@@ -111,10 +113,10 @@ action myActionGet
         self.assertEqual(response.c, 12)
 
         # Non-root POST
-        status, headers, response = self.sendRequest(app, "POST", "/api/myActionPost", len(request), request)
-        self.assertEqual(status, "200 OK")
-        self.assertEqual(len(response()), 1)
-        self.assertEqual(response.c, 12)
+        status, headers, response = self.sendRequest(app, "POST", "/api/myActionPost", len(request), request, decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")
 
     # Test action-level error handling
     def test_api_error(self):
@@ -227,20 +229,16 @@ action myActionRaise
         requestInvalid = '{ "a: 5, "b": 7 }'
 
         # Unknown action
-        status, headers, response = self.sendRequest(app, "POST", "/myActionUnknown", len(request), request)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionUnknown", len(request), request, decodeJSON = False)
         self.assertEqual(status, "404 Not Found")
-        self.assertEqual(len(response()), 2)
-        self.assertEqual(response.error, "UnknownAction")
-        self.assertTrue(isinstance(response.message, unicode))
-        self.assertEqual(response.message, "Request for unknown action 'myActionUnknown'")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")
 
         # Unknown request method
-        status, headers, response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request)
-        self.assertEqual(status, "500 Internal Server Error")
-        self.assertEqual(len(response()), 2)
-        self.assertEqual(response.error, "UnknownRequestMethod")
-        self.assertTrue(isinstance(response.message, unicode))
-        self.assertEqual(response.message, "Unknown request method 'UNKNOWN'")
+        status, headers, response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request, decodeJSON = False)
+        self.assertEqual(status, "405 Method Not Allowed")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Method Not Allowed")
 
         # Invalid content length
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", None, request)
@@ -349,8 +347,8 @@ action myAction
         queryString = encodeQueryString(request)
         status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString, decodeJSON = False)
         self.assertEqual(status, "200 OK")
-        self.assertNotEqual(response.find('"error":"InvalidInput"'), -1)
-        self.assertNotEqual(response.find('"member":"nums"'), -1)
+        self.assertTrue('"error":"InvalidInput"' in response)
+        self.assertTrue('"member":"nums"' in response)
 
     def test_api_fail_init(self):
 
@@ -467,34 +465,40 @@ action myAction
         self.assertTrue("<!doctype html>" in response)
         self.assertTrue(">myAction</a>" in response)
 
-        # Test doc index page POST
+        # Test doc index request POST
         status, headers, response = self.sendRequest(app, "POST", "/doc", "2", "{}", decodeJSON = False)
-        self.assertEqual(status, "404 Not Found")
-        self.assertTrue(("Content-Type", "application/json") in headers)
-        self.assertTrue('"error":"UnknownAction"' in response)
+        self.assertEqual(status, "405 Method Not Allowed")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Method Not Allowed")
 
-        # Test doc action page
+        # Test doc action request
         status, headers, response = self.sendRequest(app, "GET", "/doc/myAction", None, "", decodeJSON = False)
         self.assertEqual(status, "200 OK")
         self.assertTrue(("Content-Type", "text/html") in headers)
         self.assertTrue("<!doctype html>" in response)
         self.assertTrue(">myAction</h1>" in response)
 
-        # Test doc action page (trailing slash)
+        # Test doc action request (trailing slash)
         status, headers, response = self.sendRequest(app, "GET", "/doc/myAction/", None, "", decodeJSON = False)
         self.assertEqual(status, "200 OK")
         self.assertTrue(("Content-Type", "text/html") in headers)
         self.assertTrue("<!doctype html>" in response)
         self.assertTrue(">myAction</h1>" in response)
 
-        # Test unknown doc action page handling
+        # Test unknown doc action request handling
         status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction", None, "", decodeJSON = False)
         self.assertEqual(status, "404 Not Found")
         self.assertTrue(("Content-Type", "text/plain") in headers)
-        self.assertTrue("Not Found" in response)
+        self.assertEqual(response, "Not Found")
 
-        # Test unknown doc action page handling (trailing slash)
+        # Test unknown doc action request handling (trailing slash)
         status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction/", None, "", decodeJSON = False)
         self.assertEqual(status, "404 Not Found")
         self.assertTrue(("Content-Type", "text/plain") in headers)
-        self.assertTrue("Not Found" in response)
+        self.assertEqual(response, "Not Found")
+
+        # Test non-root doc index request
+        status, headers, response = self.sendRequest(app, "GET", "/api/doc/myAction", None, "", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")

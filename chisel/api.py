@@ -163,12 +163,36 @@ class Application:
             errorTypeInst.values.append(TypeEnum.Value("InvalidOutput"))
             errorTypeInst.values.append(TypeEnum.Value("IOError"))
             errorTypeInst.values.append(TypeEnum.Value("UnexpectedError"))
-            errorTypeInst.values.append(TypeEnum.Value("UnknownAction"))
             errorTypeInst.values.append(TypeEnum.Value("UnknownRequestMethod"))
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
         errorResponseTypeInst.members.append(TypeStruct.Member("member", TypeString(), isOptional = True))
         return errorResponseTypeInst
+
+    # Helper to send an HTTP response
+    def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
+
+        # Build the headers array
+        responseHeaders = [
+            ("Content-Type", contentType),
+            ("Content-Length", str(sum([len(s) for s in responseBody])))
+            ]
+        if self._headersCallback:
+            responseHeaders.extend(self._headersCallback(actionContext))
+
+        # Return the response
+        start_response(status, responseHeaders)
+        return responseBody
+
+    # Helper to send an HTTP 404 Not Found
+    def _http404NotFound(self, start_response):
+
+        return self._httpResponse(start_response, None, "404 Not Found", "text/plain", "Not Found")
+
+    # Helper to send an HTTP 405 Method Not Allowed
+    def _http405MethodNotAllowed(self, start_response):
+
+        return self._httpResponse(start_response, None, "405 Method Not Allowed", "text/plain", "Method Not Allowed")
 
     # Request handling helper method
     def _handleRequest(self, environ):
@@ -189,9 +213,7 @@ class Application:
 
         # Match an action
         actionName = envPathInfo.split("/")[-1]
-        actionCallback = self._actionCallbacks.get(actionName)
-        if actionCallback is None:
-            return serverError("UnknownAction", "Request for unknown action '%s'" % (actionName))
+        actionCallback = self._actionCallbacks[actionName]
         actionModel = self._actionModels[actionName]
 
         # Get the request content
@@ -268,68 +290,69 @@ class Application:
         envRequestMethod = environ.get("REQUEST_METHOD")
         envPathInfo = environ.get("PATH_INFO")
 
-        # Doc request?
+        # Match the resource
         pathParts = envPathInfo.strip("/").split("/")
-        if envRequestMethod == "GET" and pathParts[-1] == self._docUriDir:
+        if len(pathParts) == 1 and pathParts[0] == self._docUriDir:
 
-            status = "200 OK"
-            contentType = "text/html"
-            responseBody = createIndexHtml(joinUrl(application_uri(environ), urllib.quote(self._docUriDir)),
-                                           [actionModel for actionModel in self._actionModels.itervalues() \
-                                                if actionModel.name in self._actionCallbacks],
-                                           docCssUri = self._docCssUri)
+            if envRequestMethod == "GET":
 
-        # Action doc request?
-        elif envRequestMethod == "GET" and len(pathParts) >= 2 and pathParts[-2] == self._docUriDir:
-
-            actionModel = self._actionModels.get(pathParts[-1])
-            if actionModel is None:
-
-                status = "404 Not Found"
-                contentType = "text/plain"
-                responseBody = "Not Found"
+                # Generate the doc index HTML
+                docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
+                actionModels = [actionModel for actionModel in self._actionModels.itervalues() \
+                                    if actionModel.name in self._actionCallbacks]
+                responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
+                return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 
             else:
 
-                status = "200 OK"
-                contentType = "text/html"
-                responseBody = createActionHtml(joinUrl(application_uri(environ), self._docUriDir), actionModel,
-                                                docCssUri = self._docCssUri)
+                return self._http405MethodNotAllowed(start_response)
 
-        else:
+        elif len(pathParts) == 2 and pathParts[0] == self._docUriDir and pathParts[1] in self._actionCallbacks:
 
-            # Handle the request
-            jsonpFunction, actionContext, response = self._handleRequest(environ)
+            if envRequestMethod == "GET":
 
-            # Helper function to serialize structs as JSON
-            def serializeJSON(o, isPretty = False):
-                return json.dumps(o, sort_keys = True, default = jsonDefault,
-                                  indent = 2 if isPretty else None,
-                                  separators = (", ", ": ") if isPretty else (",", ":"))
+                # Generate the action doc HTML
+                docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
+                actionModel = self._actionModels[pathParts[1]]
+                responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
+                return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 
-            # Serialize the response
-            contentType = "application/json"
-            if jsonpFunction:
-                responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isPretty), ");"]
             else:
-                responseBody = [serializeJSON(response, isPretty = self._isPretty)]
 
-            # Determine the HTTP status
-            if self.isErrorResponse(response) and jsonpFunction is None:
-                if response["error"] == "UnknownAction":
-                    status = "404 Not Found"
+                return self._http405MethodNotAllowed(start_response)
+
+        elif len(pathParts) == 1 and pathParts[0] in self._actionCallbacks:
+
+            if envRequestMethod in ("GET", "POST"):
+
+                # Handle the request
+                jsonpFunction, actionContext, response = self._handleRequest(environ)
+
+                # Helper function to serialize structs as JSON
+                def serializeJSON(o, isPretty = False):
+                    return json.dumps(o, sort_keys = True, default = jsonDefault,
+                                      indent = 2 if isPretty else None,
+                                      separators = (", ", ": ") if isPretty else (",", ":"))
+
+                # Serialize the response
+                contentType = "application/json"
+                if jsonpFunction:
+                    responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isPretty), ");"]
                 else:
+                    responseBody = [serializeJSON(response, isPretty = self._isPretty)]
+
+                # Determine the HTTP status
+                if self.isErrorResponse(response) and jsonpFunction is None:
                     status = "500 Internal Server Error"
+                else:
+                    status = "200 OK"
+
+                # Send the response
+                return self._httpResponse(start_response, actionContext, status, contentType, *responseBody)
+
             else:
-                status = "200 OK"
 
-        # Send the response
-        responseHeaders = [
-            ("Content-Type", contentType),
-            ("Content-Length", str(sum([len(s) for s in responseBody])))
-            ]
-        if self._headersCallback:
-            responseHeaders.extend(self._headersCallback(actionContext))
-        start_response(status, responseHeaders)
+                return self._http405MethodNotAllowed(start_response)
 
-        return responseBody
+        # Resource not found
+        return self._http404NotFound(start_response)
