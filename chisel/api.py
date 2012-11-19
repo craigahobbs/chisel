@@ -136,11 +136,32 @@ class Application:
             for actionModel in parser.model.actions.itervalues():
                 self.addActionModel(actionModel)
 
-    # Is a response an error response?
-    @staticmethod
-    def isErrorResponse(response):
+    # Helper to send an HTTP response
+    def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
 
-        return "error" in response
+        # Build the headers array
+        responseHeaders = [
+            ("Content-Type", contentType),
+            ("Content-Length", str(sum([len(s) for s in responseBody])))
+            ]
+        if self._headersCallback and actionContext is not None:
+            responseHeaders.extend(self._headersCallback(actionContext))
+
+        # Return the response
+        start_response(status, responseHeaders)
+        return responseBody
+
+    # Helper to send an HTTP 404 Not Found
+    def _http404NotFound(self, start_response):
+        return self._httpResponse(start_response, None, "404 Not Found", "text/plain", "Not Found")
+
+    # Helper to send an HTTP 405 Method Not Allowed
+    def _http405MethodNotAllowed(self, start_response):
+        return self._httpResponse(start_response, None, "405 Method Not Allowed", "text/plain", "Method Not Allowed")
+
+    # Helper to send an HTTP 411 Length Required
+    def _http411LengthRequired(self, start_response):
+        return self._httpResponse(start_response, None, "411 Length Required", "text/plain", "Length Required")
 
     # Helper to form an error response
     def _errorResponse(self, error, message, member = None):
@@ -153,145 +174,109 @@ class Application:
         return response
 
     # Helper to create an error response type instance
-    def _errorResponseTypeInst(self, errorTypeInst = None):
+    def _errorResponseTypeInst(self, errorTypeInst):
 
         errorResponseTypeInst = TypeStruct()
-        if errorTypeInst is None:
-            errorTypeInst = TypeEnum()
-            errorTypeInst.values.append(TypeEnum.Value("InvalidContentLength"))
-            errorTypeInst.values.append(TypeEnum.Value("InvalidInput"))
-            errorTypeInst.values.append(TypeEnum.Value("InvalidOutput"))
-            errorTypeInst.values.append(TypeEnum.Value("IOError"))
-            errorTypeInst.values.append(TypeEnum.Value("UnexpectedError"))
-            errorTypeInst.values.append(TypeEnum.Value("UnknownRequestMethod"))
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
         errorResponseTypeInst.members.append(TypeStruct.Member("member", TypeString(), isOptional = True))
         return errorResponseTypeInst
 
-    # Helper to send an HTTP response
-    def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
+    # Error response exception helper class
+    class _ErrorResponseException(Exception):
+        def __init__(self, response):
+            Exception.__init__(self, "Error response")
+            self.response = response
 
-        # Build the headers array
-        responseHeaders = [
-            ("Content-Type", contentType),
-            ("Content-Length", str(sum([len(s) for s in responseBody])))
-            ]
-        if self._headersCallback:
-            responseHeaders.extend(self._headersCallback(actionContext))
+    # Helper serialize JSON content
+    def _serializeJSON(self, response):
 
-        # Return the response
-        start_response(status, responseHeaders)
-        return responseBody
-
-    # Helper to send an HTTP 404 Not Found
-    def _http404NotFound(self, start_response):
-
-        return self._httpResponse(start_response, None, "404 Not Found", "text/plain", "Not Found")
-
-    # Helper to send an HTTP 405 Method Not Allowed
-    def _http405MethodNotAllowed(self, start_response):
-
-        return self._httpResponse(start_response, None, "405 Method Not Allowed", "text/plain", "Method Not Allowed")
+        return json.dumps(response, sort_keys = True, default = jsonDefault,
+                          indent = 2 if self._isPretty else None,
+                          separators = (", ", ": ") if self._isPretty else (",", ":"))
 
     # Request handling helper method
-    def _handleRequest(self, environ):
+    def _actionResponse(self, environ, start_response, actionName, request, errorResponse = None,
+                        acceptString = False, jsonpFunction = None):
 
-        envRequestMethod = environ.get("REQUEST_METHOD")
-        envPathInfo = environ.get("PATH_INFO")
-        envQueryString = environ.get("QUERY_STRING")
-        envContentLength = environ.get("CONTENT_LENGTH")
-        envWsgiInput = environ.get("wsgi.input")
-
-        # Server error return helper
-        jsonpFunction = None
+        isErrorResponse = True
         actionContext = None
-        def serverError(error, message, member = None):
-            response = self._errorResponse(error, message, member)
-            assert self._errorResponseTypeInst().validate(response)
-            return jsonpFunction, actionContext, response
+        try:
+            # Server error response provided?
+            if errorResponse is not None:
+                raise self._ErrorResponseException(errorResponse)
 
-        # Match an action
-        actionName = envPathInfo.split("/")[-1]
-        actionCallback = self._actionCallbacks[actionName]
-        actionModel = self._actionModels[actionName]
-
-        # Get the request content
-        isGetRequest = (envRequestMethod == "GET")
-        if isGetRequest:
-
-            # Parse the query string
-            if not envQueryString:
-                request = {}
-            else:
-                try:
-                    request = decodeQueryString(envQueryString)
-                except Exception, e:
-                    return serverError("InvalidInput", str(e))
-
-                # JSONP?
-                if self._jsonpMemberName in request:
-                    jsonpFunction = request[self._jsonpMemberName]
-                    del request[self._jsonpMemberName]
-
-        elif envRequestMethod == "POST":
-
-            # Parse content length
+            # Validate the request
             try:
-                contentLength = int(envContentLength)
-            except:
-                return serverError("InvalidContentLength", "Invalid content length '%s'" % (envContentLength))
+                actionModel = self._actionModels[actionName]
+                request = actionModel.inputType.validate(request, acceptString = acceptString)
+            except ValidationError, e:
+                raise self._ErrorResponseException(self._errorResponse("InvalidInput", str(e), e.member))
 
-            # Read the request content
             try:
-                requestBody = envWsgiInput.read(contentLength)
-            except:
-                return serverError("IOError", "Error reading request content")
+                # Create the action callback
+                actionContext = self._contextCallback(environ) if self._contextCallback is not None else None
 
-            # De-serialize the JSON request
-            try:
-                request = json.loads(requestBody)
+                # Call the action callback
+                actionCallback = self._actionCallbacks[actionName]
+                response = actionCallback(actionContext, Struct(request))
+
             except Exception, e:
-                return serverError("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+                raise self._ErrorResponseException(self._errorResponse("UnexpectedError", str(e)))
 
-        else:
-            return serverError("UnknownRequestMethod", "Unknown request method '%s'" % (envRequestMethod))
+            # Error response?
+            isErrorResponse = ("error" in response)
+            if isErrorResponse:
+                responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
+            else:
+                responseTypeInst = actionModel.outputType
 
-        # Validate the request
+            # Validate the response
+            try:
+                response = responseTypeInst.validate(response)
+            except ValidationError, e:
+                raise self._ErrorResponseException(self._errorResponse("InvalidOutput", str(e), e.member))
+
+        except self._ErrorResponseException, e:
+            response = e.response
+
+        # Serialize the response as JSON
         try:
-            request = actionModel.inputType.validate(request, acceptString = isGetRequest)
-        except ValidationError, e:
-            return serverError("InvalidInput", str(e), e.member)
-
-        # Call the action callback
-        actionContext = self._contextCallback and self._contextCallback(environ)
-        try:
-            response = actionCallback(actionContext, Struct(request))
+            jsonContent = self._serializeJSON(response)
         except Exception, e:
-            return serverError("UnexpectedError", str(e))
+            response = self._errorResponse("InvalidOutput", str(e))
+            jsonContent = self._serializeJSON(response)
 
-        # Error response?
-        if self.isErrorResponse(response):
-            responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
+        # Determine the HTTP status
+        if isErrorResponse and jsonpFunction is None:
+            status = "500 Internal Server Error"
         else:
-            responseTypeInst = actionModel.outputType
+            status = "200 OK"
 
-        # Validate the response
-        try:
-            response = responseTypeInst.validate(response)
-        except ValidationError, e:
-            return serverError("InvalidOutput", str(e), e.member)
-
-        return jsonpFunction, actionContext, response
+        # Send the response
+        if jsonpFunction is not None:
+            return self._httpResponse(start_response, actionContext, status, "application/json",
+                                      jsonpFunction, "(", jsonContent, ");")
+        else:
+            return self._httpResponse(start_response, actionContext, status, "application/json",
+                                      jsonContent)
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
         envRequestMethod = environ.get("REQUEST_METHOD")
         envPathInfo = environ.get("PATH_INFO")
+        envQueryString = environ.get("QUERY_STRING")
+        try:
+            envContentLength = int(environ.get("CONTENT_LENGTH"))
+        except:
+            envContentLength = None
+        envWsgiInput = environ.get("wsgi.input")
 
-        # Match the resource
+        # Split the request URL
         pathParts = envPathInfo.strip("/").split("/")
+
+        # Doc index page resource?
         if len(pathParts) == 1 and pathParts[0] == self._docUriDir:
 
             if envRequestMethod == "GET":
@@ -304,54 +289,77 @@ class Application:
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 
             else:
-
                 return self._http405MethodNotAllowed(start_response)
 
+        # Action doc page resource?
         elif len(pathParts) == 2 and pathParts[0] == self._docUriDir and pathParts[1] in self._actionCallbacks:
+
+            actionName = pathParts[1]
 
             if envRequestMethod == "GET":
 
                 # Generate the action doc HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModel = self._actionModels[pathParts[1]]
+                actionModel = self._actionModels[actionName]
                 responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 
             else:
-
                 return self._http405MethodNotAllowed(start_response)
 
+        # Action request?
         elif len(pathParts) == 1 and pathParts[0] in self._actionCallbacks:
 
-            if envRequestMethod in ("GET", "POST"):
+            actionName = pathParts[0]
 
-                # Handle the request
-                jsonpFunction, actionContext, response = self._handleRequest(environ)
+            if envRequestMethod == "GET":
 
-                # Helper function to serialize structs as JSON
-                def serializeJSON(o, isPretty = False):
-                    return json.dumps(o, sort_keys = True, default = jsonDefault,
-                                      indent = 2 if isPretty else None,
-                                      separators = (", ", ": ") if isPretty else (",", ":"))
+                request = None
+                jsonpFunction = None
+                errorResponse = None
+                try:
+                    # Parse the query string
+                    if envQueryString:
+                        request = decodeQueryString(envQueryString)
 
-                # Serialize the response
-                contentType = "application/json"
-                if jsonpFunction:
-                    responseBody = [jsonpFunction, "(", serializeJSON(response, isPretty = self._isPretty), ");"]
-                else:
-                    responseBody = [serializeJSON(response, isPretty = self._isPretty)]
+                        # JSONP?
+                        jsonpFunction = request.get(self._jsonpMemberName)
+                        if jsonpFunction is not None:
+                            del request[self._jsonpMemberName]
+                    else:
+                        request = {}
 
-                # Determine the HTTP status
-                if self.isErrorResponse(response) and jsonpFunction is None:
-                    status = "500 Internal Server Error"
-                else:
-                    status = "200 OK"
+                except Exception, e:
+                    errorResponse = self._errorResponse("InvalidInput", str(e))
 
-                # Send the response
-                return self._httpResponse(start_response, actionContext, status, contentType, *responseBody)
+                # Call the action callback
+                return self._actionResponse(environ, start_response, actionName, request, errorResponse = errorResponse,
+                                            acceptString = True, jsonpFunction = jsonpFunction)
+
+            elif envRequestMethod == "POST":
+
+                if envContentLength is None:
+                    return self._http411LengthRequired(start_response)
+
+                request = None
+                errorResponse = None
+                try:
+                    # Read the request content
+                    requestContent = envWsgiInput.read(envContentLength)
+
+                    # De-serialize the JSON request
+                    try:
+                        request = json.loads(requestContent)
+                    except Exception, e:
+                        errorResponse = self._errorResponse("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+
+                except:
+                    errorResponse = self._errorResponse("IOError", "Error reading request content")
+
+                # Call the action callback
+                return self._actionResponse(environ, start_response, actionName, request, errorResponse = errorResponse)
 
             else:
-
                 return self._http405MethodNotAllowed(start_response)
 
         # Resource not found
