@@ -28,12 +28,10 @@ class Application:
                  headersCallback = None,
                  docCssUri = None,
                  docUriDir = "doc",
-                 jsonpMemberName = "jsonp",
-                 specFileExtension = ".chsl",
-                 moduleFileExtension = ".py"):
+                 jsonpMemberName = "jsonp"):
 
-        self._actionModels = {}
         self._actionCallbacks = {}
+        self._specParser = SpecParser()
         self._isPretty = isPretty
 
         # Action handler context creation callback function
@@ -51,90 +49,62 @@ class Application:
         # JSONP callback reserved member name
         self._jsonpMemberName = jsonpMemberName
 
-        # File extensions
-        self._specFileExtension = specFileExtension
-        self._moduleFileExtension = moduleFileExtension
-
     # Add a single action callback
     def addActionCallback(self, actionCallback, actionName = None):
 
         actionName = actionCallback.func_name if actionName is None else actionName
-        if actionName not in self._actionModels:
+        if actionName not in self._specParser.model.actions:
             raise Exception("No model defined for action callback '%s'" % (actionName))
         elif actionName in self._actionCallbacks:
             raise Exception("Redefinition of action callback '%s'" % (actionName))
         else:
             self._actionCallbacks[actionName] = actionCallback
 
-    # Recursively load all modules in a directory
-    def loadModules(self, modulePath):
+    # Recursively load all modules files in a directory
+    def loadModules(self, modulePath, moduleExt = ".py"):
 
-        # Directory (presumably containing modules)
-        if os.path.isdir(modulePath):
+        for dirpath, dirnames, filenames in os.walk(modulePath):
+            for filename in filenames:
+                (base, ext) = os.path.splitext(filename)
+                if ext == moduleExt:
+                    self.loadModule(os.path.join(dirpath, filename))
 
-            # Search for module files
-            for dirpath, dirnames, filenames in os.walk(modulePath):
-                for filename in filenames:
-                    (base, ext) = os.path.splitext(filename)
-                    if ext == self._moduleFileExtension:
-                        self.loadModules(os.path.join(dirpath, filename))
+    # Load a module file
+    def loadModule(self, modulePath):
 
-        else:
+        # Load the module file
+        moduleName = str(uuid.uuid1())
+        with open(modulePath, "rb") as fModule:
+            module = imp.load_source(moduleName, modulePath, fModule)
 
-            # Load the module file
-            moduleName = str(uuid.uuid1())
-            with open(modulePath, "rb") as fModule:
-                module = imp.load_source(moduleName, modulePath, fModule)
+        # Add the module's actions
+        for actionCallback in module.actions():
+            self.addActionCallback(actionCallback)
 
-            # Get the module's actions
-            for actionCallback in module.actions():
-                self.addActionCallback(actionCallback)
+    # Recursively load all specs in a directory
+    def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
 
-    # Add a single action model
-    def addActionModel(self, actionModel):
+        for dirpath, dirnames, filenames in os.walk(specPath):
+            for filename in filenames:
+                (base, ext) = os.path.splitext(filename)
+                if ext == specExt:
+                    self._specParser.parse(os.path.join(dirpath, filename))
+        if finalize:
+            self._specParser.finalize()
 
-        if actionModel.name in self._actionModels:
-            raise Exception("Redefinition of action model '%s'" % (actionModel.name))
-        else:
-            self._actionModels[actionModel.name] = actionModel
+    # Load a spec file
+    def loadSpec(self, specPath, finalize = True):
 
-    # Load spec(s) from a directory path, file path, or stream
-    def loadSpecs(self, spec, parser = None, specFileName = ""):
+        self._specParser.parse(specPath)
+        if finalize:
+            self._specParser.finalize()
 
-        isFinal = parser is None
-        parser = parser or SpecParser()
+    # Load a spec string
+    def loadSpecString(self, spec, fileName = "", finalize = True):
 
-        # Is spec a path string?
-        if isinstance(spec, basestring):
-
-            # Is spec a directory path?
-            if os.path.isdir(spec):
-
-                # Recursively parse spec files
-                for dirpath, dirnames, filenames in os.walk(spec):
-                    for filename in filenames:
-                        (base, ext) = os.path.splitext(filename)
-                        if ext == self._specFileExtension:
-                            self.loadSpecs(os.path.join(dirpath, filename), parser = parser, specFileName = filename)
-
-            # Assume file path...
-            else:
-                with open(spec, "rb") as fhSpec:
-                    self.loadSpecs(fhSpec, parser = parser, specFileName = spec)
-
-        # Assume stream...
-        else:
-            parser.parse(spec, fileName = specFileName)
-
-        # Finalize parsing
-        if isFinal:
-            parser.finalize()
-            if parser.errors:
-                raise Exception("\n".join(parser.errors))
-
-            # Add action models
-            for actionModel in parser.model.actions.itervalues():
-                self.addActionModel(actionModel)
+        self._specParser.parseString(spec, fileName = fileName)
+        if finalize:
+            self._specParser.finalize()
 
     # Helper to send an HTTP response
     def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
@@ -208,7 +178,7 @@ class Application:
 
             # Validate the request
             try:
-                actionModel = self._actionModels[actionName]
+                actionModel = self._specParser.model.actions[actionName]
                 request = actionModel.inputType.validate(request, acceptString = acceptString)
             except ValidationError, e:
                 raise self._ErrorResponseException(self._errorResponse("InvalidInput", str(e), e.member))
@@ -283,7 +253,7 @@ class Application:
 
                 # Generate the doc index HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModels = [actionModel for actionModel in self._actionModels.itervalues() \
+                actionModels = [actionModel for actionModel in self._specParser.model.actions.itervalues() \
                                     if actionModel.name in self._actionCallbacks]
                 responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
@@ -300,7 +270,7 @@ class Application:
 
                 # Generate the action doc HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModel = self._actionModels[actionName]
+                actionModel = self._specParser.model.actions[actionName]
                 responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 

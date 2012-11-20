@@ -77,7 +77,7 @@ class TestRequest(unittest.TestCase):
 
         # Application instance
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myActionPost
     input
         int a
@@ -88,7 +88,7 @@ action myActionPost
 action myActionGet
     output
         string d
-"""))
+""")
         def myActionPost(ctx, input):
             return { "c": input.a + input.b }
         def myActionGet(ctx, input):
@@ -123,7 +123,7 @@ action myActionGet
 
         # Application instance
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
     input
         int a
@@ -131,7 +131,7 @@ action myAction
         int b
     errors
         MyError
-"""))
+""")
         def myAction(ctx, input):
             output = Struct()
             if input.a == 0:
@@ -185,14 +185,14 @@ action myAction
 
         # Request handler
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 struct MyStruct
     int[] b
 
 action myAction
     output
         MyStruct a
-"""))
+""")
         def myAction(ctx, input):
             return { "a": { "b": [1, 2, 3] } }
         app.addActionCallback(myAction)
@@ -214,12 +214,12 @@ action myAction
 
         # Request handler
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myActionRaise
     input
         int a
         int b
-"""))
+""")
         def myActionRaise(ctx, input):
             raise Exception("Barf")
         app.addActionCallback(myActionRaise)
@@ -288,13 +288,13 @@ action myActionRaise
 
         # Request handler
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
     input
         int[] nums
     output
         int sum
-"""))
+""")
         def myAction(ctx, input):
             numSum = 0
             for num in input.nums:
@@ -315,13 +315,13 @@ action myAction
 
         # Request handler
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
     input
         int[] nums
     output
         int sum
-"""))
+""")
         def myAction(ctx, input):
             numSum = 0
             for num in input.nums:
@@ -358,9 +358,9 @@ action myAction
 
         # Verify that exception is raised when action callback is redefined
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
-"""))
+""")
         def myAction(ctx, input):
             return {}
         app.addActionCallback(myAction)
@@ -372,25 +372,25 @@ action myAction
 
         # Verify that exception is raised when action model is redefined
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
-"""))
+""")
         try:
-            app.loadSpecs(StringIO("""\
+            app.loadSpecString("""\
 action myAction
-"""))
+""")
             self.fail()
         except Exception, e:
-            self.assertEqual(str(e), "Redefinition of action model 'myAction'")
+            self.assertEqual(str(e), ":1: error: Redefinition of action 'myAction'")
 
         # Verify that exception is raised when action spec has errors
         app = Application()
         try:
-            app.loadSpecs(StringIO("""\
+            app.loadSpecString("""\
 action myAction
     int a
     string b
-"""))
+""")
             self.fail()
         except Exception, e:
             self.assertEqual(str(e), ":2: error: Member definition outside of struct scope\n:3: error: Member definition outside of struct scope")
@@ -410,13 +410,13 @@ action myAction
 
         # Request handler
         app = Application(contextCallback = myContext, headersCallback = myHeaders)
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction1
     input
         int a
     output
         int b
-"""))
+""")
         def myAction1(ctx, input):
             return { "b": input.a * ctx.foo }
         app.addActionCallback(myAction1)
@@ -434,13 +434,13 @@ action myAction1
 
         # Request handler
         app = Application()
-        app.loadSpecs(StringIO("""\
+        app.loadSpecString("""\
 action myAction
     input
         int a
     output
         int b
-"""))
+""")
         def myAction(ctx, input):
             return { "b": input.a * ctx.foo }
         app.addActionCallback(myAction)

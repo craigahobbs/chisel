@@ -130,7 +130,7 @@ struct ChiselConfig
 
         # Create the configuration file model
         configParser = SpecParser()
-        configParser.parse(cls.configSpec)
+        configParser.parseString(cls.configSpec)
         configParser.finalize()
         configModel = configParser.model.types["ChiselConfig"]
 

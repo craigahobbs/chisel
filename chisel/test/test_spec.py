@@ -8,7 +8,6 @@ from chisel import SpecParser
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
-from StringIO import StringIO
 import unittest
 
 
@@ -55,9 +54,9 @@ class TestParseSpec(unittest.TestCase):
     # Test valid spec parsing
     def test_spec_simple(self):
 
-        # Parse with IO stream here - everywhere else we'll just use string
+        # Parse the spec
         parser = SpecParser()
-        parser.parse(StringIO("""\
+        parser.parseString("""\
 # This is an enum
 enum MyEnum
     Foo
@@ -109,7 +108,7 @@ action MyAction3
 
 # The fourth action
 action MyAction4
-"""))
+""")
         parser.finalize()
         m = parser.model
 
@@ -170,7 +169,7 @@ action MyAction4
 
         # Parse spec strings
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 enum MyEnum
     A
     B
@@ -187,7 +186,7 @@ struct MyStruct
     MyEnum2 d
     MyStruct2 e
 """)
-        parser.parse("""\
+        parser.parseString("""\
 action MyAction2
     input
         MyStruct d
@@ -247,7 +246,7 @@ enum MyEnum2
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 struct Foo
     MyBadType a
 
@@ -257,7 +256,8 @@ action MyAction
     output
         MyBadType b
 """, fileName = "foo")
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -276,7 +276,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 struct Foo
     int a
 
@@ -284,7 +284,8 @@ enum Foo
     A
     B
 """)
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -304,7 +305,7 @@ enum Foo
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 enum Foo
     A
     B
@@ -312,7 +313,8 @@ enum Foo
 struct Foo
     int a
 """)
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -333,7 +335,7 @@ struct Foo
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 action MyAction
     input
         int a
@@ -342,7 +344,8 @@ action MyAction
     input
         string b
 """)
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -365,7 +368,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 action MyAction
 
 struct MyStruct
@@ -379,7 +382,8 @@ input
 output
 errors
 """)
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -408,7 +412,7 @@ errors
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 action MyAction
     int abc
 
@@ -446,7 +450,7 @@ int cde
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 enum MyEnum
 Value1
 
@@ -458,7 +462,8 @@ action MyAction
     input
         MyError
 """)
-        parser.finalize()
+        with self.assertRaises(Exception):
+            parser.finalize()
         m = parser.model
 
         # Check counts
@@ -484,7 +489,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 struct MyStruct
     [optional,> 1,<= 10.5] int i1
     [>= 1, < 10, optional ] int i2
@@ -586,8 +591,9 @@ struct MyStruct
 
         def checkFail(errors, spec):
             parser = SpecParser()
-            parser.parse(spec)
-            parser.finalize()
+            parser.parseString(spec)
+            with self.assertRaises(Exception):
+                parser.finalize()
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)
 
@@ -667,7 +673,7 @@ enum MyEnum
 
         # Parse spec string
         parser = SpecParser()
-        parser.parse("""\
+        parser.parseString("""\
 # My enum
 enum MyEnum
 

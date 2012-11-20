@@ -109,7 +109,7 @@ action myAction2
 
         # Create the action models
         specParser = SpecParser()
-        specParser.parse(self._spec)
+        specParser.parseString(self._spec)
         self.assertEqual(len(specParser.errors), 0)
 
         # Validate the HTML
@@ -131,7 +131,7 @@ action myAction2
 
         # Create the action models
         specParser = SpecParser()
-        specParser.parse(self._spec)
+        specParser.parseString(self._spec)
         self.assertEqual(len(specParser.errors), 0)
 
         # Validate the first myAction1's HTML

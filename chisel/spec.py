@@ -51,14 +51,22 @@ class SpecParser:
         # Finalization state
         self._typeRefs = []
 
+    # Parse a specification file
+    def parse(self, specPath):
+
+        with open(specPath, "rb") as specStream:
+            self.parseStream(specStream, fileName = specPath)
+
+    # Parse a specification string
+    def parseString(self, spec, fileName = ""):
+
+        self.parseStream(StringIO(spec), fileName = fileName)
+
     # Parse a specification from an input stream
-    def parse(self, stream, fileName = ""):
+    def parseStream(self, specStream, fileName = ""):
 
         # Set the parser state
-        if isinstance(stream, basestring):
-            self._parseStream = StringIO(stream)
-        else:
-            self._parseStream = stream
+        self._parseStream = specStream
         self._parseFileName = fileName
         self._parseLine = 0
         self._curAction = None
@@ -68,8 +76,8 @@ class SpecParser:
         # Do the work
         self._parse()
 
-    # Finalize parsing (must call after calling parse one or more times)
-    def finalize(self):
+    # Finalize parsing (must call after calling parse one or more times - can be repeated)
+    def finalize(self, raiseOnError = True):
 
         # Fixup type refs
         for member in self._typeRefs:
@@ -79,6 +87,11 @@ class SpecParser:
                 member.typeInst = typeInst
             else:
                 self._error("Unknown member type '%s'" % (typeRef.typeName), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+
+        # Raise an exception if there are any errors
+        if raiseOnError and self.errors:
+            raise Exception("\n".join(self.errors))
+
 
     # Get a line from the current stream
     def _getLine(self):
