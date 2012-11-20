@@ -15,15 +15,6 @@ except:
     from StringIO import StringIO
 
 
-# Specification model class
-class Model:
-
-    def __init__(self):
-
-        self.types = {}
-        self.actions = {}
-
-
 # Action class
 class Action:
 
@@ -66,25 +57,26 @@ class SpecParser:
 
     def __init__(self):
 
-        self.model = Model()
+        self.types = {}
+        self.actions = {}
         self.errors = []
 
         # Finalization state
         self._typeRefs = []
 
     # Parse a specification file
-    def parse(self, specPath):
+    def parse(self, specPath, finalize = True):
 
         with open(specPath, "rb") as specStream:
-            self.parseStream(specStream, fileName = specPath)
+            self.parseStream(specStream, finalize = finalize, fileName = specPath)
 
     # Parse a specification string
-    def parseString(self, spec, fileName = ""):
+    def parseString(self, spec, fileName = "", finalize = True):
 
-        self.parseStream(StringIO(spec), fileName = fileName)
+        self.parseStream(StringIO(spec), finalize = finalize, fileName = fileName)
 
     # Parse a specification from an input stream
-    def parseStream(self, specStream, fileName = ""):
+    def parseStream(self, specStream, fileName = "", finalize = True):
 
         # Set the parser state
         self._parseStream = specStream
@@ -96,6 +88,8 @@ class SpecParser:
 
         # Do the work
         self._parse()
+        if finalize:
+            self.finalize()
 
     # Finalize parsing (must call after calling parse one or more times - can be repeated)
     def finalize(self, raiseOnError = True):
@@ -150,7 +144,7 @@ class SpecParser:
         if typeClass is not None:
             typeInst = typeClass(typeName = typeRef.typeName)
         else:
-            typeInst = self.model.types.get(typeRef.typeName)
+            typeInst = self.types.get(typeRef.typeName)
 
         # Return the type instance
         if typeInst is None:
@@ -202,40 +196,40 @@ class SpecParser:
                 if defType == "action":
 
                     # Action already defined?
-                    if defId in self.model.actions:
+                    if defId in self.actions:
                         self._error("Redefinition of action '%s'" % (defId))
 
                     # Create the new action
                     self._curAction = Action(defId, doc = self._curDoc)
                     self._curType = None
                     self._curDoc = []
-                    self.model.actions[self._curAction.name] = self._curAction
+                    self.actions[self._curAction.name] = self._curAction
 
                 # Struct definition
                 elif defType == "struct":
 
                     # Type already defined?
-                    if defId in self._types or defId in self.model.types:
+                    if defId in self._types or defId in self.types:
                         self._error("Redefinition of type '%s'" % (defId))
 
                     # Create the new struct type
                     self._curAction = None
                     self._curType = TypeStruct(typeName = defId, doc = self._curDoc)
                     self._curDoc = []
-                    self.model.types[self._curType.typeName] = self._curType
+                    self.types[self._curType.typeName] = self._curType
 
                 # Enum definition
                 elif defType == "enum":
 
                     # Type already defined?
-                    if defId in self._types or defId in self.model.types:
+                    if defId in self._types or defId in self.types:
                         self._error("Redefinition of type '%s'" % (defId))
 
                     # Create the new enum type
                     self._curAction = None
                     self._curType = TypeEnum(typeName = defId, doc = self._curDoc)
                     self._curDoc = []
-                    self.model.types[self._curType.typeName] = self._curType
+                    self.types[self._curType.typeName] = self._curType
 
             # Section?
             elif mSection:

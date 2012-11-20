@@ -87,7 +87,7 @@ struct MyStruct
     bool member3
     [len > 0] string member4
     datetime member5
-    enum member6
+    MyEnum member6
     MyStruct member7
     MyEnum[] member8
     MyStruct{} member9
@@ -113,14 +113,14 @@ action myAction2
         self.assertEqual(len(specParser.errors), 0)
 
         # Validate the HTML
-        html = createIndexHtml("/", specParser.model.actions.itervalues())
+        html = createIndexHtml("/", specParser.actions.itervalues())
         HTMLValidator.validate(html)
         self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
         self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
-        html = createIndexHtml("/", specParser.model.actions.itervalues(), docCssUri = "/mystyle.css")
+        html = createIndexHtml("/", specParser.actions.itervalues(), docCssUri = "/mystyle.css")
         HTMLValidator.validate(html)
         self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
         self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)
@@ -135,7 +135,7 @@ action myAction2
         self.assertEqual(len(specParser.errors), 0)
 
         # Validate the first myAction1's HTML
-        html = createActionHtml("/", specParser.model.actions["myAction1"])
+        html = createActionHtml("/", specParser.actions["myAction1"])
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -148,7 +148,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the myAction2's HTML
-        html = createActionHtml("/", specParser.model.actions["myAction2"])
+        html = createActionHtml("/", specParser.actions["myAction2"])
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction2</h1>' in html)
         self.assertTrue('<h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -161,7 +161,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the first myAction1's HTML (custom CSS)
-        html = createActionHtml("/", specParser.model.actions["myAction1"], docCssUri = "/mystyle.css")
+        html = createActionHtml("/", specParser.actions["myAction1"], docCssUri = "/mystyle.css")
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)

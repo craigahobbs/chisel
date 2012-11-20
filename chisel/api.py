@@ -53,7 +53,7 @@ class Application:
     def addActionCallback(self, actionCallback, actionName = None):
 
         actionName = actionCallback.func_name if actionName is None else actionName
-        if actionName not in self._specParser.model.actions:
+        if actionName not in self._specParser.actions:
             raise Exception("No model defined for action callback '%s'" % (actionName))
         elif actionName in self._actionCallbacks:
             raise Exception("Redefinition of action callback '%s'" % (actionName))
@@ -88,23 +88,19 @@ class Application:
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == specExt:
-                    self._specParser.parse(os.path.join(dirpath, filename))
+                    self._specParser.parse(os.path.join(dirpath, filename), finalize = False)
         if finalize:
             self._specParser.finalize()
 
     # Load a spec file
     def loadSpec(self, specPath, finalize = True):
 
-        self._specParser.parse(specPath)
-        if finalize:
-            self._specParser.finalize()
+        self._specParser.parse(specPath, finalize = finalize)
 
     # Load a spec string
     def loadSpecString(self, spec, fileName = "", finalize = True):
 
-        self._specParser.parseString(spec, fileName = fileName)
-        if finalize:
-            self._specParser.finalize()
+        self._specParser.parseString(spec, fileName = fileName, finalize = finalize)
 
     # Helper to send an HTTP response
     def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
@@ -178,7 +174,7 @@ class Application:
 
             # Validate the request
             try:
-                actionModel = self._specParser.model.actions[actionName]
+                actionModel = self._specParser.actions[actionName]
                 request = actionModel.inputType.validate(request, acceptString = acceptString)
             except ValidationError, e:
                 raise self._ErrorResponseException(self._errorResponse("InvalidInput", str(e), e.member))
@@ -253,7 +249,7 @@ class Application:
 
                 # Generate the doc index HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModels = [actionModel for actionModel in self._specParser.model.actions.itervalues() \
+                actionModels = [actionModel for actionModel in self._specParser.actions.itervalues() \
                                     if actionModel.name in self._actionCallbacks]
                 responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
@@ -270,7 +266,7 @@ class Application:
 
                 # Generate the action doc HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModel = self._specParser.model.actions[actionName]
+                actionModel = self._specParser.actions[actionName]
                 responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
 

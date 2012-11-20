@@ -131,8 +131,7 @@ struct ChiselConfig
         # Create the configuration file model
         configParser = SpecParser()
         configParser.parseString(cls.configSpec)
-        configParser.finalize()
-        configModel = configParser.model.types["ChiselConfig"]
+        configModel = configParser.types["ChiselConfig"]
 
         # Read the config file and strip comments
         with open(configPath, "rb") as fh:
