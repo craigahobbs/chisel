@@ -11,27 +11,6 @@ import time
 import re
 
 
-# Specification class
-class Model:
-
-    def __init__(self):
-
-        self.types = {}
-        self.actions = {}
-
-
-# Action class
-class Action:
-
-    def __init__(self, name, doc = None):
-
-        self.name = name
-        self.inputType = TypeStruct(typeName = name + "_Input")
-        self.outputType = TypeStruct(typeName = name + "_Output")
-        self.errorType = TypeEnum(typeName = name + "_Error")
-        self.doc = [] if doc is None else doc
-
-
 # Python json module "default" function
 def jsonDefault(obj):
 

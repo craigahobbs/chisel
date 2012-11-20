@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from .model import Model, Action, TypeStruct, TypeArray, TypeDict, TypeEnum, \
+from .model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 from .struct import Struct
 
@@ -13,6 +13,27 @@ try:
     from cStringIO import StringIO
 except:
     from StringIO import StringIO
+
+
+# Specification model class
+class Model:
+
+    def __init__(self):
+
+        self.types = {}
+        self.actions = {}
+
+
+# Action class
+class Action:
+
+    def __init__(self, name, doc = None):
+
+        self.name = name
+        self.inputType = TypeStruct(typeName = name + "_Input")
+        self.outputType = TypeStruct(typeName = name + "_Output")
+        self.errorType = TypeEnum(typeName = name + "_Error")
+        self.doc = [] if doc is None else doc
 
 
 # Specification language parser class
