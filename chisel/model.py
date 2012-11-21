@@ -14,9 +14,12 @@ import re
 # Python json module "default" function
 def jsonDefault(obj):
 
+    # Unwrap structs
     if isinstance(obj, Struct):
-        return obj()
-    elif isinstance(obj, datetime):
+        obj = obj()
+
+    # Control serialization of specific types
+    if isinstance(obj, datetime):
         if obj.tzinfo is None:
             dt = datetime(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond, TypeDatetime.TZLocal())
         else:
@@ -45,9 +48,11 @@ class ValidationError(Exception):
     @classmethod
     def memberError(cls, typeInst, value, members):
 
-        # Format the error string
+        # Unwrap structs
         if isinstance(value, Struct):
             value = value()
+
+        # Format the error string
         memberSyntax = cls.memberSyntax(members)
         msg = "Invalid value %r (type '%s')%s, expected type '%s'" % \
             (value, value.__class__.__name__, " for member '%s'" % (memberSyntax) if memberSyntax else "", typeInst.typeName)
@@ -73,9 +78,12 @@ class TypeStruct:
 
     def validate(self, value, acceptString = False, _member = ()):
 
+        # Unwrap structs
+        valueInner = value() if isinstance(value, Struct) else value
+
         # Validate dict value type
-        if not isinstance(value() if isinstance(value, Struct) else value, dict):
-            raise ValidationError.memberError(self, value, _member)
+        if not isinstance(valueInner, dict):
+            raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate members
         memberNames = {}
@@ -85,7 +93,7 @@ class TypeStruct:
             memberNames[member.name] = member
 
             # Is the required member not present?
-            memberValue = (value if isinstance(value, dict) else value()).get(member.name)
+            memberValue = valueInner.get(member.name)
             if memberValue is None:
                 if not member.isOptional:
                     raise ValidationError("Required member '%s' missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
@@ -93,10 +101,10 @@ class TypeStruct:
                 # Validate the member value
                 memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
                 if memberValueNew is not memberValue:
-                    value[member.name] = memberValueNew
+                    valueInner[member.name] = memberValueNew
 
         # Check for invalid members
-        for valueKey in value:
+        for valueKey in valueInner:
             if valueKey not in memberNames:
                 raise ValidationError("Invalid member '%s'" % (ValidationError.memberSyntax((_member + (valueKey,)))))
 
@@ -113,16 +121,19 @@ class TypeArray:
 
     def validate(self, value, acceptString = False, _member = ()):
 
+        # Unwrap structs
+        valueInner = value() if isinstance(value, Struct) else value
+
         # Validate list value type
-        if not isinstance(value() if isinstance(value, Struct) else value, (list, tuple)):
-            raise ValidationError.memberError(self, value, _member)
+        if not isinstance(valueInner, (list, tuple)):
+            raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate the list contents
-        for ix in xrange(0, len(value)):
-            arrayValue = value[ix]
+        for ix in xrange(0, len(valueInner)):
+            arrayValue = valueInner[ix]
             arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (ix,))
             if arrayValueNew is not arrayValue:
-                value[ix] = arrayValueNew
+                valueInner[ix] = arrayValueNew
 
         return value
 
@@ -137,22 +148,25 @@ class TypeDict:
 
     def validate(self, value, acceptString = False, _member = ()):
 
+        # Unwrap structs
+        valueInner = value() if isinstance(value, Struct) else value
+
         # Validate dict value type
-        if not isinstance(value() if isinstance(value, Struct) else value, dict):
-            raise ValidationError.memberError(self, value, _member)
+        if not isinstance(valueInner, dict):
+            raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate the dict key/value pairs
-        for key in value:
+        for key in valueInner:
 
             # Dict keys must be strings
             if not isinstance(key, basestring):
                 raise ValidationError.memberError(TypeString(), key, _member + (key,))
 
             # Validate the value
-            dictValue = value[key]
+            dictValue = valueInner[key]
             dictValueNew = self.typeInst.validate(dictValue, acceptString = acceptString, _member = _member + (key,))
             if dictValueNew is not dictValue:
-                value[key] = dictValueNew
+                valueInner[key] = dictValueNew
 
         return value
 

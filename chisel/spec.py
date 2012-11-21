@@ -29,8 +29,11 @@ class Action:
 
 # Spec parser exception
 class SpecParserError(Exception):
+
     def __init__(self, errors):
+
         Exception.__init__(self, "\n".join(errors))
+        self.errors = errors
 
 
 # Specification language parser class

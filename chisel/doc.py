@@ -278,11 +278,6 @@ ul.chsl-constraint-list {
     font-style:italic;
 }""", isText = True)
 
-# Is user type?
-def _isUserType(typeInst):
-
-    return isinstance(typeInst, TypeStruct) or isinstance(typeInst, TypeEnum)
-
 # User type href helper
 def _userTypeHref(typeInst):
 
@@ -303,7 +298,7 @@ def _addTypeName(parent, typeInst):
         typeExtra = None
 
     # Generate the type string DOM
-    if _isUserType(baseTypeInst):
+    if isinstance(baseTypeInst, TypeStruct) or isinstance(baseTypeInst, TypeEnum):
         parent.addChild("a", isInline = True, href = "#" + _userTypeHref(baseTypeInst)) \
             .addChild(baseTypeInst.typeName, isText = True)
     else:

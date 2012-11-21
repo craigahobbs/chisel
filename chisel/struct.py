@@ -10,7 +10,6 @@ class Struct(object):
     def __init__(self, _wrap_ = None, **members):
 
         if _wrap_ is not None:
-            assert isinstance(_wrap_, (dict, list, tuple))
             object.__setattr__(self, "_container", _wrap_)
         else:
             object.__setattr__(self, "_container", members)
