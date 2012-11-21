@@ -37,10 +37,10 @@ class ValidationError(Exception):
     @classmethod
     def memberSyntax(cls, members):
 
-        if not members:
-            return None
-        else:
+        if members:
             return "".join([((".%s" if isinstance(x, basestring) else "[%d]") % (x)) for x in members]).lstrip(".")
+        else:
+            return None
 
     @classmethod
     def memberError(cls, typeInst, value, members):

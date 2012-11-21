@@ -27,6 +27,12 @@ class Action:
         self.doc = [] if doc is None else doc
 
 
+# Spec parser exception
+class SpecParserError(Exception):
+    def __init__(self, errors):
+        Exception.__init__(self, "\n".join(errors))
+
+
 # Specification language parser class
 class SpecParser:
 
@@ -92,7 +98,7 @@ class SpecParser:
             self.finalize()
 
     # Finalize parsing (must call after calling parse one or more times - can be repeated)
-    def finalize(self, raiseOnError = True):
+    def finalize(self):
 
         # Fixup type refs
         for member in self._typeRefs:
@@ -103,9 +109,9 @@ class SpecParser:
             else:
                 self._error("Unknown member type '%s'" % (typeRef.typeName), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
 
-        # Raise an exception if there are any errors
-        if raiseOnError and self.errors:
-            raise Exception("\n".join(self.errors))
+        # Raise a parser exception if there are any errors
+        if self.errors:
+            raise SpecParserError(self.errors)
 
 
     # Get a line from the current stream

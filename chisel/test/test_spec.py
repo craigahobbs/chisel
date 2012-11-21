@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from chisel import SpecParser
+from chisel import SpecParser, SpecParserError
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
 
@@ -242,7 +242,7 @@ enum MyEnum2
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 struct Foo
     MyBadType a
@@ -270,7 +270,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 struct Foo
     int a
@@ -297,7 +297,7 @@ enum Foo
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 enum Foo
     A
@@ -325,7 +325,7 @@ struct Foo
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 action MyAction
     input
@@ -356,7 +356,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 action MyAction
 
@@ -434,7 +434,7 @@ int cde
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(Exception):
+        with self.assertRaises(SpecParserError):
             parser.parseString("""\
 enum MyEnum
 Value1
@@ -571,7 +571,7 @@ struct MyStruct
 
         def checkFail(errors, spec):
             parser = SpecParser()
-            with self.assertRaises(Exception):
+            with self.assertRaises(SpecParserError):
                 parser.parseString(spec)
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)

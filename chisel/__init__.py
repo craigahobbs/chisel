@@ -8,6 +8,6 @@ __all__ = [ "app", "model", "server", "spec", "struct", "url" ]
 
 from .app import Application, ResourceType
 from .model import ValidationError
-from .spec import SpecParser
+from .spec import SpecParser, SpecParserError
 from .struct import Struct
 from .url import decodeQueryString, encodeQueryString
