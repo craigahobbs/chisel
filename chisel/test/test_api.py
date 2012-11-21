@@ -479,6 +479,12 @@ action myAction
         self.assertTrue("<!doctype html>" in response)
         self.assertTrue(">myAction</h1>" in response)
 
+        # Test doc action request (trailing slash)
+        status, headers, response = self.sendRequest(app, "POST", "/doc/myAction/", None, "", decodeJSON = False)
+        self.assertEqual(status, "405 Method Not Allowed")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Method Not Allowed")
+
         # Test unknown doc action request handling
         status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction", None, "", decodeJSON = False)
         self.assertEqual(status, "404 Not Found")

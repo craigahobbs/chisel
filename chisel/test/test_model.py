@@ -132,6 +132,10 @@ class TestModelValidation(unittest.TestCase):
         self.assertValidationError(m, [1, 2, 3],
                                    "Invalid value [1, 2, 3] (type 'list'), expected type 'struct'")
 
+        # Failure - invalid non-wrapped type
+        self.assertValidationError(m, Struct(a = Struct([1, 2, 3])),
+                                   "Invalid value [1, 2, 3] (type 'list') for member 'a', expected type 'int'")
+
         # Failure - invalid type - struct
         self.assertValidationError(m, Struct(a = [1, 2, 3]).a,
                                    "Invalid value [1, 2, 3] (type 'list'), expected type 'struct'")
