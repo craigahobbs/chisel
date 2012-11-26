@@ -14,7 +14,7 @@ from .model import Struct
 from .spec import SpecParser
 
 
-# Chisel application resource type
+# Application resource type
 class ResourceType:
 
     def __init__(self, typeName, openFn, closeFn):
@@ -24,34 +24,59 @@ class ResourceType:
         self.closeFn = closeFn
 
 
-# The chisel WSGI application
+# Top-level WSGI application class
 class Application:
 
-    def __init__(self, configPath = None, resourceTypes = None):
+    # Environment variables
+    ENV_CONFIG = "chisel.config"
+
+    def __init__(self, resourceTypes = None):
+
+        self._resourceTypes = resourceTypes
+        self._config = None
+        self._api = None
+
+    # WSGI entry point
+    def __call__(self, environ, start_response):
+
+        # Initialize, if necessary
+        self._init(environ)
+
+        # Delegate to API application helper
+        return self._api(environ, start_response)
+
+    def _init(self, environ):
+
+        # Already initialized?
+        if self._api is not None:
+            return
 
         # Load the config file
-        if configPath is None:
-            configPath = os.environ["CHISEL_CONFIG"]
-        config = self.loadConfig(configPath)
-        self._logLevel = self._getLogLevel(config)
+        configPath = environ[self.ENV_CONFIG]
+        configDir = os.path.dirname(configPath)
+        self._config = self.loadConfig(configPath)
 
         # Create the API application helper application
-        self._api = api.Application(isPretty = config.prettyOutput,
+        self._api = api.Application(isPretty = self._config.prettyOutput,
                                     contextCallback = self._contextCallback,
-                                    docCssUri = config.docCssUri)
-        for specPath in config.specPaths:
+                                    docCssUri = self._config.docCssUri)
+        for specPath in self._config.specPaths:
+            if not os.path.isabs(specPath):
+                specPath = os.path.join(configDir, specPath)
             self._api.loadSpecs(specPath)
-        for modulePath in config.modulePaths:
+        for modulePath in self._config.modulePaths:
+            if not os.path.isabs(modulePath):
+                modulePath = os.path.join(configDir, modulePath)
             self._api.loadModules(modulePath)
 
         # Create resource factories
         self._resources = {}
-        if config.resources:
-            for resource in config.resources:
+        if self._config.resources:
+            for resource in self._config.resources:
 
                 # Find the resource type
-                if resourceTypes:
-                    resourceType = [resourceType for resourceType in resourceTypes if resourceType.typeName == resource.type]
+                if self._resourceTypes:
+                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.typeName == resource.type]
                 else:
                     resourceType = []
                 if not resourceType:
@@ -60,19 +85,13 @@ class Application:
                 # Add the resource factory
                 self._resources[resource.name] = self._ResourceFactory(resource.name, resourceType[0], resource.resourceString)
 
-    # WSGI entry point
-    def __call__(self, environ, start_response):
-
-        # Delegate to API application helper
-        return self._api(environ, start_response)
-
     # API application helper context callback
     def _contextCallback(self, environ):
 
         # Create the logger
         logger = logging.getLoggerClass()("")
         logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
-        logger.setLevel(self._logLevel)
+        logger.setLevel(self._getLogLevel(self._config))
 
         # Create the action context
         ctx = Struct()
@@ -102,8 +121,8 @@ struct Resource
     # Resource string (e.g. connection string)
     string resourceString
 
-# The chisel application configuration file
-struct ChiselConfig
+# Application configuration file
+struct ApplicationConfig
 
     # Specification directories (top-level only)
     string[] specPaths
@@ -131,7 +150,7 @@ struct ChiselConfig
         # Create the configuration file model
         configParser = SpecParser()
         configParser.parseString(cls.configSpec)
-        configModel = configParser.types["ChiselConfig"]
+        configModel = configParser.types["ApplicationConfig"]
 
         # Read the config file and strip comments
         with open(configPath, "rb") as fh:
@@ -208,9 +227,10 @@ struct ChiselConfig
             return
 
         # Stand-alone server WSGI entry point
-        application = cls(configPath = opts.configPath, resourceTypes = resourceTypes)
+        application = cls(resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
             wsgiref.util.setup_testing_defaults(environ)
+            environ[self.ENV_CONFIG] = opts.configPath
             return application(environ, start_response)
 
         # Start the stand-alone server

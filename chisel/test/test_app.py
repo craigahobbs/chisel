@@ -14,32 +14,11 @@ import unittest
 # Main WSGI application callable-object tests
 class TestApplication(unittest.TestCase):
 
-    # Setup the test
-    def setUp(self):
-
-        # Change the current working directory
-        self._cwdOrig = os.getcwd()
-        self._rootDir = os.path.dirname(__file__)
-        os.chdir(self._rootDir)
-
-        # Config files
-        self._configDefault = os.path.join(self._rootDir, "test_app_files", "default.json")
-
-    # Tear down the test
-    def tearDown(self):
-
-        # Restore the current working directory
-        os.chdir(self._cwdOrig)
-
     # Test default application functionality
     def test_app_default(self):
 
-        # Verify that unknown resource type exception is raised
-        try:
-            app = Application(configPath = self._configDefault)
-            self.fail()
-        except Exception, e:
-            self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
+        # Config files
+        self._configDefault = os.path.join(os.path.dirname(__file__), "test_app_files", "default.json")
 
         # Test resource type
         def resourceTypeOpen(rs):
@@ -51,6 +30,7 @@ class TestApplication(unittest.TestCase):
 
         # Test WSGI environment
         environ = {
+            Application.ENV_CONFIG: self._configDefault,
             "REQUEST_METHOD": "GET",
             "PATH_INFO": "/myAction",
             "wsgi.errors": StringIO()
@@ -59,6 +39,14 @@ class TestApplication(unittest.TestCase):
             appData["status"].append(status)
             appData["responseHeaders"].append(responseHeaders)
 
+        # Verify that unknown resource type exception is raised
+        try:
+            app = Application()
+            app(environ, startResponse)
+            self.fail()
+        except Exception, e:
+            self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
+
         # Successfully create and call the application
         appData = {
             "open": [],
@@ -66,8 +54,7 @@ class TestApplication(unittest.TestCase):
             "status": [],
             "responseHeaders": []
             }
-        app = Application(configPath = self._configDefault,
-                          resourceTypes = [resourceType])
+        app = Application(resourceTypes = [resourceType])
         app(environ, startResponse)
         self.assertEqual(appData["status"], ["200 OK"])
         self.assertEqual(appData["open"], ["Hello"])
