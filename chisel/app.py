@@ -233,7 +233,7 @@ struct ApplicationConfig
             wsgiref.util.setup_testing_defaults(environ)
             if "SCRIPT_FILENAME" not in environ:
                 environ["SCRIPT_FILENAME"] = os.path.abspath(scriptFilename)
-            environ[cls.ENV_CONFIG] = opts.configPath
+            environ[cls.ENV_CONFIG] = os.path.abspath(opts.configPath)
             return application(environ, start_response)
 
         # Start the stand-alone server
