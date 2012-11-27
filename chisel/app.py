@@ -230,7 +230,7 @@ struct ApplicationConfig
         application = cls(resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
             wsgiref.util.setup_testing_defaults(environ)
-            environ[self.ENV_CONFIG] = opts.configPath
+            environ[cls.ENV_CONFIG] = opts.configPath
             return application(environ, start_response)
 
         # Start the stand-alone server
