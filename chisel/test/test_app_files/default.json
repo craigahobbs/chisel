@@ -1,6 +1,6 @@
 {
-    "specPaths": ["../test_app_files"],
-    "modulePaths": ["../test_app_files"],
+    "specPaths": ["test_app_files"],
+    "modulePaths": ["test_app_files"],
     "resources": [
         {
             "name": "testResource",

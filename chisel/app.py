@@ -53,20 +53,22 @@ class Application:
 
         # Load the config file
         configPath = environ[self.ENV_CONFIG]
-        configDir = os.path.dirname(configPath)
         self._config = self.loadConfig(configPath)
 
         # Create the API application helper application
         self._api = api.Application(isPretty = self._config.prettyOutput,
                                     contextCallback = self._contextCallback,
                                     docCssUri = self._config.docCssUri)
+
+        # Load specs and modules
+        pathBase = os.path.dirname(environ["SCRIPT_FILENAME"])
         for specPath in self._config.specPaths:
             if not os.path.isabs(specPath):
-                specPath = os.path.join(configDir, specPath)
+                specPath = os.path.join(pathBase, specPath)
             self._api.loadSpecs(specPath)
         for modulePath in self._config.modulePaths:
             if not os.path.isabs(modulePath):
-                modulePath = os.path.join(configDir, modulePath)
+                modulePath = os.path.join(pathBase, modulePath)
             self._api.loadModules(modulePath)
 
         # Create resource factories
@@ -203,7 +205,7 @@ struct ApplicationConfig
 
     # Run as stand-alone server
     @classmethod
-    def serve(cls, resourceTypes = None):
+    def serve(cls, application, scriptFilename):
 
         import optparse
         import wsgiref.util
@@ -227,9 +229,10 @@ struct ApplicationConfig
             return
 
         # Stand-alone server WSGI entry point
-        application = cls(resourceTypes = resourceTypes)
         def application_simple_server(environ, start_response):
             wsgiref.util.setup_testing_defaults(environ)
+            if "SCRIPT_FILENAME" not in environ:
+                environ["SCRIPT_FILENAME"] = os.path.abspath(scriptFilename)
             environ[cls.ENV_CONFIG] = opts.configPath
             return application(environ, start_response)
 

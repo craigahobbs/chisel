@@ -17,9 +17,6 @@ class TestApplication(unittest.TestCase):
     # Test default application functionality
     def test_app_default(self):
 
-        # Config files
-        self._configDefault = os.path.join(os.path.dirname(__file__), "test_app_files", "default.json")
-
         # Test resource type
         def resourceTypeOpen(rs):
             appData["open"].append(rs)
@@ -30,7 +27,8 @@ class TestApplication(unittest.TestCase):
 
         # Test WSGI environment
         environ = {
-            Application.ENV_CONFIG: self._configDefault,
+            Application.ENV_CONFIG: os.path.join(os.path.dirname(__file__), "test_app_files", "default.json"),
+            "SCRIPT_FILENAME": os.path.join(__file__),
             "REQUEST_METHOD": "GET",
             "PATH_INFO": "/myAction",
             "wsgi.errors": StringIO()
