@@ -67,6 +67,7 @@ class TestRequest(unittest.TestCase):
         # Make the WSGI call
         responseList = app(environ, start_response)
         assert isinstance(responseList, (list, tuple))
+        assert not [responsePart for responsePart in responseList if not isinstance(responsePart, str)]
         response = "".join(responseList)
         if decodeJSON:
             response = Struct(json.loads(response))

@@ -222,7 +222,7 @@ class Application:
         # Send the response
         if jsonpFunction is not None:
             return self._httpResponse(start_response, actionContext, status, "application/json",
-                                      jsonpFunction, "(", jsonContent, ");")
+                                      str(jsonpFunction), "(", jsonContent, ");")
         else:
             return self._httpResponse(start_response, actionContext, status, "application/json",
                                       jsonContent)
