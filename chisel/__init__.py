@@ -6,6 +6,7 @@
 
 __all__ = [ "app", "model", "server", "spec", "struct", "url" ]
 
+from .api import actionDecorator as action
 from .app import Application, ResourceType
 from .model import ValidationError
 from .spec import SpecParser, SpecParserError

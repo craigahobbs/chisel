@@ -1,4 +1,7 @@
+import chisel
+
 # Action callback used by test_app.py
+@chisel.action
 def myAction(ctx, req):
 
     # Get the test resource
@@ -10,9 +13,3 @@ def myAction(ctx, req):
     ctx.log.warning("A warning")
 
     return {}
-
-# Exposed actions
-def actions():
-    return [
-        myAction
-        ]

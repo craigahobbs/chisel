@@ -18,6 +18,19 @@ import uuid
 from wsgiref.util import application_uri
 
 
+# API callback decorator - used to identify action callback functions during module loading
+class actionDecorator:
+
+    def __init__(self, fn):
+
+        self.fn = fn
+        self.name = fn.func_name
+
+    def __call__(self):
+
+        self.fn()
+
+
 # API server response handler
 class Application:
 
@@ -78,8 +91,10 @@ class Application:
             module = imp.load_source(moduleName, modulePath, fModule)
 
         # Add the module's actions
-        for actionCallback in module.actions():
-            self.addActionCallback(actionCallback)
+        for moduleAttr in dir(module):
+            actionDecoratorInst = getattr(module, moduleAttr)
+            if isinstance(actionDecoratorInst, actionDecorator):
+                self.addActionCallback(actionDecoratorInst.fn, actionName = actionDecoratorInst.name)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
