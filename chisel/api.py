@@ -207,11 +207,7 @@ class Application:
             response = e.response
 
         # Serialize the response as JSON
-        try:
-            jsonContent = self._serializeJSON(response)
-        except Exception, e:
-            response = self._errorResponse("InvalidOutput", str(e))
-            jsonContent = self._serializeJSON(response)
+        jsonContent = self._serializeJSON(response)
 
         # Determine the HTTP status
         if isErrorResponse and jsonpFunction is None:
@@ -222,7 +218,7 @@ class Application:
         # Send the response
         if jsonpFunction is not None:
             return self._httpResponse(start_response, actionContext, status, "application/json",
-                                      str(jsonpFunction), "(", jsonContent, ");")
+                                      jsonpFunction, "(", jsonContent, ");")
         else:
             return self._httpResponse(start_response, actionContext, status, "application/json",
                                       jsonContent)
@@ -289,8 +285,8 @@ class Application:
                         request = decodeQueryString(envQueryString)
 
                         # JSONP?
-                        jsonpFunction = request.get(self._jsonpMemberName)
-                        if jsonpFunction is not None:
+                        if self._jsonpMemberName in request:
+                            jsonpFunction = str(request[self._jsonpMemberName])
                             del request[self._jsonpMemberName]
                     else:
                         request = {}

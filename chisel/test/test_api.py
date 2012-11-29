@@ -42,8 +42,7 @@ class TestLoadModules(unittest.TestCase):
 class TestRequest(unittest.TestCase):
 
     # Request/response helper
-    @staticmethod
-    def sendRequest(app, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):
+    def sendRequest(self, app, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):
 
         # WSGI environment
         environ = {
@@ -66,8 +65,8 @@ class TestRequest(unittest.TestCase):
 
         # Make the WSGI call
         responseList = app(environ, start_response)
-        assert isinstance(responseList, (list, tuple))
-        assert not [responsePart for responsePart in responseList if not isinstance(responsePart, str)]
+        self.assertTrue(isinstance(responseList, (list, tuple)))
+        self.assertFalse([responsePart for responsePart in responseList if not isinstance(responsePart, str)])
         response = "".join(responseList)
         if decodeJSON:
             response = Struct(json.loads(response))
@@ -344,6 +343,16 @@ action myAction
         self.assertEqual(status, "200 OK")
         self.assertTrue('"error":"InvalidInput"' in response)
         self.assertTrue('"member":"nums"' in response)
+
+        # Unicode JSONP function
+        o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
+        request = { "jsonp": "myfunc" + unichr(40960), "nums": "bad" }
+        queryString = encodeQueryString(request)
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidInput")
+        self.assertEqual(response.message, "'ascii' codec can't encode character u'\\ua000' in position 6: ordinal not in range(128)")
 
     def test_api_fail_init(self):
 
