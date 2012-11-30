@@ -127,8 +127,13 @@ class TestStruct(unittest.TestCase):
         s["c"][1] = 20
         self.assertEqual(s["c"][1], 20)
 
-        with self.assertRaises(TypeError):
+        try:
             s["d"][1] = 20
+            self.fail()
+        except TypeError:
+            pass
+        except:
+            self.fail()
 
     # Test "contained" behavior
     def test_struct_contains(self):
@@ -189,8 +194,13 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(len(s.c), 2)
         self.assertEqual(s.c[1], 3)
 
-        with self.assertRaises(TypeError):
+        try:
             s.d[1] = None
+            self.fail()
+        except TypeError:
+            pass
+        except:
+            self.fail()
 
     # Test non-dict attribute get/set
     def test_struct_non_dict_container_attr(self):

@@ -242,7 +242,7 @@ enum MyEnum2
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 struct Foo
     MyBadType a
@@ -253,6 +253,11 @@ action MyAction
     output
         MyBadType b
 """, fileName = "foo")
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 3)
@@ -270,7 +275,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 struct Foo
     int a
@@ -279,6 +284,11 @@ enum Foo
     A
     B
 """)
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -297,7 +307,7 @@ enum Foo
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 enum Foo
     A
@@ -306,6 +316,11 @@ enum Foo
 struct Foo
     int a
 """)
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -325,7 +340,7 @@ struct Foo
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 action MyAction
     input
@@ -335,6 +350,11 @@ action MyAction
     input
         string b
 """)
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -356,7 +376,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 action MyAction
 
@@ -371,6 +391,11 @@ input
 output
 errors
 """)
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 6)
@@ -434,7 +459,7 @@ int cde
 
         # Parse spec string
         parser = SpecParser()
-        with self.assertRaises(SpecParserError):
+        try:
             parser.parseString("""\
 enum MyEnum
 Value1
@@ -447,6 +472,11 @@ action MyAction
     input
         MyError
 """)
+            self.fail()
+        except SpecParserError:
+            pass
+        except:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 3)
@@ -571,8 +601,13 @@ struct MyStruct
 
         def checkFail(errors, spec):
             parser = SpecParser()
-            with self.assertRaises(SpecParserError):
+            try:
                 parser.parseString(spec)
+                self.fail()
+            except SpecParserError:
+                pass
+            except:
+                self.fail()
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)
 

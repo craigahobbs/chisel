@@ -34,8 +34,11 @@ class TestLoadModules(unittest.TestCase):
     def test_api_loadModules_badModulePath(self):
 
         app = Application
-        with self.assertRaises(Exception):
+        try:
             app.loadModules("_DIRECTORY_DOES_NOT_EXIST_")
+            self.fail()
+        except:
+            pass
 
 
 # Server application object tests

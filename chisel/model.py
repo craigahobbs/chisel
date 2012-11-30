@@ -54,7 +54,11 @@ class ValidationError(Exception):
 
         # Format the error string
         memberSyntax = cls.memberSyntax(members)
-        msg = "Invalid value %r (type '%s')%s, expected type '%s'" % \
+        if isinstance(value, float):
+            msgFormat = "Invalid value %g (type '%s')%s, expected type '%s'"
+        else:
+            msgFormat = "Invalid value %r (type '%s')%s, expected type '%s'"
+        msg = msgFormat % \
             (value, value.__class__.__name__, " for member '%s'" % (memberSyntax) if memberSyntax else "", typeInst.typeName)
 
         return ValidationError(msg, member = memberSyntax)

@@ -157,7 +157,8 @@ struct ApplicationConfig
         # Read the config file and strip comments
         with open(configPath, "rb") as fh:
             config = fh.read()
-        config = re.sub("^\s*#.*$", "", config, flags = re.MULTILINE)
+        reComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
+        config = reComment.sub("", config)
 
         # Load the config file
         return configModel.validate(Struct(json.loads(config)))
