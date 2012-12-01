@@ -26,9 +26,9 @@ class actionDecorator:
         self.fn = fn
         self.name = fn.func_name
 
-    def __call__(self):
+    def __call__(self, *args):
 
-        self.fn()
+        self.fn(*args)
 
 
 # API server response handler
