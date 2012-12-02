@@ -6,11 +6,12 @@
 
 from chisel import Struct, ValidationError
 from chisel.model import jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
+    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
 from datetime import datetime, timedelta, tzinfo
 import re
 import unittest
+from uuid import UUID
 
 
 # jsonDefault tests
@@ -29,6 +30,10 @@ class TestJsonDefault(unittest.TestCase):
         # Test formatting of datetime objects without tzinfo
         o = datetime(2012, 11, 16)
         self.assertTrue(re.search("^2012-11-16T00:00:00[+-]\\d\\d:\\d\\d$", jsonDefault(o)))
+
+        # Test uuid object
+        o = UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        self.assertEqual(jsonDefault(o), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
 
         # Test unknown class instance
         class MyType:
@@ -67,6 +72,7 @@ class TestModelValidation(unittest.TestCase):
         m.members.append(TypeStruct.Member("h", me, isOptional = True))
         m.members.append(TypeStruct.Member("i", TypeDatetime(), isOptional = True))
         m.members.append(TypeStruct.Member("j", TypeArray(m), isOptional = True)) # Recursive struct...
+        m.members.append(TypeStruct.Member("k", TypeUuid(), isOptional = True))
 
         # Success
         s = m.validate({ "a": 5,
@@ -75,7 +81,8 @@ class TestModelValidation(unittest.TestCase):
                          "f": [ "Foo", "Bar" ],
                          "g": Struct(Foo = 5L),
                          "h": "Foo",
-                         "i": "2012-09-06T06:49:00-07:00"
+                         "i": "2012-09-06T06:49:00-07:00",
+                         "k": "8daeb11e-3c83-11e2-a7aa-20c9d0427a89"
                          })
         self.assertTrue(isinstance(s, dict))
         self.assertTrue(isinstance(s["a"], int))
@@ -104,6 +111,8 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(s["i"].microsecond, 0)
         self.assertEqual(s["i"].tzinfo.utcoffset(s["i"]), timedelta(0))
         self.assertEqual(s["i"].tzinfo.dst(s["i"]), timedelta(0))
+        self.assertTrue(isinstance(s["k"], UUID))
+        self.assertEqual(str(s["k"]), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
 
         # Success - accept strings
         s = m.validate(Struct(a = "5",
@@ -807,3 +816,46 @@ class TestModelValidation(unittest.TestCase):
         # Failure - invalid seconds
         self.assertValidationError(m, "2012-12-30T23:59:60Z",
                                    "Invalid value '2012-12-30T23:59:60Z' (type 'str'), expected type 'datetime'")
+
+    # uuid type
+    def test_model_uuid(self):
+
+        # Uuid model
+        m = TypeUuid()
+
+        # Success - UUID object
+        o = UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        v = m.validate(o)
+        self.assertTrue(v is o)
+
+        # Success - lowercase
+        v = m.validate("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
+
+        # Success - uppercase
+        v = m.validate("8DAEB11E-3C83-11E2-A7AA-20C9D0427A89")
+        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
+
+        # Success - braces
+        v = m.validate("{8daeb11e-3c83-11e2-a7aa-20c9d0427a89}")
+        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
+
+        # Success - urn
+        v = m.validate("urn:uuid:8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
+
+        # Failure - int
+        self.assertValidationError(m, 0,
+                                   "Invalid value 0 (type 'int'), expected type 'uuid'")
+
+        # Failure - bool
+        self.assertValidationError(m, True,
+                                   "Invalid value True (type 'bool'), expected type 'uuid'")
+
+        # Failure - None
+        self.assertValidationError(m, None,
+                                   "Invalid value None (type 'NoneType'), expected type 'uuid'")
+
+        # Failure - invalid string
+        self.assertValidationError(m, "asdfasdf",
+                                   "Invalid value 'asdfasdf' (type 'str'), expected type 'uuid'")

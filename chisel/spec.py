@@ -5,7 +5,7 @@
 #
 
 from .model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
+    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 from .struct import Struct
 
 import re
@@ -61,7 +61,8 @@ class SpecParser:
         "int": TypeInt,
         "float": TypeFloat,
         "bool": TypeBool,
-        "datetime": TypeDatetime
+        "datetime": TypeDatetime,
+        "uuid": TypeUuid
         }
 
     def __init__(self):

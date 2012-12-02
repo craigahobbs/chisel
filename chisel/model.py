@@ -9,6 +9,7 @@ from .struct import Struct
 from datetime import datetime, timedelta, tzinfo
 import time
 import re
+from uuid import UUID
 
 
 # Python json module "default" function
@@ -25,6 +26,8 @@ def jsonDefault(obj):
         else:
             dt = obj
         return dt.isoformat()
+    elif isinstance(obj, UUID):
+        return str(obj)
     else:
         return obj
 
@@ -336,7 +339,7 @@ class TypeDatetime:
             return value
         elif isinstance(value, basestring):
             try:
-                return TypeDatetime.parseISO8601Datetime(value)
+                return self.parseISO8601Datetime(value)
             except ValueError:
                 raise ValidationError.memberError(self, value, _member)
         else:
@@ -417,3 +420,23 @@ class TypeDatetime:
 
         return (datetime(year, month, day, hour, minute, sec, microsec, cls.TZUTC()) -
                 timedelta(hours = offhour, minutes = offmin))
+
+
+# Uuid type
+class TypeUuid:
+
+    def __init__(self, typeName = "uuid"):
+
+        self.typeName = typeName
+
+    def validate(self, value, acceptString = False, _member = ()):
+
+        if isinstance(value, UUID):
+            return value
+        elif isinstance(value, basestring):
+            try:
+                return UUID(value)
+            except ValueError:
+                raise ValidationError.memberError(self, value, _member)
+        else:
+            raise ValidationError.memberError(self, value, _member)

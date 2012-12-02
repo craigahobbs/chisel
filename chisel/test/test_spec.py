@@ -6,7 +6,7 @@
 
 from chisel import SpecParser, SpecParserError
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime
+    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
 import unittest
 
@@ -82,6 +82,7 @@ struct MyStruct2
     [optional] MyStruct[] f
     [optional] float{} g
     [optional] datetime h
+    [optional] uuid i
 
 # The action
 action MyAction
@@ -132,7 +133,8 @@ action MyAction4
                                  ("e", TypeArray, False),
                                  ("f", TypeArray, True),
                                  ("g", TypeDict, True),
-                                 ("h", TypeDatetime, True)))
+                                 ("h", TypeDatetime, True),
+                                 ("i", TypeUuid, True)))
         self.assertTrue(isinstance(parser.types["MyStruct2"].members[4].typeInst.typeInst, TypeInt))
         self.assertTrue(isinstance(parser.types["MyStruct2"].members[5].typeInst.typeInst, TypeStruct))
         self.assertEqual(parser.types["MyStruct2"].members[5].typeInst.typeInst.typeName, "MyStruct")
