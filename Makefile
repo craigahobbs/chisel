@@ -7,14 +7,18 @@
 
 PACKAGE_NAME = chisel
 
+# Local directories
+ENV = env
+COVER = cover
+
 # Python version support
 PYTHON_VERSIONS = \
 	2.6 \
 	2.7
 
-# Local directories
-ENV = env
-COVER = cover
+# Non-standard python packages
+PYTHON_COVERAGE = coverage
+PYTHON_NOSE = nose
 
 # Run unit tests
 .PHONY: test
@@ -37,7 +41,7 @@ define PYTHON_ENV_RULE
 env/$(1):
 	virtualenv -p python$$(notdir $$@) $$@
 	if [ "$$$$(expr $(1) \< 2.7)" = "1" ]; then \
-		. $$@/bin/activate; pip install nose; \
+		. $$@/bin/activate; pip install $(PYTHON_NOSE); \
 	fi
 endef
 $(foreach V, $(PYTHON_VERSIONS), $(eval $(call PYTHON_ENV_RULE,$(V))))
@@ -55,7 +59,7 @@ cover: $(ENV)/$(COVER)
 # Coverage environment rule
 $(ENV)/$(COVER):
 	virtualenv $@
-	. $@/bin/activate; pip install nose coverage
+	. $@/bin/activate; pip install $(PYTHON_NOSE) $(PYTHON_COVERAGE)
 
 # Clean
 .PHONY: clean
