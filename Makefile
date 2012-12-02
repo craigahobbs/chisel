@@ -61,7 +61,6 @@ $(ENV)/$(COVER):
 .PHONY: clean
 clean:
 	-rm -rf .coverage $(COVER)
-	python setup.py clean
 	-rm -rf dist
 	-rm -rf *.egg-info
 	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
