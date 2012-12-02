@@ -1,4 +1,7 @@
 *~
 *.pyc
+env/*
+cover/*
+.coverage
 dist/*
 *.egg-info
