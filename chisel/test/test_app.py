@@ -46,16 +46,31 @@ class TestApplication(unittest.TestCase):
             self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
 
         # Successfully create and call the application
+        app = Application(resourceTypes = [resourceType])
         appData = {
             "open": [],
             "close": [],
             "status": [],
             "responseHeaders": []
             }
-        app = Application(resourceTypes = [resourceType])
         app(environ, startResponse)
         self.assertEqual(appData["status"], ["200 OK"])
         self.assertEqual(appData["open"], ["Hello"])
         self.assertEqual(appData["close"], [1])
         self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
         self.assertTrue("A warning" in environ["wsgi.errors"].getvalue())
+
+        # Call the application again (skips reloading)
+        appData = {
+            "open": [],
+            "close": [],
+            "status": [],
+            "responseHeaders": []
+            }
+        app(environ, startResponse)
+        self.assertEqual(appData["status"], ["200 OK"])
+        self.assertEqual(appData["open"], ["Hello"])
+        self.assertEqual(appData["close"], [1])
+        self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
+        self.assertTrue("A warning" in environ["wsgi.errors"].getvalue())
+

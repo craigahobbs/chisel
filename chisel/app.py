@@ -48,7 +48,7 @@ class Application:
     def _init(self, environ):
 
         # Already initialized?
-        if self._api is not None:
+        if self._api is not None and not self._config.alwaysReload:
             return
 
         # Load the config file
@@ -132,17 +132,20 @@ struct ApplicationConfig
     # Module directories (top-level only)
     string[] modulePaths
 
-    # Pretty JSON output (default is False)
-    [optional] bool prettyOutput
+    # Resources
+    [optional] Resource[] resources
 
     # Logger output level (default is Warning)
     [optional] LogLevel logLevel
 
+    # Pretty JSON output (default is False)
+    [optional] bool prettyOutput
+
+    # Re-load specs and scripts on every requests (development mode)
+    [optional] bool alwaysReload
+
     # External CSS for generated documenation HTML
     [optional] string docCssUri
-
-    # Resources
-    [optional] Resource[] resources
 """
 
     # Load the configuration file
