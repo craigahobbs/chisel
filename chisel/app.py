@@ -56,17 +56,32 @@ class ResourceContext:
         self._resourceType.closeFn(self._resource)
 
 
+# Cache factory - create a cache context manager
+class CacheFactory:
+
+    def __init__(self):
+
+        self._cache = {}
+        self._cacheLock = threading.Lock()
+
+    def __call__(self, name):
+
+        # Create the sub-cache struct, if necessary
+        if name not in self._cache:
+            with self._cacheLock:
+                if name not in self._cache: # check again within lock
+                    self._cache[name] = CacheContext()
+
+        return self._cache[name]
+
+
 # Cache context manager
-class Cache:
+class CacheContext:
 
     def __init__(self):
 
         self._cache = Struct()
         self._cacheLock = threading.Lock()
-
-    def __call__(self):
-
-        return self
 
     def __enter__(self):
 
@@ -90,7 +105,7 @@ class Application:
         self._config = None
         self._api = None
         self._initLock = threading.Lock()
-        self._cache = Cache()
+        self._cache = CacheFactory()
 
     # WSGI entry point
     def __call__(self, environ, start_response):

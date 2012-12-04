@@ -53,7 +53,8 @@ class TestApplication(unittest.TestCase):
             "status": [],
             "responseHeaders": []
             }
-        app(environ, startResponse)
+        responseParts = app(environ, startResponse)
+        self.assertEqual(responseParts, ("{}",))
         self.assertEqual(appData["status"], ["200 OK"])
         self.assertEqual(appData["open"], ["Hello"])
         self.assertEqual(appData["close"], [1])
@@ -67,7 +68,8 @@ class TestApplication(unittest.TestCase):
             "status": [],
             "responseHeaders": []
             }
-        app(environ, startResponse)
+        responseParts = app(environ, startResponse)
+        self.assertEqual(responseParts, ("{}",))
         self.assertEqual(appData["status"], ["200 OK"])
         self.assertEqual(appData["open"], ["Hello"])
         self.assertEqual(appData["close"], [1])
