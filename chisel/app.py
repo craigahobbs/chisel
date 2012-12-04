@@ -35,6 +35,7 @@ class Application:
         self._resourceTypes = resourceTypes
         self._config = None
         self._api = None
+        self._cache = Struct()
 
     # WSGI entry point
     def __call__(self, environ, start_response):
@@ -100,6 +101,7 @@ class Application:
         ctx.resources = self._resources
         ctx.environ = environ
         ctx.log = logger
+        ctx.cache = self._cache
         return ctx
 
     # Configuration file specification
