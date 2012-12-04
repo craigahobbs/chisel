@@ -9,12 +9,14 @@ def myAction(ctx, req):
         pass
 
     # Update the cache
-    if "myAction" not in ctx.cache:
-        ctx.cache.myAction = chisel.Struct(count = 0)
-    ctx.cache.myAction.count += 1
+    with ctx.cache() as cache:
+        if "myAction" not in cache:
+            cache.myAction = chisel.Struct(count = 0)
+        cache.myAction.count += 1
+        count = cache.myAction.count
 
     # Log info and a warning
     ctx.log.info("Some info")
-    ctx.log.warning("A warning %d" % (ctx.cache.myAction.count))
+    ctx.log.warning("A warning %d" % (count))
 
     return {}

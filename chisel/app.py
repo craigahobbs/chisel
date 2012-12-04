@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import threading
 
 import api
 from .model import Struct
@@ -24,6 +25,59 @@ class ResourceType:
         self.closeFn = closeFn
 
 
+# Resource factory - create a resource context manager
+class ResourceFactory:
+
+    def __init__(self, name, resourceType, resourceString):
+
+        self._name = name
+        self._resourceType = resourceType
+        self._resourceString = resourceString
+
+    def __call__(self):
+
+        return ResourceContext(self._resourceType.openFn(self._resourceString), self._resourceType)
+
+
+# Resource context manager
+class ResourceContext:
+
+    def __init__(self, resource, resourceType):
+
+        self._resource = resource
+        self._resourceType = resourceType
+
+    def __enter__(self):
+
+        return self._resource
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        self._resourceType.closeFn(self._resource)
+
+
+# Cache context manager
+class Cache:
+
+    def __init__(self):
+
+        self._cache = Struct()
+        self._cacheLock = threading.Lock()
+
+    def __call__(self):
+
+        return self
+
+    def __enter__(self):
+
+        self._cacheLock.acquire()
+        return self._cache
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        self._cacheLock.release()
+
+
 # Top-level WSGI application class
 class Application:
 
@@ -35,13 +89,15 @@ class Application:
         self._resourceTypes = resourceTypes
         self._config = None
         self._api = None
-        self._cache = Struct()
+        self._initLock = threading.Lock()
+        self._cache = Cache()
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
         # Initialize, if necessary
-        self._init(environ)
+        with self._initLock:
+            self._init(environ)
 
         # Delegate to API application helper
         return self._api(environ, start_response)
@@ -86,7 +142,7 @@ class Application:
                     raise Exception("Unknown resource type '%s'" % (resource.type))
 
                 # Add the resource factory
-                self._resources[resource.name] = self._ResourceFactory(resource.name, resourceType[0], resource.resourceString)
+                self._resources[resource.name] = ResourceFactory(resource.name, resourceType[0], resource.resourceString)
 
     # API application helper context callback
     def _contextCallback(self, environ):
@@ -179,35 +235,6 @@ struct ApplicationConfig
             return logging.ERROR
         else:
             return logging.WARNING
-
-    # Resource factory - create a resource context manager
-    class _ResourceFactory:
-
-        def __init__(self, name, resourceType, resourceString):
-
-            self._name = name
-            self._resourceType = resourceType
-            self._resourceString = resourceString
-
-        def __call__(self):
-
-            return self.ResourceContext(self._resourceType.openFn(self._resourceString), self._resourceType)
-
-        # Resource context manager
-        class ResourceContext:
-
-            def __init__(self, resource, resourceType):
-
-                self._resource = resource
-                self._resourceType = resourceType
-
-            def __enter__(self):
-
-                return self._resource
-
-            def __exit__(self, exc_type, exc_value, traceback):
-
-                self._resourceType.closeFn(self._resource)
 
     # Run as stand-alone server
     @classmethod
