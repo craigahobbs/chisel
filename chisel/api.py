@@ -13,8 +13,8 @@ from .url import decodeQueryString
 import imp
 import json
 import os
+import sys
 import urllib
-import uuid
 from wsgiref.util import application_uri
 
 
@@ -76,25 +76,40 @@ class Application:
     # Recursively load all modules files in a directory
     def loadModules(self, modulePath, moduleExt = ".py"):
 
+        # Add the module path to the system load path
+        if modulePath not in sys.path:
+            sys.path.append(modulePath)
+
+        # Recursively find module names
+        modulePathParts = modulePath.split(os.sep)
         for dirpath, dirnames, filenames in os.walk(modulePath):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == moduleExt:
-                    self.loadModule(os.path.join(dirpath, filename))
 
-    # Load a module file
-    def loadModule(self, modulePath):
+                    # Determine the relative module path
+                    moduleFile = os.path.join(dirpath, filename)
+                    moduleFileParts = moduleFile.split(os.sep)
+                    moduleNames = moduleFileParts[len(modulePathParts):-1] + \
+                        list(os.path.splitext(moduleFileParts[-1])[:1])
 
-        # Load the module file
-        moduleName = str(uuid.uuid1())
-        with open(modulePath, "rb") as fModule:
-            module = imp.load_source(moduleName, modulePath, fModule)
+                    # Don't load __init__
+                    if moduleNames[-1] == "__init__":
+                        continue
 
-        # Add the module's actions
-        for moduleAttr in dir(module):
-            actionDecoratorInst = getattr(module, moduleAttr)
-            if isinstance(actionDecoratorInst, actionDecorator):
-                self.addActionCallback(actionDecoratorInst.fn, actionName = actionDecoratorInst.name)
+                    # Load each module down the relative module path
+                    curPath = modulePath
+                    module = None
+                    for ixModuleName, moduleName in enumerate(moduleNames):
+                        moduleArgs = imp.find_module(moduleName, [curPath])
+                        module = imp.load_module(".".join(moduleNames[0:ixModuleName + 1]), *moduleArgs)
+                        curPath = os.path.join(curPath, moduleName)
+
+                    # Add the module's actions
+                    for moduleAttr in dir(module):
+                        actionDecoratorInst = getattr(module, moduleAttr)
+                        if isinstance(actionDecoratorInst, actionDecorator):
+                            self.addActionCallback(actionDecoratorInst.fn, actionName = actionDecoratorInst.name)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
@@ -106,11 +121,6 @@ class Application:
                     self._specParser.parse(os.path.join(dirpath, filename), finalize = False)
         if finalize:
             self._specParser.finalize()
-
-    # Load a spec file
-    def loadSpec(self, specPath, finalize = True):
-
-        self._specParser.parse(specPath, finalize = finalize)
 
     # Load a spec string
     def loadSpecString(self, spec, fileName = "", finalize = True):
