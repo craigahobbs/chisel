@@ -66,13 +66,13 @@ class CacheFactory:
 
     def __call__(self, name):
 
-        # Create the sub-cache struct, if necessary
-        if name not in self._cache:
-            with self._cacheLock:
-                if name not in self._cache: # check again within lock
-                    self._cache[name] = CacheContext()
-
-        return self._cache[name]
+        # Get the cache - create if necessary
+        with self._cacheLock:
+            cache = self._cache.get(name)
+            if cache is None:
+                cache = CacheContext()
+                self._cache[name] = cache
+        return cache
 
 
 # Cache context manager
