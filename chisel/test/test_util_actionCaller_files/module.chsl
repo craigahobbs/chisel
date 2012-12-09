@@ -1,0 +1,5 @@
+action myAction
+    input
+        int value
+    output
+        int result

@@ -28,32 +28,36 @@ class ResourceType:
 # Resource factory - create a resource context manager
 class ResourceFactory:
 
-    def __init__(self, name, resourceType, resourceString):
+    def __init__(self, name, resourceString, openFn, closeFn):
 
         self._name = name
-        self._resourceType = resourceType
         self._resourceString = resourceString
+        self._openFn = openFn
+        self._closeFn = closeFn
 
     def __call__(self):
 
-        return ResourceContext(self._resourceType.openFn(self._resourceString), self._resourceType)
+        return ResourceContext(self._name, self._resourceString, self._openFn, self._closeFn)
 
 
 # Resource context manager
 class ResourceContext:
 
-    def __init__(self, resource, resourceType):
+    def __init__(self, resourceName, resourceString, openFn, closeFn):
 
-        self._resource = resource
-        self._resourceType = resourceType
+        self._resourceName = resourceName
+        self._resourceString = resourceString
+        self._openFn = openFn
+        self._closeFn = closeFn
 
     def __enter__(self):
 
+        self._resource = self._openFn(self._resourceName, self._resourceString)
         return self._resource
 
     def __exit__(self, exc_type, exc_value, traceback):
 
-        self._resourceType.closeFn(self._resource)
+        self._closeFn(self._resource)
 
 
 # Cache factory - create a cache context manager
@@ -99,9 +103,11 @@ class Application:
     # Environment variables
     ENV_CONFIG = "chisel.config"
 
-    def __init__(self, resourceTypes = None):
+    def __init__(self, resourceTypes = None, configString = None, configPath = None):
 
         self._resourceTypes = resourceTypes
+        self._configString = configString
+        self._configPath = configPath
         self._config = None
         self._api = None
         self._initLock = threading.Lock()
@@ -111,53 +117,58 @@ class Application:
     def __call__(self, environ, start_response):
 
         # Initialize, if necessary
-        with self._initLock:
-            self._init(environ)
+        self._init(environ)
 
         # Delegate to API application helper
         return self._api(environ, start_response)
 
     def _init(self, environ):
 
-        # Already initialized?
-        if self._api is not None and not self._config.alwaysReload:
-            return
+        with self._initLock:
 
-        # Load the config file
-        configPath = environ[self.ENV_CONFIG]
-        self._config = self.loadConfig(configPath)
+            # Already initialized?
+            if self._api is not None and not self._config.alwaysReload:
+                return
 
-        # Create the API application helper application
-        self._api = api.Application(isPretty = self._config.prettyOutput,
-                                    contextCallback = self._contextCallback,
-                                    docCssUri = self._config.docCssUri)
+            # Load the config file
+            if self._configString:
+                self._config = self.loadConfigString(self._configString)
+            else:
+                configPath = self._configPath if self._configPath else environ[self.ENV_CONFIG]
+                self._config = self.loadConfig(configPath)
 
-        # Load specs and modules
-        pathBase = os.path.dirname(environ["SCRIPT_FILENAME"])
-        for specPath in self._config.specPaths:
-            if not os.path.isabs(specPath):
-                specPath = os.path.join(pathBase, specPath)
-            self._api.loadSpecs(specPath)
-        for modulePath in self._config.modulePaths:
-            if not os.path.isabs(modulePath):
-                modulePath = os.path.join(pathBase, modulePath)
-            self._api.loadModules(modulePath)
+            # Create the API application helper application
+            self._api = api.Application(isPretty = self._config.prettyOutput,
+                                        contextCallback = self._contextCallback,
+                                        docCssUri = self._config.docCssUri)
 
-        # Create resource factories
-        self._resources = {}
-        if self._config.resources:
-            for resource in self._config.resources:
+            # Load specs and modules
+            pathBase = os.path.dirname(environ["SCRIPT_FILENAME"])
+            for specPath in self._config.specPaths:
+                if not os.path.isabs(specPath):
+                    specPath = os.path.join(pathBase, specPath)
+                self._api.loadSpecs(specPath)
+            for modulePath in self._config.modulePaths:
+                if not os.path.isabs(modulePath):
+                    modulePath = os.path.join(pathBase, modulePath)
+                self._api.loadModules(modulePath)
 
-                # Find the resource type
-                if self._resourceTypes:
-                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.typeName == resource.type]
-                else:
-                    resourceType = []
-                if not resourceType:
-                    raise Exception("Unknown resource type '%s'" % (resource.type))
+            # Create resource factories
+            self._resources = {}
+            if self._config.resources:
+                for resource in self._config.resources:
 
-                # Add the resource factory
-                self._resources[resource.name] = ResourceFactory(resource.name, resourceType[0], resource.resourceString)
+                    # Find the resource type
+                    if self._resourceTypes:
+                        resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.typeName == resource.type]
+                    else:
+                        resourceType = []
+                    if not resourceType:
+                        raise Exception("Unknown resource type '%s'" % (resource.type))
+
+                    # Add the resource factory
+                    self._resources[resource.name] = ResourceFactory(resource.name, resource.resourceString,
+                                                                     resourceType[0].openFn, resourceType[0].closeFn)
 
     # API application helper context callback
     def _contextCallback(self, environ):
@@ -220,24 +231,27 @@ struct ApplicationConfig
     # External CSS for generated documenation HTML
     [optional] string docCssUri
 """
+    _configParser = SpecParser()
+    _configParser.parseString(configSpec)
+    _configModel = _configParser.types["ApplicationConfig"]
+    _reComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
 
     # Load the configuration file
     @classmethod
     def loadConfig(cls, configPath):
 
-        # Create the configuration file model
-        configParser = SpecParser()
-        configParser.parseString(cls.configSpec)
-        configModel = configParser.types["ApplicationConfig"]
-
-        # Read the config file and strip comments
         with open(configPath, "rb") as fh:
-            config = fh.read()
-        reComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
-        config = reComment.sub("", config)
+            return cls.loadConfigString(fh.read())
 
-        # Load the config file
-        return configModel.validate(Struct(json.loads(config)))
+    # Load the configuration string
+    @classmethod
+    def loadConfigString(cls, configString):
+
+        # Strip comments
+        configString = cls._reComment.sub("", configString)
+
+        # Parse and validate the config string
+        return Struct(cls._configModel.validate(json.loads(configString)))
 
     # Get the Python logging level
     def _getLogLevel(self, configSpec):

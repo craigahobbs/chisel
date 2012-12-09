@@ -18,11 +18,11 @@ class TestApplication(unittest.TestCase):
     def test_app_default(self):
 
         # Test resource type
-        def resourceTypeOpen(rs):
-            appData["open"].append(rs)
+        def resourceTypeOpen(resourceName, resourceString):
+            appData["open"].append(resourceString)
             return len(appData["open"])
-        def resourceTypeClose(r):
-            appData["close"].append(r)
+        def resourceTypeClose(resource):
+            appData["close"].append(resource)
         resourceType = ResourceType("test_app_resource", resourceTypeOpen, resourceTypeClose)
 
         # Test WSGI environment
