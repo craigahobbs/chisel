@@ -18,46 +18,63 @@ from .spec import SpecParser
 # Application resource type
 class ResourceType:
 
-    def __init__(self, typeName, openFn, closeFn):
+    def __init__(self, resourceTypeName, resourceOpen, resourceClose):
 
-        self.typeName = typeName
-        self.openFn = openFn
-        self.closeFn = closeFn
+        self._resourceTypeName = resourceTypeName
+        self._resourceOpen = resourceOpen
+        self._resourceClose = resourceClose
+
+    @property
+    def name(self):
+
+        return self._resourceTypeName
+
+    def open(self, resourceString):
+
+        return self._resourceOpen(resourceString)
+
+    def close(self, resource):
+
+        return self._resourceClose(resource)
 
 
 # Resource factory - create a resource context manager
 class ResourceFactory:
 
-    def __init__(self, name, resourceString, openFn, closeFn):
+    def __init__(self, name, resourceString, resourceType):
 
         self._name = name
         self._resourceString = resourceString
-        self._openFn = openFn
-        self._closeFn = closeFn
+        self._resourceType = resourceType
 
     def __call__(self):
 
-        return ResourceContext(self._name, self._resourceString, self._openFn, self._closeFn)
+        return ResourceContext(self)
+
+    def _open(self):
+
+        return self._resourceType.open(self._resourceString)
+
+    def _close(self, resource):
+
+        return self._resourceType.close(resource)
 
 
 # Resource context manager
 class ResourceContext:
 
-    def __init__(self, resourceName, resourceString, openFn, closeFn):
+    def __init__(self, resourceFactory):
 
-        self._resourceName = resourceName
-        self._resourceString = resourceString
-        self._openFn = openFn
-        self._closeFn = closeFn
+        self._resourceFactory = resourceFactory
 
     def __enter__(self):
 
-        self._resource = self._openFn(self._resourceName, self._resourceString)
+        self._resource = self._resourceFactory._open()
         return self._resource
 
     def __exit__(self, exc_type, exc_value, traceback):
 
-        self._closeFn(self._resource)
+        self._resourceFactory._close(self._resource)
 
 
 # Cache factory - create a cache context manager
@@ -160,15 +177,15 @@ class Application:
 
                     # Find the resource type
                     if self._resourceTypes:
-                        resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.typeName == resource.type]
+                        resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
                     else:
                         resourceType = []
                     if not resourceType:
                         raise Exception("Unknown resource type '%s'" % (resource.type))
 
                     # Add the resource factory
-                    self._resources[resource.name] = ResourceFactory(resource.name, resource.resourceString,
-                                                                     resourceType[0].openFn, resourceType[0].closeFn)
+                    self._resources[resource.name] = \
+                        ResourceFactory(resource.name, resource.resourceString, resourceType[0])
 
     # API application helper context callback
     def _contextCallback(self, environ):

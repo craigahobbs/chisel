@@ -18,7 +18,7 @@ class TestApplication(unittest.TestCase):
     def test_app_default(self):
 
         # Test resource type
-        def resourceTypeOpen(resourceName, resourceString):
+        def resourceTypeOpen(resourceString):
             appData["open"].append(resourceString)
             return len(appData["open"])
         def resourceTypeClose(resource):

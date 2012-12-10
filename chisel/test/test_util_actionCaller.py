@@ -11,7 +11,7 @@ import unittest
 
 
 # Test action caller functionality
-class TestLoadModules(unittest.TestCase):
+class TestActionCaller(unittest.TestCase):
 
     # Test basic action call
     def test_util_actionCaller(self):
@@ -19,7 +19,7 @@ class TestLoadModules(unittest.TestCase):
         # Create the action caller
         resourceTypes = [
             ResourceType("mytype",
-                         lambda resourceName, resourceString: 9,
+                         lambda resourceString: 9,
                          lambda resource: None)
             ]
         configString = """\
