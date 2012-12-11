@@ -120,8 +120,9 @@ class Application:
     # Environment variables
     ENV_CONFIG = "chisel.config"
 
-    def __init__(self, resourceTypes = None, configString = None, configPath = None):
+    def __init__(self, wrapApplication = None, resourceTypes = None, configString = None, configPath = None):
 
+        self._wrapApplication = wrapApplication
         self._resourceTypes = resourceTypes
         self._configString = configString
         self._configPath = configPath
@@ -155,7 +156,8 @@ class Application:
                 self._config = self.loadConfig(configPath)
 
             # Create the API application helper application
-            self._api = api.Application(isPretty = self._config.prettyOutput,
+            self._api = api.Application(wrapApplication = self._wrapApplication,
+                                        isPretty = self._config.prettyOutput,
                                         contextCallback = self._contextCallback,
                                         docCssUri = self._config.docCssUri)
 

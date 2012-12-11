@@ -515,3 +515,50 @@ action myAction
         self.assertEqual(status, "404 Not Found")
         self.assertTrue(("Content-Type", "text/plain") in headers)
         self.assertEqual(response, "Not Found")
+
+    # Test wrapped application
+    def test_api_wrapped(self):
+
+        # Wrapped WSGI application
+        def myApp(environ, start_response):
+            content = "Hello!"
+            responseHeaders = [
+                ("Content-Type", "text/plain"),
+                ("Content-Length", str(len(content)))
+                ]
+            start_response("200 OK", responseHeaders)
+            return [content]
+
+        # Request handler
+        app = Application(wrapApplication = myApp)
+        app.loadSpecString("""\
+action myAction
+    input
+        int a
+    output
+        int b
+""")
+        def myAction(ctx, request):
+            return { "b": request.a * 2 }
+        app.addActionCallback(myAction)
+
+        # Requests
+        request = '{ "a": 5 }'
+
+        # API request
+        status, headers, response = self.sendRequest(app, "POST", "/myAction", len(request), request)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "application/json") in headers)
+        self.assertEqual(response, { "b": 10 })
+
+        # Non-API request
+        status, headers, response = self.sendRequest(app, "GET", "/wrapped", None, None, decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Hello!")
+
+        # Non-doc request
+        status, headers, response = self.sendRequest(app, "GET", "/doc/wrapped", None, None, decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Hello!")

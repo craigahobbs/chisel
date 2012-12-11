@@ -36,6 +36,7 @@ class Application:
 
     # Class initializer
     def __init__(self,
+                 wrapApplication = None,
                  isPretty = False,
                  contextCallback = None,
                  headersCallback = None,
@@ -45,6 +46,7 @@ class Application:
 
         self._actionCallbacks = {}
         self._specParser = SpecParser()
+        self._wrapApplication = wrapApplication
         self._isPretty = isPretty
 
         # Action handler context creation callback function
@@ -143,8 +145,11 @@ class Application:
         return responseBody
 
     # Helper to send an HTTP 404 Not Found
-    def _http404NotFound(self, start_response):
-        return self._httpResponse(start_response, None, "404 Not Found", "text/plain", "Not Found")
+    def _http404NotFound(self, environ, start_response):
+        if self._wrapApplication is not None:
+            return self._wrapApplication(environ, start_response)
+        else:
+            return self._httpResponse(start_response, None, "404 Not Found", "text/plain", "Not Found")
 
     # Helper to send an HTTP 405 Method Not Allowed
     def _http405MethodNotAllowed(self, start_response):
@@ -350,4 +355,4 @@ class Application:
                 return self._http405MethodNotAllowed(start_response)
 
         # Resource not found
-        return self._http404NotFound(start_response)
+        return self._http404NotFound(environ, start_response)
