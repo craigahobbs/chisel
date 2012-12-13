@@ -152,7 +152,7 @@ class Application:
             if self._configString:
                 self._config = self.loadConfigString(self._configString)
             else:
-                configPath = self._configPath if self._configPath else environ[self.ENV_CONFIG]
+                configPath = self._configPath if self._configPath else environ.get(self.ENV_CONFIG)
                 self._config = self.loadConfig(configPath)
 
             # Create the API application helper application
@@ -162,7 +162,8 @@ class Application:
                                         docCssUri = self._config.docCssUri)
 
             # Load specs and modules
-            pathBase = os.path.dirname(environ["SCRIPT_FILENAME"])
+            pathBaseFile = environ.get("SCRIPT_FILENAME")
+            pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
             for specPath in self._config.specPaths:
                 if not os.path.isabs(specPath):
                     specPath = os.path.join(pathBase, specPath)
