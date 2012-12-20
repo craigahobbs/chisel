@@ -50,7 +50,7 @@ class TestModelValidation(unittest.TestCase):
         try:
             m.validate(v, acceptString = acceptString)
             self.fail()
-        except ValidationError, e:
+        except ValidationError as e:
             self.assertEqual(str(e), errorStr)
 
     # Test successful validation

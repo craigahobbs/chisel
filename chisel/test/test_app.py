@@ -42,7 +42,7 @@ class TestApplication(unittest.TestCase):
             app = Application()
             app(environ, startResponse)
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
 
         # Successfully create and call the application

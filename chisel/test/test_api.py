@@ -366,7 +366,7 @@ action myAction
         try:
             app.addActionCallback(myAction)
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "No model defined for action callback 'myAction'")
 
         # Verify that exception is raised when action callback is redefined
@@ -380,7 +380,7 @@ action myAction
         try:
             app.addActionCallback(myAction)
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "Redefinition of action callback 'myAction'")
 
         # Verify that exception is raised when action model is redefined
@@ -393,7 +393,7 @@ action myAction
 action myAction
 """)
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), ":1: error: Redefinition of action 'myAction'")
 
         # Verify that exception is raised when action spec has errors
@@ -405,7 +405,7 @@ action myAction
     string b
 """)
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), ":2: error: Member definition outside of struct scope\n:3: error: Member definition outside of struct scope")
 
     # Test context callback and header callback functionality

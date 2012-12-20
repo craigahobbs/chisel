@@ -75,7 +75,7 @@ class TestUrl(unittest.TestCase):
             try:
                 decodeQueryString(s)
                 self.fail()
-            except ValueError, e:
+            except ValueError as e:
                 self.assertEqual(str(e), err)
 
         # Key with no equal - assume empty string

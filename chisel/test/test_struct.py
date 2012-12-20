@@ -216,5 +216,5 @@ class TestStruct(unittest.TestCase):
         try:
             s.a.foo = 19
             self.fail()
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), "'list' object has no attribute 'foo'")

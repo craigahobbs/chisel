@@ -206,7 +206,7 @@ class Application:
             try:
                 actionModel = self._specParser.actions[actionName]
                 request = actionModel.inputType.validate(request, acceptString = acceptString)
-            except ValidationError, e:
+            except ValidationError as e:
                 raise self._ErrorResponseException(self._errorResponse("InvalidInput", str(e), e.member))
 
             try:
@@ -217,7 +217,7 @@ class Application:
                 actionCallback = self._actionCallbacks[actionName]
                 response = actionCallback(actionContext, Struct(request))
 
-            except Exception, e:
+            except Exception as e:
                 raise self._ErrorResponseException(self._errorResponse("UnexpectedError", str(e)))
 
             # Error response?
@@ -230,10 +230,10 @@ class Application:
             # Validate the response
             try:
                 response = responseTypeInst.validate(response)
-            except ValidationError, e:
+            except ValidationError as e:
                 raise self._ErrorResponseException(self._errorResponse("InvalidOutput", str(e), e.member))
 
-        except self._ErrorResponseException, e:
+        except self._ErrorResponseException as e:
             response = e.response
 
         # Serialize the response as JSON
@@ -321,7 +321,7 @@ class Application:
                     else:
                         request = {}
 
-                except Exception, e:
+                except Exception as e:
                     errorResponse = self._errorResponse("InvalidInput", str(e))
 
                 # Call the action callback
@@ -342,7 +342,7 @@ class Application:
                     # De-serialize the JSON request
                     try:
                         request = json.loads(requestContent)
-                    except Exception, e:
+                    except Exception as e:
                         errorResponse = self._errorResponse("InvalidInput", "Invalid request JSON: %s" % (str(e)))
 
                 except:

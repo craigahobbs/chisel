@@ -307,7 +307,7 @@ struct ApplicationConfig
 
         # Dump configuration specification
         if opts.configSpec:
-            print cls.configSpec
+            print(cls.configSpec)
             return
 
         # Stand-alone server WSGI entry point
@@ -319,6 +319,6 @@ struct ApplicationConfig
             return application(environ, start_response)
 
         # Start the stand-alone server
-        print "Serving on port %d..." % (opts.port)
+        print("Serving on port %d..." % (opts.port))
         httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
         httpd.serve_forever()
