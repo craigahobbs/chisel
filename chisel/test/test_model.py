@@ -458,7 +458,7 @@ class TestModelValidation(unittest.TestCase):
                                    "Invalid value 5.5 (type 'float'), expected type 'int'")
 
         # Failure - invalid Decimal
-        self.assertValidationError(m, Decimal(5.5),
+        self.assertValidationError(m, Decimal("5.5"),
                                    "Invalid value 5.5 (type 'Decimal'), expected type 'int'")
 
         # Failure - string
@@ -569,8 +569,8 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, float))
 
         # Success - Decimal
-        v = m.validate(Decimal(5.5))
-        self.assertEqual(v, Decimal(5.5))
+        v = m.validate(Decimal("5.5"))
+        self.assertEqual(v, 5.5)
         self.assertTrue(isinstance(v, float))
 
         # Success - accept string
