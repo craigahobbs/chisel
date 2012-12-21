@@ -7,6 +7,7 @@
 from .struct import Struct
 
 from datetime import datetime, timedelta, tzinfo
+from decimal import Decimal
 import time
 import re
 from uuid import UUID
@@ -57,7 +58,7 @@ class ValidationError(Exception):
 
         # Format the error string
         memberSyntax = cls.memberSyntax(members)
-        if isinstance(value, float):
+        if isinstance(value, (float, Decimal)):
             msgFormat = "Invalid value %g (type '%s')%s, expected type '%s'"
         else:
             msgFormat = "Invalid value %r (type '%s')%s, expected type '%s'"
@@ -248,7 +249,7 @@ class TypeInt:
 
         if isinstance(value, (int, long)) and not isinstance(value, bool):
             result = value
-        elif isinstance(value, float) and int(value) == value:
+        elif isinstance(value, (float, Decimal)) and int(value) == value:
             result = int(value)
         elif acceptString and isinstance(value, basestring):
             try:
@@ -286,7 +287,7 @@ class TypeFloat:
 
         if isinstance(value, float):
             result = value
-        elif isinstance(value, (int, long)) and not isinstance(value, bool):
+        elif isinstance(value, (int, long, Decimal)) and not isinstance(value, bool):
             result = float(value)
         elif acceptString and isinstance(value, basestring):
             try:

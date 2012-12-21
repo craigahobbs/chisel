@@ -9,6 +9,7 @@ from chisel.model import jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum,
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
 from datetime import datetime, timedelta, tzinfo
+from decimal import Decimal
 import re
 import unittest
 from uuid import UUID
@@ -437,6 +438,11 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(v, 5.)
         self.assertTrue(isinstance(v, int))
 
+        # Success - Decimal
+        v = m.validate(Decimal(5))
+        self.assertEqual(v, Decimal(5))
+        self.assertTrue(isinstance(v, int))
+
         # Success - accept string
         v = m.validate("5", acceptString = True)
         self.assertEqual(v, 5)
@@ -450,6 +456,10 @@ class TestModelValidation(unittest.TestCase):
         # Failure - invalid float
         self.assertValidationError(m, 5.5,
                                    "Invalid value 5.5 (type 'float'), expected type 'int'")
+
+        # Failure - invalid Decimal
+        self.assertValidationError(m, Decimal(5.5),
+                                   "Invalid value 5.5 (type 'Decimal'), expected type 'int'")
 
         # Failure - string
         self.assertValidationError(m, "5",
@@ -556,6 +566,11 @@ class TestModelValidation(unittest.TestCase):
         # Success - long
         v = m.validate(7L)
         self.assertEqual(v, 7.)
+        self.assertTrue(isinstance(v, float))
+
+        # Success - Decimal
+        v = m.validate(Decimal(5.5))
+        self.assertEqual(v, Decimal(5.5))
         self.assertTrue(isinstance(v, float))
 
         # Success - accept string

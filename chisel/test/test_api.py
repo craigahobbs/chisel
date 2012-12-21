@@ -275,7 +275,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
-        self.assertEqual(response.message, "Barf")
+        self.assertEqual(response.message, "test_api.py:227: Barf")
 
         # Invalid query string
         queryString = "a=7&b&c=9"

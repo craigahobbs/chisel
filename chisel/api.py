@@ -14,6 +14,7 @@ import imp
 import json
 import os
 import sys
+import traceback
 import urllib
 from wsgiref.util import application_uri
 
@@ -218,7 +219,10 @@ class Application:
                 response = actionCallback(actionContext, Struct(request))
 
             except Exception as e:
-                raise self._ErrorResponseException(self._errorResponse("UnexpectedError", str(e)))
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
+                err = "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
+                raise self._ErrorResponseException(self._errorResponse("UnexpectedError", err))
 
             # Error response?
             isErrorResponse = ("error" in response)
