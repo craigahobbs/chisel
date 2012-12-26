@@ -140,6 +140,22 @@ class Application:
         # Delegate to API application helper
         return self._api(environ, start_response)
 
+    # API application helper context callback
+    def createContextCallback(self, environ):
+
+        # Create the logger
+        logger = logging.getLoggerClass()("")
+        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
+        logger.setLevel(self._getLogLevel(self._config))
+
+        # Create the action context
+        ctx = Struct()
+        ctx.resources = self._resources
+        ctx.environ = environ
+        ctx.log = logger
+        ctx.cache = self._cache
+        return ctx
+
     def _init(self, environ):
 
         with self._initLock:
@@ -158,7 +174,7 @@ class Application:
             # Create the API application helper application
             self._api = api.Application(wrapApplication = self._wrapApplication,
                                         isPretty = self._config.prettyOutput,
-                                        contextCallback = self._contextCallback,
+                                        contextCallback = self.createContextCallback,
                                         docCssUri = self._config.docCssUri)
 
             # Load specs and modules
@@ -189,22 +205,6 @@ class Application:
                     # Add the resource factory
                     self._resources[resource.name] = \
                         ResourceFactory(resource.name, resource.resourceString, resourceType[0])
-
-    # API application helper context callback
-    def _contextCallback(self, environ):
-
-        # Create the logger
-        logger = logging.getLoggerClass()("")
-        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
-        logger.setLevel(self._getLogLevel(self._config))
-
-        # Create the action context
-        ctx = Struct()
-        ctx.resources = self._resources
-        ctx.environ = environ
-        ctx.log = logger
-        ctx.cache = self._cache
-        return ctx
 
     # Configuration file specification
     configSpec = """\
