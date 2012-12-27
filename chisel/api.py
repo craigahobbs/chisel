@@ -32,6 +32,21 @@ class actionDecorator:
         self.fn(*args)
 
 
+# Action error response exception
+class ActionError(Exception):
+    def __init__(self, error, message = None):
+        self.error = error
+        self.message = message
+
+
+# Internal action error response exception
+class ActionErrorInternal(Exception):
+    def __init__(self, error, message = None, member = None):
+        self.error = error
+        self.message = message
+        self.member = member
+
+
 # API server response handler
 class Application:
 
@@ -160,30 +175,13 @@ class Application:
     def _http411LengthRequired(self, start_response):
         return self._httpResponse(start_response, None, "411 Length Required", "text/plain", "Length Required")
 
-    # Helper to form an error response
-    def _errorResponse(self, error, message, member = None):
-
-        response = Struct()
-        response.error = error
-        response.message = message
-        if member:
-            response.member = member
-        return response
-
     # Helper to create an error response type instance
     def _errorResponseTypeInst(self, errorTypeInst):
 
         errorResponseTypeInst = TypeStruct()
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
-        errorResponseTypeInst.members.append(TypeStruct.Member("member", TypeString(), isOptional = True))
         return errorResponseTypeInst
-
-    # Error response exception helper class
-    class _ErrorResponseException(Exception):
-        def __init__(self, response):
-            Exception.__init__(self, "Error response")
-            self.response = response
 
     # Helper serialize JSON content
     def _serializeJSON(self, response):
@@ -193,22 +191,22 @@ class Application:
                           separators = (", ", ": ") if self._isPretty else (",", ":"))
 
     # Request handling helper method
-    def _actionResponse(self, environ, start_response, actionName, request, errorResponse = None,
+    def _actionResponse(self, environ, start_response, actionName, request, actionError = None,
                         acceptString = False, jsonpFunction = None):
 
         isErrorResponse = True
         actionContext = None
         try:
-            # Server error response provided?
-            if errorResponse is not None:
-                raise self._ErrorResponseException(errorResponse)
+            # Server error provided?
+            if actionError is not None:
+                raise actionError
 
             # Validate the request
             try:
                 actionModel = self._specParser.actions[actionName]
                 request = actionModel.inputType.validate(request, acceptString = acceptString)
             except ValidationError as e:
-                raise self._ErrorResponseException(self._errorResponse("InvalidInput", str(e), e.member))
+                raise ActionErrorInternal("InvalidInput", str(e), e.member)
 
             try:
                 # Create the action callback
@@ -218,12 +216,18 @@ class Application:
                 actionCallback = self._actionCallbacks[actionName]
                 response = actionCallback(actionContext, Struct(request))
 
+            except ActionError as e:
+
+                response = { "error": e.error }
+                if e.message is not None:
+                    response["message"] = e.message
+
             except Exception as e:
 
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
                 err = "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
-                raise self._ErrorResponseException(self._errorResponse("UnexpectedError", err))
+                raise ActionErrorInternal("UnexpectedError", err)
 
             # Error response?
             isErrorResponse = ("error" in response)
@@ -236,10 +240,15 @@ class Application:
             try:
                 response = responseTypeInst.validate(response)
             except ValidationError as e:
-                raise self._ErrorResponseException(self._errorResponse("InvalidOutput", str(e), e.member))
+                raise ActionErrorInternal("InvalidOutput", str(e), e.member)
 
-        except self._ErrorResponseException as e:
-            response = e.response
+        except ActionErrorInternal as e:
+
+            response = { "error": e.error }
+            if e.message is not None:
+                response["message"] = e.message
+            if e.member is not None:
+                response["member"] = e.member
 
         # Serialize the response as JSON
         jsonContent = self._serializeJSON(response)
@@ -313,7 +322,7 @@ class Application:
 
                 request = None
                 jsonpFunction = None
-                errorResponse = None
+                actionError = None
                 try:
                     # Parse the query string
                     if envQueryString:
@@ -327,10 +336,10 @@ class Application:
                         request = {}
 
                 except Exception as e:
-                    errorResponse = self._errorResponse("InvalidInput", str(e))
+                    actionError = ActionErrorInternal("InvalidInput", str(e))
 
                 # Call the action callback
-                return self._actionResponse(environ, start_response, actionName, request, errorResponse = errorResponse,
+                return self._actionResponse(environ, start_response, actionName, request, actionError = actionError,
                                             acceptString = True, jsonpFunction = jsonpFunction)
 
             elif envRequestMethod == "POST":
@@ -339,7 +348,7 @@ class Application:
                     return self._http411LengthRequired(start_response)
 
                 request = None
-                errorResponse = None
+                actionError = None
                 try:
                     # Read the request content
                     requestContent = envWsgiInput.read(envContentLength)
@@ -348,13 +357,13 @@ class Application:
                     try:
                         request = json.loads(requestContent)
                     except Exception as e:
-                        errorResponse = self._errorResponse("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+                        actionError = ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e)))
 
                 except:
-                    errorResponse = self._errorResponse("IOError", "Error reading request content")
+                    actionError = ActionErrorInternal("IOError", "Error reading request content")
 
                 # Call the action callback
-                return self._actionResponse(environ, start_response, actionName, request, errorResponse = errorResponse)
+                return self._actionResponse(environ, start_response, actionName, request, actionError = actionError)
 
             else:
                 return self._http405MethodNotAllowed(start_response)

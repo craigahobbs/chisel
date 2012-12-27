@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from chisel import encodeQueryString, SpecParser, Struct
+from chisel import ActionError, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
 
 import json
@@ -92,10 +92,10 @@ action myActionGet
     output
         string d
 """)
-        def myActionPost(ctx, input):
-            return { "c": input.a + input.b }
-        def myActionGet(ctx, input):
-            self.assertEqual(len(input()), 0)
+        def myActionPost(ctx, request):
+            return { "c": request.a + request.b }
+        def myActionGet(ctx, request):
+            self.assertEqual(len(request()), 0)
             return { "d": "OK" }
         app.addActionCallback(myActionPost)
         app.addActionCallback(myActionGet)
@@ -134,21 +134,38 @@ action myAction
         int b
     errors
         MyError
+
+action myActionError
+    input
+        int a
+    output
+        int b
+    errors
+        MyError
 """)
-        def myAction(ctx, input):
-            output = Struct()
-            if input.a == 0:
-                output.error = "MyError"
-                output.message = "My message"
-            elif input.a == 1:
-                output.error = "MyError"
-            elif input.a == 2:
-                output.error = "BadError"
-                output.message = "My bad message"
+
+        def myAction(ctx, request):
+            if request.a == 0:
+                return { "error": "MyError", "message": "My message" }
+            elif request.a == 1:
+                return { "error": "MyError" }
+            elif request.a == 2:
+                return { "error": "BadError", "message": "My bad message" }
             else:
-                output.b = input.a * 2
-            return output
+                return { "b": request.a * 2 }
+
+        def myActionError(ctx, request):
+            if request.a == 0:
+                raise ActionError("MyError", "My message")
+            elif request.a == 1:
+                raise ActionError("MyError")
+            elif request.a == 2:
+                raise ActionError("BadError", "My bad message")
+            else:
+                return { "b": request.a * 2 }
+
         app.addActionCallback(myAction)
+        app.addActionCallback(myActionError)
 
         # Requests
         requestErrorMessage = '{ "a": 0 }'
@@ -183,6 +200,33 @@ action myAction
         self.assertEqual(len(response()), 1)
         self.assertEqual(response.b, 6)
 
+        # Error with message (raise ActionError)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionError", len(requestErrorMessage), requestErrorMessage)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "MyError")
+        self.assertEqual(response.message, "My message")
+
+        # Error with NO message (raise ActionError)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionError", len(requestError), requestError)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 1)
+        self.assertEqual(response.error, "MyError")
+
+        # Bad error enum value (raise ActionError)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionError", len(requestBadError), requestBadError)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 3)
+        self.assertEqual(response.error, "InvalidOutput")
+        self.assertEqual(response.message, "Invalid value 'BadError' (type 'str') for member 'error', expected type 'myActionError_Error'")
+        self.assertEqual(response.member, "error")
+
+        # Non-error (raise ActionError)
+        status, headers, response = self.sendRequest(app, "POST", "/myActionError", len(request), request)
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(len(response()), 1)
+        self.assertEqual(response.b, 6)
+
     # Test complex (nested) container response
     def test_api_complex_response(self):
 
@@ -196,7 +240,7 @@ action myAction
     output
         MyStruct a
 """)
-        def myAction(ctx, input):
+        def myAction(ctx, request):
             return { "a": { "b": [1, 2, 3] } }
         app.addActionCallback(myAction)
 
@@ -223,7 +267,7 @@ action myActionRaise
         int a
         int b
 """)
-        def myActionRaise(ctx, input):
+        def myActionRaise(ctx, request):
             raise Exception("Barf")
         app.addActionCallback(myActionRaise)
 
@@ -275,7 +319,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
-        self.assertEqual(response.message, "test_api.py:227: Barf")
+        self.assertEqual(response.message, "test_api.py:271: Barf")
 
         # Invalid query string
         queryString = "a=7&b&c=9"
@@ -298,9 +342,9 @@ action myAction
     output
         int sum
 """)
-        def myAction(ctx, input):
+        def myAction(ctx, request):
             numSum = 0
-            for num in input.nums:
+            for num in request.nums:
                 numSum += int(num)
             return { "sum": numSum }
         app.addActionCallback(myAction)
@@ -325,9 +369,9 @@ action myAction
     output
         int sum
 """)
-        def myAction(ctx, input):
+        def myAction(ctx, request):
             numSum = 0
-            for num in input.nums:
+            for num in request.nums:
                 numSum += int(num)
             return { "sum": numSum }
         app.addActionCallback(myAction)
@@ -361,7 +405,7 @@ action myAction
 
         # Verify that exception is raised when action is added with no model
         app = Application()
-        def myAction(ctx, input):
+        def myAction(ctx, request):
             return {}
         try:
             app.addActionCallback(myAction)
@@ -374,7 +418,7 @@ action myAction
         app.loadSpecString("""\
 action myAction
 """)
-        def myAction(ctx, input):
+        def myAction(ctx, request):
             return {}
         app.addActionCallback(myAction)
         try:
@@ -430,8 +474,8 @@ action myAction1
     output
         int b
 """)
-        def myAction1(ctx, input):
-            return { "b": input.a * ctx.foo }
+        def myAction1(ctx, request):
+            return { "b": request.a * ctx.foo }
         app.addActionCallback(myAction1)
 
         # Check context creation
@@ -454,8 +498,8 @@ action myAction
     output
         int b
 """)
-        def myAction(ctx, input):
-            return { "b": input.a * ctx.foo }
+        def myAction(ctx, request):
+            return { "b": request.a * ctx.foo }
         app.addActionCallback(myAction)
 
         # Test doc index request
