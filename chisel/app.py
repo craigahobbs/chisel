@@ -140,8 +140,16 @@ class Application:
         # Delegate to API application helper
         return self._api(environ, start_response)
 
-    # API application helper context callback
-    def createContextCallback(self, environ):
+    # Create the action context object
+    def createContext(self, environ):
+
+        # Initialize, if necessary
+        self._init(environ)
+
+        # Do the work...
+        return self._createContext(environ)
+
+    def _createContext(self, environ):
 
         # Create the logger
         logger = logging.getLoggerClass()("")
@@ -175,7 +183,7 @@ class Application:
             # Create the API application helper application
             self._api = api.Application(wrapApplication = self._wrapApplication,
                                         isPretty = self._config.prettyOutput,
-                                        contextCallback = self.createContextCallback,
+                                        contextCallback = self._createContext,
                                         docCssUri = self._config.docCssUri)
 
             # Load specs and modules
