@@ -17,6 +17,6 @@ def myAction(ctx, req):
 
     # Log info and a warning
     ctx.log.info("Some info")
-    ctx.log.warning("A warning %d" % (count))
+    ctx.log.warning("A warning %d, %s, %s" % (count, ctx.config.foo, ctx.config.bonk))
 
     return {}

@@ -59,7 +59,7 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(appData["open"], ["Hello"])
         self.assertEqual(appData["close"], [1])
         self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
-        self.assertTrue("A warning 1" in environ["wsgi.errors"].getvalue())
+        self.assertTrue("A warning 1, bar, thud" in environ["wsgi.errors"].getvalue())
 
         # Call the application again (skips reloading)
         appData = {

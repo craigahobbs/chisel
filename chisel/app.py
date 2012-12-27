@@ -151,6 +151,7 @@ class Application:
         # Create the action context
         ctx = Struct()
         ctx.resources = self._resources
+        ctx.config = self._config.config
         ctx.environ = environ
         ctx.log = logger
         ctx.cache = self._cache
@@ -238,6 +239,9 @@ struct ApplicationConfig
 
     # Resources
     [optional] Resource[] resources
+
+    # Configuration key/value string pairs
+    [optional] string{} config
 
     # Logger output level (default is Warning)
     [optional] LogLevel logLevel

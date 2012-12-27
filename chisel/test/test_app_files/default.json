@@ -7,5 +7,9 @@
             "type": "test_app_resource",
             "resourceString": "Hello"
         }
-    ]
+    ],
+    "config": {
+        "foo": "bar",
+        "bonk": "thud"
+    }
 }
