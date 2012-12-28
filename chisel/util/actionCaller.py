@@ -13,9 +13,13 @@ from .. import Application
 # Mock application for testing action calls - returns (status, headers, response, logOutput)
 class ActionCaller:
 
-    def __init__(self, scriptFilename, resourceTypes = None, configString = None, configPath = None):
+    def __init__(self, scriptFilename = None, resourceTypes = None,
+                 configString = None, configPath = None, application = None):
 
-        self._application = Application(resourceTypes = resourceTypes, configString = configString)
+        if application is not None:
+            self._application = application
+        else:
+            self._application = Application(resourceTypes = resourceTypes, configString = configString)
         self._scriptFilename = scriptFilename
         self._configPath = configPath
 
@@ -24,16 +28,36 @@ class ActionCaller:
         # Serialize the request
         requestJson = json.dumps(request)
 
+        # Call the action
+        status, responseHeaders, responseString, wsgi_errors = \
+            self.callRaw("POST", "/" + actionName, requestJson)
+
+        # Deserialize the response
+        try:
+            response = json.loads(responseString)
+        except:
+            response = responseString
+
+        return (status,
+                responseHeaders,
+                response,
+                wsgi_errors)
+
+    def callRaw(self, method, url, data = None):
+
         # Test WSGI environment
         environ = {
-            Application.ENV_CONFIG: self._configPath,
-            "SCRIPT_FILENAME": self._scriptFilename,
-            "REQUEST_METHOD": "POST",
-            "PATH_INFO": "/" + actionName,
-            "CONTENT_LENGTH": str(len(requestJson)),
-            "wsgi.input": StringIO(requestJson),
+            "REQUEST_METHOD": method,
+            "PATH_INFO": url,
+            "wsgi.input": StringIO(data),
             "wsgi.errors": StringIO()
             }
+        if self._configPath is not None:
+            environ[Application.ENV_CONFIG] = self._configPath
+        if self._scriptFilename is not None:
+            environ["SCRIPT_FILENAME"] = self._scriptFilename
+        if data is not None:
+            environ["CONTENT_LENGTH"] = str(len(data))
 
         # Call the action
         startResponseArgs = {}
@@ -43,13 +67,7 @@ class ActionCaller:
         responseParts = self._application(environ, startResponse)
         responseString = "".join(responseParts)
 
-        # Deserialize the response
-        try:
-            response = json.loads(responseString)
-        except:
-            response = responseString
-
         return (startResponseArgs["status"],
                 startResponseArgs["responseHeaders"],
-                response,
+                responseString,
                 environ["wsgi.errors"].getvalue())
