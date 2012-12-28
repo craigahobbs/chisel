@@ -328,7 +328,7 @@ struct ApplicationConfig
         environ = {
             "REQUEST_METHOD": method,
             "PATH_INFO": url,
-            "wsgi.input": StringIO(data),
+            "wsgi.input": StringIO(data if data is not None else ""),
             "wsgi.errors": StringIO()
             }
         if scriptFilename is not None:
