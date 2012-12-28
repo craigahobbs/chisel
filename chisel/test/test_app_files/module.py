@@ -8,15 +8,14 @@ def myAction(ctx, req):
     with ctx.resources.testResource() as testResource:
         pass
 
-    # Update the cache
-    with ctx.cache("myAction") as cache:
-        if cache.count is None:
-            cache.count = 0
-        cache.count += 1
-        count = cache.count
-
     # Log info and a warning
-    ctx.log.info("Some info")
-    ctx.log.warning("A warning %d, %s, %s" % (count, ctx.config.foo, ctx.config.bonk))
+    ctx.log.debug("Some info")
+    ctx.log.warning("A warning %s, %s" % (ctx.config.foo, ctx.config.bonk))
 
     return {}
+
+@chisel.action
+def myAction2(ctx, request):
+    ctx.log.info("In myAction2")
+    with ctx.resources.myresource() as resource:
+        return { "result": request.value * resource }

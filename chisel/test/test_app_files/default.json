@@ -6,10 +6,16 @@
             "name": "testResource",
             "type": "test_app_resource",
             "resourceString": "Hello"
+        },
+        {
+            "name": "myresource",
+            "type": "mytype",
+            "resourceString": "mystring"
         }
     ],
     "config": {
         "foo": "bar",
         "bonk": "thud"
-    }
+    },
+    "logLevel": "Info"
 }

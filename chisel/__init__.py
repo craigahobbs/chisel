@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-__all__ = ["api", "app", "model", "spec", "struct", "url", "util"]
+__all__ = ["api", "app", "model", "spec", "struct", "url"]
 
 from .api import actionDecorator as action, ActionError
 from .app import Application, ResourceType

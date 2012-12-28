@@ -4,15 +4,19 @@
 # See README.md for license.
 #
 
+import api
+from .model import Struct
+from .spec import SpecParser
+
 import json
 import logging
 import os
 import re
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import threading
-
-import api
-from .model import Struct
-from .spec import SpecParser
 
 
 # Application resource type
@@ -77,43 +81,6 @@ class ResourceContext:
         self._resourceFactory._close(self._resource)
 
 
-# Cache factory - create a cache context manager
-class CacheFactory:
-
-    def __init__(self):
-
-        self._cache = {}
-        self._cacheLock = threading.Lock()
-
-    def __call__(self, name):
-
-        # Get the cache - create if necessary
-        with self._cacheLock:
-            cache = self._cache.get(name)
-            if cache is None:
-                cache = CacheContext()
-                self._cache[name] = cache
-        return cache
-
-
-# Cache context manager
-class CacheContext:
-
-    def __init__(self):
-
-        self._cache = Struct()
-        self._cacheLock = threading.Lock()
-
-    def __enter__(self):
-
-        self._cacheLock.acquire()
-        return self._cache
-
-    def __exit__(self, exc_type, exc_value, traceback):
-
-        self._cacheLock.release()
-
-
 # Top-level WSGI application class
 class Application:
 
@@ -129,7 +96,6 @@ class Application:
         self._config = None
         self._api = None
         self._initLock = threading.Lock()
-        self._cache = CacheFactory()
 
     # WSGI entry point
     def __call__(self, environ, start_response):
@@ -162,7 +128,6 @@ class Application:
         ctx.config = self._config.config
         ctx.environ = environ
         ctx.log = logger
-        ctx.cache = self._cache
         return ctx
 
     def _init(self, environ):
@@ -334,3 +299,52 @@ struct ApplicationConfig
         print("Serving on port %d..." % (opts.port))
         httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
         httpd.serve_forever()
+
+    # Call an action on this application
+    def callAction(self, actionName, request, scriptFilename = None):
+
+        # Serialize the request
+        requestJson = json.dumps(request)
+
+        # Call the action
+        status, responseHeaders, responseString, wsgi_errors = \
+            self.callRaw("POST", "/" + actionName, requestJson, scriptFilename = scriptFilename)
+
+        # Deserialize the response
+        try:
+            response = json.loads(responseString)
+        except:
+            response = responseString
+
+        return (status,
+                responseHeaders,
+                response,
+                wsgi_errors)
+
+    # Make an HTTP request on this application
+    def callRaw(self, method, url, data = None, scriptFilename = None):
+
+        # Test WSGI environment
+        environ = {
+            "REQUEST_METHOD": method,
+            "PATH_INFO": url,
+            "wsgi.input": StringIO(data),
+            "wsgi.errors": StringIO()
+            }
+        if scriptFilename is not None:
+            environ["SCRIPT_FILENAME"] = scriptFilename
+        if data is not None:
+            environ["CONTENT_LENGTH"] = str(len(data))
+
+        # Call the action
+        startResponseArgs = {}
+        def startResponse(status, responseHeaders):
+            startResponseArgs["status"] = status
+            startResponseArgs["responseHeaders"] = responseHeaders
+        responseParts = self(environ, startResponse)
+        responseString = "".join(responseParts)
+
+        return (startResponseArgs["status"],
+                startResponseArgs["responseHeaders"],
+                responseString,
+                environ["wsgi.errors"].getvalue())
