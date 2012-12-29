@@ -55,9 +55,10 @@ class TestApplication(unittest.TestCase):
         try:
             app = Application()
             app(environ, startResponse)
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
+        except:
+            self.fail()
 
         # Successfully create and call the application
         resourceData, resourceTypes = self.getResourceTypes()

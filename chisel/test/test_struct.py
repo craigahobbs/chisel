@@ -129,10 +129,9 @@ class TestStruct(unittest.TestCase):
 
         try:
             s["d"][1] = 20
-            self.fail()
-        except TypeError:
-            pass
-        except:
+        except TypeError as e:
+            self.assertEqual(str(e), "'tuple' object does not support item assignment")
+        else:
             self.fail()
 
     # Test "contained" behavior
@@ -196,10 +195,9 @@ class TestStruct(unittest.TestCase):
 
         try:
             s.d[1] = None
-            self.fail()
-        except TypeError:
-            pass
-        except:
+        except TypeError as e:
+            self.assertEqual(str(e), "'tuple' object doesn't support item deletion")
+        else:
             self.fail()
 
     # Test non-dict attribute get/set
@@ -215,6 +213,7 @@ class TestStruct(unittest.TestCase):
         # Test list attribute set (not likely to ever occur)
         try:
             s.a.foo = 19
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), "'list' object has no attribute 'foo'")
+        else:
+            self.fail()

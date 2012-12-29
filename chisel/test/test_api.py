@@ -33,12 +33,21 @@ class TestLoadModules(unittest.TestCase):
     # Verify that exception is raised when invalid module path is loaded
     def test_api_loadModules_badModulePath(self):
 
-        app = Application
+        app = Application()
+
         try:
             app.loadModules("_DIRECTORY_DOES_NOT_EXIST_")
+        except Exception as e:
+            self.assertEqual(str(e), "'_DIRECTORY_DOES_NOT_EXIST_' not found or is not a directory")
+        else:
             self.fail()
-        except:
-            pass
+
+        try:
+            app.loadSpecs("_DIRECTORY_DOES_NOT_EXIST_")
+        except Exception as e:
+            self.assertEqual(str(e), "'_DIRECTORY_DOES_NOT_EXIST_' not found or is not a directory")
+        else:
+            self.fail()
 
 
 # Server application object tests
@@ -319,7 +328,7 @@ action myActionRaise
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode))
-        self.assertEqual(response.message, "test_api.py:271: Barf")
+        self.assertTrue(re.search("^test_api\\.py:\\d+: Barf$", response.message))
 
         # Invalid query string
         queryString = "a=7&b&c=9"
@@ -409,9 +418,10 @@ action myAction
             return {}
         try:
             app.addActionCallback(myAction)
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), "No model defined for action callback 'myAction'")
+        else:
+            self.fail()
 
         # Verify that exception is raised when action callback is redefined
         app = Application()
@@ -423,9 +433,10 @@ action myAction
         app.addActionCallback(myAction)
         try:
             app.addActionCallback(myAction)
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), "Redefinition of action callback 'myAction'")
+        else:
+            self.fail()
 
         # Verify that exception is raised when action model is redefined
         app = Application()
@@ -436,9 +447,10 @@ action myAction
             app.loadSpecString("""\
 action myAction
 """)
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), ":1: error: Redefinition of action 'myAction'")
+        else:
+            self.fail()
 
         # Verify that exception is raised when action spec has errors
         app = Application()
@@ -448,9 +460,10 @@ action myAction
     int a
     string b
 """)
-            self.fail()
         except Exception as e:
             self.assertEqual(str(e), ":2: error: Member definition outside of struct scope\n:3: error: Member definition outside of struct scope")
+        else:
+            self.fail()
 
     # Test context callback and header callback functionality
     def test_api_context(self):

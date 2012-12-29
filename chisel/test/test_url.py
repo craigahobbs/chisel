@@ -74,9 +74,10 @@ class TestUrl(unittest.TestCase):
         def assertDecodeError(s, err):
             try:
                 decodeQueryString(s)
-                self.fail()
             except ValueError as e:
                 self.assertEqual(str(e), err)
+            else:
+                self.fail()
 
         # Key with no equal - assume empty string
         s = "a=7&b"

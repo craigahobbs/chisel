@@ -50,9 +50,10 @@ class TestModelValidation(unittest.TestCase):
     def assertValidationError(self, m, v, errorStr, acceptString = False):
         try:
             m.validate(v, acceptString = acceptString)
-            self.fail()
         except ValidationError as e:
             self.assertEqual(str(e), errorStr)
+        else:
+            self.fail()
 
     # Test successful validation
     def test_model_struct(self):

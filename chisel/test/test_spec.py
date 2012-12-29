@@ -255,10 +255,12 @@ action MyAction
     output
         MyBadType b
 """, fileName = "foo")
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), """\
+foo:2: error: Unknown member type 'MyBadType'
+foo:6: error: Unknown member type 'MyBadType2'
+foo:8: error: Unknown member type 'MyBadType'""")
+        else:
             self.fail()
 
         # Check counts
@@ -286,10 +288,9 @@ enum Foo
     A
     B
 """)
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), ":4: error: Redefinition of type 'Foo'")
+        else:
             self.fail()
 
         # Check counts
@@ -318,10 +319,9 @@ enum Foo
 struct Foo
     int a
 """)
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), ":5: error: Redefinition of type 'Foo'")
+        else:
             self.fail()
 
         # Check counts
@@ -352,10 +352,9 @@ action MyAction
     input
         string b
 """)
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), ":5: error: Redefinition of action 'MyAction'")
+        else:
             self.fail()
 
         # Check counts
@@ -393,10 +392,15 @@ input
 output
 errors
 """)
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), """\
+:6: error: Action section outside of action scope
+:7: error: Action section outside of action scope
+:8: error: Action section outside of action scope
+:10: error: Syntax error
+:11: error: Syntax error
+:12: error: Syntax error""")
+        else:
             self.fail()
 
         # Check counts
@@ -474,10 +478,12 @@ action MyAction
     input
         MyError
 """)
-            self.fail()
-        except SpecParserError:
-            pass
-        except:
+        except SpecParserError as e:
+            self.assertEqual(str(e), """\
+:2: error: Syntax error
+:6: error: Enumeration value outside of enum scope
+:10: error: Enumeration value outside of enum scope""")
+        else:
             self.fail()
 
         # Check counts
@@ -605,10 +611,9 @@ struct MyStruct
             parser = SpecParser()
             try:
                 parser.parseString(spec)
-                self.fail()
-            except SpecParserError:
-                pass
-            except:
+            except SpecParserError as e:
+                self.assertEqual(str(e), "\n".join(errors))
+            else:
                 self.fail()
             self.assertEqual(len(parser.errors), len(errors))
             self.assertEqual(parser.errors, errors)

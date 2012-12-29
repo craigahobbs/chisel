@@ -94,11 +94,15 @@ class Application:
     # Recursively load all modules files in a directory
     def loadModules(self, modulePath, moduleExt = ".py"):
 
+        # Does the path exist?
+        if not os.path.isdir(modulePath):
+            raise IOError("%r not found or is not a directory" % (modulePath))
+
         # Add the module path to the system load path
         if modulePath not in sys.path:
             sys.path.append(modulePath)
 
-        # Recursively find module names
+        # Recursively find module files
         modulePathParts = modulePath.split(os.sep)
         for dirpath, dirnames, filenames in os.walk(modulePath):
             for filename in filenames:
@@ -132,6 +136,11 @@ class Application:
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
 
+        # Does the path exist?
+        if not os.path.isdir(specPath):
+            raise IOError("%r not found or is not a directory" % (specPath))
+
+        # Resursively find spec files
         for dirpath, dirnames, filenames in os.walk(specPath):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
