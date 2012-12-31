@@ -39,7 +39,8 @@ class ResourceType:
 
     def close(self, resource):
 
-        return self._resourceClose(resource)
+        if self._resourceClose is not None:
+            return self._resourceClose(resource)
 
 
 # Resource factory - create a resource context manager

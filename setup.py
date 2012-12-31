@@ -19,6 +19,6 @@ setup(
     author_email = "craigahobbs@gmail.com",
     description = ("Chisel - JSON web APIs made dirt simple"),
     keywords = "json api server framework",
-    packages = ["chisel"],
+    packages = ["chisel", "chisel/resource", "chisel/test", "chisel/test/resource"],
     long_description = read("README.txt")
     )
