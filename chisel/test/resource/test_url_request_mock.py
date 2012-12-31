@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from chisel.resource.url_request_mock import UrlRequestResourceTypeMock
+from chisel.resource.url_request_mock import UrlRequestResourceTypeMock, RecordingSendCallback
 
 import unittest
 
@@ -16,13 +16,15 @@ class TestLoadModules(unittest.TestCase):
     def test_send(self):
 
         # Create the resource type
-        urlRequestType = UrlRequestResourceTypeMock()
+        urlRequests = RecordingSendCallback()
+        urlRequestType = UrlRequestResourceTypeMock(urlRequests)
         self.assertEqual(urlRequestType.name, "url_request")
 
         # Setup the mock responses
-        urlRequestType.addResponse("/myurl", "response1")
-        urlRequestType.addResponse("/myurl", "response2")
-        urlRequestType.addResponse("/myotherurl", "response3")
+        urlRequests.addResponse("/myurl", "response1")
+        urlRequests.addResponse("/myurl", "response2")
+        urlRequests.addResponse("/myotherurl", "response3")
+        urlRequests.addResponse("/myotherurl", "response4", isSuccess = False)
 
         # GET
         request = urlRequestType.open("http://myhost.com")
@@ -41,29 +43,51 @@ class TestLoadModules(unittest.TestCase):
         response = request.send("/myotherurl")
         self.assertEqual(response, "response3")
 
+        # Failure response
+        try:
+            request.send("/myotherurl")
+        except Exception as e:
+            self.assertEqual(str(e), "HTTP Error 500: Internal Server Error")
+        else:
+            self.fail()
+
         # No mock response available
         try:
             request.send("/myotherurl")
         except Exception as e:
-            self.assertEqual(str(e), "No mock response found for '/myotherurl'")
+            self.assertEqual(str(e), "HTTP Error 500: Internal Server Error")
         else:
             self.fail()
 
         # Check recorded requests
-        self.assertEqual(urlRequestType.requests, [
-                ("/myurl",
-                 [],
-                 [],
-                 [],
-                 "response1"),
-                ("/myurl",
-                 [],
-                 [],
-                 ["My POST data."],
-                 "response2"),
-                ("/myotherurl",
-                 [("MyHeader", "MyValue")],
-                 [("MyUnredirectedHeader", "MyUnredirectedValue")],
-                 ["My other POST data."],
-                 "response3")
-                ])
+        self.assertEqual(len(urlRequests), 2)
+        self.assertEqual(len(urlRequests["/myurl"]), 2)
+        self.assertEqual(len(urlRequests["/myotherurl"]), 2)
+
+        request = urlRequests["/myurl"][0]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response1")
+
+        request = urlRequests["/myurl"][1]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, ["My POST data."])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response2")
+
+        request = urlRequests["/myotherurl"][0]
+        self.assertEqual(request.headers, [("MyHeader", "MyValue")])
+        self.assertEqual(request.unredirected_headers, [("MyUnredirectedHeader", "MyUnredirectedValue")])
+        self.assertEqual(request.requestData, ["My other POST data."])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response3")
+
+        request = urlRequests["/myotherurl"][1]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertFalse(request.isSuccess)
+        self.assertEqual(request.responseData, "response4")

@@ -6,34 +6,32 @@
 
 from ..app import ResourceType
 
+from urllib2 import HTTPError
+
 
 # Url request resource type mock
+#
+# sendCallback(url, headers, unredirected_headers, requestData) - return isSuccess, responseData
+#
 class UrlRequestResourceTypeMock(ResourceType):
 
-    def __init__(self):
+    def __init__(self, sendCallback):
 
-        self.requests = []
-        self.responses = {}
+        self.sendCallback = sendCallback
         ResourceType.__init__(self, "url_request", self.createResource, None)
-
-    def addResponse(self, url, response):
-
-        if url not in self.responses:
-            self.responses[url] = []
-        self.responses[url].append(response)
 
     def createResource(self, resourceString):
 
-        return UrlRequestResourceMock(self, resourceString)
+        return UrlRequestResourceMock(resourceString, self.sendCallback)
 
 
 # Url request resource mock
 class UrlRequestResourceMock:
 
-    def __init__(self, resourceType, hostUrl):
+    def __init__(self, hostUrl, sendCallback):
 
-        self.resourceType = resourceType
         self.hostUrl = hostUrl
+        self.sendCallback = sendCallback
         self.reset()
 
     def reset(self):
@@ -46,13 +44,9 @@ class UrlRequestResourceMock:
     def send(self, url):
 
         # Get the mock response
-        if url in self.resourceType.responses and len(self.resourceType.responses[url]) > 0:
-            responseString = self.resourceType.responses[url].pop(0)
-        else:
-            raise Exception("No mock response found for %r" % (url))
-
-        # Record the request/response
-        self.resourceType.requests.append((url, self.header, self.unredirected_header, self.data, responseString))
+        isSuccess, responseString = self.sendCallback(url, self.header, self.unredirected_header, self.data)
+        if not isSuccess:
+            raise HTTPError(url, 500, "Internal Server Error", None, None)
 
         # Reset the resource
         self.reset()
@@ -70,3 +64,46 @@ class UrlRequestResourceMock:
     def add_unredirected_header(self, key, val):
 
         self.unredirected_header.append((key, val))
+
+
+# Simple recording send callback
+class RecordingSendCallback:
+
+    def __init__(self):
+
+        self.responses = {}
+        self.requests = {}
+
+    def addResponse(self, url, responseData, isSuccess = True):
+
+        if url not in self.responses:
+            self.responses[url] = []
+        self.responses[url].append((isSuccess, responseData))
+
+    class Request:
+        def __init__(self, headers, unredirected_headers, requestData, isSuccess, responseData):
+            self.headers = headers
+            self.unredirected_headers = unredirected_headers
+            self.requestData = requestData
+            self.isSuccess = isSuccess
+            self.responseData = responseData
+
+    def __call__(self, url, headers, unredirected_headers, requestData):
+
+        if url in self.responses and len(self.responses[url]) > 0:
+            isSuccess, responseData = self.responses[url].pop(0)
+            if url not in self.requests:
+                self.requests[url] = []
+            self.requests[url].append(self.Request(headers, unredirected_headers, requestData,
+                                                   isSuccess, responseData))
+            return isSuccess, responseData
+        else:
+            return False, None
+
+    def __len__(self):
+
+        return len(self.requests)
+
+    def __getitem__(self, key):
+
+        return self.requests[key]
