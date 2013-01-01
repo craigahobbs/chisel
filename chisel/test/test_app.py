@@ -12,7 +12,7 @@ import unittest
 
 
 # Main WSGI application callable-object tests
-class TestApplication(unittest.TestCase):
+class TestAppApplication(unittest.TestCase):
 
     def getConfigPath(self):
         return os.path.join(os.path.dirname(__file__), "test_app_files", "default.json")
@@ -81,7 +81,7 @@ class TestApplication(unittest.TestCase):
         self.assertTrue("A warning bar, thud" in environ["wsgi.errors"].getvalue())
 
     # Test callAction method
-    def test_util_callAction(self):
+    def test_app_callAction(self):
 
         # Create the action caller
         resourceData, resourceTypes = self.getResourceTypes()

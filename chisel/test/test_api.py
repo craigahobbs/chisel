@@ -17,7 +17,7 @@ import wsgiref.util
 
 
 # Server module loading tests
-class TestLoadModules(unittest.TestCase):
+class TestApiLoadModules(unittest.TestCase):
 
     # Test succussful module directory load
     def test_api_loadModules(self):
@@ -51,7 +51,7 @@ class TestLoadModules(unittest.TestCase):
 
 
 # Server application object tests
-class TestRequest(unittest.TestCase):
+class TestApiRequest(unittest.TestCase):
 
     # Request/response helper
     def sendRequest(self, app, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):

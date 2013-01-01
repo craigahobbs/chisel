@@ -16,7 +16,7 @@ from uuid import UUID
 
 
 # jsonDefault tests
-class TestJsonDefault(unittest.TestCase):
+class TestModelJsonDefault(unittest.TestCase):
 
     def test_model_jsonDefault(self):
 

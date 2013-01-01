@@ -12,7 +12,7 @@ import unittest
 
 
 # Spec parser unit tests
-class TestParseSpec(unittest.TestCase):
+class TestSpecParseSpec(unittest.TestCase):
 
     # Helper method to assert struct type member properties
     def assertStruct(self, structTypeInst, members):

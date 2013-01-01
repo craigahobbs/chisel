@@ -13,53 +13,41 @@ COVER = cover
 
 # Python version support
 PYTHON_VERSIONS = \
-	2.6 \
-	2.7
-
-# Non-standard python packages
-PYTHON_COVERAGE = coverage
-PYTHON_NOSE = nose
+    2.6 \
+    2.7
 
 # Run unit tests
 .PHONY: test
 test:
-	$(if $(PYTHON_ENV), . $(PYTHON_ENV)/bin/activate;,) \
-	if python -m unittest discover --help > /dev/null 2>&1; then \
-		python -m unittest discover -t . -s $(PACKAGE_NAME)/test -p 'test_*.py' $(if $(VERBOSE),-v,); \
-	else \
-		echo No unittest discover - using $$(which nosetests)...; \
-		nosetests -w $(PACKAGE_NAME)/test $(if $(VERBOSE),-v,); \
-	fi
+	python -m chisel.test.__main__ $(if $(VERBOSE),-v,);
 
 # Pre-checkin check
 .PHONY: check
-check: $(foreach V, $(PYTHON_VERSIONS), $(ENV)/$(V))
-	$(foreach V, $(PYTHON_VERSIONS), $(MAKE) test PYTHON_ENV=$(ENV)/$(V);)
-
-# Python environment rules
-define PYTHON_ENV_RULE
-env/$(1):
-	virtualenv -p python$$(notdir $$@) $$@
-	if [ "$$$$(expr $(1) \< 2.7)" = "1" ]; then \
-		. $$@/bin/activate; pip install $(PYTHON_NOSE); \
-	fi
-endef
-$(foreach V, $(PYTHON_VERSIONS), $(eval $(call PYTHON_ENV_RULE,$(V))))
+check:
+	$(foreach V, $(PYTHON_VERSIONS), \
+		rm -rf $(ENV)/$(V); \
+		virtualenv -p python$(V) $(ENV)/$(V); \
+		. $(ENV)/$(V)/bin/activate; \
+		pip install .; \
+		pushd $(ENV); \
+		python -m chisel.test.__main__ $(if $(VERBOSE),-v,); \
+		popd; \
+	)
 
 # Run code coverage
 .PHONY: cover
-cover: $(ENV)/$(COVER)
+cover: $(ENV)/cover
 	-rm -rf $(COVER)
-	. $(ENV)/$(COVER)/bin/activate; \
+	. $(ENV)/cover/bin/activate; \
 		nosetests -w $(PACKAGE_NAME)/test --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
 			--cover-html --cover-html-dir=$(abspath $(COVER))
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 
 # Coverage environment rule
-$(ENV)/$(COVER):
+$(ENV)/cover:
 	virtualenv $@
-	. $@/bin/activate; pip install $(PYTHON_NOSE) $(PYTHON_COVERAGE)
+	. $@/bin/activate; pip install coverage nose
 
 # Clean
 .PHONY: clean

@@ -10,10 +10,10 @@ import unittest
 
 
 # Test UrlRequestResourceMock functionality
-class TestLoadModules(unittest.TestCase):
+class TestResourceUrlRequestMock(unittest.TestCase):
 
     # Test UrlRequestResourceMock setup and send
-    def test_send(self):
+    def test_resource_url_request_mock(self):
 
         # Create the resource type
         urlRequests = RecordingSendCallback()

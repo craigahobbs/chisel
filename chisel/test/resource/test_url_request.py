@@ -18,10 +18,10 @@ import unittest
 
 
 # Test UrlRequestResource functionality
-class TestLoadModules(unittest.TestCase):
+class TestResourceUrlRequest(unittest.TestCase):
 
     # Test UrlRequestResource setup and send
-    def test_send(self):
+    def test_resource_url_request(self):
 
         # Create the resource type
         urlRequestType = UrlRequestResourceType()

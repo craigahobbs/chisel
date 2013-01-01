@@ -13,7 +13,7 @@ import unittest
 
 
 # joinUrl tests
-class TestJoinUrl(unittest.TestCase):
+class TestDocJoinUrl(unittest.TestCase):
 
     def test_doc_joinUrl(self):
 
