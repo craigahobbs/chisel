@@ -7,6 +7,7 @@
 from ..app import ResourceType
 
 import urllib2
+import urlparse
 
 
 # Url request resource type
@@ -38,7 +39,7 @@ class UrlRequestResource:
     def send(self, url):
 
         # Build the request object, send the request, and read the response
-        request = urllib2.Request(self.hostUrl.rstrip("/") + "/" + url.lstrip("/"))
+        request = urllib2.Request(urlparse.urljoin(self.hostUrl, url))
         for data in self.data:
             request.add_data(data)
         for header in self.header:
