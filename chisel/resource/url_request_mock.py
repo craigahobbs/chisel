@@ -7,6 +7,7 @@
 from ..app import ResourceType
 
 import urllib2
+import urlparse
 
 
 # Url request resource type mock
@@ -43,10 +44,11 @@ class UrlRequestResourceMock:
         self.header = []
         self.unredirected_header = []
 
-    def send(self, url):
+    def send(self, url = None):
 
         # Get the mock response
-        isSuccess, responseString = self.sendCallback(url, self.header, self.unredirected_header, self.data)
+        fullUrl = urlparse.urljoin(self.hostUrl, url)
+        isSuccess, responseString = self.sendCallback(fullUrl, self.header, self.unredirected_header, self.data)
         if not isSuccess:
             raise self.URLError("HTTP Error 500: Internal Server Error")
 

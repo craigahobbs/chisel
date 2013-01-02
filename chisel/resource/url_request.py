@@ -36,10 +36,11 @@ class UrlRequestResource:
         self.unredirected_header = []
 
     # Send a request - may raise URLError
-    def send(self, url):
+    def send(self, url = None):
 
         # Build the request object, send the request, and read the response
-        request = urllib2.Request(urlparse.urljoin(self.hostUrl, url))
+        fullUrl = urlparse.urljoin(self.hostUrl, url)
+        request = urllib2.Request(fullUrl)
         for data in self.data:
             request.add_data(data)
         for header in self.header:

@@ -20,32 +20,53 @@ class TestResourceUrlRequestMock(unittest.TestCase):
         urlRequestType = UrlRequestResourceTypeMock(urlRequests)
         self.assertEqual(urlRequestType.name, "url_request")
 
-        # Setup the mock responses
-        urlRequests.addResponse("/myurl", "response1")
-        urlRequests.addResponse("/myurl", "response2")
-        urlRequests.addResponse("/myotherurl", "response3")
-        urlRequests.addResponse("/myotherurl", "response4", isSuccess = False)
+        request = urlRequestType.open("http://myhost.com/mypath/")
 
-        # GET
-        request = urlRequestType.open("http://myhost.com")
-        response = request.send("/myurl")
+        # GET (trailing slash, append to URL)
+        urlRequests.addResponse("http://myhost.com/mypath/myurl", "response1")
+        response = request.send("myurl")
         self.assertEqual(response, "response1")
 
-        # POST
-        request.add_data("My POST data.")
+        # GET (trailing slash, replace URL)
+        urlRequests.addResponse("http://myhost.com/myurl", "response2")
         response = request.send("/myurl")
         self.assertEqual(response, "response2")
 
+        # GET (trailing slash, no URL)
+        urlRequests.addResponse("http://myhost.com/mypath/", "response3")
+        response = request.send()
+        self.assertEqual(response, "response3")
+
+        request = urlRequestType.open("http://myhost.com/mypath/myresource")
+
+        # GET (no trailing slash, replace resource)
+        urlRequests.addResponse("http://myhost.com/mypath/myurl", "response4")
+        response = request.send("myurl")
+        self.assertEqual(response, "response4")
+
+        # GET (no trailing slash, replace URL)
+        urlRequests.addResponse("http://myhost.com/myurl", "response5")
+        response = request.send("/myurl")
+        self.assertEqual(response, "response5")
+
+        # GET (no trailing slash, empty URL)
+        urlRequests.addResponse("http://myhost.com/mypath/myresource", "response6")
+        response = request.send()
+        self.assertEqual(response, "response6")
+
+        request = urlRequestType.open("http://myhost.com/mypath/")
+
         # POST with headers
+        urlRequests.addResponse("http://myhost.com/mypath/", "response7")
         request.add_data("My other POST data.")
         request.add_header("MyHeader", "MyValue")
         request.add_unredirected_header("MyUnredirectedHeader", "MyUnredirectedValue")
-        response = request.send("/myotherurl")
-        self.assertEqual(response, "response3")
+        response = request.send()
+        self.assertEqual(response, "response7")
 
         # Failure response
         try:
-            request.send("/myotherurl")
+            request.send()
         except request.URLError as e:
             self.assertEqual(str(e), "<urlopen error HTTP Error 500: Internal Server Error>")
         else:
@@ -60,34 +81,57 @@ class TestResourceUrlRequestMock(unittest.TestCase):
             self.fail()
 
         # Check recorded requests
-        self.assertEqual(len(urlRequests), 2)
-        self.assertEqual(len(urlRequests["/myurl"]), 2)
-        self.assertEqual(len(urlRequests["/myotherurl"]), 2)
+        self.assertEqual(len(urlRequests), 4)
+        self.assertEqual(len(urlRequests["http://myhost.com/mypath/"]), 2)
+        self.assertEqual(len(urlRequests["http://myhost.com/mypath/myurl"]), 2)
+        self.assertEqual(len(urlRequests["http://myhost.com/myurl"]), 2)
+        self.assertEqual(len(urlRequests["http://myhost.com/mypath/myresource"]), 1)
 
-        request = urlRequests["/myurl"][0]
+        request = urlRequests["http://myhost.com/mypath/"][0]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response3")
+
+        request = urlRequests["http://myhost.com/mypath/"][1]
+        self.assertEqual(request.headers, [('MyHeader', 'MyValue')])
+        self.assertEqual(request.unredirected_headers, [('MyUnredirectedHeader', 'MyUnredirectedValue')])
+        self.assertEqual(request.requestData, ['My other POST data.'])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response7")
+
+        request = urlRequests["http://myhost.com/mypath/myurl"][0]
         self.assertEqual(request.headers, [])
         self.assertEqual(request.unredirected_headers, [])
         self.assertEqual(request.requestData, [])
         self.assertTrue(request.isSuccess)
         self.assertEqual(request.responseData, "response1")
 
-        request = urlRequests["/myurl"][1]
-        self.assertEqual(request.headers, [])
-        self.assertEqual(request.unredirected_headers, [])
-        self.assertEqual(request.requestData, ["My POST data."])
-        self.assertTrue(request.isSuccess)
-        self.assertEqual(request.responseData, "response2")
-
-        request = urlRequests["/myotherurl"][0]
-        self.assertEqual(request.headers, [("MyHeader", "MyValue")])
-        self.assertEqual(request.unredirected_headers, [("MyUnredirectedHeader", "MyUnredirectedValue")])
-        self.assertEqual(request.requestData, ["My other POST data."])
-        self.assertTrue(request.isSuccess)
-        self.assertEqual(request.responseData, "response3")
-
-        request = urlRequests["/myotherurl"][1]
+        request = urlRequests["http://myhost.com/mypath/myurl"][1]
         self.assertEqual(request.headers, [])
         self.assertEqual(request.unredirected_headers, [])
         self.assertEqual(request.requestData, [])
-        self.assertFalse(request.isSuccess)
+        self.assertTrue(request.isSuccess)
         self.assertEqual(request.responseData, "response4")
+
+        request = urlRequests["http://myhost.com/myurl"][0]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response2")
+
+        request = urlRequests["http://myhost.com/myurl"][1]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response5")
+
+        request = urlRequests["http://myhost.com/mypath/myresource"][0]
+        self.assertEqual(request.headers, [])
+        self.assertEqual(request.unredirected_headers, [])
+        self.assertEqual(request.requestData, [])
+        self.assertTrue(request.isSuccess)
+        self.assertEqual(request.responseData, "response6")

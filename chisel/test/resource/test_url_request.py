@@ -27,26 +27,56 @@ class TestResourceUrlRequest(unittest.TestCase):
         urlRequestType = UrlRequestResourceType()
         self.assertEqual(urlRequestType.name, "url_request")
 
-        # GET
-        request = urlRequestType.open("http://myhost.com")
+        request = urlRequestType.open("http://myhost.com/mypath/")
+
+        # GET (trailing slash, append to URL)
+        response = request.send("myurl")
+        self.assertEqual(response, """\
+http://myhost.com/mypath/myurl""")
+
+        # GET (trailing slash, replace URL)
         response = request.send("/myurl")
         self.assertEqual(response, """\
 http://myhost.com/myurl""")
 
-        # POST
-        request.add_data("My POST data.")
+        # GET (trailing slash, no URL)
+        response = request.send()
+        self.assertEqual(response, """\
+http://myhost.com/mypath/""")
+
+        request = urlRequestType.open("http://myhost.com/mypath/myresource")
+
+        # GET (no trailing slash, replace resource)
+        response = request.send("myurl")
+        self.assertEqual(response, """\
+http://myhost.com/mypath/myurl""")
+
+        # GET (no trailing slash, replace URL)
         response = request.send("/myurl")
         self.assertEqual(response, """\
-http://myhost.com/myurl
+http://myhost.com/myurl""")
+
+        # GET (no trailing slash, empty URL)
+        response = request.send()
+        self.assertEqual(response, """\
+http://myhost.com/mypath/myresource""")
+
+        request = urlRequestType.open("http://myhost.com/mypath/")
+
+        # POST
+        request.add_data("My POST data.")
+        response = request.send()
+        self.assertEqual(response, """\
+http://myhost.com/mypath/
 My POST data.""")
 
         # POST with headers
         request.add_data("My other POST data.")
         request.add_header("MyHeader", "MyValue")
         request.add_unredirected_header("MyUnredirectedHeader", "MyUnredirectedValue")
-        response = request.send("/myotherurl")
+        response = request.send()
         self.assertEqual(response, """\
-http://myhost.com/myotherurl
+http://myhost.com/mypath/
 ('MyHeader', 'MyValue')
 ('MyUnredirectedHeader', 'MyUnredirectedValue')
 My other POST data.""")
