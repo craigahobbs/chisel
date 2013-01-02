@@ -29,9 +29,10 @@ check:
 		virtualenv -p python$(V) $(ENV)/$(V); \
 		. $(ENV)/$(V)/bin/activate; \
 		pip install .; \
-		pushd $(ENV); \
+		POPD=$(abspath $(shell pwd)); \
+		cd $(ENV); \
 		python -m chisel.test.__main__ $(if $(VERBOSE),-v,); \
-		popd; \
+		cd $$POPD; \
 	)
 
 # Run code coverage

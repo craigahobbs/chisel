@@ -98,6 +98,10 @@ class Application:
         self._api = None
         self._initLock = threading.Lock()
 
+        # Initialize now if possible
+        if configPath and scriptFilename:
+            self._init(None)
+
     # WSGI entry point
     def __call__(self, environ, start_response):
 
