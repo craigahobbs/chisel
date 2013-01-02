@@ -6,7 +6,7 @@
 
 from ..app import ResourceType
 
-from urllib2 import HTTPError
+import urllib2
 
 
 # Url request resource type mock
@@ -28,6 +28,8 @@ class UrlRequestResourceTypeMock(ResourceType):
 # Url request resource mock
 class UrlRequestResourceMock:
 
+    URLError = urllib2.URLError
+
     def __init__(self, hostUrl, sendCallback):
 
         self.hostUrl = hostUrl
@@ -46,7 +48,7 @@ class UrlRequestResourceMock:
         # Get the mock response
         isSuccess, responseString = self.sendCallback(url, self.header, self.unredirected_header, self.data)
         if not isSuccess:
-            raise HTTPError(url, 500, "Internal Server Error", None, None)
+            raise self.URLError("HTTP Error 500: Internal Server Error")
 
         # Reset the resource
         self.reset()

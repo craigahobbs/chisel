@@ -38,3 +38,9 @@ def urlopen(request):
     parts.extend([str(x) for x in request.unredirected_header])
     parts.extend(request.data)
     return StringIO("\n".join(parts))
+
+
+# Mock url error
+class URLError(Exception):
+    def __init__(self, reason):
+        pass

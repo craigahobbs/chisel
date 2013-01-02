@@ -46,16 +46,16 @@ class TestResourceUrlRequestMock(unittest.TestCase):
         # Failure response
         try:
             request.send("/myotherurl")
-        except Exception as e:
-            self.assertEqual(str(e), "HTTP Error 500: Internal Server Error")
+        except request.URLError as e:
+            self.assertEqual(str(e), "<urlopen error HTTP Error 500: Internal Server Error>")
         else:
             self.fail()
 
         # No mock response available
         try:
             request.send("/myotherurl")
-        except Exception as e:
-            self.assertEqual(str(e), "HTTP Error 500: Internal Server Error")
+        except request.URLError as e:
+            self.assertEqual(str(e), "<urlopen error HTTP Error 500: Internal Server Error>")
         else:
             self.fail()
 

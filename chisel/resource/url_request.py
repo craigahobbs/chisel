@@ -20,6 +20,8 @@ class UrlRequestResourceType(ResourceType):
 # Url request resource
 class UrlRequestResource:
 
+    URLError = urllib2.URLError
+
     def __init__(self, hostUrl):
 
         self.hostUrl = hostUrl
@@ -32,6 +34,7 @@ class UrlRequestResource:
         self.header = []
         self.unredirected_header = []
 
+    # Send a request - may raise URLError
     def send(self, url):
 
         # Build the request object, send the request, and read the response
@@ -44,6 +47,7 @@ class UrlRequestResource:
             request.add_unredirected_header(*unredirected_header)
         response = urllib2.urlopen(request)
         responseString = response.read()
+        response.close()
 
         # Reset the resource
         self.reset()
