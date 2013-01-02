@@ -44,6 +44,11 @@ http://myhost.com/myurl""")
         self.assertEqual(response, """\
 http://myhost.com/mypath/""")
 
+        # GET (trailing slash, params only)
+        response = request.send("?a=1&b=2")
+        self.assertEqual(response, """\
+http://myhost.com/mypath/?a=1&b=2""")
+
         request = urlRequestType.open("http://myhost.com/mypath/myresource")
 
         # GET (no trailing slash, replace resource)
@@ -60,6 +65,11 @@ http://myhost.com/myurl""")
         response = request.send()
         self.assertEqual(response, """\
 http://myhost.com/mypath/myresource""")
+
+        # GET (no trailing slash, params only)
+        response = request.send("?a=1&b=2")
+        self.assertEqual(response, """\
+http://myhost.com/mypath/myresource?a=1&b=2""")
 
         request = urlRequestType.open("http://myhost.com/mypath/")
 
