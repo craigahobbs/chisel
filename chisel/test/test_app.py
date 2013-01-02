@@ -15,7 +15,7 @@ import unittest
 class TestAppApplication(unittest.TestCase):
 
     def getConfigPath(self):
-        return os.path.join(os.path.dirname(__file__), "test_app_files", "default.json")
+        return os.path.join("test_app_files", "default.json")
 
     def getResourceTypes(self):
 
@@ -85,10 +85,11 @@ class TestAppApplication(unittest.TestCase):
 
         # Create the action caller
         resourceData, resourceTypes = self.getResourceTypes()
-        app = Application(resourceTypes = resourceTypes, configPath = self.getConfigPath())
+        app = Application(resourceTypes = resourceTypes, configPath = self.getConfigPath(),
+                          scriptFilename = __file__)
 
         # Call action
-        status, headers, response, logOutput = app.callAction("myAction2", { "value": 7 }, scriptFilename = __file__)
+        status, headers, response, logOutput = app.callAction("myAction2", { "value": 7 })
         self.assertEqual(response, { "result": 63 })
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)

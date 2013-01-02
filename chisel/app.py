@@ -88,12 +88,12 @@ class Application:
     # Environment variables
     ENV_CONFIG = "chisel.config"
 
-    def __init__(self, wrapApplication = None, resourceTypes = None, configString = None, configPath = None):
+    def __init__(self, wrapApplication = None, resourceTypes = None, configPath = None, scriptFilename = None):
 
         self._wrapApplication = wrapApplication
         self._resourceTypes = resourceTypes
-        self._configString = configString
         self._configPath = configPath
+        self._scriptFilename = scriptFilename
         self._config = None
         self._api = None
         self._initLock = threading.Lock()
@@ -139,12 +139,15 @@ class Application:
             if self._api is not None and not self._config.alwaysReload:
                 return
 
+            # Base path for relative paths
+            pathBaseFile = self._scriptFilename if self._scriptFilename else environ.get("SCRIPT_FILENAME")
+            pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
+
             # Load the config file
-            if self._configString:
-                self._config = self.loadConfigString(self._configString)
-            else:
-                configPath = self._configPath if self._configPath else environ.get(self.ENV_CONFIG)
-                self._config = self.loadConfig(configPath)
+            configPath = self._configPath if self._configPath else environ.get(self.ENV_CONFIG)
+            if not os.path.isabs(configPath):
+                configPath = os.path.join(pathBase, configPath)
+            self._config = self.loadConfig(configPath)
 
             # Create the API application helper application
             self._api = api.Application(wrapApplication = self._wrapApplication,
@@ -153,8 +156,6 @@ class Application:
                                         docCssUri = self._config.docCssUri)
 
             # Load specs and modules
-            pathBaseFile = environ.get("SCRIPT_FILENAME")
-            pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
             for specPath in self._config.specPaths:
                 if not os.path.isabs(specPath):
                     specPath = os.path.join(pathBase, specPath)
@@ -239,17 +240,12 @@ struct ApplicationConfig
     def loadConfig(cls, configPath):
 
         with open(configPath, "rb") as fh:
-            return cls.loadConfigString(fh.read())
 
-    # Load the configuration string
-    @classmethod
-    def loadConfigString(cls, configString):
+            # Strip comments
+            configString = cls._reComment.sub("", fh.read())
 
-        # Strip comments
-        configString = cls._reComment.sub("", configString)
-
-        # Parse and validate the config string
-        return Struct(cls._configModel.validate(json.loads(configString)))
+            # Parse and validate the config string
+            return Struct(cls._configModel.validate(json.loads(configString)))
 
     # Get the Python logging level
     def _getLogLevel(self, configSpec):
@@ -265,7 +261,7 @@ struct ApplicationConfig
 
     # Run as stand-alone server
     @classmethod
-    def serve(cls, application, scriptFilename):
+    def serve(cls, application):
 
         import optparse
         import wsgiref.util
@@ -291,8 +287,6 @@ struct ApplicationConfig
         # Stand-alone server WSGI entry point
         def application_simple_server(environ, start_response):
             wsgiref.util.setup_testing_defaults(environ)
-            if "SCRIPT_FILENAME" not in environ:
-                environ["SCRIPT_FILENAME"] = os.path.abspath(scriptFilename)
             environ[cls.ENV_CONFIG] = os.path.abspath(opts.configPath)
             return application(environ, start_response)
 
@@ -302,14 +296,14 @@ struct ApplicationConfig
         httpd.serve_forever()
 
     # Call an action on this application
-    def callAction(self, actionName, request, scriptFilename = None):
+    def callAction(self, actionName, request):
 
         # Serialize the request
         requestJson = json.dumps(request)
 
         # Call the action
         status, responseHeaders, responseString, wsgi_errors = \
-            self.callRaw("POST", "/" + actionName, requestJson, scriptFilename = scriptFilename)
+            self.callRaw("POST", "/" + actionName, requestJson)
 
         # Deserialize the response
         try:
@@ -323,7 +317,7 @@ struct ApplicationConfig
                 wsgi_errors)
 
     # Make an HTTP request on this application
-    def callRaw(self, method, url, data = None, scriptFilename = None):
+    def callRaw(self, method, url, data = None):
 
         # Test WSGI environment
         environ = {
@@ -332,8 +326,6 @@ struct ApplicationConfig
             "wsgi.input": StringIO(data if data is not None else ""),
             "wsgi.errors": StringIO()
             }
-        if scriptFilename is not None:
-            environ["SCRIPT_FILENAME"] = scriptFilename
         if data is not None:
             environ["CONTENT_LENGTH"] = str(len(data))
 
