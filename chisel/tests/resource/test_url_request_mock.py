@@ -42,6 +42,9 @@ class TestResourceUrlRequestMock(unittest.TestCase):
         response = request.send("?a=1&b=2")
         self.assertEqual(response, "response3.5")
 
+        # Close the request (does nothing)
+        urlRequestType.close(request)
+
         request = urlRequestType.open("http://myhost.com/mypath/myresource")
 
         # GET (no trailing slash, replace resource)
@@ -63,6 +66,9 @@ class TestResourceUrlRequestMock(unittest.TestCase):
         urlRequests.addResponse("http://myhost.com/mypath/myresource?a=1&b=2", "response6.5")
         response = request.send("?a=1&b=2")
         self.assertEqual(response, "response6.5")
+
+        # Close the request (does nothing)
+        urlRequestType.close(request)
 
         request = urlRequestType.open("http://myhost.com/mypath/")
 
@@ -98,6 +104,9 @@ class TestResourceUrlRequestMock(unittest.TestCase):
         self.assertEqual(len(urlRequests["http://myhost.com/mypath/?a=1&b=2"]), 1)
         self.assertEqual(len(urlRequests["http://myhost.com/mypath/myresource"]), 1)
         self.assertEqual(len(urlRequests["http://myhost.com/mypath/myresource?a=1&b=2"]), 1)
+
+        # Close the request (does nothing)
+        urlRequestType.close(request)
 
         request = urlRequests["http://myhost.com/mypath/myurl"][0]
         self.assertEqual(request.headers, [])

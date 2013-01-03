@@ -6,20 +6,18 @@
 
 from ..app import ResourceType
 
-import pyodbc
 
+# pyodbc.connect resource type mock
+class PyodbcConnectResourceTypeMock(ResourceType):
 
-# pyodbc.connect resource type
-class PyodbcConnectResourceType(ResourceType):
+    def __init__(self, executeCallback):
 
-    def __init__(self, autocommit = True):
-
-        self.autocommit = autocommit
+        self._executeCallback = executeCallback
         ResourceType.__init__(self, "pyodbc_connect", self._open, self._close)
 
     def _open(self, resourceString):
 
-        return pyodbc.connect(resourceString, autocommit = self.autocommit)
+        return None
 
     def _close(self, resource):
 

@@ -19,9 +19,9 @@ class UrlRequestResourceTypeMock(ResourceType):
     def __init__(self, sendCallback):
 
         self.sendCallback = sendCallback
-        ResourceType.__init__(self, "url_request", self.createResource, None)
+        ResourceType.__init__(self, "url_request", self._open, None)
 
-    def createResource(self, resourceString):
+    def _open(self, resourceString):
 
         return UrlRequestResourceMock(resourceString, self.sendCallback)
 

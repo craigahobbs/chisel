@@ -4,14 +4,14 @@
 # See README.md for license.
 #
 
-# Replace Python's urllib2 with mock
+# Replace urllib2 with mock
 import sys
 import urllib2
 sys.modules["urllib2"] = urllib2
 
 from chisel.resource.url_request import UrlRequestResourceType
 
-# Restore Python's urllib2
+# Restore urllib2
 del sys.modules["urllib2"]
 
 import unittest

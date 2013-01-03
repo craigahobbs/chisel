@@ -9,7 +9,7 @@ import sys
 import pyodbc
 sys.modules["pyodbc"] = pyodbc
 
-from chisel.resource.pyodbc_connect import PyodbcResourceType
+from chisel.resource.pyodbc_connect import PyodbcConnectResourceType
 
 # Restore pyodbc
 del sys.modules["pyodbc"]
@@ -17,15 +17,15 @@ del sys.modules["pyodbc"]
 import unittest
 
 
-# Test PyodbcResource functionality
-class TestResourcePyodbc(unittest.TestCase):
+# Test PyodbcConnectResource functionality
+class TestResourcePyodbcConnect(unittest.TestCase):
 
-    # Test PyodbcResource usage
-    def test_resource_url_request(self):
+    # Test PyodbcConnectResource usage
+    def test_resource_pyodbc_connect(self):
 
         # Create the resource type (default autocommit)
-        resourceType = PyodbcResourceType()
-        self.assertEqual(resourceType.name, "pyodbc")
+        resourceType = PyodbcConnectResourceType()
+        self.assertEqual(resourceType.name, "pyodbc_connect")
 
         # Create a resource
         resource = resourceType.open("MyConnectionString")
@@ -36,8 +36,8 @@ class TestResourcePyodbc(unittest.TestCase):
         self.assertTrue(resource.isClosed)
 
         # Create the resource type (autocommit = False)
-        resourceType = PyodbcResourceType(autocommit = False)
-        self.assertEqual(resourceType.name, "pyodbc")
+        resourceType = PyodbcConnectResourceType(autocommit = False)
+        self.assertEqual(resourceType.name, "pyodbc_connect")
 
         # Create a resource
         resource = resourceType.open("MyConnectionString2")
