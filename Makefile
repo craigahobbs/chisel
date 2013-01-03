@@ -6,6 +6,7 @@
 #
 
 PACKAGE_NAME = chisel
+PACKAGE_TESTS = $(PACKAGE_NAME)/tests
 
 # Local directories
 ENV = env
@@ -19,7 +20,7 @@ PYTHON_VERSIONS = \
 # Run unit tests
 .PHONY: test
 test:
-	python -m chisel.test.__main__ $(if $(VERBOSE),-v,);
+	python -m unittest discover -t . -s $(PACKAGE_TESTS) -p 'test_*.py' $(if $(VERBOSE),-v,)
 
 # Pre-checkin check
 .PHONY: check
@@ -28,11 +29,7 @@ check:
 		rm -rf $(ENV)/$(V); \
 		virtualenv -p python$(V) $(ENV)/$(V); \
 		. $(ENV)/$(V)/bin/activate; \
-		pip install .; \
-		POPD=$(abspath $(shell pwd)); \
-		cd $(ENV); \
-		python -m chisel.test.__main__ $(if $(VERBOSE),-v,); \
-		cd $$POPD; \
+		python setup.py test; \
 	)
 
 # Run code coverage
@@ -40,7 +37,7 @@ check:
 cover: $(ENV)/cover
 	-rm -rf $(COVER)
 	. $(ENV)/cover/bin/activate; \
-		nosetests -w $(PACKAGE_NAME)/test --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
+		nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
 			--cover-html --cover-html-dir=$(abspath $(COVER))
 	@echo
 	@echo Coverage report is $(COVER)/index.html
