@@ -37,7 +37,7 @@ class TestResourcePyodbcConnect(unittest.TestCase):
 
         # Create the resource type (autocommit = False)
         resourceType = PyodbcConnectResourceType(autocommit = False)
-        self.assertEqual(resourceType.name, "pyodbc_connect")
+        self.assertEqual(resourceType.name, "pyodbc_connect_noautocommit")
 
         # Create a resource
         resource = resourceType.open("MyConnectionString2")

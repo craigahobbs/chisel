@@ -10,10 +10,12 @@ from ..app import ResourceType
 # pyodbc.connect resource type mock
 class PyodbcConnectResourceTypeMock(ResourceType):
 
-    def __init__(self, executeCallback):
+    def __init__(self, executeCallback, autocommit = True):
 
         self._executeCallback = executeCallback
-        ResourceType.__init__(self, "pyodbc_connect", self._open, self._close)
+        self.autocommit = autocommit
+        resourceTypeName = "pyodbc_connect" if autocommit else "pyodbc_connect_noautocommit"
+        ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
     def _open(self, resourceString):
 

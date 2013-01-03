@@ -15,7 +15,8 @@ class PyodbcConnectResourceType(ResourceType):
     def __init__(self, autocommit = True):
 
         self.autocommit = autocommit
-        ResourceType.__init__(self, "pyodbc_connect", self._open, self._close)
+        resourceTypeName = "pyodbc_connect" if autocommit else "pyodbc_connect_noautocommit"
+        ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
     def _open(self, resourceString):
 
