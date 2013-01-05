@@ -9,7 +9,7 @@ from ..app import ResourceType
 import pyodbc
 
 
-# pyodbc.connect resource type
+# pyodbc_connect resource type
 class PyodbcConnectResourceType(ResourceType):
 
     def __init__(self, autocommit = True):
@@ -20,8 +20,35 @@ class PyodbcConnectResourceType(ResourceType):
 
     def _open(self, resourceString):
 
-        return pyodbc.connect(resourceString, autocommit = self.autocommit)
+        return PyodbcConnectResource(resourceString, self.autocommit)
 
     def _close(self, resource):
 
         resource.close()
+
+
+# pyodbc_connect resource
+class PyodbcConnectResource:
+
+    DatabaseError = pyodbc.DatabaseError
+    DataError = pyodbc.DataError
+    OperationalError = pyodbc.OperationalError
+    IntegrityError = pyodbc.IntegrityError
+    InternalError = pyodbc.InternalError
+    ProgrammingError = pyodbc.ProgrammingError
+
+    def __init__(self, resourceString, autocommit):
+
+        self._connection = pyodbc.connect(resourceString, autocommit)
+
+    def close(self):
+
+        self._connection.close()
+
+    def cursor(self):
+
+        return self._connection.cursor()
+
+    def execute(self, query, *args):
+
+        return self._connection.execute(query, *args)

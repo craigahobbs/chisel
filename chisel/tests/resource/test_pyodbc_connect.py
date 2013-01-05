@@ -27,22 +27,30 @@ class TestResourcePyodbcConnect(unittest.TestCase):
         resourceType = PyodbcConnectResourceType()
         self.assertEqual(resourceType.name, "pyodbc_connect")
 
-        # Create a resource
-        resource = resourceType.open("MyConnectionString")
-        self.assertEqual(resource.connectionString, "MyConnectionString")
-        self.assertTrue(resource.autocommit)
-        self.assertTrue(not resource.isClosed)
-        resourceType.close(resource)
-        self.assertTrue(resource.isClosed)
+        # Create a connection
+        conn = resourceType.open("MyConnectionString")
+        self.assertEqual(conn._connection.connectionString, "MyConnectionString")
+        self.assertTrue(conn._connection.autocommit)
+        self.assertTrue(not conn._connection.isClosed)
+
+        # Create a cursor and execute
+        conn.cursor()
+        conn.execute("MyQuery ? ? ?", 1, 2, 3)
+
+        # Close the connection
+        resourceType.close(conn)
+        self.assertTrue(conn._connection.isClosed)
 
         # Create the resource type (autocommit = False)
         resourceType = PyodbcConnectResourceType(autocommit = False)
         self.assertEqual(resourceType.name, "pyodbc_connect_noautocommit")
 
-        # Create a resource
-        resource = resourceType.open("MyConnectionString2")
-        self.assertEqual(resource.connectionString, "MyConnectionString2")
-        self.assertTrue(not resource.autocommit)
-        self.assertTrue(not resource.isClosed)
-        resourceType.close(resource)
-        self.assertTrue(resource.isClosed)
+        # Create a connection
+        conn = resourceType.open("MyConnectionString2")
+        self.assertEqual(conn._connection.connectionString, "MyConnectionString2")
+        self.assertTrue(not conn._connection.autocommit)
+        self.assertTrue(not conn._connection.isClosed)
+
+        # Close the connection
+        resourceType.close(conn)
+        self.assertTrue(conn._connection.isClosed)

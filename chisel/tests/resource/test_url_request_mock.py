@@ -4,7 +4,7 @@
 # See README.md for license.
 #
 
-from chisel.resource.url_request_mock import UrlRequestResourceTypeMock, RecordingSendCallback
+from chisel.resource.url_request_mock import UrlRequestResourceTypeMock, SimpleSendCallback
 
 import unittest
 
@@ -16,7 +16,7 @@ class TestResourceUrlRequestMock(unittest.TestCase):
     def test_resource_url_request_mock(self):
 
         # Create the resource type
-        urlRequests = RecordingSendCallback()
+        urlRequests = SimpleSendCallback()
         urlRequestType = UrlRequestResourceTypeMock(urlRequests)
         self.assertEqual(urlRequestType.name, "url_request")
 

@@ -70,8 +70,8 @@ class UrlRequestResourceMock:
         self.unredirected_header.append((key, val))
 
 
-# Simple recording send callback
-class RecordingSendCallback:
+# Simple, recording send callback
+class SimpleSendCallback:
 
     def __init__(self):
 

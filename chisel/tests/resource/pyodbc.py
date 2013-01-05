@@ -5,6 +5,29 @@
 #
 
 
+# Mock pyodbc exceptions
+class Error(StandardError):
+    pass
+
+class DatabaseError(Error):
+    pass
+
+class DataError(DatabaseError):
+    pass
+
+class OperationalError(DatabaseError):
+    pass
+
+class IntegrityError(DatabaseError):
+    pass
+
+class InternalError(DatabaseError):
+    pass
+
+class ProgrammingError(DatabaseError):
+    pass
+
+
 # Mock pyodbc.Connection
 class Connection:
 
@@ -17,6 +40,14 @@ class Connection:
     def close(self):
 
         self.isClosed = True
+
+    def cursor(self):
+
+        return None
+
+    def execute(self, query, *args):
+
+        return None
 
 
 # Mock pyodbc.connect
