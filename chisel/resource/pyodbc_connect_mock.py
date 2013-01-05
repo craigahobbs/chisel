@@ -203,7 +203,7 @@ class PyodbcCursorMock:
         try:
             return self.next()
         except StopIteration:
-            raise self.connection.ProgrammingError()
+            return None
 
     def __iter__(self):
 

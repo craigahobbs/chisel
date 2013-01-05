@@ -172,12 +172,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         self.assertEqual(rows[1][0], 6)
 
         # Too many fetchone calls
-        try:
-            cursor.fetchone()
-        except conn.ProgrammingError:
-            pass
-        else:
-            self.fail()
+        self.assertEqual(cursor.fetchone(), None)
 
         # Too many nextset calls
         try:
