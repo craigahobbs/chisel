@@ -85,7 +85,9 @@ class SimpleSendCallback:
         self.responses[url].append((isSuccess, responseData))
 
     class Request:
+
         def __init__(self, headers, unredirected_headers, requestData, isSuccess, responseData):
+
             self.headers = headers
             self.unredirected_headers = unredirected_headers
             self.requestData = requestData
@@ -95,13 +97,16 @@ class SimpleSendCallback:
     def __call__(self, url, headers, unredirected_headers, requestData):
 
         if url in self.responses and len(self.responses[url]) > 0:
+
             isSuccess, responseData = self.responses[url].pop(0)
             if url not in self.requests:
                 self.requests[url] = []
             self.requests[url].append(self.Request(headers, unredirected_headers, requestData,
                                                    isSuccess, responseData))
             return isSuccess, responseData
+
         else:
+
             return False, None
 
     def __len__(self):
