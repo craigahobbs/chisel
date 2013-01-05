@@ -215,8 +215,10 @@ class PyodbcCursorMock:
             raise self.connection.ProgrammingError()
         if self.isCommit:
             raise self.connection.ProgrammingError()
+        if self.rowSets is None:
+            raise self.connection.ProgrammingError()
 
-        if self.ixRow >= len(self.rowSets[self.ixRowSet]):
+        if self.ixRowSet >= len(self.rowSets) or self.ixRow >= len(self.rowSets[self.ixRowSet][1]):
             raise StopIteration
 
         rowSet = self.rowSets[self.ixRowSet]
