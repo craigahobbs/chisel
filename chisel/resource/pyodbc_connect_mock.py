@@ -233,6 +233,7 @@ class SimpleExecuteCallback:
     def __init__(self):
 
         self.executes = {}
+        self.executeCount = 0
 
     def addRowSets(self, query, args, rowSets):
 
@@ -248,6 +249,7 @@ class SimpleExecuteCallback:
 
         key = (query, args)
         if key in self.executes and len(self.executes[key]) > 0:
+            self.executeCount += 1
             return self.executes[key].pop(0)
         else:
             raise PyodbcConnectionMock.DatabaseError()

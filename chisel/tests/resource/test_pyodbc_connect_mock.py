@@ -45,11 +45,13 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             pass
         else:
             self.fail()
+        self.assertEqual(rowSets.executeCount, 0)
 
         # Test execute cursor iteration
         rows = []
         for row in conn.execute("MyQuery ? ? ?", 1, 2, 3):
             rows.append(row)
+        self.assertEqual(rowSets.executeCount, 1)
         self.assertEqual(rows[0].a, 1)
         self.assertEqual(rows[0][0], 1)
         self.assertEqual(rows[0].b, 2)
@@ -71,6 +73,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             pass
         else:
             self.fail()
+        self.assertEqual(rowSets.executeCount, 1)
 
         # Test failure after close
         resourceType.close(conn)
@@ -96,6 +99,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             pass
         else:
             self.fail()
+        self.assertEqual(rowSets.executeCount, 1)
 
     # Test PyodbcCursorMock
     def test_resource_pyodbc_connect_mock_cursor(self):
@@ -136,6 +140,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         rows = []
         for row in cursor:
             rows.append(row)
+        self.assertEqual(rowSets.executeCount, 1)
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0].a, 1)
         self.assertEqual(rows[0][0], 1)
@@ -189,6 +194,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             pass
         else:
             self.fail()
+        self.assertEqual(rowSets.executeCount, 1)
 
         # Close the cursor
         cursor.close()
@@ -196,6 +202,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Reuse connection
         cursor = conn.execute("MyOtherQuery ?", 4)
+        self.assertEqual(rowSets.executeCount, 2)
 
         # Don't commit autocommit connections
         try:
@@ -216,6 +223,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             pass
         else:
             self.fail()
+        self.assertEqual(rowSets.executeCount, 2)
 
         try:
             cursor.fetchone()
@@ -269,6 +277,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         # Exectute, commit
         cursor.execute("MyQuery ?", 1)
         cursor.commit()
+        self.assertEqual(rowSets.executeCount, 1)
 
         # Don't commit more than once
         try:
