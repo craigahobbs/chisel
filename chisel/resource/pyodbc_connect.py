@@ -39,7 +39,7 @@ class PyodbcConnectResource:
 
     def __init__(self, resourceString, autocommit):
 
-        self._connection = pyodbc.connect(resourceString, autocommit)
+        self._connection = pyodbc.connect(resourceString, autocommit = autocommit)
 
     def close(self):
 
