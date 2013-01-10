@@ -100,14 +100,21 @@ class TestAppApplication(unittest.TestCase):
 
         # Call action again
         status, headers, response, logOutput = app.callAction("myAction2", { "value": 8 })
+        self.assertEqual(response, { "result": 72 })
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(response, { "result": 72 })
         self.assertEqual(logOutput, "In myAction2\n")
 
         # HTTP error
         status, headers, response, logOutput = app.callAction("unknownAction", {})
+        self.assertEqual(response, "Not Found")
         self.assertEqual(status, "404 Not Found")
         self.assertTrue(('Content-Type', 'text/plain') in headers)
-        self.assertEqual(response, "Not Found")
         self.assertEqual(logOutput, "")
+
+        # Call action with environ
+        status, headers, response, logOutput = app.callAction("myAction2", { "value": 9 }, environ = { "MYENVIRON": "10" })
+        self.assertEqual(response, { "result": 90 })
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+        self.assertEqual(logOutput, "In myAction2\n")

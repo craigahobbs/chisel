@@ -300,14 +300,14 @@ struct ApplicationConfig
         httpd.serve_forever()
 
     # Call an action on this application
-    def callAction(self, actionName, request):
+    def callAction(self, actionName, request, environ = None):
 
         # Serialize the request
         requestJson = json.dumps(request)
 
         # Call the action
         status, responseHeaders, responseString, wsgi_errors = \
-            self.callRaw("POST", "/" + actionName, requestJson)
+            self.callRaw("POST", "/" + actionName, requestJson, environ = environ)
 
         # Deserialize the response
         try:
@@ -321,27 +321,30 @@ struct ApplicationConfig
                 wsgi_errors)
 
     # Make an HTTP request on this application
-    def callRaw(self, method, url, data = None):
+    def callRaw(self, method, url, data = None, environ = None):
 
         # Test WSGI environment
-        environ = {
+        _environ = {
             "REQUEST_METHOD": method,
             "PATH_INFO": url,
             "wsgi.input": StringIO(data if data is not None else ""),
             "wsgi.errors": StringIO()
             }
         if data is not None:
-            environ["CONTENT_LENGTH"] = str(len(data))
+            _environ["CONTENT_LENGTH"] = str(len(data))
+        if environ is not None:
+            for key, value in environ.iteritems():
+                _environ[key] = value
 
         # Call the action
         startResponseArgs = {}
         def startResponse(status, responseHeaders):
             startResponseArgs["status"] = status
             startResponseArgs["responseHeaders"] = responseHeaders
-        responseParts = self(environ, startResponse)
+        responseParts = self(_environ, startResponse)
         responseString = "".join(responseParts)
 
         return (startResponseArgs["status"],
                 startResponseArgs["responseHeaders"],
                 responseString,
-                environ["wsgi.errors"].getvalue())
+                _environ["wsgi.errors"].getvalue())

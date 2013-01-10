@@ -17,5 +17,12 @@ def myAction(ctx, req):
 @chisel.action
 def myAction2(ctx, request):
     ctx.log.info("In myAction2")
+
     with ctx.resources.myresource() as resource:
-        return { "result": request.value * resource }
+
+        if ctx.environ.MYENVIRON:
+            multiplier = int(ctx.environ.MYENVIRON)
+        else:
+            multiplier = resource
+
+        return { "result": request.value * multiplier }
