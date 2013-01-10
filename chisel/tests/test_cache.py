@@ -75,7 +75,7 @@ class TestCache(unittest.TestCase):
 
         # Define the cache
         self.setNow(5)
-        cache = chisel.Cache(ttl = 10, nowFn = self.nowFn)
+        cache = chisel.Cache(ttl = 10, getMultipleKeys = True, nowFn = self.nowFn)
         self.assertTrue(not cache._isExpired(updateExpire = False))
         self.assertEqual(cache._expire, self.makeNow(20))
 
@@ -137,16 +137,12 @@ class TestCache(unittest.TestCase):
         # Create the cache
         self.setNow(5)
         @chisel.Cache(ttl = 10)
-        def myCache(keys, arg1, arg2):
-            result = {}
-            for key in keys:
-                if key in ("a",):
-                    result["a"] = arg1
-                elif key in ("b", "c"):
-                    result["b"] = arg2
-                    result["c"] = arg2 * 10
-            return result
+        def myCache(key, arg1, arg2):
+            if key in ("a",):
+                return arg1
+            else:
+                return arg2
 
         # Get the initial cache values
-        self.assertEqual(myCache(["a"], 1, 2), {"a": 1})
-        self.assertEqual(myCache(["a", "b"], 3, 2), {"a": 1, "b": 2})
+        self.assertEqual(myCache("a", 1, 2), 1)
+        self.assertEqual(myCache("b", 3, 2), 2)

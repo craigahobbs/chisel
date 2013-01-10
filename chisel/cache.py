@@ -15,10 +15,11 @@ import threading
 # Simple TTL cache decorator object
 class Cache:
 
-    def __init__(self, ttl, nowFn = None):
+    def __init__(self, ttl, getMultipleKeys = False, nowFn = None):
 
         self._ttl = ttl if isinstance(ttl, timedelta) else timedelta(seconds = ttl)
         self._ttlSeconds = self._timedelta_total_seconds(self._ttl)
+        self._getMultipleKeys = getMultipleKeys
         self._nowFn = nowFn
         self._cacheLock = threading.Lock()
         self._cache = {}
@@ -32,7 +33,10 @@ class Cache:
     def __call__(self, updateFn):
 
         def get(keys, *args):
-            return self._get(updateFn, keys, args)
+            if self._getMultipleKeys:
+                return self._get(updateFn, keys, args)
+            else:
+                return self._get(updateFn, [keys], args)[keys]
         return get
 
     @staticmethod
@@ -125,7 +129,10 @@ class Cache:
 
         # Call the update function
         try:
-            result = updateFn(keys, *args)
+            if self._getMultipleKeys:
+                result = updateFn(keys, *args)
+            else:
+                result = { keys[0]: updateFn(keys[0], *args) }
         except:
             # The update function raised - cleanup the update threads dict
             for key in keys:
