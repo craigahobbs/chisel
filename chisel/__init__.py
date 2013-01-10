@@ -8,7 +8,7 @@ __all__ = ["api", "app", "model", "spec", "struct", "url"]
 
 from .api import Action, Action as action, ActionError
 from .app import Application, ResourceType
-from .cache import Cache
+from .cache import Cache, Cache as cache
 from .model import ValidationError
 from .spec import SpecParser, SpecParserError
 from .struct import Struct

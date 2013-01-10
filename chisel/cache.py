@@ -15,11 +15,12 @@ import threading
 # Simple TTL cache decorator object
 class Cache:
 
-    def __init__(self, ttl, getMultipleKeys = False, nowFn = None):
+    def __init__(self, ttl, multipleKeys = False, keyArg = 0, nowFn = None):
 
         self._ttl = ttl if isinstance(ttl, timedelta) else timedelta(seconds = ttl)
         self._ttlSeconds = self._timedelta_total_seconds(self._ttl)
-        self._getMultipleKeys = getMultipleKeys
+        self._multipleKeys = multipleKeys
+        self._keyArg = keyArg
         self._nowFn = nowFn
         self._cacheLock = threading.Lock()
         self._cache = {}
@@ -32,11 +33,8 @@ class Cache:
 
     def __call__(self, updateFn):
 
-        def get(keys, *args):
-            if self._getMultipleKeys:
-                return self._get(updateFn, keys, args)
-            else:
-                return self._get(updateFn, [keys], args)[keys]
+        def get(*args):
+            return self._get(updateFn, args)
         return get
 
     @staticmethod
@@ -62,9 +60,15 @@ class Cache:
 
         return isExpired
 
-    def _get(self, updateFn, keys, args):
+    def _get(self, updateFn, args):
 
         result = {}
+
+        # Get the keys argument
+        if self._multipleKeys:
+            keys = args[self._keyArg]
+        else:
+            keys = (args[self._keyArg],)
 
         # Lock the cache...
         with self._cacheLock:
@@ -101,7 +105,7 @@ class Cache:
 
             # Start threads to update expired or unknown values
             if keysUpdate:
-                updateThread = threading.Thread(target = lambda: self._updateKey(updateFn, list(keysUpdate), args))
+                updateThread = threading.Thread(target = lambda: self._updateKey(updateFn, tuple(keysUpdate), args))
                 for key in keysUpdate:
                     self._updateThreads[key] = updateThread
                 updateThread.start()
@@ -123,16 +127,23 @@ class Cache:
             valuePickle = self._cache[key]
             result[key] = pickle.loads(valuePickle)
 
-        return result
+        # Return the result
+        if self._multipleKeys:
+            return result
+        else:
+            return result[keys[0]]
 
     def _updateKey(self, updateFn, keys, args):
 
         # Call the update function
         try:
-            if self._getMultipleKeys:
-                result = updateFn(keys, *args)
+            if self._multipleKeys:
+                updateArgs = args[:self._keyArg] + (keys,) + args[self._keyArg + 1:]
+                result = updateFn(*updateArgs)
+                assert isinstance(result, dict), "Multiple-key cache update functions must return dict"
             else:
-                result = { keys[0]: updateFn(keys[0], *args) }
+                updateArgs = args[:self._keyArg] + keys + args[self._keyArg + 1:]
+                result = { keys[0]: updateFn(*updateArgs) }
         except:
             # The update function raised - cleanup the update threads dict
             for key in keys:

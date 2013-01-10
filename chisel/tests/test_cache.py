@@ -31,7 +31,7 @@ class TestCache(unittest.TestCase):
 
         # Test sub-day ttl
         self.setNow(5)
-        cache = chisel.Cache(ttl = 10, nowFn = self.nowFn)
+        cache = chisel.cache(ttl = 10, nowFn = self.nowFn)
         self.assertTrue(not cache._isExpired())
         self.assertEqual(cache._expire, self.makeNow(20))
         self.setNow(19)
@@ -46,7 +46,7 @@ class TestCache(unittest.TestCase):
 
         # Test ttl of more than a day
         self.setNow(5)
-        cache = chisel.Cache(ttl = timedelta(days = 1, seconds = 10), nowFn = self.nowFn)
+        cache = chisel.cache(ttl = timedelta(days = 1, seconds = 10), nowFn = self.nowFn)
         self.assertTrue(not cache._isExpired())
         self.assertEqual(cache._expire, self.makeNow(10) + timedelta(days = 1))
         self.setNow(9, d = 1)
@@ -75,7 +75,7 @@ class TestCache(unittest.TestCase):
 
         # Define the cache
         self.setNow(5)
-        cache = chisel.Cache(ttl = 10, getMultipleKeys = True, nowFn = self.nowFn)
+        cache = chisel.cache(ttl = 10, multipleKeys = True, nowFn = self.nowFn)
         self.assertTrue(not cache._isExpired(updateExpire = False))
         self.assertEqual(cache._expire, self.makeNow(20))
 
@@ -85,22 +85,22 @@ class TestCache(unittest.TestCase):
                 thread.join()
 
         # Get the initial cache values
-        self.assertEqual(cache._get(myCache, ["a"], (1, 2)), {"a": 1})
+        self.assertEqual(cache._get(myCache, (("a",), 1, 2)), {"a": 1})
         self.assertEqual(len(cache._updateThreads), 0)
-        self.assertEqual(cache._get(myCache, ["a", "b"], (3, 2)), {"a": 1, "b": 2})
+        self.assertEqual(cache._get(myCache, (("a", "b"), 3, 2)), {"a": 1, "b": 2})
         self.assertEqual(len(cache._updateThreads), 0)
-        self.assertEqual(cache._get(myCache, ["a", "b", "c"], (3, 4)), {"a": 1, "b": 2, "c": 20})
+        self.assertEqual(cache._get(myCache, (("a", "b", "c"), 3, 4)), {"a": 1, "b": 2, "c": 20})
         self.assertEqual(len(cache._updateThreads), 0)
-        self.assertEqual(cache._get(myCache, ["b"], (3, 4)), {"b": 2})
+        self.assertEqual(cache._get(myCache, (("b",), 3, 4)), {"b": 2})
         self.assertEqual(len(cache._updateThreads), 0)
-        self.assertEqual(cache._get(myCache, ["c"], (3, 4)), {"c": 20})
+        self.assertEqual(cache._get(myCache, (("c",), 3, 4)), {"c": 20})
         self.assertEqual(len(cache._updateThreads), 0)
         self.assertEqual(cache._cacheOld, {})
         self.assertEqual(cache._cache, {"a": pickle.dumps(1), "b": pickle.dumps(2), "c": pickle.dumps(20)})
 
         # Missing value
         try:
-            cache._get(myCache, ["d"], (3, 4))
+            cache._get(myCache, (("d",), 3, 4))
         except KeyError:
             pass
         else:
@@ -111,10 +111,10 @@ class TestCache(unittest.TestCase):
         self.setNow(21)
         self.assertTrue(cache._isExpired(updateExpire = False))
         self.assertEqual(cache._expire, self.makeNow(20))
-        self.assertEqual(cache._get(myCache, ["a"], (3, 4)), {"a": 1})
+        self.assertEqual(cache._get(myCache, (("a",), 3, 4)), {"a": 1})
         flushThreads()
         self.assertEqual(cache._expire, self.makeNow(30))
-        self.assertEqual(cache._get(myCache, ["a"], (5, 6)), {"a": 3})
+        self.assertEqual(cache._get(myCache, (("a",), 5, 6)), {"a": 3})
         self.assertEqual(len(cache._updateThreads), 0)
         self.assertEqual(cache._cacheOld, {"a": pickle.dumps(1), "b": pickle.dumps(2), "c": pickle.dumps(20)})
         self.assertEqual(cache._cache, {"a": pickle.dumps(3)})
@@ -123,10 +123,10 @@ class TestCache(unittest.TestCase):
         self.setNow(31)
         self.assertTrue(cache._isExpired(updateExpire = False))
         self.assertEqual(cache._expire, self.makeNow(30))
-        self.assertEqual(cache._get(myCache, ["b"], (5, 6)), {"b": 6})
+        self.assertEqual(cache._get(myCache, (("b",), 5, 6)), {"b": 6})
         self.assertEqual(len(cache._updateThreads), 0)
         self.assertEqual(cache._expire, self.makeNow(40))
-        self.assertEqual(cache._get(myCache, ["b", "c"], (5, 6)), {"b": 6, "c": 60})
+        self.assertEqual(cache._get(myCache, (("b", "c"), 5, 6)), {"b": 6, "c": 60})
         self.assertEqual(len(cache._updateThreads), 0)
         self.assertEqual(cache._cacheOld, {"a": pickle.dumps(3)})
         self.assertEqual(cache._cache, {"b": pickle.dumps(6), "c": pickle.dumps(60)})
@@ -136,7 +136,7 @@ class TestCache(unittest.TestCase):
 
         # Create the cache
         self.setNow(5)
-        @chisel.Cache(ttl = 10)
+        @chisel.cache(ttl = 10)
         def myCache(key, arg1, arg2):
             if key in ("a",):
                 return arg1
@@ -145,4 +145,38 @@ class TestCache(unittest.TestCase):
 
         # Get the initial cache values
         self.assertEqual(myCache("a", 1, 2), 1)
+        self.assertEqual(myCache("a", 3, 2), 1)
         self.assertEqual(myCache("b", 3, 2), 2)
+        self.assertEqual(myCache("b", 3, 4), 2)
+
+        # Create the cache with non-zero keyArg
+        self.setNow(5)
+        @chisel.cache(ttl = 10, keyArg = 2)
+        def myCache(arg1, arg2, key):
+            if key in ("a",):
+                return arg1
+            else:
+                return arg2
+
+        # Get the initial cache values
+        self.assertEqual(myCache(1, 2, "a"), 1)
+        self.assertEqual(myCache(3, 2, "a"), 1)
+        self.assertEqual(myCache(3, 2, "b"), 2)
+        self.assertEqual(myCache(3, 4, "b"), 2)
+
+        # Create the multiple-key cache with non-zero keyArg
+        self.setNow(5)
+        @chisel.cache(ttl = 10, multipleKeys = True, keyArg = 2)
+        def myCache(arg1, arg2, keys):
+            result = {}
+            for key in keys:
+                if key in ("a",):
+                    result[key] = arg1
+                else:
+                    result[key] = arg2
+            return result
+
+        # Get the initial cache values
+        self.assertEqual(myCache(1, 2, ("a",)), {"a": 1})
+        self.assertEqual(myCache(3, 2, ("a", "b")), {"a": 1, "b": 2})
+        self.assertEqual(myCache(3, 4, ("a", "b")), {"a": 1, "b": 2})
