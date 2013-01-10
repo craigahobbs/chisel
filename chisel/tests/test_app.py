@@ -7,7 +7,10 @@
 from chisel import Application, ResourceType
 
 import os
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import unittest
 
 

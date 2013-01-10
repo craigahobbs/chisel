@@ -11,7 +11,10 @@ import json
 import logging
 import os
 import re
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 import unittest
 import wsgiref.util
 
@@ -54,13 +57,13 @@ class TestApiLoadModules(unittest.TestCase):
 class TestApiRequest(unittest.TestCase):
 
     # Request/response helper
-    def sendRequest(self, app, method, pathInfo, contentLength, request, queryString = None, decodeJSON = True):
+    def sendRequest(self, app, method, pathInfo, contentLength, request = None, queryString = None, decodeJSON = True):
 
         # WSGI environment
         environ = {
             "REQUEST_METHOD": method,
             "PATH_INFO": pathInfo,
-            "wsgi.input": StringIO(request)
+            "wsgi.input": StringIO("" if request is None else request)
             }
         if queryString is not None:
             environ["QUERY_STRING"] = queryString

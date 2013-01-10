@@ -4,7 +4,10 @@
 # See README.md for license.
 #
 
-from StringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 
 
 # Mock urllib2.Request

@@ -20,7 +20,7 @@ from wsgiref.util import application_uri
 
 
 # API callback decorator - used to identify action callback functions during module loading
-class actionDecorator:
+class Action:
 
     def __init__(self, fn):
 
@@ -130,7 +130,7 @@ class Application:
                     # Add the module's actions
                     for moduleAttr in dir(module):
                         actionDecoratorInst = getattr(module, moduleAttr)
-                        if isinstance(actionDecoratorInst, actionDecorator):
+                        if isinstance(actionDecoratorInst, Action):
                             self.addActionCallback(actionDecoratorInst.fn, actionName = actionDecoratorInst.name)
 
     # Recursively load all specs in a directory
