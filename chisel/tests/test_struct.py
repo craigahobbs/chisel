@@ -6,6 +6,10 @@
 
 from chisel import Struct
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import unittest
 
 
@@ -153,50 +157,88 @@ class TestStruct(unittest.TestCase):
     # Test iterator behavior
     def test_struct_iter(self):
 
-        s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3], e = (1,2,3))
+        s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3,None], e = (1,2,3,None), f = None)
 
-        m = [ k for k in s ]
-        self.assertEqual(len(m), 5)
-        self.assertTrue("a" in m)
-        self.assertTrue("b" in m)
-        self.assertTrue("c" in m)
-        self.assertTrue("d" in m)
-        self.assertTrue("e" in m)
+        self.assertEqual(len(s), 6)
+        for k, v in s:
+            if k == "a":
+                self.assertEqual(v, 17)
+            elif k == "b":
+                self.assertEqual(v, 19)
+            elif k == "c":
+                self.assertTrue(isinstance(v, Struct))
+                self.assertEqual(len(v), 2)
+                self.assertEqual(v[0].a, 1)
+                self.assertEqual(v[1].b, 2)
+            elif k == "d":
+                self.assertTrue(isinstance(v, Struct))
+                self.assertEqual(len(v), 4)
+                self.assertEqual(v[0], 1)
+                self.assertEqual(v[1], 2)
+                self.assertEqual(v[2], 3)
+                self.assertEqual(v[3], None)
+            elif k == "e":
+                self.assertTrue(isinstance(v, Struct))
+                self.assertEqual(len(v), 4)
+                self.assertEqual(v[0], 1)
+                self.assertEqual(v[1], 2)
+                self.assertEqual(v[2], 3)
+                self.assertEqual(v[3], None)
+            elif k == "f":
+                self.assertEqual(v, None)
+            else:
+                self.fail()
 
-        mc = [v for v in s.c]
-        self.assertEqual(mc, [{"a": 1}, {"b": 2}])
+        for v in s.c:
+            if "a" in v:
+                self.assertEqual(v.a, 1)
+            elif "b" in v:
+                self.assertEqual(v.b, 2)
+            else:
+                self.fail()
 
-        md = [v for v in s.d]
-        self.assertEqual(md, [1,2,3])
+        self.assertEqual([v for v in s.d], [1,2,3,None])
 
-        me = [v for v in s.e]
-        self.assertEqual(me, [1,2,3])
+        self.assertEqual([v for v in s.e], [1,2,3,None])
 
     # Test that set to None does del
     def test_struct_none(self):
 
         s = Struct(a = 17, b = 19, c = [1,2,3], d = (1,2,3))
 
+        self.assertEqual(len(s), 4)
         self.assertEqual(s.a, 17)
         s.a = None
         self.assertEqual(s.a, None)
         self.assertFalse("a" in s)
 
+        self.assertEqual(len(s), 3)
         self.assertEqual(s.b, 19)
-        s["b"] = None
+        del s["b"]
         self.assertEqual(s.b, None)
         self.assertFalse("b" in s)
 
+        self.assertEqual(len(s), 2)
         self.assertEqual(len(s.c), 3)
         self.assertEqual(s.c[1], 2)
-        s.c[1] = None
+        del s.c[1]
         self.assertEqual(len(s.c), 2)
         self.assertEqual(s.c[1], 3)
+        s.c[1] = None
+        self.assertEqual(len(s.c), 2)
+        self.assertEqual(s.c[1], None)
 
+        self.assertEqual(len(s), 2)
+        try:
+            del s.d[1]
+        except TypeError as e:
+            self.assertEqual(str(e), "'tuple' object doesn't support item deletion")
+        else:
+            self.fail()
         try:
             s.d[1] = None
         except TypeError as e:
-            self.assertEqual(str(e), "'tuple' object doesn't support item deletion")
+            self.assertEqual(str(e), "'tuple' object does not support item assignment")
         else:
             self.fail()
 
@@ -217,3 +259,22 @@ class TestStruct(unittest.TestCase):
             self.assertEqual(str(e), "'list' object has no attribute 'foo'")
         else:
             self.fail()
+
+    # Test struct repr
+    def test_struct_repr(self):
+
+        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1, 2, 3], d = (1,2,3))
+
+        self.assertEqual(repr(s), "{'a': {'a': [1, 2, 3]}, 'c': [1, 2, 3], 'b': {'a': [1, 2, 3]}, 'd': (1, 2, 3)}")
+        self.assertEqual(str(s), "{'a': {'a': [1, 2, 3]}, 'c': [1, 2, 3], 'b': {'a': [1, 2, 3]}, 'd': (1, 2, 3)}")
+
+    # Test struct pickle
+    def test_struct_pickle(self):
+
+        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1, 2, 3], d = (1,2,3))
+
+        p = pickle.dumps(s)
+        o = pickle.loads(p)
+
+        self.assertTrue(s is not o)
+        self.assertEqual(s, o)

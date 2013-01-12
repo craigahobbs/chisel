@@ -4,13 +4,19 @@
 # See README.md for license.
 #
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
+
 # Class-syntax wrapper around built-in dictionaries.
 class Struct(object):
 
-    def __init__(self, _wrap_ = None, **members):
+    def __init__(self, container = None, **members):
 
-        if _wrap_ is not None:
-            object.__setattr__(self, "_container", _wrap_)
+        if container is not None:
+            object.__setattr__(self, "_container", container)
         else:
             object.__setattr__(self, "_container", members)
 
@@ -18,13 +24,13 @@ class Struct(object):
 
         return object.__getattribute__(self, "_container")
 
-    def __getattribute__(self, key):
+    def __getattr__(self, key):
 
         container = self()
-        if isinstance(container, dict):
+        if isinstance(container, dict) and (key in container or not hasattr(container, key)):
             return self[key]
         else:
-            return type(container).__getattribute__(container, key)
+            return getattr(container, key)
 
     def __setattr__(self, key, value):
 
@@ -46,19 +52,21 @@ class Struct(object):
             value = None
 
         # Return the value - wrap containers
-        return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
+        return Struct(value) if isinstance(value, (dict, list, tuple)) else value
 
     def __setitem__(self, key, value):
 
         # Delete member if value is None
         container = self()
-        if value is None:
-            if isinstance(container, dict) and key in container:
-                del container[key]
-            elif isinstance(key, (int, long)) and key >= 0 and key < len(container):
-                del container[key]
+        if value is None and isinstance(container, dict) and key in container:
+            del container[key]
         else:
             container[key] = value
+
+    def __delitem__(self, key):
+
+        container = self()
+        del container[key]
 
     def __contains__(self, item):
 
@@ -68,18 +76,45 @@ class Struct(object):
 
         return len(self())
 
-    class _WrapIter:
-        def __init__(self, it):
-            self._it = it
+    class _ContainerIter:
+
+        def __init__(self, container):
+
+            self._container = container
+            if isinstance(container, dict):
+                self._it = container.iteritems()
+            else:
+                self._it = iter(container)
+
         def next(self):
+
             # Return the value - wrap containers
-            value = self._it.next()
-            return Struct(_wrap_ = value) if isinstance(value, (dict, list, tuple)) else value
+            if isinstance(self._container, dict):
+                value = self._it.next()
+                if isinstance(value[1], (dict, list, tuple)):
+                    return (value[0], Struct(value[1]))
+                else:
+                    return value
+            else:
+                value = self._it.next()
+                return Struct(value) if isinstance(value, (dict, list, tuple)) else value
 
     def __iter__(self):
 
-        return Struct._WrapIter(iter(self()))
+        return Struct._ContainerIter(self())
 
     def __cmp__(self, other):
 
         return cmp(self(), other() if isinstance(other, Struct) else other)
+
+    def __repr__(self):
+
+        return str(self())
+
+    def __getstate__(self):
+
+        return self()
+
+    def __setstate__(self, d):
+
+        object.__setattr__(self, "_container", d)
