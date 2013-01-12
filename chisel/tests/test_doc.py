@@ -52,7 +52,7 @@ class HTMLValidator(HTMLParser):
         assert expectedTag == tag, "Expected '%s' element, got '%s'" % (expectedTag, tag)
 
     def close(self):
-        assert not self.elements, "Un-popped HTML elements! %r" % (self.elements)
+        assert not self.elements, "Un-popped HTML elements! %r" % (self.elements,)
         HTMLParser.close(self)
 
     @staticmethod

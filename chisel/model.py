@@ -45,7 +45,7 @@ class ValidationError(Exception):
     def memberSyntax(cls, members):
 
         if members:
-            return "".join([((".%s" if isinstance(x, basestring) else "[%d]") % (x)) for x in members]).lstrip(".")
+            return "".join([((".%s" if isinstance(x, basestring) else "[%d]") % (x,)) for x in members]).lstrip(".")
         else:
             return None
 
@@ -63,7 +63,7 @@ class ValidationError(Exception):
         else:
             msgFormat = "Invalid value %r (type '%s')%s, expected type '%s'"
         msg = msgFormat % \
-            (value, value.__class__.__name__, " for member '%s'" % (memberSyntax) if memberSyntax else "", typeInst.typeName)
+            (value, value.__class__.__name__, " for member '%s'" % (memberSyntax,) if memberSyntax else "", typeInst.typeName)
 
         return ValidationError(msg, member = memberSyntax)
 

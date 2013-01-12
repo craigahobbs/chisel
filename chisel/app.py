@@ -8,7 +8,10 @@ import api
 from .model import Struct
 from .spec import SpecParser
 
-import json
+try:
+    import simplejson as json
+except:
+    import json
 import logging
 import os
 import re
@@ -180,7 +183,7 @@ class Application:
                     else:
                         resourceType = []
                     if not resourceType:
-                        raise Exception("Unknown resource type '%s'" % (resource.type))
+                        raise Exception("Unknown resource type '%s'" % (resource.type,))
 
                     # Add the resource factory
                     self._resources[resource.name] = \
@@ -295,7 +298,7 @@ struct ApplicationConfig
             return application(environ, start_response)
 
         # Start the stand-alone server
-        print("Serving on port %d..." % (opts.port))
+        print("Serving on port %d..." % (opts.port,))
         httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
         httpd.serve_forever()
 

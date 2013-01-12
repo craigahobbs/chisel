@@ -7,7 +7,10 @@
 from chisel import ActionError, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
 
-import json
+try:
+    import simplejson as json
+except:
+    import json
 import logging
 import os
 import re
@@ -479,7 +482,7 @@ action myAction
 
         # Action header callback
         def myHeaders(ctx):
-            return [("X-Bar", "Foo bar %d" % (ctx.foo))]
+            return [("X-Bar", "Foo bar %d" % (ctx.foo,))]
 
         # Request handler
         app = Application(contextCallback = myContext, headersCallback = myHeaders)

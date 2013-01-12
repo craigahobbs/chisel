@@ -111,7 +111,7 @@ class SpecParser:
             if typeInst is not None:
                 member.typeInst = typeInst
             else:
-                self._error("Unknown member type '%s'" % (typeRef.typeName), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+                self._error("Unknown member type '%s'" % (typeRef.typeName,), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
 
         # Raise a parser exception if there are any errors
         if self.errors:
@@ -207,7 +207,7 @@ class SpecParser:
 
                     # Action already defined?
                     if defId in self.actions:
-                        self._error("Redefinition of action '%s'" % (defId))
+                        self._error("Redefinition of action '%s'" % (defId,))
 
                     # Create the new action
                     self._curAction = Action(defId, doc = self._curDoc)
@@ -220,7 +220,7 @@ class SpecParser:
 
                     # Type already defined?
                     if defId in self._types or defId in self.types:
-                        self._error("Redefinition of type '%s'" % (defId))
+                        self._error("Redefinition of type '%s'" % (defId,))
 
                     # Create the new struct type
                     self._curAction = None
@@ -233,7 +233,7 @@ class SpecParser:
 
                     # Type already defined?
                     if defId in self._types or defId in self.types:
-                        self._error("Redefinition of type '%s'" % (defId))
+                        self._error("Redefinition of type '%s'" % (defId,))
 
                     # Create the new enum type
                     self._curAction = None
@@ -275,7 +275,7 @@ class SpecParser:
 
                 # Member ID already defined?
                 if [m for m in self._curType.members if m.name == memId]:
-                    self._error("Redefinition of member '%s'" % (memId))
+                    self._error("Redefinition of member '%s'" % (memId,))
 
                 # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
@@ -308,7 +308,7 @@ class SpecParser:
                         elif mAttr.group("op") == ">=" and hasattr(memTypeInst, "constraint_gte"):
                             memTypeInst.constraint_gte = float(mAttr.group("opnum"))
                         else:
-                            self._error("Invalid attribute '%s'" % (memAttr[0]))
+                            self._error("Invalid attribute '%s'" % (memAttr[0],))
                     elif mAttr.group("lop"):
                         if mAttr.group("lop") == "<" and hasattr(memTypeInst, "constraint_len_lt"):
                             memTypeInst.constraint_len_lt = int(mAttr.group("lopnum"))
@@ -319,7 +319,7 @@ class SpecParser:
                         elif mAttr.group("lop") == ">=" and hasattr(memTypeInst, "constraint_len_gte"):
                             memTypeInst.constraint_len_gte = int(mAttr.group("lopnum"))
                         else:
-                            self._error("Invalid attribute '%s'" % (memAttr[0]))
+                            self._error("Invalid attribute '%s'" % (memAttr[0],))
 
                 # Add the struct member
                 self._curType.members.append(member)
@@ -336,7 +336,7 @@ class SpecParser:
 
                 # Duplicate enum value?
                 if memId in self._curType.values:
-                    self._error("Duplicate enumeration value '%s'" % (memId))
+                    self._error("Duplicate enumeration value '%s'" % (memId,))
 
                 # Add the enum value
                 value = TypeEnum.Value(memId, doc = self._curDoc)

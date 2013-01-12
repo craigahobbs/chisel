@@ -61,7 +61,7 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         # Split the key/value string
         keysValue = keysValueString.split("=")
         if len(keysValue) != 2:
-            raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+            raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
         keys = [makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split(".")]
         value = urllib.unquote(keysValue[1]).decode(encoding)
 
@@ -78,13 +78,13 @@ def decodeQueryString(queryString, encoding = "utf-8"):
                 if o is None:
                     o = oParent[keyParent] = []
                 elif not isinstance(o, list):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
 
                 # Create the index for this key
                 if key == len(o):
                     o.extend([None])
                 elif key < 0 or key > len(o):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
 
                 # Update the parent object and key
                 oParent = o
@@ -98,7 +98,7 @@ def decodeQueryString(queryString, encoding = "utf-8"):
                 if o is None:
                     o = oParent[keyParent] = {}
                 elif not isinstance(o, dict):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString))
+                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
 
                 # Create the index for this key
                 if o.get(key) is None:

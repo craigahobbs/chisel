@@ -98,7 +98,7 @@ class PyodbcRowMock:
         try:
             return self.columnData[ixColumn]
         except:
-            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column index %r" % (ixColumn))
+            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column index %r" % (ixColumn,))
 
     def __getattr__(self, columnName):
 
@@ -106,7 +106,7 @@ class PyodbcRowMock:
             ixColumn = self.columnNames.index(columnName)
             return self.columnData[ixColumn]
         except:
-            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column name %r" % (columnName))
+            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column name %r" % (columnName,))
 
     def __nonzero__(self):
 
@@ -117,22 +117,22 @@ class PyodbcRowMock:
 def assertRowSets(rowSets):
 
     assert isinstance(rowSets, (tuple, list)), \
-        "Invalid rowset collection %r - list expected" % (rowSets)
+        "Invalid rowset collection %r - list expected" % (rowSets,)
     for rowSet in rowSets:
         assert isinstance(rowSet[0], (tuple)), \
-            "Invalid rowset %r - tuple expected" % (rowSet)
+            "Invalid rowset %r - tuple expected" % (rowSet,)
         assert len(rowSet) == 2, \
-            "Invalid rowset %r - rowset should have only two elements" % (rowSet)
+            "Invalid rowset %r - rowset should have only two elements" % (rowSet,)
         assert isinstance(rowSet[0], (tuple)), \
-            "Invalid column names collection %r - tuple expected" % (rowSet[1])
+            "Invalid column names collection %r - tuple expected" % (rowSet[1],)
         for columnName in rowSet[0]:
             assert isinstance(columnName, str), \
-                "Invalid column name %r - string expected" % (columnName)
+                "Invalid column name %r - string expected" % (columnName,)
         assert isinstance(rowSet[1], (tuple, list)), \
-            "Invalid rows collection %r - list expected" % (rowSet[1])
+            "Invalid rows collection %r - list expected" % (rowSet[1],)
         for columnData in rowSet[1]:
             assert isinstance(columnData, (tuple, list)), \
-                "Invalid row %r - tuple expected" % (columnData)
+                "Invalid row %r - tuple expected" % (columnData,)
             assert len(rowSet[0]) == len(columnData), \
                 "Column data tuple has different length than column names tuple (%r, %r)" % (rowSet[0], columnData)
             for data in columnData:
@@ -147,7 +147,7 @@ def assertRowSets(rowSets):
                                          long,
                                          float,
                                          decimal.Decimal)), \
-                                         "Invalid column data %r" % (data)
+                                         "Invalid column data %r" % (data,)
 
 
 # pyodbc cursor mock

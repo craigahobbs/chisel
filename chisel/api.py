@@ -11,7 +11,10 @@ from .struct import Struct
 from .url import decodeQueryString
 
 import imp
-import json
+try:
+    import simplejson as json
+except:
+    import json
 import os
 import sys
 import traceback
@@ -85,9 +88,9 @@ class Application:
 
         actionName = actionCallback.func_name if actionName is None else actionName
         if actionName not in self._specParser.actions:
-            raise Exception("No model defined for action callback '%s'" % (actionName))
+            raise Exception("No model defined for action callback '%s'" % (actionName,))
         elif actionName in self._actionCallbacks:
-            raise Exception("Redefinition of action callback '%s'" % (actionName))
+            raise Exception("Redefinition of action callback '%s'" % (actionName,))
         else:
             self._actionCallbacks[actionName] = actionCallback
 
@@ -96,7 +99,7 @@ class Application:
 
         # Does the path exist?
         if not os.path.isdir(modulePath):
-            raise IOError("%r not found or is not a directory" % (modulePath))
+            raise IOError("%r not found or is not a directory" % (modulePath,))
 
         # Add the module path to the system load path
         if modulePath not in sys.path:
@@ -138,7 +141,7 @@ class Application:
 
         # Does the path exist?
         if not os.path.isdir(specPath):
-            raise IOError("%r not found or is not a directory" % (specPath))
+            raise IOError("%r not found or is not a directory" % (specPath,))
 
         # Resursively find spec files
         for dirpath, dirnames, filenames in os.walk(specPath):
