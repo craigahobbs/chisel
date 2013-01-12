@@ -80,24 +80,13 @@ class Struct(object):
 
         def __init__(self, container):
 
-            self._container = container
-            if isinstance(container, dict):
-                self._it = container.iteritems()
-            else:
-                self._it = iter(container)
+            self._it = iter(container)
 
         def next(self):
 
             # Return the value - wrap containers
-            if isinstance(self._container, dict):
-                value = self._it.next()
-                if isinstance(value[1], (dict, list, tuple)):
-                    return (value[0], Struct(value[1]))
-                else:
-                    return value
-            else:
-                value = self._it.next()
-                return Struct(value) if isinstance(value, (dict, list, tuple)) else value
+            value = self._it.next()
+            return Struct(value) if isinstance(value, (dict, list, tuple)) else value
 
     def __iter__(self):
 

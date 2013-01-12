@@ -160,7 +160,8 @@ class TestStruct(unittest.TestCase):
         s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3,None], e = (1,2,3,None), f = None)
 
         self.assertEqual(len(s), 6)
-        for k, v in s:
+        for k in s:
+            v = s[k]
             if k == "a":
                 self.assertEqual(v, 17)
             elif k == "b":
