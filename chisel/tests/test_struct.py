@@ -208,6 +208,9 @@ class TestStruct(unittest.TestCase):
         s = Struct(a = 17, b = 19, c = [1,2,3], d = (1,2,3))
 
         self.assertEqual(len(s), 4)
+        s.z = None
+
+        self.assertEqual(len(s), 4)
         self.assertEqual(s.a, 17)
         s.a = None
         self.assertEqual(s.a, None)

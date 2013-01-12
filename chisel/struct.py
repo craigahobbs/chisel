@@ -58,8 +58,9 @@ class Struct(object):
 
         # Delete member if value is None
         container = self()
-        if value is None and isinstance(container, dict) and key in container:
-            del container[key]
+        if value is None and isinstance(container, dict):
+            if key in container:
+                del container[key]
         else:
             container[key] = value
 
