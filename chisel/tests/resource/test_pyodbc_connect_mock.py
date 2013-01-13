@@ -30,7 +30,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         # Setup resource type mock
         rowSets = SimpleExecuteCallback()
         resourceType = PyodbcConnectResourceTypeMock(rowSets)
-        rowSets.addRowSets("MyQuery ? ? ?", (1, 2, 3),
+        rowSets.addRowSets("MyConnectionString", "MyQuery ? ? ?", (1, 2, 3),
                            [(("a", "b", "c"),
                              [(1, 2, 3),
                               (4, 5, 6)])])
@@ -42,7 +42,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         try:
             conn.execute("ThierQuery")
         except conn.DatabaseError as e:
-            self.assertEqual(str(e), "No row sets for ('ThierQuery', ())")
+            self.assertEqual(str(e), "No row sets for ('MyConnectionString', 'ThierQuery', ())")
         else:
             self.fail()
         self.assertEqual(rowSets.executeCount, 0)
@@ -71,7 +71,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         try:
             conn.execute("MyQuery ? ? ?", 1, 2, 3)
         except conn.DatabaseError as e:
-            self.assertEqual(str(e), "No row sets for ('MyQuery ? ? ?', (1, 2, 3))")
+            self.assertEqual(str(e), "No row sets for ('MyConnectionString', 'MyQuery ? ? ?', (1, 2, 3))")
         else:
             self.fail()
         self.assertEqual(rowSets.executeCount, 1)
@@ -108,19 +108,19 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         # Setup resource type mock
         rowSets = SimpleExecuteCallback()
         resourceType = PyodbcConnectResourceTypeMock(rowSets)
-        rowSets.addRowSets("MyQuery ? ? ?", (1, 2, 3),
+        rowSets.addRowSets("MyConnectionString", "MyQuery ? ? ?", (1, 2, 3),
                            [(("a", "b"),
                              [(1, 2),
                               (3, 4)]),
                             (("c",),
                              [(5,),
                               (6,)])])
-        rowSets.addRowSets("MyOtherQuery ?", (4,),
+        rowSets.addRowSets("MyConnectionString", "MyOtherQuery ?", (4,),
                            [((), [])])
 
         # Mismatched column names and data
         try:
-            rowSets.addRowSets("Bad", (),
+            rowSets.addRowSets("MyConnectionString", "Bad", (),
                                [(("a", "b"),
                                  [(1, 2),
                                   (3, 4, 5)])])
@@ -264,7 +264,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         # Setup resource type mock
         rowSets = SimpleExecuteCallback()
         resourceType = PyodbcConnectResourceTypeMock(rowSets)
-        rowSets.addRowSets("MyQuery", (), [])
+        rowSets.addRowSets("MyConnectionString", "MyQuery", (), [])
 
         # Create the connection
         conn = resourceType.open("MyConnectionString")
@@ -286,7 +286,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         # Setup resource type mock
         rowSets = SimpleExecuteCallback()
         resourceType = PyodbcConnectResourceTypeMock(rowSets, autocommit = False)
-        rowSets.addRowSets("MyQuery ?", (1,),
+        rowSets.addRowSets("MyConnectionString", "MyQuery ?", (1,),
                            [((), [])])
 
         # Connect

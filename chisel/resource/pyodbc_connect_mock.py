@@ -13,7 +13,7 @@ import decimal
 # pyodbc_connect resource type mock
 class PyodbcConnectResourceTypeMock(ResourceType):
 
-    # executeCallback(query, *args), returns [(columnNames, columnDatas), ...]
+    # executeCallback(resourceString, query, *args), returns [(columnNames, columnDatas), ...]
     def __init__(self, executeCallback, autocommit = True):
 
         self.executeCallback = executeCallback
@@ -196,7 +196,7 @@ class PyodbcCursorMock:
             raise self.connection.ProgrammingError("Attempt to execute on a closed cursor")
 
         # Call the execute callback
-        self.rowSets = self.connection.executeCallback(query, *args)
+        self.rowSets = self.connection.executeCallback(self.connection.resourceString, query, *args)
         assertRowSets(self.rowSets)
 
         return iter(self)
@@ -250,19 +250,19 @@ class SimpleExecuteCallback:
         self.executes = {}
         self.executeCount = 0
 
-    def addRowSets(self, query, args, rowSets):
+    def addRowSets(self, resourceString, query, args, rowSets):
 
         assert isinstance(args, tuple)
         assertRowSets(rowSets)
 
-        key = (query, args)
+        key = (resourceString, query, args)
         if key not in self.executes:
             self.executes[key] = []
         self.executes[key].append(rowSets)
 
-    def __call__(self, query, *args):
+    def __call__(self, resourceString, query, *args):
 
-        key = (query, args)
+        key = (resourceString, query, args)
         if key in self.executes and len(self.executes[key]) > 0:
             self.executeCount += 1
             return self.executes[key].pop(0)
