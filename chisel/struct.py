@@ -18,7 +18,7 @@ class Struct(object):
         if container is not None:
             object.__setattr__(self, "_container", container)
         else:
-            object.__setattr__(self, "_container", members)
+            object.__setattr__(self, "_container", dict([x for x in members.iteritems() if x[1] is not None]))
 
     def __call__(self):
 

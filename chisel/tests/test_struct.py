@@ -47,6 +47,15 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.d.a, None)
         self.assertEqual(s.d.b, None)
 
+        s = Struct(a = 17, b = None)
+        self.assertEqual(len(s), 1)
+        self.assertEqual(s.a, 17)
+
+        s = Struct({"a": 17, "b": None})
+        self.assertEqual(len(s), 2)
+        self.assertEqual(s.a, 17)
+        self.assertEqual(s.b, None)
+
     # Test key/value pair initialization
     def test_struct_set_struct(self):
 
@@ -54,8 +63,10 @@ class TestStruct(unittest.TestCase):
                    b = Struct(c = "foo"),
                    c = { "c": "bar" },
                    d = [1,2,3],
-                   e = (1,2,3))
+                   e = (1,2,3),
+                   f = None)
 
+        self.assertEqual(len(s), 5)
         self.assertEqual(s.a, 17)
         self.assertTrue(isinstance(s.b, Struct))
         self.assertTrue(isinstance(s.b(), dict))
@@ -159,7 +170,7 @@ class TestStruct(unittest.TestCase):
 
         s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3,None], e = (1,2,3,None), f = None)
 
-        self.assertEqual(len(s), 6)
+        self.assertEqual(len(s), 5)
         for k in s:
             v = s[k]
             if k == "a":
