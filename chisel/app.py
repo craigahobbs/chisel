@@ -8,10 +8,7 @@ import api
 from .model import Struct
 from .spec import SpecParser
 
-try:
-    import simplejson as json
-except:
-    import json
+import json
 import logging
 import os
 import re
@@ -19,7 +16,13 @@ try:
     from cStringIO import StringIO
 except:
     from StringIO import StringIO
+import sys
 import threading
+
+
+# Fix Python 2.6's json float encoding
+if sys.version_info < (2, 7):
+    json.encoder.FLOAT_REPR = lambda o: format(o, 'g')
 
 
 # Application resource type

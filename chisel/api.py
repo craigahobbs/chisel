@@ -11,15 +11,17 @@ from .struct import Struct
 from .url import decodeQueryString
 
 import imp
-try:
-    import simplejson as json
-except:
-    import json
+import json
 import os
 import sys
 import traceback
 import urllib
 from wsgiref.util import application_uri
+
+
+# Fix Python 2.6's json float encoding
+if sys.version_info < (2, 7):
+    json.encoder.FLOAT_REPR = lambda o: format(o, 'g')
 
 
 # API callback decorator - used to identify action callback functions during module loading

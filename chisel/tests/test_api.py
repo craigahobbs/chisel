@@ -7,10 +7,7 @@
 from chisel import ActionError, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
 
-try:
-    import simplejson as json
-except:
-    import json
+import json
 import logging
 import os
 import re
