@@ -50,7 +50,7 @@ class Action:
 
     def __call__(self, *args):
 
-        self.fn(*args)
+        return self.fn(*args)
 
 
 # Action error response exception
@@ -152,7 +152,7 @@ class Application:
                     for moduleAttr in dir(module):
                         actionDecoratorInst = getattr(module, moduleAttr)
                         if isinstance(actionDecoratorInst, Action):
-                            self.addActionCallback(actionDecoratorInst.fn, actionName = actionDecoratorInst.name)
+                            self.addActionCallback(actionDecoratorInst, actionName = actionDecoratorInst.name)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):

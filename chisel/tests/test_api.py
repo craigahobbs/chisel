@@ -45,9 +45,12 @@ class TestApiLoadModules(unittest.TestCase):
         app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_api_files"))
         app.loadModules(os.path.join(os.path.dirname(__file__), "test_api_files"))
         self.assertEqual(len(app._actionCallbacks), 3)
-        self.assertEqual(app._actionCallbacks["myAction1"].func_name, "myAction1")
-        self.assertEqual(app._actionCallbacks["myAction2"].func_name, "myAction2")
-        self.assertEqual(app._actionCallbacks["myAction3"].func_name, "myAction3")
+        self.assertEqual(app._actionCallbacks["myAction1"].fn.func_name, "myAction1")
+        self.assertEqual(app._actionCallbacks["myAction2"].name, "myAction2")
+        self.assertEqual(app._actionCallbacks["myAction3"].fn.func_name, "myAction3")
+        self.assertEqual(app._actionCallbacks["myAction1"].name, "myAction1")
+        self.assertEqual(app._actionCallbacks["myAction2"].fn.func_name, "myAction2")
+        self.assertEqual(app._actionCallbacks["myAction3"].name, "myAction3")
 
     # Verify that exception is raised when invalid module path is loaded
     def test_api_loadModules_badModulePath(self):

@@ -345,18 +345,28 @@ struct ApplicationConfig
     # Make an HTTP request on this application
     def callRaw(self, method, url, data = None, environ = None):
 
-        # Test WSGI environment
-        _environ = {
-            "REQUEST_METHOD": method,
-            "PATH_INFO": url,
-            "wsgi.input": StringIO(data if data is not None else ""),
-            "wsgi.errors": StringIO()
-            }
-        if data is not None:
-            _environ["CONTENT_LENGTH"] = str(len(data))
-        if environ is not None:
-            for key, value in environ.iteritems():
-                _environ[key] = value
+        # WSGI environment - used passed-in environ if its complete
+        if (environ is not None and
+            "REQUEST_METHOD" in environ and
+            "PATH_INFO" in environ and
+            "wsgi.input" in environ and
+            "wsgi.errors" in environ):
+
+            _environ = environ
+
+        else:
+
+            _environ = dict(environ) if environ else {}
+            if "REQUEST_METHOD" not in _environ:
+                _environ["REQUEST_METHOD"] = method
+            if "PATH_INFO" not in _environ:
+                _environ["PATH_INFO"] = url
+            if "CONTENT_LENGTH" not in _environ and data is not None:
+                _environ["CONTENT_LENGTH"] = str(len(data))
+            if "wsgi.input" not in _environ:
+                _environ["wsgi.input"] = StringIO(data if data is not None else "")
+            if "wsgi.errors" not in _environ:
+                _environ["wsgi.errors"] = StringIO()
 
         # Call the action
         startResponseArgs = {}
