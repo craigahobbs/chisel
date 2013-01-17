@@ -61,5 +61,4 @@ def urlopen(request, data = None, timeout = None):
 
 # Mock url error
 class URLError(Exception):
-    def __init__(self, reason):
-        pass
+    pass

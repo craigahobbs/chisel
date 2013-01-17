@@ -55,14 +55,20 @@ class Action:
 
 # Action error response exception
 class ActionError(Exception):
+
     def __init__(self, error, message = None):
+
+        Exception.__init__(self, error)
         self.error = error
         self.message = message
 
 
 # Internal action error response exception
 class ActionErrorInternal(Exception):
+
     def __init__(self, error, message = None, member = None):
+
+        Exception.__init__(self, error)
         self.error = error
         self.message = message
         self.member = member
