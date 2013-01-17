@@ -44,7 +44,7 @@ class UrlRequestResourceMock:
         self.header = []
         self.unredirected_header = []
 
-    def send(self, url = None):
+    def send(self, url = None, timeout = None):
 
         # Get the mock response
         fullUrl = urlparse.urljoin(self.hostUrl, url)

@@ -34,7 +34,7 @@ class Request:
 
 
 # Mock urllib2.urlopen
-def urlopen(request):
+def urlopen(request, data = None, timeout = None):
 
     parts = [request.hostUrl]
     parts.extend([str(x) for x in request.header])

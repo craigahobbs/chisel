@@ -36,7 +36,7 @@ class UrlRequestResource:
         self.unredirected_header = []
 
     # Send a request - may raise URLError
-    def send(self, url = None):
+    def send(self, url = None, timeout = None):
 
         # Build the request object, send the request, and read the response
         fullUrl = urlparse.urljoin(self.hostUrl, url)
@@ -47,7 +47,10 @@ class UrlRequestResource:
             request.add_header(*header)
         for unredirected_header in self.unredirected_header:
             request.add_unredirected_header(*unredirected_header)
-        response = urllib2.urlopen(request)
+        if timeout is None:
+            response = urllib2.urlopen(request)
+        else:
+            response = urllib2.urlopen(request, timeout = timeout)
         responseString = response.read()
         response.close()
 

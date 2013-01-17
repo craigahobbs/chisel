@@ -34,6 +34,11 @@ class TestResourceUrlRequest(unittest.TestCase):
         self.assertEqual(response, """\
 http://myhost.com/mypath/myurl""")
 
+        # GET (trailing slash, append to URL - non-default timeout)
+        response = request.send("myurl", timeout = 10)
+        self.assertEqual(response, """\
+http://myhost.com/mypath/myurl""")
+
         # GET (trailing slash, replace URL)
         response = request.send("/myurl")
         self.assertEqual(response, """\
