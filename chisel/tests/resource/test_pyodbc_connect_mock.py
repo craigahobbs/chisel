@@ -259,7 +259,7 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
             self.fail()
 
     # Test empty rowset
-    def test_resource_pyodbc_connect_empty_rowset(self):
+    def test_resource_pyodbc_connect_mock_empty_rowset(self):
 
         # Setup resource type mock
         rowSets = SimpleExecuteCallback()
