@@ -67,3 +67,22 @@ class Connection:
     def __init__(self, mongoUri):
 
         self.mongoUri = mongoUri
+
+
+# Mock pymongo.database.Database
+class database:
+
+    class Database:
+
+        def __init__(self, conn, dbname):
+
+            self.conn = conn
+            self.dbname = dbname
+
+
+# Mock pymongo.uri_parser
+class uri_parser:
+
+    @staticmethod
+    def parse_uri(mongoUri):
+        return { "database": mongoUri.split("/")[-1] }

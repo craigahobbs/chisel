@@ -24,29 +24,32 @@
 import sys
 import pymongo
 sys.modules["pymongo"] = pymongo
+sys.modules["pymongo.database"] = pymongo
 
-from chisel.resource.pymongo_client import PymongoClientResourceType
+from chisel.resource.pymongo_database import PymongoDatabaseResourceType
 
 # Restore pymongo
 del sys.modules["pymongo"]
+del sys.modules["pymongo.database"]
 
 import unittest
 
 
-# Test PymongoClientResource functionality
-class TestResourcePymongoClient(unittest.TestCase):
+# Test PymongoDatabaseResource functionality
+class TestResourcePymongoDatabase(unittest.TestCase):
 
-    # Test PymongoClientResource usage
-    def test_resource_pymongo_client(self):
+    # Test PymongoDatabaseResource usage
+    def test_resource_pymongo_database(self):
 
         # Create the resource type (default autocommit)
-        resourceType = PymongoClientResourceType()
-        self.assertEqual(resourceType.name, "pymongo_client")
+        resourceType = PymongoDatabaseResourceType()
+        self.assertEqual(resourceType.name, "pymongo_database")
 
-        # Create a client
-        mongoClient = resourceType.open("MyMongoUri")
-        self.assertEqual(mongoClient.mongoUri, "MyMongoUri")
-        self.assertTrue(isinstance(mongoClient, pymongo.Connection))
+        # Create a database
+        mongoDatabase = resourceType.open("mongodb://MyMongoUri/MyMongoDatabase")
+        self.assertEqual(mongoDatabase.conn.mongoUri, "mongodb://MyMongoUri/MyMongoDatabase")
+        self.assertEqual(mongoDatabase.dbname, "MyMongoDatabase")
+        self.assertTrue(isinstance(mongoDatabase, pymongo.database.Database))
 
-        # Close the client (does nothing)
-        resourceType.close(mongoClient)
+        # Close the database (does nothing)
+        resourceType.close(mongoDatabase)

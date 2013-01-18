@@ -31,7 +31,7 @@ def read(fname):
 
 setup(
     name = "chisel",
-    version = "0.1.7",
+    version = "0.1.8",
     author = "Craig Hobbs",
     author_email = "craigahobbs@gmail.com",
     description = ("Chisel - JSON web APIs made dirt simple"),

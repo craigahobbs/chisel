@@ -23,27 +23,28 @@
 from ..app import ResourceType
 
 import pymongo
+import pymongo.database
 
 
-# pymongo_client resource type
-class PymongoClientResourceType(ResourceType):
+# pymongo_database resource type
+class PymongoDatabaseResourceType(ResourceType):
 
     def __init__(self):
 
-        resourceTypeName = "pymongo_client"
+        resourceTypeName = "pymongo_database"
         ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
     def _open(self, resourceString):
 
-        return PymongoClientResource(resourceString)
+        return PymongoDatabaseResource(resourceString)
 
     def _close(self, resource):
 
         pass
 
 
-# pymongo_client resource
-class PymongoClientResource(pymongo.Connection):
+# pymongo_database resource
+class PymongoDatabaseResource(pymongo.database.Database):
 
     AutoReconnect = pymongo.errors.AutoReconnect
     CollectionInvalid = pymongo.errors.CollectionInvalid
@@ -60,4 +61,6 @@ class PymongoClientResource(pymongo.Connection):
 
     def __init__(self, resourceString):
 
-        pymongo.Connection.__init__(self, resourceString)
+        res = pymongo.uri_parser.parse_uri(resourceString)
+        conn = pymongo.Connection(resourceString)
+        pymongo.database.Database.__init__(self, conn, res["database"])
