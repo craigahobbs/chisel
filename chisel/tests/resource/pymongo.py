@@ -61,8 +61,8 @@ class errors:
         pass
 
 
-# Mock pymongo.MongoClient
-class MongoClient:
+# Mock pymongo.Connection
+class Connection:
 
     def __init__(self, mongoUri):
 

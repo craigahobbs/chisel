@@ -46,7 +46,7 @@ class TestResourcePymongoClient(unittest.TestCase):
         # Create a client
         mongoClient = resourceType.open("MyMongoUri")
         self.assertEqual(mongoClient.mongoUri, "MyMongoUri")
-        self.assertTrue(isinstance(mongoClient, pymongo.MongoClient))
+        self.assertTrue(isinstance(mongoClient, pymongo.Connection))
 
         # Close the client (does nothing)
         resourceType.close(mongoClient)

@@ -43,7 +43,7 @@ class PymongoClientResourceType(ResourceType):
 
 
 # pymongo_client resource
-class PymongoClientResource(pymongo.MongoClient):
+class PymongoClientResource(pymongo.Connection):
 
     AutoReconnect = pymongo.errors.AutoReconnect
     CollectionInvalid = pymongo.errors.CollectionInvalid
@@ -60,4 +60,4 @@ class PymongoClientResource(pymongo.MongoClient):
 
     def __init__(self, resourceString):
 
-        pymongo.MongoClient.__init__(self, resourceString)
+        pymongo.Connection.__init__(self, resourceString)
