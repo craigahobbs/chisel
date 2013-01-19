@@ -30,8 +30,9 @@ COVER = .cover
 
 # Python version support
 PYTHON_VERSIONS = \
-    2.6 \
-    2.7
+    2.7 \
+    2.6
+
 
 # Help
 .PHONY: help
@@ -40,11 +41,11 @@ help:
 
 # Run unit tests
 .PHONY: test
-test: $(foreach V, $(PYTHON_VERSIONS), test_$(V))
+test: test_$(firstword $(PYTHON_VERSIONS))
 
 # Pre-checkin check
 .PHONY: check
-check: superclean test cover
+check: superclean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 
 # Clean
 .PHONY: clean
@@ -59,23 +60,25 @@ clean:
 superclean: clean
 	-rm -rf $(ENV)
 
-# Macro to generate virtualenv rules - env_name, python_version, *packages, *test_command
-define TEST
+# Macro to generate virtualenv rules - env_name, python_version, packages, commands
+define ENV_RULE
 $(ENV)/$(1):
 	virtualenv -p python$(2) $$@
 	$(if $(3), . $$@/bin/activate; pip install $(3))
 
 .PHONY: $(1)
 $(1): $(ENV)/$(1)
-	. $$</bin/activate; $(if $(4),$(4), python setup.py test)
+	. $$</bin/activate; $(4)
 endef
 
 # Generate test rules
-$(foreach V, $(PYTHON_VERSIONS), $(eval $(call TEST,test_$(V),$(V))))
+$(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE,test_$(V),$(V),,python setup.py test)))
 
 # Generate coverage rule
-$(eval $(call TEST,cover,$(firstword $(PYTHON_VERSIONS)), nose coverage, \
-    nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
-        --cover-html --cover-html-dir=$(abspath $(COVER)); \
-    echo; \
-    echo Coverage report is $(COVER)/index.html))
+define COVER_COMMANDS
+	nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
+		--cover-html --cover-html-dir=$(abspath $(COVER))
+	echo
+	echo Coverage report is $(COVER)/index.html
+endef
+$(eval $(call ENV_RULE,cover,$(firstword $(PYTHON_VERSIONS)), nose coverage, $(COVER_COMMANDS)))
