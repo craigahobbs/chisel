@@ -25,53 +25,57 @@ PACKAGE_NAME = chisel
 PACKAGE_TESTS = $(PACKAGE_NAME)/tests
 
 # Local directories
-ENV = env
-COVER = cover
+ENV = .env
+COVER = .cover
 
 # Python version support
 PYTHON_VERSIONS = \
     2.6 \
     2.7
 
+# Help
+.PHONY: help
+help:
+	@echo "usage: make [test|cover|check|clean|superclean]"
+
 # Run unit tests
 .PHONY: test
-test:
-	python -m unittest discover -t . -s $(PACKAGE_TESTS) -p 'test_*.py' $(if $(VERBOSE),-v,)
+test: $(foreach V, $(PYTHON_VERSIONS), test_$(V))
 
 # Pre-checkin check
 .PHONY: check
-check:
-	$(foreach V, $(PYTHON_VERSIONS), \
-		rm -rf $(ENV)/$(V); \
-		virtualenv -p python$(V) $(ENV)/$(V); \
-		. $(ENV)/$(V)/bin/activate; \
-		python setup.py test; \
-	)
-
-# Run code coverage
-.PHONY: cover
-cover: $(ENV)/cover
-	-rm -rf $(COVER)
-	. $(ENV)/cover/bin/activate; \
-		nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
-			--cover-html --cover-html-dir=$(abspath $(COVER))
-	@echo
-	@echo Coverage report is $(COVER)/index.html
-
-# Coverage environment rule
-$(ENV)/cover:
-	virtualenv $@
-	. $@/bin/activate; pip install coverage nose
+check: superclean test cover
 
 # Clean
 .PHONY: clean
 clean:
-	-rm -rf .coverage $(COVER)
+	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
 	-rm -rf dist
 	-rm -rf *.egg-info
-	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
+	-rm -rf .coverage $(COVER)
 
 # Superclean
 .PHONY: superclean
 superclean: clean
 	-rm -rf $(ENV)
+
+# Macro to generate virtualenv rules - env_name, python_version, *packages, *test_command
+define TEST
+$(ENV)/$(1):
+	virtualenv -p python$(2) $$@
+	$(if $(3), . $$@/bin/activate; pip install $(3))
+
+.PHONY: $(1)
+$(1): $(ENV)/$(1)
+	. $$</bin/activate; $(if $(4),$(4), python setup.py test)
+endef
+
+# Generate test rules
+$(foreach V, $(PYTHON_VERSIONS), $(eval $(call TEST,test_$(V),$(V))))
+
+# Generate coverage rule
+$(eval $(call TEST,cover,$(firstword $(PYTHON_VERSIONS)), nose coverage, \
+    nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
+        --cover-html --cover-html-dir=$(abspath $(COVER)); \
+    echo; \
+    echo Coverage report is $(COVER)/index.html))

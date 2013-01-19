@@ -23,19 +23,15 @@
 import os
 from setuptools import setup
 
-
-# Utility function to read the README file
-def read(fname):
-    with open(os.path.join(os.path.dirname(__file__), fname), "rb") as fh:
-        return fh.read()
-
 setup(
     name = "chisel",
-    version = "0.1.8",
+    version = "0.1.9",
     author = "Craig Hobbs",
     author_email = "craigahobbs@gmail.com",
     description = ("Chisel - JSON web APIs made dirt simple"),
-    long_description = read("README.txt"),
+    long_description = """\
+TODO
+""",
     keywords = "json api server framework",
     license = "MIT",
     classifiers = [
@@ -47,15 +43,7 @@ setup(
         ],
     packages = [
         "chisel",
-        "chisel/resource",
-        "chisel/tests",
-        "chisel/tests/resource"
+        "chisel/resource"
         ],
-    package_data = {
-        "chisel/test": [
-            "test_api_files/*",
-            "test_app_files/*"
-            ]
-        },
-    test_suite = "chisel.tests"
+    test_suite='chisel.tests'
     )

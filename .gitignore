@@ -1,7 +1,7 @@
 *~
 *.pyc
-env/*
-cover/*
+.env/
+.cover/
 .coverage
-dist/*
+dist/
 *.egg-info
