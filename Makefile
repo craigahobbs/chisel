@@ -33,7 +33,6 @@ PYTHON_VERSIONS = \
     2.7 \
     2.6
 
-
 # Help
 .PHONY: help
 help:
@@ -62,23 +61,27 @@ superclean: clean
 
 # Macro to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE
-$(ENV)/$(1):
-	virtualenv -p python$(2) $$@
+$(ENV)/$(strip $(1)):
+	virtualenv -p python$(strip $(2)) $$@
 	$(if $(3), . $$@/bin/activate; pip install $(3))
 
 .PHONY: $(1)
-$(1): $(ENV)/$(1)
-	. $$</bin/activate; $(4)
+$(1): $(ENV)/$(strip $(1))
+	$(4)
 endef
+ENV_ACTIVATE = . $$</bin/activate
 
 # Generate test rules
-$(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE,test_$(V),$(V),,python setup.py test)))
+define TEST_COMMANDS
+	$(ENV_ACTIVATE); python setup.py test
+endef
+$(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , $(TEST_COMMANDS))))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) --cover-erase \
-		--cover-html --cover-html-dir=$(abspath $(COVER))
-	echo
-	echo Coverage report is $(COVER)/index.html
+	$(ENV_ACTIVATE); nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) \
+		--cover-erase --cover-html --cover-html-dir=$(abspath $(COVER))
+	@echo
+	@echo Coverage report is $(COVER)/index.html
 endef
-$(eval $(call ENV_RULE,cover,$(firstword $(PYTHON_VERSIONS)), nose coverage, $(COVER_COMMANDS)))
+$(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), nose coverage, $(COVER_COMMANDS)))
