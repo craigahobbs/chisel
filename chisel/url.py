@@ -20,9 +20,8 @@
 # SOFTWARE.
 #
 
+from .compat import basestring_, long_, PY3, unicode_, urllib, xrange_
 from .struct import Struct
-
-import urllib
 
 
 # Encode an object as a URL query string
@@ -30,7 +29,10 @@ def encodeQueryString(o, encoding = "utf-8"):
 
     # Helper to quote strings
     def quote(o):
-        return urllib.quote((o if isinstance(o, basestring) else str(o)).encode(encoding))
+        if PY3:
+            return urllib.quote(o if isinstance(o, str) else str(o), encoding = encoding)
+        else:
+            return urllib.quote((o if isinstance(o, basestring_) else str(o)).encode(encoding))
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
@@ -45,7 +47,7 @@ def encodeQueryString(o, encoding = "utf-8"):
             for member in o:
                 iterateItems(o[member], parent + (quote(member),))
         elif isinstance(o, (list, tuple)):
-            for ix in xrange(0, len(o)):
+            for ix in xrange_(0, len(o)):
                 iterateItems(o[ix], parent + (quote(ix),))
         elif o is not None:
             keysValues.append((parent, quote(o)))
@@ -78,8 +80,12 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         keysValue = keysValueString.split("=")
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
-        keys = [makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split(".")]
-        value = urllib.unquote(keysValue[1]).decode(encoding)
+        if PY3:
+            keys = [makeKey(urllib.unquote(key, encoding = encoding)) for key in keysValue[0].split(".")]
+            value = urllib.unquote(keysValue[1], encoding = encoding)
+        else:
+            keys = [makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split(".")]
+            value = urllib.unquote(keysValue[1]).decode(encoding)
 
         # Find/create the object on which to set the value
         oParent = oResult
@@ -87,7 +93,7 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         for key in keys:
 
             # Array key?
-            if isinstance(key, (int, long)):
+            if isinstance(key, (int, long_)):
 
                 # Create this key's container, if necessary
                 o = oParent[keyParent]

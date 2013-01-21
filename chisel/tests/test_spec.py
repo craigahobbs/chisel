@@ -21,6 +21,7 @@
 #
 
 from chisel import SpecParser, SpecParserError
+from chisel.compat import xrange_
 from chisel.model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
@@ -34,7 +35,7 @@ class TestSpecParseSpec(unittest.TestCase):
     def assertStruct(self, structTypeInst, members):
         self.assertTrue(isinstance(structTypeInst, TypeStruct))
         self.assertEqual(len(structTypeInst.members), len(members))
-        for ixMember in xrange(0, len(members)):
+        for ixMember in xrange_(0, len(members)):
             name, typeInstOrType, isOptional = members[ixMember]
             self.assertEqual(structTypeInst.members[ixMember].name, name)
             self.assertTrue(structTypeInst.members[ixMember].typeInst is typeInstOrType or

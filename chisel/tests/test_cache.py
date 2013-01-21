@@ -21,12 +21,9 @@
 #
 
 import chisel
+from chisel.compat import pickle
 
 from datetime import datetime, timedelta
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import time
 import unittest
 
@@ -97,7 +94,7 @@ class TestCache(unittest.TestCase):
 
         # Helper to flush cache update threads
         def flushThreads():
-            for thread in list(cache._updateThreads.itervalues()):
+            for thread in list(cache._updateThreads.values()):
                 thread.join()
 
         # Get the initial cache values

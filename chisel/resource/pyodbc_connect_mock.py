@@ -21,6 +21,7 @@
 #
 
 from ..app import ResourceType
+from ..compat import long_
 
 import datetime
 import decimal
@@ -49,7 +50,7 @@ class PyodbcConnectResourceTypeMock(ResourceType):
 # pyodbc connection mock
 class PyodbcConnectionMock:
 
-    class Error(StandardError):
+    class Error(Exception):
         pass
 
     class DatabaseError(Error):
@@ -160,7 +161,7 @@ def assertRowSets(rowSets):
                                          datetime.time,
                                          datetime.datetime,
                                          int,
-                                         long,
+                                         long_,
                                          float,
                                          decimal.Decimal)), \
                                          "Invalid column data %r" % (data,)
@@ -232,7 +233,7 @@ class PyodbcCursorMock:
     def fetchone(self):
 
         try:
-            return self.next()
+            return self.__next__()
         except StopIteration:
             return None
 
@@ -240,7 +241,7 @@ class PyodbcCursorMock:
 
         return self
 
-    def next(self):
+    def __next__(self):
 
         if self.isClosed or self.connection.isClosed:
             raise self.connection.ProgrammingError("Attempt to iterate a closed cursor")
@@ -256,6 +257,10 @@ class PyodbcCursorMock:
         row = PyodbcRowMock(rowSet[0], rowSet[1][self.ixRow])
         self.ixRow += 1
         return row
+
+    def next(self):
+
+        return self.__next__()
 
 
 # Simple execute callback

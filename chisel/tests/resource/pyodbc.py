@@ -22,7 +22,7 @@
 
 
 # Mock pyodbc exceptions
-class Error(StandardError):
+class Error(Exception):
     pass
 
 class DatabaseError(Error):

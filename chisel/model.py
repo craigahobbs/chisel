@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+from .compat import basestring_, long_, xrange_
 from .struct import Struct
 
 from datetime import datetime, timedelta, tzinfo
@@ -61,7 +62,7 @@ class ValidationError(Exception):
     def memberSyntax(cls, members):
 
         if members:
-            return "".join([((".%s" if isinstance(x, basestring) else "[%d]") % (x,)) for x in members]).lstrip(".")
+            return "".join([((".%s" if isinstance(x, basestring_) else "[%d]") % (x,)) for x in members]).lstrip(".")
         else:
             return None
 
@@ -153,7 +154,7 @@ class TypeArray:
             raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate the list contents
-        for ix in xrange(0, len(valueInner)):
+        for ix in xrange_(0, len(valueInner)):
             arrayValue = valueInner[ix]
             arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (ix,))
             if arrayValueNew is not arrayValue:
@@ -183,7 +184,7 @@ class TypeDict:
         for key in valueInner:
 
             # Dict keys must be strings
-            if not isinstance(key, basestring):
+            if not isinstance(key, basestring_):
                 raise ValidationError.memberError(TypeString(), key, _member + (key,))
 
             # Validate the value
@@ -199,11 +200,15 @@ class TypeDict:
 class TypeEnum:
 
     class Value:
+
         def __init__(self, value, doc = None):
+
             self.value = value
             self.doc = [] if doc is None else doc
-        def __cmp__(self, other):
-            return cmp(self.value, other)
+
+        def __eq__(self, other):
+
+            return self.value == other
 
     def __init__(self, typeName = "enum", doc = None):
 
@@ -213,7 +218,7 @@ class TypeEnum:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if not isinstance(value, basestring) or value not in self.values:
+        if not isinstance(value, basestring_) or value not in self.values:
             raise ValidationError.memberError(self, value, _member)
         else:
             return value
@@ -232,7 +237,7 @@ class TypeString:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if isinstance(value, basestring):
+        if isinstance(value, basestring_):
             result = value
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -263,11 +268,11 @@ class TypeInt:
 
     def validate(self, value, acceptString = False, _member = ()):
 
-        if isinstance(value, (int, long)) and not isinstance(value, bool):
+        if isinstance(value, (int, long_)) and not isinstance(value, bool):
             result = value
         elif isinstance(value, (float, Decimal)) and int(value) == value:
             result = int(value)
-        elif acceptString and isinstance(value, basestring):
+        elif acceptString and isinstance(value, basestring_):
             try:
                 result = int(value)
             except:
@@ -303,9 +308,9 @@ class TypeFloat:
 
         if isinstance(value, float):
             result = value
-        elif isinstance(value, (int, long, Decimal)) and not isinstance(value, bool):
+        elif isinstance(value, (int, long_, Decimal)) and not isinstance(value, bool):
             result = float(value)
-        elif acceptString and isinstance(value, basestring):
+        elif acceptString and isinstance(value, basestring_):
             try:
                 result = float(value)
             except:
@@ -337,7 +342,7 @@ class TypeBool:
 
         if isinstance(value, bool):
             return value
-        elif acceptString and isinstance(value, basestring) and value in ("true", "false"):
+        elif acceptString and isinstance(value, basestring_) and value in ("true", "false"):
             return value in ("true")
         else:
             raise ValidationError.memberError(self, value, _member)
@@ -354,7 +359,7 @@ class TypeDatetime:
 
         if isinstance(value, datetime):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, basestring_):
             try:
                 return self.parseISO8601Datetime(value)
             except ValueError:
@@ -450,7 +455,7 @@ class TypeUuid:
 
         if isinstance(value, UUID):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, basestring_):
             try:
                 return UUID(value)
             except ValueError:

@@ -22,7 +22,7 @@
 
 # Replace pymongo with mock
 import sys
-import pymongo
+from . import pymongo
 sys.modules["pymongo"] = pymongo
 sys.modules["pymongo.database"] = pymongo
 

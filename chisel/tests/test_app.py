@@ -21,12 +21,9 @@
 #
 
 from chisel import Application, ResourceType
+from chisel.compat import StringIO
 
 import os
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 import unittest
 
 

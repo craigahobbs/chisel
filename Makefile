@@ -31,7 +31,10 @@ COVER = .cover
 # Python version support
 PYTHON_VERSIONS = \
     2.7 \
-    2.6
+    2.6 \
+    3.1 \
+    3.2 \
+    3.3
 
 # Help
 .PHONY: help
@@ -44,7 +47,7 @@ test: test_$(firstword $(PYTHON_VERSIONS))
 
 # Pre-checkin check
 .PHONY: check
-check: superclean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
+check: clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 
 # Clean
 .PHONY: clean

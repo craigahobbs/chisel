@@ -21,6 +21,7 @@
 #
 
 from chisel import Struct, ValidationError
+from chisel.compat import basestring_, long_, unicode_
 from chisel.model import jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
@@ -97,7 +98,7 @@ class TestModelValidation(unittest.TestCase):
                          "b": "Hello",
                          "c": Struct(d = True, e = 5.5),
                          "f": [ "Foo", "Bar" ],
-                         "g": Struct(Foo = 5L),
+                         "g": Struct(Foo = long_(5)),
                          "h": "Foo",
                          "i": "2012-09-06T06:49:00-07:00",
                          "k": "8daeb11e-3c83-11e2-a7aa-20c9d0427a89"
@@ -105,7 +106,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(s, dict))
         self.assertTrue(isinstance(s["a"], int))
         self.assertEqual(s["a"], 5)
-        self.assertTrue(isinstance(s["b"], basestring))
+        self.assertTrue(isinstance(s["b"], basestring_))
         self.assertEqual(s["b"], "Hello")
         self.assertTrue(isinstance(s["c"], Struct))
         self.assertTrue(isinstance(s["c"].d, bool))
@@ -113,9 +114,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(s["c"].e, float))
         self.assertEqual(s["c"].e, 5.5)
         self.assertTrue(isinstance(s["f"], list))
-        self.assertTrue(isinstance(s["f"][0], basestring))
+        self.assertTrue(isinstance(s["f"][0], basestring_))
         self.assertEqual(s["f"][0], "Foo")
-        self.assertTrue(isinstance(s["f"][1], basestring))
+        self.assertTrue(isinstance(s["f"][1], basestring_))
         self.assertEqual(s["f"][1], "Bar")
         self.assertEqual(s["g"]["Foo"], 5)
         self.assertEqual(s["h"], "Foo")
@@ -141,7 +142,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(s, Struct))
         self.assertTrue(isinstance(s.a, int))
         self.assertEqual(s.a, 5)
-        self.assertTrue(isinstance(s.b, basestring))
+        self.assertTrue(isinstance(s.b, basestring_))
         self.assertEqual(s.b, "Hello")
         self.assertTrue(isinstance(s.c, Struct))
         self.assertTrue(isinstance(s.c.d, bool))
@@ -150,9 +151,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(s.c.e, 5.5)
         self.assertTrue(isinstance(s.f, Struct))
         self.assertTrue(isinstance(s.f(), list))
-        self.assertTrue(isinstance(s.f[0], basestring))
+        self.assertTrue(isinstance(s.f[0], basestring_))
         self.assertEqual(s.f[0], "Foo")
-        self.assertTrue(isinstance(s.f[1], basestring))
+        self.assertTrue(isinstance(s.f[1], basestring_))
         self.assertEqual(s.f[1], "Bar")
 
         # Failure - invalid type
@@ -286,7 +287,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(mArray.validate({}), {})
 
         # Success - unicode key
-        self.assertEqual(mInt.validate({ unicode("a"): 7 }), { unicode("a"): 7 })
+        self.assertEqual(mInt.validate({ unicode_("a"): 7 }), { unicode_("a"): 7 })
 
         # Failure - int value
         self.assertValidationError(mInt, 7,
@@ -325,9 +326,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, str))
 
         # Success - unicode
-        v = m.validate(unicode("Foo"))
-        self.assertEqual(v, unicode("Foo"))
-        self.assertTrue(isinstance(v, unicode))
+        v = m.validate(unicode_("Foo"))
+        self.assertEqual(v, unicode_("Foo"))
+        self.assertTrue(isinstance(v, unicode_))
 
         # Failure
         self.assertValidationError(m, "Thud",
@@ -357,9 +358,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, str))
 
         # Success - unicode
-        v = m.validate(unicode("Foo"))
+        v = m.validate(unicode_("Foo"))
         self.assertEqual(v, "Foo")
-        self.assertTrue(isinstance(v, unicode))
+        self.assertTrue(isinstance(v, unicode_))
 
         # Failure - int
         self.assertValidationError(m, 7,
@@ -446,9 +447,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, int))
 
         # Success - long
-        v = m.validate(5L)
-        self.assertEqual(v, 5L)
-        self.assertTrue(isinstance(v, long))
+        v = m.validate(long_(5))
+        self.assertEqual(v, long_(5))
+        self.assertTrue(isinstance(v, long_))
 
         # Success - float
         v = m.validate(5.)
@@ -466,7 +467,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, int))
 
         # Success - accept unicode string
-        v = m.validate(unicode("7"), acceptString = True)
+        v = m.validate(unicode_("7"), acceptString = True)
         self.assertEqual(v, 7)
         self.assertTrue(isinstance(v, int))
 
@@ -581,7 +582,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, float))
 
         # Success - long
-        v = m.validate(7L)
+        v = m.validate(long_(7))
         self.assertEqual(v, 7.)
         self.assertTrue(isinstance(v, float))
 
@@ -596,7 +597,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertTrue(isinstance(v, float))
 
         # Success - accept unicode string
-        v = m.validate(unicode("8.5"), acceptString = True)
+        v = m.validate(unicode_("8.5"), acceptString = True)
         self.assertEqual(v, 8.5)
         self.assertTrue(isinstance(v, float))
 

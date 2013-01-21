@@ -20,10 +20,7 @@
 # SOFTWARE.
 #
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
+from .compat import iteritems, itervalues, long_, pickle
 
 
 # Class-syntax wrapper around built-in dictionaries.
@@ -34,7 +31,7 @@ class Struct(object):
         if container is not None:
             object.__setattr__(self, "_container", container)
         else:
-            object.__setattr__(self, "_container", dict([x for x in members.iteritems() if x[1] is not None]))
+            object.__setattr__(self, "_container", dict([x for x in iteritems(members) if x[1] is not None]))
 
     def __call__(self):
 
@@ -43,7 +40,9 @@ class Struct(object):
     def __getattr__(self, key):
 
         container = self()
-        if isinstance(container, dict) and (key in container or not hasattr(container, key)):
+        if key.startswith("__") and key.endswith("__"):
+            return object.__getattribute__(self, key)
+        elif isinstance(container, dict) and (key in container or not hasattr(container, key)):
             return self[key]
         else:
             return getattr(container, key)
@@ -62,7 +61,7 @@ class Struct(object):
         container = self()
         if isinstance(container, dict):
             value = container.get(key)
-        elif isinstance(key, (int, long)) and key >= 0 and key < len(container):
+        elif isinstance(key, (int, long_)) and key >= 0 and key < len(container):
             value = container[key]
         else:
             value = None
@@ -99,19 +98,23 @@ class Struct(object):
 
             self._it = iter(container)
 
-        def next(self):
+        def __next__(self):
 
             # Return the value - wrap containers
-            value = self._it.next()
+            value = next(self._it)
             return Struct(value) if isinstance(value, (dict, list, tuple)) else value
+
+        def next(self):
+
+            return self.__next__()
 
     def __iter__(self):
 
         return Struct._ContainerIter(self())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
 
-        return cmp(self(), other() if isinstance(other, Struct) else other)
+        return self() == (other() if isinstance(other, Struct) else other)
 
     def __repr__(self):
 

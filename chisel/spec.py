@@ -20,15 +20,12 @@
 # SOFTWARE.
 #
 
+from .compat import StringIO
 from .model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 from .struct import Struct
 
 import re
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 
 
 # Action class
@@ -93,7 +90,7 @@ class SpecParser:
     # Parse a specification file
     def parse(self, specPath, finalize = True):
 
-        with open(specPath, "rb") as specStream:
+        with open(specPath, "r") as specStream:
             self.parseStream(specStream, finalize = finalize, fileName = specPath)
 
     # Parse a specification string

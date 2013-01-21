@@ -22,13 +22,13 @@
 
 # Replace urllib2 with mock
 import sys
-import urllib2
-sys.modules["urllib2"] = urllib2
+from . import chisel_compat
+sys.modules["chisel.compat"] = chisel_compat
 
 from chisel.resource.url_request import UrlRequestResourceType
 
 # Restore urllib2
-del sys.modules["urllib2"]
+del sys.modules["chisel.compat"]
 
 import unittest
 

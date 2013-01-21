@@ -20,11 +20,9 @@
 # SOFTWARE.
 #
 
+from .compat import iteritems, pickle
+
 from datetime import datetime, timedelta
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import threading
 
 
@@ -71,7 +69,7 @@ class Cache:
                 self._expire = today + self._ttl
             else:
                 secondsToday = self._timedelta_total_seconds(now - today)
-                periodsToday = round(secondsToday / self._ttlSeconds)
+                periodsToday = (secondsToday + self._ttlSeconds / 2) // self._ttlSeconds
                 self._expire = today + timedelta(seconds = (periodsToday + 1) * self._ttlSeconds)
 
         return isExpired
@@ -131,7 +129,7 @@ class Cache:
                 threadsWait.add(self._updateThreads[key])
 
         # Un-pickle values (outside of lock)
-        for key, valuePickle in resultPickle.iteritems():
+        for key, valuePickle in iteritems(resultPickle):
             result[key] = pickle.loads(valuePickle)
 
         # Wait for any unknown result values
@@ -168,14 +166,14 @@ class Cache:
 
         # Pickle the the cache values
         resultPickle = {}
-        for key, value in result.iteritems():
+        for key, value in iteritems(result):
             resultPickle[key] = pickle.dumps(value)
 
         # Lock the cache...
         with self._cacheLock:
 
             # Update the cache with the pickled values
-            for key, valuePickle in resultPickle.iteritems():
+            for key, valuePickle in iteritems(resultPickle):
                 self._cache[key] = valuePickle
 
             # Remove the key from the update threads dict

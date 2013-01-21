@@ -21,6 +21,7 @@
 #
 
 from .doc import joinUrl, createIndexHtml, createActionHtml
+from .compat import func_name, itervalues, json, urllib
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
@@ -31,13 +32,7 @@ import json
 import os
 import sys
 import traceback
-import urllib
 from wsgiref.util import application_uri
-
-
-# Fix Python 2.6's json float encoding
-if sys.version_info < (2, 7):
-    json.encoder.FLOAT_REPR = lambda o: format(o, 'g')
 
 
 # API callback decorator - used to identify action callback functions during module loading
@@ -46,7 +41,7 @@ class Action:
     def __init__(self, fn):
 
         self.fn = fn
-        self.name = fn.func_name
+        self.name = func_name(fn)
 
     def __call__(self, *args):
 
@@ -110,7 +105,7 @@ class Application:
     # Add a single action callback
     def addActionCallback(self, actionCallback, actionName = None):
 
-        actionName = actionCallback.func_name if actionName is None else actionName
+        actionName = func_name(actionCallback) if actionName is None else actionName
         if actionName not in self._specParser.actions:
             raise Exception("No model defined for action callback '%s'" % (actionName,))
         elif actionName in self._actionCallbacks:
@@ -142,10 +137,6 @@ class Application:
                     moduleNames = moduleFileParts[len(modulePathParts):-1] + \
                         list(os.path.splitext(moduleFileParts[-1])[:1])
 
-                    # Don't load __init__
-                    if moduleNames[-1] == "__init__":
-                        continue
-
                     # Load each module down the relative module path
                     curPath = modulePath
                     module = None
@@ -156,9 +147,9 @@ class Application:
 
                     # Add the module's actions
                     for moduleAttr in dir(module):
-                        actionDecoratorInst = getattr(module, moduleAttr)
-                        if isinstance(actionDecoratorInst, Action):
-                            self.addActionCallback(actionDecoratorInst, actionName = actionDecoratorInst.name)
+                        actionDecorator = getattr(module, moduleAttr)
+                        if isinstance(actionDecorator, Action):
+                            self.addActionCallback(actionDecorator, actionName = actionDecorator.name)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
@@ -325,7 +316,7 @@ class Application:
 
                 # Generate the doc index HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
-                actionModels = [actionModel for actionModel in self._specParser.actions.itervalues() \
+                actionModels = [actionModel for actionModel in itervalues(self._specParser.actions) \
                                     if actionModel.name in self._actionCallbacks]
                 responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)

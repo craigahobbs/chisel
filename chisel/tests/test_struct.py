@@ -21,11 +21,8 @@
 #
 
 from chisel import Struct
+from chisel.compat import pickle
 
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import unittest
 
 
@@ -294,10 +291,11 @@ class TestStruct(unittest.TestCase):
     # Test struct repr
     def test_struct_repr(self):
 
-        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1, 2, 3], d = (1,2,3))
+        d = {"a": {"a": [1,2,3]}, "b": {"a": [1,2,3]}, "c": [1,2,3], "d": (1,2,3)}
+        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1,2,3], d = (1,2,3))
 
-        self.assertEqual(repr(s), "{'a': {'a': [1, 2, 3]}, 'c': [1, 2, 3], 'b': {'a': [1, 2, 3]}, 'd': (1, 2, 3)}")
-        self.assertEqual(str(s), "{'a': {'a': [1, 2, 3]}, 'c': [1, 2, 3], 'b': {'a': [1, 2, 3]}, 'd': (1, 2, 3)}")
+        self.assertEqual(repr(s), repr(d))
+        self.assertEqual(str(s), repr(d))
 
     # Test struct pickle
     def test_struct_pickle(self):

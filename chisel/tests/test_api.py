@@ -20,17 +20,14 @@
 # SOFTWARE.
 #
 
-from chisel import ActionError, encodeQueryString, SpecParser, Struct
+from chisel import ActionError, decodeQueryString, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
+from chisel.compat import func_name, long_, StringIO, unichr_, unicode_, urllib
 
 import json
 import logging
 import os
 import re
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 import unittest
 import wsgiref.util
 
@@ -45,11 +42,11 @@ class TestApiLoadModules(unittest.TestCase):
         app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_api_files"))
         app.loadModules(os.path.join(os.path.dirname(__file__), "test_api_files"))
         self.assertEqual(len(app._actionCallbacks), 3)
-        self.assertEqual(app._actionCallbacks["myAction1"].fn.func_name, "myAction1")
+        self.assertEqual(func_name(app._actionCallbacks["myAction1"].fn), "myAction1")
         self.assertEqual(app._actionCallbacks["myAction2"].name, "myAction2")
-        self.assertEqual(app._actionCallbacks["myAction3"].fn.func_name, "myAction3")
+        self.assertEqual(func_name(app._actionCallbacks["myAction3"].fn), "myAction3")
         self.assertEqual(app._actionCallbacks["myAction1"].name, "myAction1")
-        self.assertEqual(app._actionCallbacks["myAction2"].fn.func_name, "myAction2")
+        self.assertEqual(func_name(app._actionCallbacks["myAction2"].fn), "myAction2")
         self.assertEqual(app._actionCallbacks["myAction3"].name, "myAction3")
 
     # Verify that exception is raised when invalid module path is loaded
@@ -104,6 +101,7 @@ class TestApiRequest(unittest.TestCase):
         response = "".join(responseList)
         if decodeJSON:
             response = Struct(json.loads(response))
+
         return status[0], responseHeaders[0], response
 
     # Test successful action handling
@@ -341,7 +339,7 @@ action myActionRaise
         self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidInput")
-        self.assertTrue(isinstance(response.message, unicode))
+        self.assertTrue(isinstance(response.message, unicode_))
         self.assertTrue(response.message.startswith("Invalid request JSON:"))
 
         # Unexpected error
@@ -349,7 +347,7 @@ action myActionRaise
         self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "UnexpectedError")
-        self.assertTrue(isinstance(response.message, unicode))
+        self.assertTrue(isinstance(response.message, unicode_))
         self.assertTrue(re.search("^test_api\\.py:\\d+: Barf$", response.message))
 
         # Invalid query string
@@ -358,7 +356,7 @@ action myActionRaise
         self.assertEqual(status, "500 Internal Server Error")
         self.assertEqual(len(response()), 2)
         self.assertEqual(response.error, "InvalidInput")
-        self.assertTrue(isinstance(response.message, unicode))
+        self.assertTrue(isinstance(response.message, unicode_))
         self.assertEqual(response.message, "Invalid key/value pair 'b'")
 
     # Test passing complex struct as query string
@@ -421,16 +419,6 @@ action myAction
         self.assertEqual(status, "200 OK")
         self.assertTrue('"error":"InvalidInput"' in response)
         self.assertTrue('"member":"nums"' in response)
-
-        # Unicode JSONP function
-        o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
-        request = { "jsonp": "myfunc" + unichr(40960), "nums": "bad" }
-        queryString = encodeQueryString(request)
-        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, "", queryString = queryString)
-        self.assertEqual(status, "500 Internal Server Error")
-        self.assertEqual(len(response()), 2)
-        self.assertEqual(response.error, "InvalidInput")
-        self.assertEqual(response.message, "'ascii' codec can't encode character u'\\ua000' in position 6: ordinal not in range(128)")
 
     def test_api_fail_init(self):
 

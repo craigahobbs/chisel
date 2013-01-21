@@ -20,15 +20,10 @@
 # SOFTWARE.
 #
 
-import cgi
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
-import urllib
-import xml.sax.saxutils as saxutils
-
+from .compat import cgi, iteritems, itervalues, StringIO, urllib
 from .model import TypeStruct, TypeEnum, TypeArray, TypeDict
+
+import xml.sax.saxutils as saxutils
 
 
 # Helper function to join parts of a URL
@@ -79,7 +74,7 @@ class Element:
         # Element open
         out.write("<")
         out.write(self.name)
-        for attrKey, attrValue in sorted(self.attrs.iteritems(), key = lambda x: x[0].lstrip("_")):
+        for attrKey, attrValue in sorted(iteritems(self.attrs), key = lambda x: x[0].lstrip("_")):
             out.write(" ")
             out.write(attrKey.lstrip("_"))
             out.write("=")
@@ -171,7 +166,7 @@ def createActionHtml(docRootUri, actionModel, docCssUri = None):
     if userTypes:
         body.addChild("h2") \
             .addChild("User Types", isText = True, isInline = True)
-        for userType in sorted(userTypes.itervalues(), key = lambda x: x.typeName):
+        for userType in sorted(itervalues(userTypes), key = lambda x: x.typeName):
             if isinstance(userType, TypeStruct):
                 _structSection(body, userType)
             elif isinstance(userType, TypeEnum):

@@ -21,9 +21,7 @@
 #
 
 from ..app import ResourceType
-
-import urllib2
-import urlparse
+from ..compat import urllib2, urlparse
 
 
 # Url request resource type

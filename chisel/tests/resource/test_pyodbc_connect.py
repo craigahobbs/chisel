@@ -22,7 +22,7 @@
 
 # Replace pyodbc with mock
 import sys
-import pyodbc
+from . import pyodbc
 sys.modules["pyodbc"] = pyodbc
 
 from chisel.resource.pyodbc_connect import PyodbcConnectResourceType

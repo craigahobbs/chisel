@@ -21,13 +21,9 @@
 #
 
 from chisel import SpecParser
+from chisel.compat import HTMLParser, itervalues, StringIO
 from chisel.doc import joinUrl, createIndexHtml, createActionHtml, Element
 
-from HTMLParser import HTMLParser
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 import unittest
 
 
@@ -132,14 +128,14 @@ action myAction2
         self.assertEqual(len(specParser.errors), 0)
 
         # Validate the HTML
-        html = createIndexHtml("/", specParser.actions.itervalues())
+        html = createIndexHtml("/", itervalues(specParser.actions))
         HTMLValidator.validate(html)
         self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
         self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
-        html = createIndexHtml("/", specParser.actions.itervalues(), docCssUri = "/mystyle.css")
+        html = createIndexHtml("/", itervalues(specParser.actions), docCssUri = "/mystyle.css")
         HTMLValidator.validate(html)
         self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
         self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)

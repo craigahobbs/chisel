@@ -21,6 +21,7 @@
 #
 
 from chisel import decodeQueryString, encodeQueryString, Struct
+from chisel.compat import unichr_, unicode_
 
 import unittest
 
@@ -77,7 +78,7 @@ class TestUrl(unittest.TestCase):
 
         # Decode unicode string
         s = "a=abc%EA%80%80&b.0=c&b.1=d"
-        o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
+        o = { unicode_("a"): unicode_("abc") + unichr_(40960), unicode_("b"): [unicode_("c"), "d"] }
         self.assertEqual(decodeQueryString(s), o)
 
         # Keys and values with special characters
@@ -215,6 +216,6 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encodeQueryString(o), s)
 
         # Unicode keys and values
-        o = { u"a": u"abc" + unichr(40960), u"b": [u"c", "d"] }
+        o = { unicode_("a"): unicode_("abc") + unichr_(40960), unicode_("b"): [unicode_("c"), "d"] }
         s = "a=abc%EA%80%80&b.0=c&b.1=d"
         self.assertEqual(encodeQueryString(o), s)

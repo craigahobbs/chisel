@@ -20,45 +20,46 @@
 # SOFTWARE.
 #
 
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+from chisel.compat import *
 
 
-# Mock urllib2.Request
-class Request:
+# Mock urllib2
+class urllib2:
 
-    def __init__(self, hostUrl):
+    # Mock urllib2.Request
+    class Request:
 
-        self.hostUrl = hostUrl
-        self.data = []
-        self.header = []
-        self.unredirected_header = []
+        def __init__(self, hostUrl):
 
-    def add_data(self, data):
+            self.hostUrl = hostUrl
+            self.data = []
+            self.header = []
+            self.unredirected_header = []
 
-        self.data.append(data)
+        def add_data(self, data):
 
-    def add_header(self, key, val):
+            self.data.append(data)
 
-        self.header.append((key, val))
+        def add_header(self, key, val):
 
-    def add_unredirected_header(self, key, val):
+            self.header.append((key, val))
 
-        self.unredirected_header.append((key, val))
+        def add_unredirected_header(self, key, val):
 
-
-# Mock urllib2.urlopen
-def urlopen(request, data = None, timeout = None):
-
-    parts = [request.hostUrl]
-    parts.extend([str(x) for x in request.header])
-    parts.extend([str(x) for x in request.unredirected_header])
-    parts.extend(request.data)
-    return StringIO("\n".join(parts))
+            self.unredirected_header.append((key, val))
 
 
-# Mock url error
-class URLError(Exception):
-    pass
+    # Mock urllib2.urlopen
+    @staticmethod
+    def urlopen(request, data = None, timeout = None):
+
+        parts = [request.hostUrl]
+        parts.extend([str(x) for x in request.header])
+        parts.extend([str(x) for x in request.unredirected_header])
+        parts.extend(request.data)
+        return StringIO("\n".join(parts))
+
+
+    # Mock url error
+    class URLError(Exception):
+        pass
