@@ -307,3 +307,27 @@ class TestStruct(unittest.TestCase):
 
         self.assertTrue(s is not o)
         self.assertEqual(s, o)
+
+    # Test struct dict
+    def test_dict(self):
+
+        s = Struct(a = 7, b = 8)
+
+        # Check dict identity
+        self.assertTrue(dict(s) is not s)
+        self.assertTrue(dict(s) is not s())
+        self.assertEqual(dict(s), s)
+        self.assertEqual(dict(s), s())
+        self.assertEqual(dict(s), {"a": 7, "b": 8})
+
+    def test_getattr_special(self):
+
+        s = Struct(a = 7, b = 8)
+
+        # Python3 does this...
+        try:
+            s.__getnewargs__
+        except AttributeError:
+            pass
+        else:
+            self.fail()

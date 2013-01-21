@@ -29,7 +29,7 @@ def encodeQueryString(o, encoding = "utf-8"):
 
     # Helper to quote strings
     def quote(o):
-        if PY3:
+        if PY3: # pragma: no cover
             return urllib.quote(o if isinstance(o, str) else str(o), encoding = encoding)
         else:
             return urllib.quote((o if isinstance(o, basestring_) else str(o)).encode(encoding))
@@ -80,7 +80,7 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         keysValue = keysValueString.split("=")
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
-        if PY3:
+        if PY3: # pragma: no cover
             keys = [makeKey(urllib.unquote(key, encoding = encoding)) for key in keysValue[0].split(".")]
             value = urllib.unquote(keysValue[1], encoding = encoding)
         else:
