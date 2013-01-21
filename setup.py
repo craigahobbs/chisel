@@ -33,6 +33,7 @@ setup(
 TODO
 """,
     keywords = "json api server framework",
+    url = "https://github.com/craigahobbs/chisel",
     license = "MIT",
     classifiers = [
         "Environment :: Web Environment",

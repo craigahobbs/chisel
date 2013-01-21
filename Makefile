@@ -53,6 +53,7 @@ check: clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 .PHONY: clean
 clean:
 	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
+	-rm -rf build
 	-rm -rf dist
 	-rm -rf *.egg-info
 	-rm -rf .coverage $(COVER)
@@ -66,7 +67,7 @@ superclean: clean
 define ENV_RULE
 $(ENV)/$(strip $(1)):
 	virtualenv -p python$(strip $(2)) $$@
-	$(if $(3), . $$@/bin/activate; pip install $(3))
+	$(if $(strip $(3)), . $$@/bin/activate; pip install $(3))
 
 .PHONY: $(1)
 $(1): $(ENV)/$(strip $(1))
