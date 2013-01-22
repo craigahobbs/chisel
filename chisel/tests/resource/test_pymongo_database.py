@@ -45,11 +45,50 @@ class TestResourcePymongoDatabase(unittest.TestCase):
         resourceType = PymongoDatabaseResourceType()
         self.assertEqual(resourceType.name, "pymongo_database")
 
-        # Create a database
-        mongoDatabase = resourceType.open("mongodb://MyMongoUri/MyMongoDatabase")
-        self.assertEqual(mongoDatabase.conn.mongoUri, "mongodb://MyMongoUri/MyMongoDatabase")
-        self.assertEqual(mongoDatabase.dbname, "MyMongoDatabase")
-        self.assertTrue(isinstance(mongoDatabase, pymongo.database.Database))
+        # Mongo URI with database, no user info
+        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost?myoption=myvalue")
+        self.assertEqual(mongodb.conn.read_preference, None)
+        self.assertTrue(isinstance(mongodb, pymongo.database.Database))
+        self.assertEqual(mongodb.dbname, "mydatabase")
+        resourceType.close(mongodb)
 
-        # Close the database (does nothing)
-        resourceType.close(mongoDatabase)
+        # Mongo URI with database, with user info
+        mongodb = resourceType.open("mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue")
+        self.assertEqual(mongodb.conn.read_preference, None)
+        self.assertTrue(isinstance(mongodb, pymongo.database.Database))
+        self.assertEqual(mongodb.dbname, "mydatabase")
+        resourceType.close(mongodb)
+
+        # Mongo URI with database, with read preference
+        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue&read_preference=secondary")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost?myoption=myvalue")
+        self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
+        self.assertTrue(isinstance(mongodb, pymongo.database.Database))
+        self.assertEqual(mongodb.dbname, "mydatabase")
+        resourceType.close(mongodb)
+
+        # Mongo URI with database, with read_preference #2
+        mongodb = resourceType.open("mongodb://myhost/mydatabase?read_preference=secondary")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost")
+        self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
+        self.assertTrue(isinstance(mongodb, pymongo.database.Database))
+        self.assertEqual(mongodb.dbname, "mydatabase")
+        resourceType.close(mongodb)
+
+        # No database
+        try:
+            resourceType.open("mongodb://myhost")
+        except pymongo.errors.InvalidURI:
+            pass
+        else:
+            self.fail()
+
+        # Invalid read preference
+        try:
+            resourceType.open("mongodb://myhost/mydatabase?read_preference=asdf")
+        except pymongo.errors.ConfigurationError:
+            pass
+        else:
+            self.fail()

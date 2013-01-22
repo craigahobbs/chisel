@@ -67,6 +67,7 @@ class Connection:
     def __init__(self, mongoUri):
 
         self.mongoUri = mongoUri
+        self.read_preference = None
 
 
 # Mock pymongo.database.Database
@@ -80,9 +81,12 @@ class database:
             self.dbname = dbname
 
 
-# Mock pymongo.uri_parser
-class uri_parser:
+# Mock pymongo.ReadPreference
+class ReadPreference:
 
-    @staticmethod
-    def parse_uri(mongoUri):
-        return { "database": mongoUri.split("/")[-1] }
+    PRIMARY = 0
+    PRIMARY_PREFERRED = 1
+    SECONDARY = 2
+    SECONDARY_ONLY = 2
+    SECONDARY_PREFERRED = 3
+    NEAREST = 4

@@ -25,6 +25,8 @@ from ..app import ResourceType
 import pymongo
 import pymongo.database
 
+import re
+
 
 # pymongo_database resource type
 class PymongoDatabaseResourceType(ResourceType):
@@ -59,8 +61,50 @@ class PymongoDatabaseResource(pymongo.database.Database):
     TimeoutError = pymongo.errors.TimeoutError
     UnsupportedOption = pymongo.errors.UnsupportedOption
 
+    _reMongoUri = re.compile("^mongodb://((?P<userinfo>.+?)@)?(?P<hosts>.+?)(/(?P<database>.+?))(\?(?P<options>.+))?$")
+    _read_preferences = {
+        "primary": pymongo.ReadPreference.PRIMARY,
+        "primary_preferred": pymongo.ReadPreference.PRIMARY_PREFERRED,
+        "secondary": pymongo.ReadPreference.SECONDARY,
+        "secondary_preferred": pymongo.ReadPreference.SECONDARY_PREFERRED,
+        "nearest": pymongo.ReadPreference.NEAREST
+        }
+
     def __init__(self, resourceString):
 
-        res = pymongo.uri_parser.parse_uri(resourceString)
-        conn = pymongo.Connection(resourceString)
-        pymongo.database.Database.__init__(self, conn, res["database"])
+        # Parse the mongo URI
+        mMongoUri = self._reMongoUri.search(resourceString)
+        if not mMongoUri:
+            raise self.InvalidURI("Unrecognized mongo database URI")
+        userinfo = mMongoUri.group("userinfo")
+        hosts = mMongoUri.group("hosts")
+        database = mMongoUri.group("database")
+        _options = mMongoUri.group("options")
+
+        # Remove the read_preference option to work around pymongo uri_parser bug
+        options = []
+        read_preference = None
+        if _options:
+            for option in _options.split("&"):
+                if option.startswith("read_preference="):
+                    read_preference = self._read_preferences.get(option.split("=")[1])
+                    if not read_preference:
+                        raise self.ConfigurationError("Not a valid read preference")
+                else:
+                    options.append(option)
+
+        # Rebuild the URI
+        mongoUri = "mongodb://"
+        if userinfo:
+            mongoUri += userinfo + "@"
+        mongoUri += hosts
+        if userinfo: # Only add database if there is user info - avoids pymongo warn
+            mongoUri += "/" + database
+        if options:
+            mongoUri += "?" + "&".join(options)
+
+        # Connect to the database
+        conn = pymongo.Connection(mongoUri)
+        if read_preference:
+            conn.read_preference = read_preference
+        pymongo.database.Database.__init__(self, conn, database)
