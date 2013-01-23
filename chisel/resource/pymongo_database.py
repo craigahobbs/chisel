@@ -62,7 +62,7 @@ class PymongoDatabaseResource(pymongo.database.Database):
     UnsupportedOption = pymongo.errors.UnsupportedOption
 
     _reMongoUri = re.compile("^mongodb://((?P<userinfo>.+?)@)?(?P<hosts>.+?)(/(?P<database>.+?))(\?(?P<options>.+))?$")
-    _read_preferences = {
+    _readPreferences = {
         "primary": pymongo.ReadPreference.PRIMARY,
         "primary_preferred": pymongo.ReadPreference.PRIMARY_PREFERRED,
         "secondary": pymongo.ReadPreference.SECONDARY,
@@ -81,14 +81,14 @@ class PymongoDatabaseResource(pymongo.database.Database):
         database = mMongoUri.group("database")
         _options = mMongoUri.group("options")
 
-        # Remove the read_preference option to work around pymongo uri_parser bug
+        # Remove the readPreference option to work around pymongo uri_parser bug
         options = []
-        read_preference = None
+        readPreference = None
         if _options:
             for option in _options.split("&"):
-                if option.startswith("read_preference="):
-                    read_preference = self._read_preferences.get(option.split("=")[1])
-                    if not read_preference:
+                if option.startswith("readPreference="):
+                    readPreference = self._readPreferences.get(option.split("=")[1])
+                    if not readPreference:
                         raise self.ConfigurationError("Not a valid read preference")
                 else:
                     options.append(option)
@@ -105,6 +105,6 @@ class PymongoDatabaseResource(pymongo.database.Database):
 
         # Connect to the database
         conn = pymongo.Connection(mongoUri)
-        if read_preference:
-            conn.read_preference = read_preference
+        if readPreference:
+            conn.read_preference = readPreference
         pymongo.database.Database.__init__(self, conn, database)

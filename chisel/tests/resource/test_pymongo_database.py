@@ -62,7 +62,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
         resourceType.close(mongodb)
 
         # Mongo URI with database, with read preference
-        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue&read_preference=secondary")
+        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue&readPreference=secondary")
         self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost?myoption=myvalue")
         self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
@@ -70,7 +70,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
         resourceType.close(mongodb)
 
         # Mongo URI with database, with read_preference #2
-        mongodb = resourceType.open("mongodb://myhost/mydatabase?read_preference=secondary")
+        mongodb = resourceType.open("mongodb://myhost/mydatabase?readPreference=secondary")
         self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost")
         self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
@@ -87,7 +87,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
 
         # Invalid read preference
         try:
-            resourceType.open("mongodb://myhost/mydatabase?read_preference=asdf")
+            resourceType.open("mongodb://myhost/mydatabase?readPreference=asdf")
         except pymongo.errors.ConfigurationError:
             pass
         else:
