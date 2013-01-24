@@ -193,3 +193,39 @@ class TestCache(unittest.TestCase):
         self.assertEqual(myCache(1, 2, ("a",)), {"a": 1})
         self.assertEqual(myCache(3, 2, ("a", "b")), {"a": 1, "b": 2})
         self.assertEqual(myCache(3, 4, ("a", "b")), {"a": 1, "b": 2})
+
+    # Test cache raise
+    def test_cache_raise(self):
+
+        # Update function
+        def myCache(key, value, raiseException):
+            if raiseException:
+                raise Exception("Test exception message - this is normal")
+            return value
+
+        # Define the cache
+        self.setNow(5)
+        cache = chisel.cache(ttl = 10, multipleKeys = False, nowFn = self.nowFn, raiseThreadExceptions = False)
+        self.assertTrue(not cache._isExpired(updateExpire = False))
+        self.assertEqual(cache._expire, self.makeNow(20))
+
+        # Helper to flush cache update threads
+        def flushThreads():
+            for thread in list(cache._updateThreads.values()):
+                thread.join()
+
+        # Raise exception while waiting
+        try:
+            cache._get(myCache, ("a", 5, True))
+        except Exception as e:
+            self.assertEqual(str(e), "Test exception message - this is normal")
+        else:
+            self.fail()
+
+        # Raise exception while not waiting
+        self.assertEqual(cache._get(myCache, ("a", 5, False)), 5)
+        self.setNow(25)
+        self.assertEqual(cache._get(myCache, ("a", 6, True)), 5)
+        flushThreads()
+        self.assertEqual(cache._get(myCache, ("a", 6, True)), 5)
+        flushThreads()

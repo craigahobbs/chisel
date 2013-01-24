@@ -29,13 +29,14 @@ import threading
 # Simple TTL cache decorator object
 class Cache:
 
-    def __init__(self, ttl, multipleKeys = False, keyArg = 0, nowFn = None):
+    def __init__(self, ttl, multipleKeys = False, keyArg = 0, nowFn = None, raiseThreadExceptions = True):
 
         self._ttl = ttl if isinstance(ttl, timedelta) else timedelta(seconds = ttl)
         self._ttlSeconds = self._timedelta_total_seconds(self._ttl)
         self._multipleKeys = multipleKeys
         self._keyArg = keyArg
         self._nowFn = nowFn
+        self._raiseThreadExceptions = raiseThreadExceptions
         self._cacheLock = threading.Lock()
         self._cache = {}
         self._cacheOld = {}
@@ -119,7 +120,9 @@ class Cache:
 
             # Start threads to update expired or unknown values
             if keysUpdate:
-                updateThread = threading.Thread(target = lambda: self._updateKey(updateFn, tuple(keysUpdate), args))
+                updateThread = CacheUpdateThread(update = lambda: self._updateKey(updateFn, tuple(keysUpdate), args),
+                                                 isCacheWaiting = bool(keysUpdate.intersection(keysWait)),
+                                                 raiseExceptions = self._raiseThreadExceptions)
                 for key in keysUpdate:
                     self._updateThreads[key] = updateThread
                 updateThread.start()
@@ -135,6 +138,8 @@ class Cache:
         # Wait for any unknown result values
         for thread in threadsWait:
             thread.join()
+            if thread.exception is not None:
+                raise thread.exception
 
         # Un-pickle the waited-for values
         for key in keysWait:
@@ -149,8 +154,9 @@ class Cache:
 
     def _updateKey(self, updateFn, keys, args):
 
-        # Call the update function
         try:
+
+            # Call the update function
             if self._multipleKeys:
                 updateArgs = args[:self._keyArg] + (keys,) + args[self._keyArg + 1:]
                 result = updateFn(*updateArgs)
@@ -159,10 +165,14 @@ class Cache:
                 updateArgs = args[:self._keyArg] + keys + args[self._keyArg + 1:]
                 result = { keys[0]: updateFn(*updateArgs) }
         except:
-            # The update function raised - cleanup the update threads dict
-            for key in keys:
-                del self._updateThreads[key]
-            raise
+
+            # Lock the cache...
+            with self._cacheLock:
+
+                # The update function raised - cleanup the update threads dict
+                for key in keys:
+                    del self._updateThreads[key]
+                raise
 
         # Pickle the the cache values
         resultPickle = {}
@@ -179,3 +189,25 @@ class Cache:
             # Remove the key from the update threads dict
             for key in keys:
                 del self._updateThreads[key]
+
+
+# Cache key/value update thread
+class CacheUpdateThread(threading.Thread):
+
+    def __init__(self, update, isCacheWaiting, raiseExceptions = True):
+
+        self.update = update
+        self.isCacheWaiting = isCacheWaiting
+        self.raiseExceptions = raiseExceptions
+        self.exception = None
+
+        threading.Thread.__init__(self)
+
+    def run(self):
+
+        try:
+            self.update()
+        except Exception as e:
+            self.exception = e
+            if not self.isCacheWaiting and self.raiseExceptions:
+                raise
