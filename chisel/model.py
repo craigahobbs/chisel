@@ -65,6 +65,10 @@ class JsonFloat(float):
 
         return format(self, self._formatString).rstrip("0").rstrip(".")
 
+    def __str__(self):
+
+        return self.__repr__()
+
 
 # Type validation exception
 class ValidationError(Exception):
