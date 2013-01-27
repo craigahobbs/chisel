@@ -46,8 +46,6 @@ def jsonDefault(obj):
         return dt.isoformat()
     elif isinstance(obj, UUID):
         return str(obj)
-    elif isinstance(obj, Decimal):
-        return str(obj)
     else:
         return obj
 
@@ -325,7 +323,7 @@ class TypeFloat:
         if isinstance(value, float):
             result = value
         elif isinstance(value, (int, long_, Decimal)) and not isinstance(value, bool):
-            result = value
+            result = float(value)
         elif acceptString and isinstance(value, basestring_):
             try:
                 result = float(value)

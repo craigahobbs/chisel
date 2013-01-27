@@ -56,11 +56,6 @@ class TestModelJsonDefault(unittest.TestCase):
         self.assertTrue(isinstance(jsonDefault(o), basestring_))
         self.assertEqual(jsonDefault(o), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
 
-        # Decimal
-        o = Decimal("1000431.7599999997005")
-        self.assertTrue(isinstance(jsonDefault(o), basestring_))
-        self.assertEqual(jsonDefault(o), "1000431.7599999997005")
-
         # JsonFloat
         o = JsonFloat(1000431.7599999997005, 3)
         self.assertTrue(jsonDefault(o) is o)
@@ -593,17 +588,17 @@ class TestModelValidation(unittest.TestCase):
         # Success - int
         v = m.validate(6)
         self.assertEqual(v, 6.)
-        self.assertTrue(isinstance(v, int))
+        self.assertTrue(isinstance(v, float))
 
         # Success - long
         v = m.validate(long_(7))
         self.assertEqual(v, 7.)
-        self.assertTrue(isinstance(v, long_))
+        self.assertTrue(isinstance(v, float))
 
         # Success - Decimal
         v = m.validate(Decimal("5.5"))
         self.assertEqual(float(v), 5.5)
-        self.assertTrue(isinstance(v, Decimal))
+        self.assertTrue(isinstance(v, float))
 
         # Success - JsonFloat
         v = m.validate(JsonFloat(5.53, 1))
