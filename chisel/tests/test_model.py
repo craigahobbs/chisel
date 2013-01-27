@@ -22,7 +22,7 @@
 
 from chisel import Struct, ValidationError
 from chisel.compat import basestring_, long_, unicode_
-from chisel.model import jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
+from chisel.model import JsonFloat, jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
 from datetime import datetime, timedelta, tzinfo
@@ -43,15 +43,29 @@ class TestModelJsonDefault(unittest.TestCase):
 
         # Test formatting of datetime objects with tzinfo
         o = datetime(2012, 11, 16, tzinfo = TypeDatetime.TZUTC())
+        self.assertTrue(isinstance(jsonDefault(o), basestring_))
         self.assertEqual(jsonDefault(o), "2012-11-16T00:00:00+00:00")
 
         # Test formatting of datetime objects without tzinfo
         o = datetime(2012, 11, 16)
+        self.assertTrue(isinstance(jsonDefault(o), basestring_))
         self.assertTrue(re.search("^2012-11-16T00:00:00[+-]\\d\\d:\\d\\d$", jsonDefault(o)))
 
         # Test uuid object
         o = UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        self.assertTrue(isinstance(jsonDefault(o), basestring_))
         self.assertEqual(jsonDefault(o), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+
+        # Decimal
+        o = Decimal("1000431.7599999997005")
+        self.assertTrue(isinstance(jsonDefault(o), basestring_))
+        self.assertEqual(jsonDefault(o), "1000431.7599999997005")
+
+        # JsonFloat
+        o = JsonFloat(1000431.7599999997005, 3)
+        self.assertTrue(jsonDefault(o) is o)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), "1000431.76")
 
         # Test unknown class instance
         class MyType:
@@ -477,7 +491,7 @@ class TestModelValidation(unittest.TestCase):
 
         # Failure - invalid Decimal
         self.assertValidationError(m, Decimal("5.5"),
-                                   "Invalid value 5.5 (type 'Decimal'), expected type 'int'")
+                                   "Invalid value Decimal('5.5') (type 'Decimal'), expected type 'int'")
 
         # Failure - string
         self.assertValidationError(m, "5",
@@ -579,17 +593,22 @@ class TestModelValidation(unittest.TestCase):
         # Success - int
         v = m.validate(6)
         self.assertEqual(v, 6.)
-        self.assertTrue(isinstance(v, float))
+        self.assertTrue(isinstance(v, int))
 
         # Success - long
         v = m.validate(long_(7))
         self.assertEqual(v, 7.)
-        self.assertTrue(isinstance(v, float))
+        self.assertTrue(isinstance(v, long_))
 
         # Success - Decimal
         v = m.validate(Decimal("5.5"))
-        self.assertEqual(v, 5.5)
-        self.assertTrue(isinstance(v, float))
+        self.assertEqual(float(v), 5.5)
+        self.assertTrue(isinstance(v, Decimal))
+
+        # Success - JsonFloat
+        v = m.validate(JsonFloat(5.53, 1))
+        self.assertEqual(v, 5.53)
+        self.assertTrue(isinstance(v, JsonFloat))
 
         # Success - accept string
         v = m.validate("8.5", acceptString = True)
@@ -638,8 +657,8 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(5.5), 5.5)
         self.assertEqual(m.validate(0), 0)
         self.assertEqual(m.validate(-4), -4)
-        self.assertValidationError(m, 5.6,
-                                   "Invalid value 5.6 (type 'float'), expected type 'float'")
+        self.assertValidationError(m, JsonFloat(5.6, 1),
+                                   "Invalid value 5.6 (type 'JsonFloat'), expected type 'float'")
         self.assertValidationError(m, 60,
                                    "Invalid value 60 (type 'int'), expected type 'float'")
 
@@ -660,8 +679,8 @@ class TestModelValidation(unittest.TestCase):
         m.constraint_gte = 5.5
         self.assertEqual(m.validate(5.5), 5.5)
         self.assertEqual(m.validate(50), 50)
-        self.assertValidationError(m, 5.4,
-                                   "Invalid value 5.4 (type 'float'), expected type 'float'")
+        self.assertValidationError(m, JsonFloat(5.4, 1),
+                                   "Invalid value 5.4 (type 'JsonFloat'), expected type 'float'")
         self.assertValidationError(m, 0,
                                    "Invalid value 0 (type 'int'), expected type 'float'")
         self.assertValidationError(m, -5,
@@ -674,8 +693,8 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(4.5), 4.5)
         self.assertEqual(m.validate(8), 8)
         self.assertEqual(m.validate(10.5), 10.5)
-        self.assertValidationError(m, 4.4,
-                                   "Invalid value 4.4 (type 'float'), expected type 'float'")
+        self.assertValidationError(m, JsonFloat(4.4, 1),
+                                   "Invalid value 4.4 (type 'JsonFloat'), expected type 'float'")
         self.assertValidationError(m, 10.6,
                                    "Invalid value 10.6 (type 'float'), expected type 'float'")
 

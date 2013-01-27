@@ -21,7 +21,7 @@
 #
 
 from .doc import joinUrl, createIndexHtml, createActionHtml
-from .compat import func_name, itervalues, json, urllib
+from .compat import func_name, itervalues, urllib
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct

@@ -24,7 +24,6 @@ import sys
 
 PY3 = (sys.version_info >= (3, 0))
 PY32 = (sys.version_info >= (3, 2))
-PY27 = (sys.version_info >= (2, 7))
 
 # cgi
 if PY32: # pragma: no cover
@@ -33,13 +32,6 @@ if PY32: # pragma: no cover
         escape = _html.escape
 else:
     import cgi
-
-# json
-import json
-if not PY27: # pragma: no cover
-
-    # Fix Python 2.6's float encoder
-    json.encoder.FLOAT_REPR = lambda o: format(o, "g")
 
 # pickle
 if PY3: # pragma: no cover

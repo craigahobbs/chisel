@@ -46,8 +46,26 @@ def jsonDefault(obj):
         return dt.isoformat()
     elif isinstance(obj, UUID):
         return str(obj)
+    elif isinstance(obj, Decimal):
+        return str(obj)
     else:
         return obj
+
+
+# Floating point number with precision for JSON encoding
+class JsonFloat(float):
+
+    def __new__(cls, value, prec):
+
+        return float.__new__(cls, value)
+
+    def __init__(self, value, prec):
+
+        self._formatString = "." + str(prec) + "f"
+
+    def __repr__(self):
+
+        return format(self, self._formatString).rstrip("0").rstrip(".")
 
 
 # Type validation exception
@@ -75,11 +93,7 @@ class ValidationError(Exception):
 
         # Format the error string
         memberSyntax = cls.memberSyntax(members)
-        if isinstance(value, (float, Decimal)):
-            msgFormat = "Invalid value %g (type '%s')%s, expected type '%s'"
-        else:
-            msgFormat = "Invalid value %r (type '%s')%s, expected type '%s'"
-        msg = msgFormat % \
+        msg = "Invalid value %r (type '%s')%s, expected type '%s'" % \
             (value, value.__class__.__name__, " for member '%s'" % (memberSyntax,) if memberSyntax else "", typeInst.typeName)
 
         return ValidationError(msg, member = memberSyntax)
@@ -270,8 +284,10 @@ class TypeInt:
 
         if isinstance(value, (int, long_)) and not isinstance(value, bool):
             result = value
-        elif isinstance(value, (float, Decimal)) and int(value) == value:
+        elif isinstance(value, (float, Decimal)):
             result = int(value)
+            if result != value:
+                raise ValidationError.memberError(self, value, _member)
         elif acceptString and isinstance(value, basestring_):
             try:
                 result = int(value)
@@ -309,7 +325,7 @@ class TypeFloat:
         if isinstance(value, float):
             result = value
         elif isinstance(value, (int, long_, Decimal)) and not isinstance(value, bool):
-            result = float(value)
+            result = value
         elif acceptString and isinstance(value, basestring_):
             try:
                 result = float(value)
