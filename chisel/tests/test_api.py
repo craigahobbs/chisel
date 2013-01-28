@@ -297,11 +297,14 @@ action myActionRaise
         int b
 """)
         def myActionRaise(ctx, request):
+            if request.a == 1 and request.b == 2:
+                return {"c": "invalid"}
             raise Exception("Barf")
         app.addActionCallback(myActionRaise)
 
         # Requests
         request = '{ "a": 5, "b": 7 }'
+        requestResponse = '{ "a": 1, "b": 2 }'
         requestInvalid = '{ "a: 5, "b": 7 }'
 
         # Unknown action
@@ -349,6 +352,14 @@ action myActionRaise
         self.assertEqual(response.error, "UnexpectedError")
         self.assertTrue(isinstance(response.message, unicode_))
         self.assertTrue(re.search("^test_api\\.py:\\d+: Barf$", response.message))
+
+        # Invalid response
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(requestResponse), requestResponse)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidOutput")
+        self.assertTrue(isinstance(response.message, unicode_))
+        self.assertEqual(response.message, "Invalid member 'c'")
 
         # Invalid query string
         queryString = "a=7&b&c=9"

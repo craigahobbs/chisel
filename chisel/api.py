@@ -221,7 +221,6 @@ class Application:
     def _actionResponse(self, environ, start_response, actionName, request, actionError = None,
                         acceptString = False, jsonpFunction = None):
 
-        isErrorResponse = True
         actionContext = None
         try:
             # Server error provided?
@@ -257,8 +256,7 @@ class Application:
                 raise ActionErrorInternal("UnexpectedError", err)
 
             # Error response?
-            isErrorResponse = ("error" in response)
-            if isErrorResponse:
+            if "error" in response:
                 responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
             else:
                 responseTypeInst = actionModel.outputType
@@ -281,7 +279,7 @@ class Application:
         jsonContent = self._serializeJSON(response)
 
         # Determine the HTTP status
-        if isErrorResponse and jsonpFunction is None:
+        if "error" in response  and jsonpFunction is None:
             status = "500 Internal Server Error"
         else:
             status = "200 OK"
