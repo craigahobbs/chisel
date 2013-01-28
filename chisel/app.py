@@ -114,19 +114,42 @@ class Application:
 
         # Initialize now if possible
         if configPath and scriptFilename:
-            self.init(None)
+            self._init(None)
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
         # Initialize, if necessary
-        self.init(environ)
+        self._init(environ)
 
         # Delegate to API application helper
         return self._api(environ, start_response)
 
-    # Initialize the application - load configuration file, specs, and modules
-    def init(self, environ):
+    # Create the action context object
+    def createContext(self, environ):
+
+        # Initialize, if necessary
+        self._init(environ)
+
+        # Do the work...
+        return self._createContext(environ)
+
+    def _createContext(self, environ):
+
+        # Create the logger
+        logger = logging.getLoggerClass()("")
+        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
+        logger.setLevel(self._getLogLevel(self._config))
+
+        # Create the action context
+        ctx = Struct()
+        ctx.resources = self._resources
+        ctx.config = self._config.config
+        ctx.environ = environ
+        ctx.log = logger
+        return ctx
+
+    def _init(self, environ):
 
         with self._initLock:
 
@@ -176,30 +199,6 @@ class Application:
                     # Add the resource factory
                     self._resources[resource.name] = \
                         ResourceFactory(resource.name, resource.resourceString, resourceType[0])
-
-    # Create the action context object
-    def createContext(self, environ):
-
-        # Initialize, if necessary
-        self.init(environ)
-
-        # Do the work...
-        return self._createContext(environ)
-
-    def _createContext(self, environ):
-
-        # Create the logger
-        logger = logging.getLoggerClass()("")
-        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
-        logger.setLevel(self._getLogLevel(self._config))
-
-        # Create the action context
-        ctx = Struct()
-        ctx.resources = self._resources
-        ctx.config = self._config.config
-        ctx.environ = environ
-        ctx.log = logger
-        return ctx
 
     # Configuration file specification
     configSpec = """\
@@ -339,17 +338,27 @@ struct ApplicationConfig
     def callRaw(self, method, url, data = None, environ = None):
 
         # WSGI environment - used passed-in environ if its complete
-        _environ = dict(environ) if environ else {}
-        _environ["REQUEST_METHOD"] = method
-        _environ["PATH_INFO"] = url
-        if data is not None:
-            _environ["wsgi.input"] = StringIO(data)
-            _environ["CONTENT_LENGTH"] = str(len(data))
+        if (environ is not None and
+            "REQUEST_METHOD" in environ and
+            "PATH_INFO" in environ and
+            "wsgi.input" in environ and
+            "wsgi.errors" in environ):
+
+            _environ = environ
+
         else:
-            _environ["wsgi.input"] = StringIO()
-            if "CONTENT_LENGTH" in _environ:
-                del _environ["CONTENT_LENGTH"]
-        _environ["wsgi.errors"] = StringIO()
+
+            _environ = dict(environ) if environ else {}
+            if "REQUEST_METHOD" not in _environ:
+                _environ["REQUEST_METHOD"] = method
+            if "PATH_INFO" not in _environ:
+                _environ["PATH_INFO"] = url
+            if "CONTENT_LENGTH" not in _environ and data is not None:
+                _environ["CONTENT_LENGTH"] = str(len(data))
+            if "wsgi.input" not in _environ:
+                _environ["wsgi.input"] = StringIO(data if data is not None else "")
+            if "wsgi.errors" not in _environ:
+                _environ["wsgi.errors"] = StringIO()
 
         # Call the action
         startResponseArgs = {}
