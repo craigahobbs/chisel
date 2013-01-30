@@ -594,6 +594,31 @@ action myAction
         self.assertTrue(("Content-Type", "text/plain") in headers)
         self.assertEqual(response, "Not Found")
 
+        # App with docs disabled
+        app = Application(docUriDir = None)
+        app.loadSpecString("""\
+action myAction
+    input
+        int a
+    output
+        int b
+""")
+        def myAction(ctx, request):
+            return { "b": request.a * ctx.foo }
+        app.addActionCallback(myAction)
+
+        # Test doc index request with docs disabled
+        status, headers, response = self.sendRequest(app, "GET", "/doc", None, "", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")
+
+        # Test doc action request  with docs disabled
+        status, headers, response = self.sendRequest(app, "POST", "/doc/myAction", None, "", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")
+
     # Test wrapped application
     def test_api_wrapped(self):
 

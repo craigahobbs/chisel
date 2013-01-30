@@ -171,6 +171,7 @@ class Application:
             self._api = api.Application(wrapApplication = self._wrapApplication,
                                         isPretty = self._config.prettyOutput,
                                         contextCallback = self._createContext,
+                                        docUriDir = None if self._config.disableDocs else "doc",
                                         docCssUri = self._config.docCssUri)
 
             # Load specs and modules
@@ -239,13 +240,16 @@ struct ApplicationConfig
     # Logger output level (default is Warning)
     [optional] LogLevel logLevel
 
-    # Pretty JSON output (default is False)
+    # Pretty JSON output (default is false)
     [optional] bool prettyOutput
 
-    # Re-load specs and scripts on every requests (development mode)
+    # Re-load specs and scripts on every requests (default is false)
     [optional] bool alwaysReload
 
-    # External CSS for generated documenation HTML
+    # Disable documentation (default is false)
+    [optional] bool disableDocs
+
+    # External CSS for generated documenation HTML (default is None)
     [optional] string docCssUri
 """
     _configParser = SpecParser()
