@@ -120,30 +120,25 @@ class Application:
         if not os.path.isdir(modulePath):
             raise IOError("%r not found or is not a directory" % (modulePath,))
 
-        # Add the module path to the system load path
-        if modulePath not in sys.path:
-            sys.path.append(modulePath)
-
         # Recursively find module files
-        modulePathParts = modulePath.split(os.sep)
+        modulePathParent = os.path.dirname(os.path.normpath(modulePath))
+        modulePathBase = os.path.join(modulePathParent, "") if modulePathParent else modulePathParent
         for dirpath, dirnames, filenames in os.walk(modulePath):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == moduleExt:
 
-                    # Determine the relative module path
-                    moduleFile = os.path.join(dirpath, filename)
-                    moduleFileParts = moduleFile.split(os.sep)
-                    moduleNames = moduleFileParts[len(modulePathParts):-1] + \
-                        list(os.path.splitext(moduleFileParts[-1])[:1])
-
-                    # Load each module down the relative module path
-                    curPath = modulePath
+                    # Load the module
+                    moduleFile = os.path.join(dirpath, base)[len(modulePathBase):]
                     module = None
-                    for ixModuleName, moduleName in enumerate(moduleNames):
-                        moduleArgs = imp.find_module(moduleName, [curPath])
-                        module = imp.load_module(".".join(moduleNames[0:ixModuleName + 1]), *moduleArgs)
-                        curPath = os.path.join(curPath, moduleName)
+                    moduleParts = []
+                    for modulePart in moduleFile.split(os.sep):
+                        if module is None:
+                            moduleArgs = imp.find_module(modulePart, [modulePathParent])
+                        else:
+                            moduleArgs = imp.find_module(modulePart, module.__path__)
+                        moduleParts.append(modulePart)
+                        module = imp.load_module(".".join(moduleParts), *moduleArgs)
 
                     # Add the module's actions
                     for moduleAttr in dir(module):
