@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from chisel import ActionError, decodeQueryString, encodeQueryString, SpecParser, Struct
+from chisel import action, ActionError, decodeQueryString, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
 from chisel.compat import func_name, long_, StringIO, unichr_, unicode_, urllib
 
@@ -430,6 +430,68 @@ action myAction
         self.assertEqual(status, "200 OK")
         self.assertTrue('"error":"InvalidInput"' in response)
         self.assertTrue('"member":"nums"' in response)
+
+    def test_api_response_callback(self):
+
+        # Action with custom response
+        def myActionRespose(environ, start_response, ctx, request, response):
+            if request.value == 2:
+                raise Exception("Barf")
+            content = "The integer %d times two is %d." % (request.value, response.valueTimesTwo)
+            responseHeaders = [
+                ("Content-Type", "text/plain"),
+                ("Content-Length", str(len(content)))
+                ]
+            start_response("200 OK", responseHeaders)
+            return [content]
+
+        @action(responseCallback = myActionRespose)
+        def myAction(ctx, request):
+            if request.value == 1:
+                return {} # invalid response
+            else:
+                return { "valueTimesTwo": request.value * 2 }
+
+        # Test application
+        app = Application()
+        app.loadSpecString("""\
+action myAction
+    input
+        int value
+    output
+        int valueTimesTwo
+""")
+        app.addActionCallback(myAction)
+
+        # Successful request
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, queryString = "value=3", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(headers, [("Content-Type", "text/plain"),
+                                   ("Content-Length", '29')])
+        self.assertEqual(response, "The integer 3 times two is 6.")
+
+        # Invalid action response
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, queryString = "value=1")
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidOutput")
+        self.assertEqual(response.message, "Required member 'valueTimesTwo' missing")
+
+        # Exception raised in response callback
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, queryString = "value=2")
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "UnexpectedError")
+        self.assertTrue(re.search("^test_api\\.py:\\d+: Barf$", response.message))
+
+        # Headers callback
+        app._headersCallback = lambda ctx: [("X-Bar", "Foo")]
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, queryString = "value=3", decodeJSON = False)
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(headers, [("Content-Type", "text/plain"),
+                                   ("Content-Length", '29'),
+                                   ("X-Bar", "Foo")])
+        self.assertEqual(response, "The integer 3 times two is 6.")
 
     def test_api_fail_init(self):
 

@@ -38,14 +38,23 @@ from wsgiref.util import application_uri
 # API callback decorator - used to identify action callback functions during module loading
 class Action:
 
-    def __init__(self, fn):
+    def __init__(self, _fn = None, name = None, responseCallback = None, validateResponse = True):
 
-        self.fn = fn
-        self.name = func_name(fn)
+        self.fn = _fn
+        self.name = func_name(self.fn) if name is None and _fn is not None else name
+        self.responseCallback = responseCallback
+        self.validateResponse = validateResponse
 
     def __call__(self, *args):
 
-        return self.fn(*args)
+        # If not constructed as function decorator, first call must be function decorator...
+        if self.fn is None:
+            self.fn = args[0]
+            if self.name is None:
+                self.name = func_name(args[0])
+            return self
+        else:
+            return self.fn(*args)
 
 
 # Action error response exception
@@ -103,15 +112,20 @@ class Application:
         self._jsonpMemberName = jsonpMemberName
 
     # Add a single action callback
-    def addActionCallback(self, actionCallback, actionName = None):
+    def addActionCallback(self, actionCallback):
 
-        actionName = func_name(actionCallback) if actionName is None else actionName
+        # Wrap functions in action decorator
+        if not isinstance(actionCallback, Action):
+            actionCallback = Action(actionCallback)
+
+        # Duplicate action name?
+        actionName = actionCallback.name
         if actionName not in self._specParser.actions:
             raise Exception("No model defined for action callback '%s'" % (actionName,))
         elif actionName in self._actionCallbacks:
             raise Exception("Redefinition of action callback '%s'" % (actionName,))
-        else:
-            self._actionCallbacks[actionName] = actionCallback
+
+        self._actionCallbacks[actionName] = actionCallback
 
     # Recursively load all modules files in a directory
     def loadModules(self, modulePath, moduleExt = ".py"):
@@ -142,9 +156,9 @@ class Application:
 
                     # Add the module's actions
                     for moduleAttr in dir(module):
-                        actionDecorator = getattr(module, moduleAttr)
-                        if isinstance(actionDecorator, Action):
-                            self.addActionCallback(actionDecorator, actionName = actionDecorator.name)
+                        actionCallback = getattr(module, moduleAttr)
+                        if isinstance(actionCallback, Action):
+                            self.addActionCallback(actionCallback)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
@@ -199,15 +213,19 @@ class Application:
 
     # Helper to create an error response type instance
     def _errorResponseTypeInst(self, errorTypeInst):
-
         errorResponseTypeInst = TypeStruct()
         errorResponseTypeInst.members.append(TypeStruct.Member("error", errorTypeInst))
         errorResponseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
         return errorResponseTypeInst
 
+    # Helper to create an error message from an exception
+    def _exceptionErrorMessage(self, e):
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
+        return "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
+
     # Helper serialize JSON content
     def _serializeJSON(self, response):
-
         return json.dumps(response, sort_keys = True, default = jsonDefault,
                           indent = 2 if self._isPretty else None,
                           separators = (", ", ": ") if self._isPretty else (",", ":"))
@@ -216,7 +234,10 @@ class Application:
     def _actionResponse(self, environ, start_response, actionName, request, actionError = None,
                         acceptString = False, jsonpFunction = None):
 
-        actionContext = None
+        # Create the action callback
+        actionCallback = self._actionCallbacks[actionName]
+        actionContext = self._contextCallback(environ) if self._contextCallback is not None else None
+
         try:
             # Server error provided?
             if actionError is not None:
@@ -229,38 +250,41 @@ class Application:
             except ValidationError as e:
                 raise ActionErrorInternal("InvalidInput", str(e), e.member)
 
+            # Call the action callback
             try:
-                # Create the action callback
-                actionContext = self._contextCallback(environ) if self._contextCallback is not None else None
-
-                # Call the action callback
-                actionCallback = self._actionCallbacks[actionName]
                 response = actionCallback(actionContext, Struct(request))
-
             except ActionError as e:
-
                 response = { "error": e.error }
                 if e.message is not None:
                     response["message"] = e.message
-
             except Exception as e:
-
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
-                err = "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
-                raise ActionErrorInternal("UnexpectedError", err)
-
-            # Error response?
-            if "error" in response:
-                responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
-            else:
-                responseTypeInst = actionModel.outputType
+                raise ActionErrorInternal("UnexpectedError", self._exceptionErrorMessage(e))
 
             # Validate the response
-            try:
-                response = responseTypeInst.validate(response)
-            except ValidationError as e:
-                raise ActionErrorInternal("InvalidOutput", str(e), e.member)
+            if actionCallback.validateResponse:
+                try:
+                    if "error" in response:
+                        responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
+                    else:
+                        responseTypeInst = actionModel.outputType
+                    response = responseTypeInst.validate(response)
+                except ValidationError as e:
+                    raise ActionErrorInternal("InvalidOutput", str(e), e.member)
+
+            # Custom response serialization?
+            if actionCallback.responseCallback is not None:
+                try:
+                    # Response callbacks respect the headersCallback
+                    def _start_response(status, responseHeaders):
+                        if self._headersCallback:
+                            responseHeaders = list(responseHeaders)
+                            responseHeaders.extend(self._headersCallback(actionContext))
+                        return start_response(status, responseHeaders)
+
+                    # Response callbacks must respond as WSGI app (call start_response and return content)
+                    return actionCallback.responseCallback(environ, _start_response, actionContext, Struct(request), Struct(response))
+                except Exception as e:
+                    raise ActionErrorInternal("UnexpectedError", self._exceptionErrorMessage(e))
 
         except ActionErrorInternal as e:
 
