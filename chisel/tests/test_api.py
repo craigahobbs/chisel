@@ -315,9 +315,9 @@ action myActionRaise
 
         # Unknown request method
         status, headers, response = self.sendRequest(app, "UNKNOWN", "/myActionRaise", len(request), request, decodeJSON = False)
-        self.assertEqual(status, "405 Method Not Allowed")
+        self.assertEqual(status, "404 Not Found")
         self.assertTrue(("Content-Type", "text/plain") in headers)
-        self.assertEqual(response, "Method Not Allowed")
+        self.assertEqual(response, "Not Found")
 
         # Invalid content length
         status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", None, request, decodeJSON = False)
@@ -492,6 +492,52 @@ action myAction
                                    ("Content-Length", '29'),
                                    ("X-Bar", "Foo")])
         self.assertEqual(response, "The integer 3 times two is 6.")
+
+    def test_api_non_default_path(self):
+
+        # Action with non-default path
+        @action(path = [("GET", "/foo/myAction"),
+                        ("POST", "/bar/thud")])
+        def myAction(ctx, request):
+            return { "valueTimesTwo": request.value * 2 }
+
+        # Test application
+        app = Application()
+        app.loadSpecString("""\
+action myAction
+    input
+        int value
+    output
+        int valueTimesTwo
+""")
+        app.addActionCallback(myAction)
+
+        # Successful request
+        status, headers, response = self.sendRequest(app, "GET", "/foo/myAction", None, queryString = "value=3")
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(response, {"valueTimesTwo": 6})
+
+        # Successful request 2
+        request = '{"value": 3}'
+        status, headers, response = self.sendRequest(app, "POST", "/bar/thud", len(request), request)
+        self.assertEqual(status, "200 OK")
+        self.assertEqual(response, {"valueTimesTwo": 6})
+
+        # Failed request - method not in path
+        request = '{"value": 3}'
+        status, headers, response = self.sendRequest(app, "POST", "/foo/myAction", len(request), request, decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertEqual(response, "Not Found")
+
+        # Failed request - method not in path 2
+        status, headers, response = self.sendRequest(app, "GET", "/bar/thud", None, queryString = "value=3", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertEqual(response, "Not Found")
+
+        # Failed request - default path
+        status, headers, response = self.sendRequest(app, "GET", "/myAction", None, queryString = "value=3", decodeJSON = False)
+        self.assertEqual(status, "404 Not Found")
+        self.assertEqual(response, "Not Found")
 
     def test_api_fail_init(self):
 

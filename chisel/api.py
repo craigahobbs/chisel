@@ -35,23 +35,53 @@ import traceback
 from wsgiref.util import application_uri
 
 
+# Action path helper class
+class ActionPath(tuple):
+
+    def __new__(cls, method, path):
+        return tuple.__new__(cls, (method, path))
+
+    @property
+    def method(self):
+        return self[0]
+
+    @property
+    def path(self):
+        return self[1]
+
+
 # API callback decorator - used to identify action callback functions during module loading
 class Action:
 
-    def __init__(self, _fn = None, name = None, responseCallback = None, validateResponse = True):
+    def __init__(self, _fn = None, name = None, path = None,
+                 responseCallback = None, validateResponse = True):
 
         self.fn = _fn
-        self.name = func_name(self.fn) if name is None and _fn is not None else name
+        self.name = name
+        self.path = path
+        self._setDefaults()
         self.responseCallback = responseCallback
         self.validateResponse = validateResponse
+        self.model = None
+
+    def _setDefaults(self):
+
+        # Set the name - default is the function name
+        if self.name is None and self.fn is not None:
+            self.name = func_name(self.fn)
+
+        # Set the path - default is name at root
+        if self.path is None and self.name is not None:
+            defaultPath = "/" + self.name
+            self.path = [ActionPath("GET", defaultPath),
+                         ActionPath("POST", defaultPath)]
 
     def __call__(self, *args):
 
         # If not constructed as function decorator, first call must be function decorator...
         if self.fn is None:
             self.fn = args[0]
-            if self.name is None:
-                self.name = func_name(args[0])
+            self._setDefaults()
             return self
         else:
             return self.fn(*args)
@@ -92,6 +122,7 @@ class Application:
                  jsonpMemberName = "jsonp"):
 
         self._actionCallbacks = {}
+        self._actionPaths = {}
         self._specParser = SpecParser()
         self._wrapApplication = wrapApplication
         self._isPretty = isPretty
@@ -119,13 +150,18 @@ class Application:
             actionCallback = Action(actionCallback)
 
         # Duplicate action name?
-        actionName = actionCallback.name
-        if actionName not in self._specParser.actions:
-            raise Exception("No model defined for action callback '%s'" % (actionName,))
-        elif actionName in self._actionCallbacks:
-            raise Exception("Redefinition of action callback '%s'" % (actionName,))
+        if actionCallback.name in self._actionCallbacks:
+            raise Exception("Redefinition of action callback '%s'" % (actionCallback.name,))
+        self._actionCallbacks[actionCallback.name] = actionCallback
 
-        self._actionCallbacks[actionName] = actionCallback
+        # Match an action spec
+        if actionCallback.name not in self._specParser.actions:
+            raise Exception("No model defined for action callback '%s'" % (actionCallback.name,))
+        actionCallback.model = self._specParser.actions[actionCallback.name]
+
+        # Add the action paths
+        for actionPath in actionCallback.path:
+            self._actionPaths[actionPath] = actionCallback
 
     # Recursively load all modules files in a directory
     def loadModules(self, modulePath, moduleExt = ".py"):
@@ -231,11 +267,10 @@ class Application:
                           separators = (", ", ": ") if self._isPretty else (",", ":"))
 
     # Request handling helper method
-    def _actionResponse(self, environ, start_response, actionName, request, actionError = None,
+    def _actionResponse(self, environ, start_response, actionCallback, request, actionError = None,
                         acceptString = False, jsonpFunction = None):
 
         # Create the action callback
-        actionCallback = self._actionCallbacks[actionName]
         actionContext = self._contextCallback(environ) if self._contextCallback is not None else None
 
         try:
@@ -245,8 +280,8 @@ class Application:
 
             # Validate the request
             try:
-                actionModel = self._specParser.actions[actionName]
-                request = actionModel.inputType.validate(request, acceptString = acceptString)
+                if actionCallback.model is not None:
+                    request = actionCallback.model.inputType.validate(request, acceptString = acceptString)
             except ValidationError as e:
                 raise ActionErrorInternal("InvalidInput", str(e), e.member)
 
@@ -261,12 +296,12 @@ class Application:
                 raise ActionErrorInternal("UnexpectedError", self._exceptionErrorMessage(e))
 
             # Validate the response
-            if actionCallback.validateResponse:
+            if actionCallback.model is not None and actionCallback.validateResponse:
                 try:
                     if "error" in response:
-                        responseTypeInst = self._errorResponseTypeInst(actionModel.errorType)
+                        responseTypeInst = self._errorResponseTypeInst(actionCallback.model.errorType)
                     else:
-                        responseTypeInst = actionModel.outputType
+                        responseTypeInst = actionCallback.model.outputType
                     response = responseTypeInst.validate(response)
                 except ValidationError as e:
                     raise ActionErrorInternal("InvalidOutput", str(e), e.member)
@@ -314,8 +349,8 @@ class Application:
     # WSGI entry point
     def __call__(self, environ, start_response):
 
-        envRequestMethod = environ.get("REQUEST_METHOD")
-        envPathInfo = environ.get("PATH_INFO")
+        actionPath = ActionPath(environ["REQUEST_METHOD"], environ["PATH_INFO"])
+        actionCallback = self._actionPaths.get(actionPath)
         envQueryString = environ.get("QUERY_STRING")
         try:
             envContentLength = int(environ.get("CONTENT_LENGTH"))
@@ -324,12 +359,12 @@ class Application:
         envWsgiInput = environ.get("wsgi.input")
 
         # Split the request URL
-        pathParts = envPathInfo.strip("/").split("/")
+        pathParts = actionPath.path.strip("/").split("/")
 
         # Doc index page resource?
         if len(pathParts) == 1 and pathParts[0] == self._docUriDir:
 
-            if envRequestMethod == "GET":
+            if actionPath.method == "GET":
 
                 # Generate the doc index HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
@@ -346,7 +381,7 @@ class Application:
 
             actionName = pathParts[1]
 
-            if envRequestMethod == "GET":
+            if actionPath.method == "GET":
 
                 # Generate the action doc HTML
                 docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
@@ -358,11 +393,9 @@ class Application:
                 return self._http405MethodNotAllowed(start_response)
 
         # Action request?
-        elif len(pathParts) == 1 and pathParts[0] in self._actionCallbacks:
+        elif actionCallback is not None:
 
-            actionName = pathParts[0]
-
-            if envRequestMethod == "GET":
+            if actionPath.method == "GET":
 
                 request = None
                 jsonpFunction = None
@@ -383,10 +416,10 @@ class Application:
                     actionError = ActionErrorInternal("InvalidInput", str(e))
 
                 # Call the action callback
-                return self._actionResponse(environ, start_response, actionName, request, actionError = actionError,
+                return self._actionResponse(environ, start_response, actionCallback, request, actionError = actionError,
                                             acceptString = True, jsonpFunction = jsonpFunction)
 
-            elif envRequestMethod == "POST":
+            elif actionPath.method == "POST":
 
                 if envContentLength is None:
                     return self._http411LengthRequired(start_response)
@@ -407,7 +440,7 @@ class Application:
                     actionError = ActionErrorInternal("IOError", "Error reading request content")
 
                 # Call the action callback
-                return self._actionResponse(environ, start_response, actionName, request, actionError = actionError)
+                return self._actionResponse(environ, start_response, actionCallback, request, actionError = actionError)
 
             else:
                 return self._http405MethodNotAllowed(start_response)
