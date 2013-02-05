@@ -27,6 +27,7 @@ from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString
 
+from collections import namedtuple
 import imp
 import json
 import os
@@ -36,18 +37,9 @@ from wsgiref.util import application_uri
 
 
 # Action path helper class
-class ActionPath(tuple):
-
+class ActionPath(namedtuple("ActionPath", "method path")):
     def __new__(cls, method, path):
-        return tuple.__new__(cls, (method, path))
-
-    @property
-    def method(self):
-        return self[0]
-
-    @property
-    def path(self):
-        return self[1]
+        return super(cls, cls).__new__(cls, method.upper(), path)
 
 
 # API callback decorator - used to identify action callback functions during module loading
@@ -58,7 +50,7 @@ class Action:
 
         self.fn = _fn
         self.name = name
-        self.path = path
+        self.path = path if path is None else [ActionPath(*p) for p in path]
         self._setDefaults()
         self.responseCallback = responseCallback
         self.validateResponse = validateResponse
