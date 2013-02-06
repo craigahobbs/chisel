@@ -156,31 +156,32 @@ class Application:
             self._actionPaths[actionPath] = actionCallback
 
     # Recursively load all modules files in a directory
-    def loadModules(self, modulePath, moduleExt = ".py"):
+    def loadModules(self, moduleDir, moduleExt = ".py"):
 
         # Does the path exist?
-        if not os.path.isdir(modulePath):
-            raise IOError("%r not found or is not a directory" % (modulePath,))
+        if not os.path.isdir(moduleDir):
+            raise IOError("%r not found or is not a directory" % (moduleDir,))
 
         # Recursively find module files
-        modulePathParent = os.path.dirname(os.path.normpath(modulePath))
+        modulePathParent = os.path.dirname(os.path.normpath(moduleDir))
         modulePathBase = os.path.join(modulePathParent, "") if modulePathParent else modulePathParent
-        for dirpath, dirnames, filenames in os.walk(modulePath):
+        for dirpath, dirnames, filenames in os.walk(moduleDir):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == moduleExt:
 
                     # Load the module
-                    moduleFile = os.path.join(dirpath, base)[len(modulePathBase):]
                     module = None
                     moduleParts = []
-                    for modulePart in moduleFile.split(os.sep):
-                        if module is None:
-                            moduleArgs = imp.find_module(modulePart, [modulePathParent])
-                        else:
-                            moduleArgs = imp.find_module(modulePart, module.__path__)
+                    for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
                         moduleParts.append(modulePart)
-                        module = imp.load_module(".".join(moduleParts), *moduleArgs)
+                        moduleFp, modulePath, moduleDesc = \
+                            imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
+                        try:
+                            module = imp.load_module(".".join(moduleParts), moduleFp, modulePath, moduleDesc)
+                        finally:
+                            if moduleFp:
+                                moduleFp.close()
 
                     # Add the module's actions
                     for moduleAttr in dir(module):
