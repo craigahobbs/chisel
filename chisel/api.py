@@ -360,7 +360,7 @@ class Application:
             if actionPath.method == "GET":
 
                 # Generate the doc index HTML
-                docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
+                docRootUrl = self._docUriDir
                 actionModels = [actionModel for actionModel in itervalues(self._specParser.actions) \
                                     if actionModel.name in self._actionCallbacks]
                 responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
@@ -377,7 +377,7 @@ class Application:
             if actionPath.method == "GET":
 
                 # Generate the action doc HTML
-                docRootUrl = joinUrl(application_uri(environ), urllib.quote(self._docUriDir))
+                docRootUrl = self._docUriDir
                 actionModel = self._specParser.actions[actionName]
                 responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
                 return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
