@@ -149,7 +149,7 @@ def createActionHtml(docRootUri, actionModel, docCssUri = None):
     _addStyle(head, docCssUri)
     body = root.addChild("body", _class = "chsl-action-body")
     header = body.addChild("div", _class = "chsl-header");
-    header.addChild("a", href = docRootUri) \
+    header.addChild("a", href = joinUrl("..", docRootUri)) \
         .addChild("Back to documentation index", isText = True, isInline = True)
 
     # Action title

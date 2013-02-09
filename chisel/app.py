@@ -298,7 +298,7 @@ struct ApplicationConfig
         optParser.add_option("--config-spec", dest = "configSpec", action = "store_true",
                              help = "Dump configuration file specification")
         (opts, args) = optParser.parse_args()
-        if not opts.configPath:
+        if not opts.configPath and not application._api:
             optParser.error("Configuration file path required")
 
         # Dump configuration specification
@@ -309,7 +309,8 @@ struct ApplicationConfig
         # Stand-alone server WSGI entry point
         def application_simple_server(environ, start_response):
             wsgiref.util.setup_testing_defaults(environ)
-            environ[cls.ENV_CONFIG] = os.path.abspath(opts.configPath)
+            if opts.configPath is not None:
+                environ[cls.ENV_CONFIG] = os.path.abspath(opts.configPath)
             return application(environ, start_response)
 
         # Start the stand-alone server
