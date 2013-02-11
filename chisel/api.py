@@ -20,73 +20,20 @@
 # SOFTWARE.
 #
 
-from .doc import joinUrl, createIndexHtml, createActionHtml
-from .compat import func_name, itervalues, urllib, wsgistr_, wsgistr_new
+from .action import Action, ActionError, ActionPath
+from .compat import iteritems, wsgistr_, wsgistr_new
+from .doc import DocAction
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString
 
-from collections import namedtuple
 import imp
 import json
 import os
 import sys
 import traceback
 from wsgiref.util import application_uri
-
-
-# Action path helper class
-class ActionPath(namedtuple("ActionPath", "method path")):
-    def __new__(cls, method, path):
-        return super(cls, cls).__new__(cls, method.upper(), path)
-
-
-# API callback decorator - used to identify action callback functions during module loading
-class Action(object):
-
-    def __init__(self, _fn = None, name = None, path = None,
-                 responseCallback = None, validateResponse = True):
-
-        self.fn = _fn
-        self.name = name
-        self.path = path if path is None else [ActionPath(*p) for p in path]
-        self._setDefaults()
-        self.responseCallback = responseCallback
-        self.validateResponse = validateResponse
-        self.model = None
-
-    def _setDefaults(self):
-
-        # Set the name - default is the function name
-        if self.name is None and self.fn is not None:
-            self.name = func_name(self.fn)
-
-        # Set the path - default is name at root
-        if self.path is None and self.name is not None:
-            defaultPath = "/" + self.name
-            self.path = [ActionPath("GET", defaultPath),
-                         ActionPath("POST", defaultPath)]
-
-    def __call__(self, *args):
-
-        # If not constructed as function decorator, first call must be function decorator...
-        if self.fn is None:
-            self.fn = args[0]
-            self._setDefaults()
-            return self
-        else:
-            return self.fn(*args)
-
-
-# Action error response exception
-class ActionError(Exception):
-
-    def __init__(self, error, message = None):
-
-        Exception.__init__(self, error)
-        self.error = error
-        self.message = message
 
 
 # Internal action error response exception
@@ -113,7 +60,7 @@ class Application(object):
                  docUriDir = "doc",
                  jsonpMemberName = "jsonp"):
 
-        self._actionCallbacks = {}
+        self._actions = {}
         self._actionPaths = {}
         self._specParser = SpecParser()
         self._wrapApplication = wrapApplication
@@ -134,6 +81,13 @@ class Application(object):
         # JSONP callback reserved member name
         self._jsonpMemberName = jsonpMemberName
 
+        # Add the doc action
+        if docUriDir is not None:
+            self.addActionCallback(
+                DocAction(path = [("GET", "/" + self._docUriDir)],
+                          fnActions = lambda: self._actions,
+                          docCssUri = self._docCssUri))
+
     # Add a single action callback
     def addActionCallback(self, actionCallback):
 
@@ -142,17 +96,20 @@ class Application(object):
             actionCallback = Action(actionCallback)
 
         # Duplicate action name?
-        if actionCallback.name in self._actionCallbacks:
+        if actionCallback.name in self._actions:
             raise Exception("Redefinition of action callback '%s'" % (actionCallback.name,))
-        self._actionCallbacks[actionCallback.name] = actionCallback
+        self._actions[actionCallback.name] = actionCallback
 
         # Match an action spec
-        if actionCallback.name not in self._specParser.actions:
-            raise Exception("No model defined for action callback '%s'" % (actionCallback.name,))
-        actionCallback.model = self._specParser.actions[actionCallback.name]
+        if actionCallback.model is None:
+            if actionCallback.name not in self._specParser.actions:
+                raise Exception("No model defined for action callback '%s'" % (actionCallback.name,))
+            actionCallback.model = self._specParser.actions[actionCallback.name]
 
         # Add the action paths
         for actionPath in actionCallback.path:
+            if actionPath in self._actionPaths:
+                raise Exception("Redefinition of action path '%s'" % (actionPath,))
             self._actionPaths[actionPath] = actionCallback
 
     # Recursively load all modules files in a directory
@@ -351,7 +308,6 @@ class Application(object):
     def __call__(self, environ, start_response):
 
         actionPath = ActionPath(environ["REQUEST_METHOD"], environ["PATH_INFO"])
-        actionCallback = self._actionPaths.get(actionPath)
         envQueryString = environ.get("QUERY_STRING")
         try:
             envContentLength = int(environ.get("CONTENT_LENGTH"))
@@ -359,42 +315,9 @@ class Application(object):
             envContentLength = None
         envWsgiInput = environ.get("wsgi.input")
 
-        # Split the request URL
-        pathParts = actionPath.path.strip("/").split("/")
-
-        # Doc index page resource?
-        if len(pathParts) == 1 and pathParts[0] == self._docUriDir:
-
-            if actionPath.method == "GET":
-
-                # Generate the doc index HTML
-                docRootUrl = self._docUriDir
-                actionModels = [actionModel for actionModel in itervalues(self._specParser.actions) \
-                                    if actionModel.name in self._actionCallbacks]
-                responseBody = createIndexHtml(docRootUrl, actionModels, docCssUri = self._docCssUri)
-                return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
-
-            else:
-                return self._http405MethodNotAllowed(start_response)
-
-        # Action doc page resource?
-        elif len(pathParts) == 2 and pathParts[0] == self._docUriDir and pathParts[1] in self._actionCallbacks:
-
-            actionName = pathParts[1]
-
-            if actionPath.method == "GET":
-
-                # Generate the action doc HTML
-                docRootUrl = self._docUriDir
-                actionModel = self._specParser.actions[actionName]
-                responseBody = createActionHtml(docRootUrl, actionModel, docCssUri = self._docCssUri)
-                return self._httpResponse(start_response, None, "200 OK", "text/html", responseBody)
-
-            else:
-                return self._http405MethodNotAllowed(start_response)
-
-        # Action request?
-        elif actionCallback is not None:
+        # Handle the request
+        actionCallback = self._actionPaths.get(actionPath)
+        if actionCallback is not None:
 
             if actionPath.method == "GET":
 

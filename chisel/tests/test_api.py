@@ -41,13 +41,13 @@ class TestApiLoadModules(unittest.TestCase):
         app = Application()
         app.loadSpecs(os.path.join(os.path.dirname(__file__), "test_api_files"))
         app.loadModules(os.path.join(os.path.dirname(__file__), "test_api_files"))
-        self.assertEqual(len(app._actionCallbacks), 3)
-        self.assertEqual(func_name(app._actionCallbacks["myAction1"].fn), "myAction1")
-        self.assertEqual(app._actionCallbacks["myAction2"].name, "myAction2")
-        self.assertEqual(func_name(app._actionCallbacks["myAction3"].fn), "myAction3")
-        self.assertEqual(app._actionCallbacks["myAction1"].name, "myAction1")
-        self.assertEqual(func_name(app._actionCallbacks["myAction2"].fn), "myAction2")
-        self.assertEqual(app._actionCallbacks["myAction3"].name, "myAction3")
+        self.assertEqual(len(app._actions), 4)
+        self.assertEqual(func_name(app._actions["myAction1"].fn), "myAction1")
+        self.assertEqual(app._actions["myAction2"].name, "myAction2")
+        self.assertEqual(func_name(app._actions["myAction3"].fn), "myAction3")
+        self.assertEqual(app._actions["myAction1"].name, "myAction1")
+        self.assertEqual(func_name(app._actions["myAction2"].fn), "myAction2")
+        self.assertEqual(app._actions["myAction3"].name, "myAction3")
 
     # Verify that exception is raised when invalid module path is loaded
     def test_api_loadModules_badModulePath(self):
@@ -73,7 +73,8 @@ class TestApiLoadModules(unittest.TestCase):
 class TestApiRequest(unittest.TestCase):
 
     # Request/response helper
-    def sendRequest(self, app, method, pathInfo, contentLength, request = None, queryString = None, decodeJSON = True):
+    def sendRequest(self, app, method, pathInfo, contentLength = None, request = None,
+                    queryString = None, decodeJSON = True):
 
         # WSGI environment
         environ = {
@@ -677,36 +678,22 @@ action myAction
 
         # Test doc index request (trailing slash)
         status, headers, response = self.sendRequest(app, "GET", "/doc/", None, "", decodeJSON = False)
-        self.assertEqual(status, "200 OK")
-        self.assertTrue(("Content-Type", "text/html") in headers)
-        self.assertTrue("<!doctype html>" in response)
-        self.assertTrue(">myAction</a>" in response)
+        self.assertEqual(status, "404 Not Found")
+        self.assertTrue(("Content-Type", "text/plain") in headers)
+        self.assertEqual(response, "Not Found")
 
         # Test doc index request POST
         status, headers, response = self.sendRequest(app, "POST", "/doc", "2", "{}", decodeJSON = False)
-        self.assertEqual(status, "405 Method Not Allowed")
+        self.assertEqual(status, "404 Not Found")
         self.assertTrue(("Content-Type", "text/plain") in headers)
-        self.assertEqual(response, "Method Not Allowed")
+        self.assertEqual(response, "Not Found")
 
         # Test doc action request
-        status, headers, response = self.sendRequest(app, "GET", "/doc/myAction", None, "", decodeJSON = False)
+        status, headers, response = self.sendRequest(app, "GET", "/doc", queryString = "action=myAction", decodeJSON = False)
         self.assertEqual(status, "200 OK")
         self.assertTrue(("Content-Type", "text/html") in headers)
         self.assertTrue("<!doctype html>" in response)
         self.assertTrue(">myAction</h1>" in response)
-
-        # Test doc action request (trailing slash)
-        status, headers, response = self.sendRequest(app, "GET", "/doc/myAction/", None, "", decodeJSON = False)
-        self.assertEqual(status, "200 OK")
-        self.assertTrue(("Content-Type", "text/html") in headers)
-        self.assertTrue("<!doctype html>" in response)
-        self.assertTrue(">myAction</h1>" in response)
-
-        # Test doc action request (trailing slash)
-        status, headers, response = self.sendRequest(app, "POST", "/doc/myAction/", None, "", decodeJSON = False)
-        self.assertEqual(status, "405 Method Not Allowed")
-        self.assertTrue(("Content-Type", "text/plain") in headers)
-        self.assertEqual(response, "Method Not Allowed")
 
         # Test unknown doc action request handling
         status, headers, response = self.sendRequest(app, "GET", "/doc/UnknownAction", None, "", decodeJSON = False)

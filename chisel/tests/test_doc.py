@@ -20,32 +20,11 @@
 # SOFTWARE.
 #
 
-from chisel import SpecParser
+from chisel import Action, SpecParser
 from chisel.compat import HTMLParser, itervalues, StringIO
-from chisel.doc import joinUrl, createIndexHtml, createActionHtml, Element
+from chisel.doc import createIndexHtml, createActionHtml, Element
 
 import unittest
-
-
-# joinUrl tests
-class TestDocJoinUrl(unittest.TestCase):
-
-    def test_doc_joinUrl(self):
-
-        # No trailing slash
-        self.assertEqual(joinUrl("http://foo", "bar"), "http://foo/bar")
-
-        # Trailing slash
-        self.assertEqual(joinUrl("http://foo/", "bar"), "http://foo/bar")
-
-        # Trailing slash and preceding slash
-        self.assertEqual(joinUrl("http://foo/", "/bar"), "http://foo/bar")
-
-        # Fully slashed
-        self.assertEqual(joinUrl("http://foo/", "/bar/"), "http://foo/bar")
-
-        # Preceding slash
-        self.assertEqual(joinUrl("http://foo", "/bar"), "http://foo/bar")
 
 
 # Simple HTML validator class
@@ -130,27 +109,25 @@ action myAction2
         # Validate the HTML
         html = createIndexHtml("/", itervalues(specParser.actions))
         HTMLValidator.validate(html)
-        self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
-        self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)
+        self.assertTrue('<li><a href="/?action=myAction1">myAction1</a></li>' in html)
+        self.assertTrue('<li><a href="/?action=myAction2">myAction2</a></li>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
         html = createIndexHtml("/", itervalues(specParser.actions), docCssUri = "/mystyle.css")
         HTMLValidator.validate(html)
-        self.assertTrue('<li><a href="/myAction1">myAction1</a></li>' in html)
-        self.assertTrue('<li><a href="/myAction2">myAction2</a></li>' in html)
+        self.assertTrue('<li><a href="/?action=myAction1">myAction1</a></li>' in html)
+        self.assertTrue('<li><a href="/?action=myAction2">myAction2</a></li>' in html)
         self.assertTrue('<link href="/mystyle.css" rel="stylesheet" type="text/css">' in html)
 
     # Test action model HTML generation
     def test_doc_createActionHtml(self):
 
-        # Create the action models
-        specParser = SpecParser()
-        specParser.parseString(self._spec)
-        self.assertEqual(len(specParser.errors), 0)
+        myAction1 = Action(name = "myAction1", actionSpec = self._spec)
+        myAction2 = Action(name = "myAction2", actionSpec = self._spec)
 
         # Validate the first myAction1's HTML
-        html = createActionHtml("/", specParser.actions["myAction1"])
+        html = createActionHtml("/", myAction1)
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -163,7 +140,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the myAction2's HTML
-        html = createActionHtml("/", specParser.actions["myAction2"])
+        html = createActionHtml("/", myAction2)
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction2</h1>' in html)
         self.assertTrue('<h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -176,7 +153,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the first myAction1's HTML (custom CSS)
-        html = createActionHtml("/", specParser.actions["myAction1"], docCssUri = "/mystyle.css")
+        html = createActionHtml("/", myAction1, docCssUri = "/mystyle.css")
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)

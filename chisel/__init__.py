@@ -22,7 +22,7 @@
 
 __all__ = ["api", "app", "model", "spec", "struct", "url"]
 
-from .api import Action, Action as action, ActionError
+from .action import Action, Action as action, ActionError
 from .app import Application, ResourceType
 from .cache import Cache, Cache as cache
 from .model import JsonFloat, ValidationError

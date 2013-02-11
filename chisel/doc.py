@@ -20,16 +20,56 @@
 # SOFTWARE.
 #
 
-from .compat import cgi, iteritems, itervalues, StringIO, urllib
+from .action import Action, ActionError
+from .compat import cgi, iteritems, itervalues, StringIO, urllib, wsgistr_new
 from .model import TypeStruct, TypeEnum, TypeArray, TypeDict
 
 import xml.sax.saxutils as saxutils
 
 
-# Helper function to join parts of a URL
-def joinUrl(*args):
+# Doc action callback
+class DocAction(Action):
 
-    return '/'.join(s.strip('/') for s in args)
+    def __init__(self, path, fnActions, docCssUri = None):
+
+        self.fnActions = fnActions
+        self.docCssUri = docCssUri
+        Action.__init__(self, self._actionCallback, responseCallback = self._actionResponse,
+                        path = path, actionSpec = """\
+action doc
+    input
+        [optional] string action
+    errors
+        UnknownAction
+""")
+
+    def _actionCallback(self, ctx, request):
+
+        actionModels = self.fnActions()
+        if request.action is not None and request.action not in actionModels:
+            raise ActionError("UnknownAction")
+        return {}
+
+    def _actionResponse(self, environ, start_response, ctx, request, response):
+
+        actions = self.fnActions()
+        if response.error is not None:
+            status = "500 Internal Server Error"
+            contentType = "text/plain"
+            content = response.error
+        else:
+            status = "200 OK"
+            contentType = "text/html"
+            if request.action is None:
+                content = createIndexHtml(environ["PATH_INFO"], itervalues(actions), docCssUri = self.docCssUri)
+            else:
+                content = createActionHtml(environ["PATH_INFO"], actions[request.action], docCssUri = self.docCssUri)
+
+        content = wsgistr_new(content)
+        headers = [("Content-Type", contentType),
+                   ("Content-Length", str(len(content)))]
+        start_response(status, headers)
+        return [content]
 
 
 # HTML DOM helper class
@@ -99,7 +139,7 @@ class Element(object):
 
 
 # Generate the top-level action documentation index
-def createIndexHtml(docRootUri, actionModels, docCssUri = None):
+def createIndexHtml(docRootUri, actions, docCssUri = None):
 
     # Index page header
     root = Element("html")
@@ -113,10 +153,10 @@ def createIndexHtml(docRootUri, actionModels, docCssUri = None):
 
     # Action docs hyperlinks
     ul = body.addChild("ul", _class = "chsl-action-list")
-    for actionModel in sorted(actionModels, key = lambda x: x.name):
+    for action in sorted(actions, key = lambda x: x.name):
         li = ul.addChild("li")
-        li.addChild("a", isInline = True, href = joinUrl(docRootUri, urllib.quote(actionModel.name))) \
-            .addChild(actionModel.name, isText = True)
+        li.addChild("a", isInline = True, href = docRootUri + "?action=" + urllib.quote(action.name)) \
+            .addChild(action.name, isText = True)
 
     # Serialize
     out = StringIO()
@@ -126,7 +166,7 @@ def createIndexHtml(docRootUri, actionModels, docCssUri = None):
 
 
 # Generate the documentation for an action
-def createActionHtml(docRootUri, actionModel, docCssUri = None):
+def createActionHtml(docRootUri, action, docCssUri = None):
 
     # Find all user types referenced by the action
     userTypes = {}
@@ -138,29 +178,29 @@ def createActionHtml(docRootUri, actionModel, docCssUri = None):
                     userTypes[baseType.typeName] = baseType
                     if isinstance(baseType, TypeStruct):
                         findUserTypes(baseType)
-    findUserTypes(actionModel.inputType)
-    findUserTypes(actionModel.outputType)
+    findUserTypes(action.model.inputType)
+    findUserTypes(action.model.outputType)
 
     # Action page header
     root = Element("html")
     head = root.addChild("head")
     head.addChild("meta", isClosed = False, charset = "UTF-8")
-    head.addChild("title").addChild(actionModel.name, isText = True, isInline = True)
+    head.addChild("title").addChild(action.name, isText = True, isInline = True)
     _addStyle(head, docCssUri)
     body = root.addChild("body", _class = "chsl-action-body")
     header = body.addChild("div", _class = "chsl-header");
-    header.addChild("a", href = joinUrl("..", docRootUri)) \
+    header.addChild("a", href = docRootUri) \
         .addChild("Back to documentation index", isText = True, isInline = True)
 
     # Action title
     body.addChild("h1") \
-        .addChild(actionModel.name, isText = True, isInline = True)
-    _addDocText(body, actionModel.doc)
+        .addChild(action.name, isText = True, isInline = True)
+    _addDocText(body, action.model.doc)
 
     # Action input and output structs
-    _structSection(body, actionModel.inputType, "h2", "Input Parameters", "The action has no input parameters.")
-    _structSection(body, actionModel.outputType, "h2", "Output Parameters", "The action has no output parameters.")
-    _enumSection(body, actionModel.errorType, "h2", "Error Codes", "The action returns no custom error codes.")
+    _structSection(body, action.model.inputType, "h2", "Input Parameters", "The action has no input parameters.")
+    _structSection(body, action.model.outputType, "h2", "Output Parameters", "The action has no output parameters.")
+    _enumSection(body, action.model.errorType, "h2", "Error Codes", "The action returns no custom error codes.")
 
     # User types
     if userTypes:
