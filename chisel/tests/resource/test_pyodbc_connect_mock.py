@@ -56,7 +56,8 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Test non-matching query/args failure
         try:
-            conn.execute("ThierQuery")
+            with conn.execute("ThierQuery") as cursor:
+                pass
         except conn.DatabaseError as e:
             self.assertEqual(str(e), "No row sets for ('MyConnectionString', 'ThierQuery', ())")
         else:
@@ -65,9 +66,10 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Test execute cursor iteration
         rows = []
-        for row in conn.execute("MyQuery ? ? ?", 1, 2, 3):
-            self.assertFalse(not row)
-            rows.append(row)
+        with conn.execute("MyQuery ? ? ?", 1, 2, 3) as cursor:
+            for row in cursor:
+                self.assertFalse(not row)
+                rows.append(row)
         self.assertEqual(rowSets.executeCount, 1)
         self.assertEqual(rows[0].a, 1)
         self.assertEqual(rows[0][0], 1)
@@ -85,7 +87,8 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Test no-rowset failure
         try:
-            conn.execute("MyQuery ? ? ?", 1, 2, 3)
+            with conn.execute("MyQuery ? ? ?", 1, 2, 3) as cursor:
+                pass
         except conn.DatabaseError as e:
             self.assertEqual(str(e), "No row sets for ('MyConnectionString', 'MyQuery ? ? ?', (1, 2, 3))")
         else:
@@ -149,130 +152,140 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         conn = resourceType.open("MyConnectionString")
 
         # Get a cursor
-        cursor = conn.cursor()
-        self.assertTrue(not cursor.isClosed)
+        with conn.cursor() as cursor:
+            self.assertTrue(not cursor.isClosed)
 
-        # Call execute
-        cursor.execute("MyQuery ? ? ?", 1, 2, 3)
-        rows = []
-        for row in cursor:
-            self.assertFalse(not row)
-            rows.append(row)
-        self.assertEqual(rowSets.executeCount, 1)
-        self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0].a, 1)
-        self.assertEqual(rows[0][0], 1)
-        self.assertEqual(rows[0].b, 2)
-        self.assertEqual(rows[0][1], 2)
-        self.assertEqual(rows[1].a, 3)
-        self.assertEqual(rows[1][0], 3)
-        self.assertEqual(rows[1].b, 4)
-        self.assertEqual(rows[1][1], 4)
+            # Call execute
+            cursor.execute("MyQuery ? ? ?", 1, 2, 3)
+            rows = []
+            for row in cursor:
+                self.assertFalse(not row)
+                rows.append(row)
+            self.assertEqual(rowSets.executeCount, 1)
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0].a, 1)
+            self.assertEqual(rows[0][0], 1)
+            self.assertEqual(rows[0].b, 2)
+            self.assertEqual(rows[0][1], 2)
+            self.assertEqual(rows[1].a, 3)
+            self.assertEqual(rows[1][0], 3)
+            self.assertEqual(rows[1].b, 4)
+            self.assertEqual(rows[1][1], 4)
 
-        try:
-            rows[0].c
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to get invalid row column name 'c'")
-        else:
-            self.fail()
+            try:
+                rows[0].c
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to get invalid row column name 'c'")
+            else:
+                self.fail()
 
-        try:
-            rows[0][2]
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to get invalid row column index 2")
-        else:
-            self.fail()
+            try:
+                rows[0][2]
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to get invalid row column index 2")
+            else:
+                self.fail()
 
-        # Call nextset and fetchone
-        cursor.nextset()
-        row = cursor.fetchone()
-        self.assertFalse(not row)
-        rows = [row]
-        for row in cursor:
-            self.assertFalse(not row)
-            rows.append(row)
-        self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0].c, 5)
-        self.assertEqual(rows[0][0], 5)
-        self.assertEqual(rows[1].c, 6)
-        self.assertEqual(rows[1][0], 6)
-
-        # Too many fetchone calls
-        self.assertEqual(cursor.fetchone(), None)
-
-        # Too many nextset calls
-        try:
+            # Call nextset and fetchone
             cursor.nextset()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to call nextset when no more row sets available")
-        else:
-            self.fail()
+            row = cursor.fetchone()
+            self.assertFalse(not row)
+            rows = [row]
+            for row in cursor:
+                self.assertFalse(not row)
+                rows.append(row)
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0].c, 5)
+            self.assertEqual(rows[0][0], 5)
+            self.assertEqual(rows[1].c, 6)
+            self.assertEqual(rows[1][0], 6)
 
-        # Don't reuse cursors
-        try:
-            cursor.execute("ThierQuery")
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to execute on an already-executed-on cursor")
-        else:
-            self.fail()
-        self.assertEqual(rowSets.executeCount, 1)
+            # Too many fetchone calls
+            self.assertEqual(cursor.fetchone(), None)
 
-        # Close the cursor
-        cursor.close()
+            # Too many nextset calls
+            try:
+                cursor.nextset()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to call nextset when no more row sets available")
+            else:
+                self.fail()
+
+            # Don't reuse cursors
+            try:
+                cursor.execute("ThierQuery")
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to execute on an already-executed-on cursor")
+            else:
+                self.fail()
+            self.assertEqual(rowSets.executeCount, 1)
+
+        # Verify the cursor is closed
         self.assertTrue(cursor.isClosed)
 
         # Reuse connection
-        cursor = conn.execute("MyOtherQuery ?", 4)
-        self.assertEqual(rowSets.executeCount, 2)
+        with conn.execute("MyOtherQuery ?", 4) as cursor:
+            self.assertEqual(rowSets.executeCount, 2)
 
-        # Don't commit autocommit connections
-        try:
-            cursor.commit()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to commit an autocommit cursor")
-        else:
-            self.fail()
+            # Don't commit autocommit connections
+            try:
+                cursor.commit()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to commit an autocommit cursor")
+            else:
+                self.fail()
 
         # Test failure after close
-        cursor = conn.cursor()
-        resourceType.close(conn)
-        self.assertTrue(conn.isClosed)
+        with conn.cursor() as cursor:
+            try:
+                resourceType.close(conn)
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to close a connection with open cursors")
+            else:
+                self.fail()
+            self.assertTrue(not conn.isClosed)
 
-        try:
-            cursor.execute("MyQuery")
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to execute on a closed cursor")
-        else:
-            self.fail()
-        self.assertEqual(rowSets.executeCount, 2)
+            # Force mock connection closed for testing purposes
+            conn.isClosed = True
 
-        try:
-            cursor.fetchone()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to iterate a closed cursor")
-        else:
-            self.fail()
+            try:
+                cursor.execute("MyQuery")
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to execute on a closed cursor")
+            else:
+                self.fail()
+            self.assertEqual(rowSets.executeCount, 2)
 
-        try:
-            cursor.nextset()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to call nextset on a closed cursor")
-        else:
-            self.fail()
+            try:
+                cursor.fetchone()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to iterate a closed cursor")
+            else:
+                self.fail()
 
-        try:
-            cursor.commit()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to commit an autocommit cursor")
-        else:
-            self.fail()
+            try:
+                cursor.nextset()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to call nextset on a closed cursor")
+            else:
+                self.fail()
 
-        try:
-            cursor.close()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to close an already-closed cursor")
-        else:
-            self.fail()
+            try:
+                cursor.commit()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to commit an autocommit cursor")
+            else:
+                self.fail()
+
+            try:
+                cursor.close()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to close an already-closed cursor")
+            else:
+                self.fail()
+
+            # Force mock connection open for testing purposes
+            conn.isClosed = False
 
     # Test empty rowset
     def test_resource_pyodbc_connect_mock_empty_rowset(self):
@@ -286,12 +299,13 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
         conn = resourceType.open("MyConnectionString")
 
         # Call execute
-        cursor = conn.execute("MyQuery")
-        self.assertTrue(not cursor.isClosed)
+        with conn.execute("MyQuery") as cursor:
+            self.assertTrue(not cursor.isClosed)
 
-        # No failure but no row either
-        row = cursor.fetchone()
-        self.assertEqual(row, None)
+            # No failure but no row either
+            row = cursor.fetchone()
+            self.assertEqual(row, None)
+        self.assertTrue(cursor.isClosed)
 
         # Close the connection
         resourceType.close(conn)
@@ -307,43 +321,43 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Connect
         conn = resourceType.open("MyConnectionString")
-        cursor = conn.cursor()
+        with conn.cursor() as cursor:
 
-        # Don't commit before execute
-        try:
+            # Don't commit before execute
+            try:
+                cursor.commit()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to commit cursor before execute")
+            else:
+                self.fail()
+
+            # Exectute, commit
+            cursor.execute("MyQuery ?", 1)
             cursor.commit()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to commit cursor before execute")
-        else:
-            self.fail()
+            self.assertEqual(rowSets.executeCount, 1)
 
-        # Exectute, commit
-        cursor.execute("MyQuery ?", 1)
-        cursor.commit()
-        self.assertEqual(rowSets.executeCount, 1)
+            # Don't commit more than once
+            try:
+                cursor.commit()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to commit an already-committed cursor")
+            else:
+                self.fail()
 
-        # Don't commit more than once
-        try:
-            cursor.commit()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to commit an already-committed cursor")
-        else:
-            self.fail()
+            # Don't operate following commit
+            try:
+                cursor.nextset()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to call nextset on a committed cursor")
+            else:
+                self.fail()
 
-        # Don't operate following commit
-        try:
-            cursor.nextset()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to call nextset on a committed cursor")
-        else:
-            self.fail()
-
-        try:
-            cursor.fetchone()
-        except conn.ProgrammingError as e:
-            self.assertEqual(str(e), "Attempt to iterate a committed cursor")
-        else:
-            self.fail()
+            try:
+                cursor.fetchone()
+            except conn.ProgrammingError as e:
+                self.assertEqual(str(e), "Attempt to iterate a committed cursor")
+            else:
+                self.fail()
 
         # Close
         resourceType.close(conn)

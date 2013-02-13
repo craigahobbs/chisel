@@ -77,11 +77,16 @@ class PyodbcConnectionMock:
         self.executeCallback = executeCallback
         self.autocommit = autocommit
         self.isClosed = False
+        self.cursors = []
 
     def close(self):
 
         if self.isClosed:
             raise self.ProgrammingError("Attempt to close an already-closed connection")
+
+        for cursor in self.cursors:
+            if not cursor.isClosed:
+                raise self.ProgrammingError("Attempt to close a connection with open cursors")
 
         self.isClosed = True
 
@@ -90,15 +95,18 @@ class PyodbcConnectionMock:
         if self.isClosed:
             raise self.ProgrammingError("Attempt to get a cursor on an already-closed connection")
 
-        return PyodbcCursorMock(self)
+        cursor = PyodbcCursorMock(self)
+        self.cursors.append(cursor)
+        return PyodbcCursorContext(cursor)
 
     def execute(self, query, *args):
 
         if self.isClosed:
             raise self.ProgrammingError("Attempt to execute with an already-closed connection")
 
-        cursor = self.cursor()
-        return cursor.execute(query, *args)
+        cursor = PyodbcCursorMock(self).execute(query, *args)
+        self.cursors.append(cursor)
+        return PyodbcCursorContext(cursor)
 
 
 # pyodbc row mock
@@ -216,7 +224,7 @@ class PyodbcCursorMock:
         self.rowSets = self.connection.executeCallback(self.connection.resourceString, query, *args)
         assertRowSets(self.rowSets)
 
-        return iter(self)
+        return self
 
     def nextset(self):
 
@@ -261,6 +269,22 @@ class PyodbcCursorMock:
     def next(self):
 
         return self.__next__()
+
+
+# pyodbc cursor context manager
+class PyodbcCursorContext:
+
+    def __init__(self, cursor):
+
+        self.cursor = cursor
+
+    def __enter__(self):
+
+        return self.cursor
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        self.cursor.close()
 
 
 # Simple execute callback

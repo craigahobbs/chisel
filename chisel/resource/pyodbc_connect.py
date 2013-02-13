@@ -63,8 +63,24 @@ class PyodbcConnectResource:
 
     def cursor(self):
 
-        return self._connection.cursor()
+        return PyodbcCursorContext(self._connection.cursor())
 
     def execute(self, query, *args):
 
-        return self._connection.execute(query, *args)
+        return PyodbcCursorContext(self._connection.execute(query, *args))
+
+
+# pyodbc cursor context manager
+class PyodbcCursorContext:
+
+    def __init__(self, cursor):
+
+        self.cursor = cursor
+
+    def __enter__(self):
+
+        return self.cursor
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        self.cursor.close()
