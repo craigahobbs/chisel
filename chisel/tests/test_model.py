@@ -241,6 +241,9 @@ class TestModelValidation(unittest.TestCase):
         # Success - array of integers - tuple
         self.assertEqual(mInt.validate((1, 2, 3)), (1, 2, 3))
 
+        # Success - empty array (indicated by an empty string)
+        self.assertEqual(mInt.validate("", acceptString = True), [])
+
         # Failure - invalid type - string
         self.assertValidationError(mInt, "Hello",
                                    "Invalid value 'Hello' (type 'str'), expected type 'array'")
@@ -273,6 +276,14 @@ class TestModelValidation(unittest.TestCase):
         self.assertValidationError(mStruct, [{ "a": True }],
                                    "Invalid value True (type 'bool') for member '[0].a', expected type 'int'")
 
+        # Failure - non-empty string
+        self.assertValidationError(mInt, "a",
+                                   "Invalid value 'a' (type 'str'), expected type 'array'", acceptString = True)
+
+        # Failure - empty string (and not accepting strings)
+        self.assertValidationError(mInt, "",
+                                   "Invalid value '' (type 'str'), expected type 'array'")
+
     # dict type
     def test_model_dict(self):
 
@@ -298,6 +309,9 @@ class TestModelValidation(unittest.TestCase):
         # Success - unicode key
         self.assertEqual(mInt.validate({ unicode_("a"): 7 }), { unicode_("a"): 7 })
 
+        # Success - empty array (indicated by an empty string)
+        self.assertEqual(mInt.validate("", acceptString = True), {})
+
         # Failure - int value
         self.assertValidationError(mInt, 7,
                                    "Invalid value 7 (type 'int'), expected type 'dict'")
@@ -317,6 +331,14 @@ class TestModelValidation(unittest.TestCase):
         # Failure - invalid contained value type
         self.assertValidationError(mArray, { "a": ["a", 2, "c"] },
                                    "Invalid value 2 (type 'int') for member 'a[1]', expected type 'string'")
+
+        # Failure - non-empty string
+        self.assertValidationError(mInt, "a",
+                                   "Invalid value 'a' (type 'str'), expected type 'dict'", acceptString = True)
+
+        # Failure - empty string (and not accepting strings)
+        self.assertValidationError(mInt, "",
+                                   "Invalid value '' (type 'str'), expected type 'dict'")
 
     # enum type
     def test_model_enum(self):

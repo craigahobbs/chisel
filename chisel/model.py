@@ -166,7 +166,9 @@ class TypeArray:
         valueInner = value() if isinstance(value, Struct) else value
 
         # Validate list value type
-        if not isinstance(valueInner, (list, tuple)):
+        if acceptString and isinstance(value, basestring_) and len(value) == 0:
+            return []
+        elif not isinstance(valueInner, (list, tuple)):
             raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate the list contents
@@ -193,7 +195,9 @@ class TypeDict:
         valueInner = value() if isinstance(value, Struct) else value
 
         # Validate dict value type
-        if not isinstance(valueInner, dict):
+        if acceptString and isinstance(value, basestring_) and len(value) == 0:
+            return {}
+        elif not isinstance(valueInner, dict):
             raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate the dict key/value pairs
