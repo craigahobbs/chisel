@@ -163,9 +163,10 @@ class Application:
             raise IOError("%r not found or is not a directory" % (moduleDir,))
 
         # Recursively find module files
-        modulePathParent = os.path.dirname(os.path.normpath(moduleDir))
+        moduleDirNorm = os.path.normpath(moduleDir)
+        modulePathParent = os.path.dirname(moduleDirNorm)
         modulePathBase = os.path.join(modulePathParent, "") if modulePathParent else modulePathParent
-        for dirpath, dirnames, filenames in os.walk(moduleDir):
+        for dirpath, dirnames, filenames in os.walk(moduleDirNorm):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == moduleExt:
