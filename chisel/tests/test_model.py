@@ -63,7 +63,7 @@ class TestModelJsonDefault(unittest.TestCase):
         self.assertEqual(repr(o), "1000431.76")
 
         # Test unknown class instance
-        class MyType:
+        class MyType(object):
             pass
         o = MyType()
         self.assertTrue(jsonDefault(o) is o)

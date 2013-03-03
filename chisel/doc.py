@@ -33,7 +33,7 @@ def joinUrl(*args):
 
 
 # HTML DOM helper class
-class Element:
+class Element(object):
 
     def __init__(self, name, isText = False, isClosed = True, isInline = False, **attrs):
 

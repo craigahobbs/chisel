@@ -92,7 +92,7 @@ class Struct(object):
 
         return len(self())
 
-    class _ContainerIter:
+    class _ContainerIter(object):
 
         def __init__(self, container):
 

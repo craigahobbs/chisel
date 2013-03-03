@@ -22,7 +22,7 @@
 
 
 # Mock pymongo exceptions
-class errors:
+class errors(object):
 
     class AutoReconnect(Exception):
         pass
@@ -62,7 +62,7 @@ class errors:
 
 
 # Mock pymongo.Connection
-class Connection:
+class Connection(object):
 
     def __init__(self, mongoUri):
 
@@ -71,9 +71,9 @@ class Connection:
 
 
 # Mock pymongo.database.Database
-class database:
+class database(object):
 
-    class Database:
+    class Database(object):
 
         def __init__(self, conn, dbname):
 
@@ -82,7 +82,7 @@ class database:
 
 
 # Mock pymongo.ReadPreference
-class ReadPreference:
+class ReadPreference(object):
 
     PRIMARY = 0
     PRIMARY_PREFERRED = 1

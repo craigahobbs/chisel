@@ -41,7 +41,7 @@ class UrlRequestResourceTypeMock(ResourceType):
 
 
 # Url request resource mock
-class UrlRequestResourceMock:
+class UrlRequestResourceMock(object):
 
     URLError = urllib2.URLError
 
@@ -85,7 +85,7 @@ class UrlRequestResourceMock:
 
 
 # Simple, recording send callback
-class SimpleSendCallback:
+class SimpleSendCallback(object):
 
     def __init__(self):
 
@@ -98,7 +98,7 @@ class SimpleSendCallback:
             self.responses[url] = []
         self.responses[url].append((isSuccess, responseData))
 
-    class Request:
+    class Request(object):
 
         def __init__(self, headers, unredirected_headers, requestData, isSuccess, responseData):
 

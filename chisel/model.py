@@ -102,9 +102,9 @@ class ValidationError(Exception):
 
 
 # Struct type
-class TypeStruct:
+class TypeStruct(object):
 
-    class Member:
+    class Member(object):
         def __init__(self, name, typeInst, isOptional = False, doc = None):
             self.name = name
             self.typeInst = typeInst
@@ -153,7 +153,7 @@ class TypeStruct:
 
 
 # Array type
-class TypeArray:
+class TypeArray(object):
 
     def __init__(self, typeInst, typeName = "array"):
 
@@ -182,7 +182,7 @@ class TypeArray:
 
 
 # Dict type
-class TypeDict:
+class TypeDict(object):
 
     def __init__(self, typeInst, typeName = "dict"):
 
@@ -217,9 +217,9 @@ class TypeDict:
 
 
 # Enumeration type
-class TypeEnum:
+class TypeEnum(object):
 
-    class Value:
+    class Value(object):
 
         def __init__(self, value, doc = None):
 
@@ -245,7 +245,7 @@ class TypeEnum:
 
 
 # String type
-class TypeString:
+class TypeString(object):
 
     def __init__(self, typeName = "string"):
 
@@ -276,7 +276,7 @@ class TypeString:
 
 
 # Int type
-class TypeInt:
+class TypeInt(object):
 
     def __init__(self, typeName = "int"):
 
@@ -316,7 +316,7 @@ class TypeInt:
 
 
 # Float type
-class TypeFloat:
+class TypeFloat(object):
 
     def __init__(self, typeName = "float"):
 
@@ -354,7 +354,7 @@ class TypeFloat:
 
 
 # Bool type
-class TypeBool:
+class TypeBool(object):
 
     def __init__(self, typeName = "bool"):
 
@@ -371,7 +371,7 @@ class TypeBool:
 
 
 # Datetime type
-class TypeDatetime:
+class TypeDatetime(object):
 
     def __init__(self, typeName = "datetime"):
 
@@ -467,7 +467,7 @@ class TypeDatetime:
 
 
 # Uuid type
-class TypeUuid:
+class TypeUuid(object):
 
     def __init__(self, typeName = "uuid"):
 

@@ -45,7 +45,7 @@ class ProgrammingError(DatabaseError):
 
 
 # Mock pyodbc.Connection
-class Connection:
+class Connection(object):
 
     def __init__(self, connectionString, autocommit = True):
 

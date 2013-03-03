@@ -33,7 +33,7 @@ class UrlRequestResourceType(ResourceType):
 
 
 # Url request resource
-class UrlRequestResource:
+class UrlRequestResource(object):
 
     URLError = urllib2.URLError
 

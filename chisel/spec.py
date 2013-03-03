@@ -29,7 +29,7 @@ import re
 
 
 # Action class
-class Action:
+class Action(object):
 
     def __init__(self, name, doc = None):
 
@@ -50,7 +50,7 @@ class SpecParserError(Exception):
 
 
 # Specification language parser class
-class SpecParser:
+class SpecParser(object):
 
     # Parser regex
     _rePartId = "([A-Za-z]\w*)"
@@ -149,7 +149,7 @@ class SpecParser:
         return " ".join(lines) if lines else None
 
     # Type id reference - converted to types on parser finalization
-    class _TypeRef:
+    class _TypeRef(object):
 
         def __init__(self, fileName, fileLine, typeName, isArray, isDict):
 

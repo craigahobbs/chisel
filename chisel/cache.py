@@ -27,7 +27,7 @@ import threading
 
 
 # Simple TTL cache decorator object
-class Cache:
+class Cache(object):
 
     def __init__(self, ttl, multipleKeys = False, keyArg = 0, nowFn = None, raiseThreadExceptions = True):
 

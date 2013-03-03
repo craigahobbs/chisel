@@ -44,7 +44,7 @@ class PyodbcConnectResourceType(ResourceType):
 
 
 # pyodbc_connect resource
-class PyodbcConnectResource:
+class PyodbcConnectResource(object):
 
     DatabaseError = pyodbc.DatabaseError
     DataError = pyodbc.DataError
@@ -71,7 +71,7 @@ class PyodbcConnectResource:
 
 
 # pyodbc cursor context manager
-class PyodbcCursorContext:
+class PyodbcCursorContext(object):
 
     def __init__(self, cursor):
 

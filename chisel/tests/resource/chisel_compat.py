@@ -24,10 +24,10 @@ from chisel.compat import *
 
 
 # Mock urllib2
-class urllib2:
+class urllib2(object):
 
     # Mock urllib2.Request
-    class Request:
+    class Request(object):
 
         def __init__(self, hostUrl):
 

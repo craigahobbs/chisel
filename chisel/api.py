@@ -43,7 +43,7 @@ class ActionPath(namedtuple("ActionPath", "method path")):
 
 
 # API callback decorator - used to identify action callback functions during module loading
-class Action:
+class Action(object):
 
     def __init__(self, _fn = None, name = None, path = None,
                  responseCallback = None, validateResponse = True):
@@ -101,7 +101,7 @@ class ActionErrorInternal(Exception):
 
 
 # API server response handler
-class Application:
+class Application(object):
 
     # Class initializer
     def __init__(self,

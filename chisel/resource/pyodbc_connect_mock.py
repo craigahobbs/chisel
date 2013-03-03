@@ -48,7 +48,7 @@ class PyodbcConnectResourceTypeMock(ResourceType):
 
 
 # pyodbc connection mock
-class PyodbcConnectionMock:
+class PyodbcConnectionMock(object):
 
     class Error(Exception):
         pass
@@ -110,7 +110,7 @@ class PyodbcConnectionMock:
 
 
 # pyodbc row mock
-class PyodbcRowMock:
+class PyodbcRowMock(object):
 
     def __init__(self, columnNames, columnData):
 
@@ -176,7 +176,7 @@ def assertRowSets(rowSets):
 
 
 # pyodbc cursor mock
-class PyodbcCursorMock:
+class PyodbcCursorMock(object):
 
     def __init__(self, connection):
 
@@ -272,7 +272,7 @@ class PyodbcCursorMock:
 
 
 # pyodbc cursor context manager
-class PyodbcCursorContext:
+class PyodbcCursorContext(object):
 
     def __init__(self, cursor):
 
@@ -288,7 +288,7 @@ class PyodbcCursorContext:
 
 
 # Simple execute callback
-class SimpleExecuteCallback:
+class SimpleExecuteCallback(object):
 
     def __init__(self):
 

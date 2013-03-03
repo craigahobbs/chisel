@@ -34,7 +34,7 @@ import threading
 
 
 # Application resource type
-class ResourceType:
+class ResourceType(object):
 
     def __init__(self, resourceTypeName, resourceOpen, resourceClose):
 
@@ -58,7 +58,7 @@ class ResourceType:
 
 
 # Resource factory - create a resource context manager
-class ResourceFactory:
+class ResourceFactory(object):
 
     def __init__(self, name, resourceString, resourceType):
 
@@ -80,7 +80,7 @@ class ResourceFactory:
 
 
 # Resource context manager
-class ResourceContext:
+class ResourceContext(object):
 
     def __init__(self, resourceFactory):
 
@@ -97,7 +97,7 @@ class ResourceContext:
 
 
 # Top-level WSGI application class
-class Application:
+class Application(object):
 
     # Environment variables
     ENV_CONFIG = "chisel.config"
