@@ -205,9 +205,29 @@ class TestUrl(unittest.TestCase):
         s = ""
         self.assertEqual(encodeQueryString(o), s)
 
-        # Empty array (won't round trip)
+        # Empty array
         o = []
         s = ""
+        self.assertEqual(encodeQueryString(o), s)
+
+        # Empty dict/dict
+        o = { "foo": {}}
+        s = "foo="
+        self.assertEqual(encodeQueryString(o), s)
+
+        # Empty dict/array
+        o = { "foo": []}
+        s = "foo="
+        self.assertEqual(encodeQueryString(o), s)
+
+        # Empty array/array
+        o = [[]]
+        s = "0="
+        self.assertEqual(encodeQueryString(o), s)
+
+        # Empty array/dict
+        o = [{}]
+        s = "0="
         self.assertEqual(encodeQueryString(o), s)
 
         # Keys and values with special characters

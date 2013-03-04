@@ -36,7 +36,7 @@ def encodeQueryString(o, encoding = "utf-8"):
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
-    def iterateItems(o, parent):
+    def iterateItems(o, parent, topLevel = False):
 
         # Get the wrapped object of a Struct
         if isinstance(o, Struct):
@@ -44,15 +44,21 @@ def encodeQueryString(o, encoding = "utf-8"):
 
         # Add the object keys
         if isinstance(o, dict):
-            for member in o:
-                iterateItems(o[member], parent + (quote(member),))
+            if o:
+                for member in o:
+                    iterateItems(o[member], parent + (quote(member),))
+            elif not topLevel:
+                keysValues.append((parent, ""))
         elif isinstance(o, (list, tuple)):
-            for ix in xrange_(0, len(o)):
-                iterateItems(o[ix], parent + (quote(ix),))
+            if o:
+                for ix in xrange_(0, len(o)):
+                    iterateItems(o[ix], parent + (quote(ix),))
+            elif not topLevel:
+                keysValues.append((parent, ""))
         elif o is not None:
             keysValues.append((parent, quote(o)))
 
-    iterateItems(o, ())
+    iterateItems(o, (), topLevel = True)
 
     # Join the object query string
     return "&".join(["=".join((".".join(k), v)) for k, v in sorted(keysValues)])
