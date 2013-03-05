@@ -299,12 +299,15 @@ action myActionRaise
         def myActionRaise(ctx, request):
             if request.a == 1 and request.b == 2:
                 return {"c": "invalid"}
+            elif request.a == 1 and request.b == 3:
+                return None
             raise Exception("Barf")
         app.addActionCallback(myActionRaise)
 
         # Requests
         request = '{ "a": 5, "b": 7 }'
         requestResponse = '{ "a": 1, "b": 2 }'
+        requestNoneResponse = '{ "a": 1, "b": 3 }'
         requestInvalid = '{ "a: 5, "b": 7 }'
 
         # Unknown action
@@ -360,6 +363,14 @@ action myActionRaise
         self.assertEqual(response.error, "InvalidOutput")
         self.assertTrue(isinstance(response.message, unicode_))
         self.assertEqual(response.message, "Invalid member 'c'")
+
+        # None (non-dict) response
+        status, headers, response = self.sendRequest(app, "POST", "/myActionRaise", len(requestNoneResponse), requestNoneResponse)
+        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(len(response()), 2)
+        self.assertEqual(response.error, "InvalidOutput")
+        self.assertTrue(isinstance(response.message, unicode_))
+        self.assertEqual(response.message, "Invalid value None (type 'NoneType'), expected type 'myActionRaise_Output'")
 
         # Invalid query string
         queryString = "a=7&b&c=9"

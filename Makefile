@@ -52,6 +52,7 @@ check: clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 # Clean
 .PHONY: clean
 clean:
+	-rm -rf $(shell find $(PACKAGE_NAME) -name '__pycache__')
 	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
 	-rm -rf build
 	-rm -rf dist

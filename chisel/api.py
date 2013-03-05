@@ -292,7 +292,7 @@ class Application(object):
             # Validate the response
             if actionCallback.model is not None and actionCallback.validateResponse:
                 try:
-                    if "error" in response:
+                    if isinstance(response, (dict, Struct)) and "error" in response:
                         responseTypeInst = self._errorResponseTypeInst(actionCallback.model.errorType)
                     else:
                         responseTypeInst = actionCallback.model.outputType
