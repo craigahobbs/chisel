@@ -231,9 +231,10 @@ action myActionError
         if not PY3:
             status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestInvalidUtf8), requestInvalidUtf8)
             self.assertEqual(status, "500 Internal Server Error")
-            self.assertEqual(len(response()), 2)
+            self.assertEqual(len(response()), 3)
             self.assertEqual(response.error, "InvalidOutput")
-            self.assertTrue("can't decode byte 0xf1" in response.message)
+            self.assertEqual(response.message, "Invalid value '\\xf1' (type 'str') for member 'c', expected type 'string'")
+            self.assertEqual(response.member, "c")
 
         # Non-error
         status, headers, response = self.sendRequest(app, "POST", "/myAction", len(request), request)

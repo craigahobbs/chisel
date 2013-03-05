@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_, xrange_
+from .compat import basestring_, long_, unicode_, xrange_
 from .struct import Struct
 
 from datetime import datetime, timedelta, tzinfo
@@ -258,7 +258,13 @@ class TypeString(object):
     def validate(self, value, acceptString = False, _member = ()):
 
         if isinstance(value, basestring_):
-            result = value
+            if not isinstance(value, unicode_):
+                try:
+                    result = value.decode("utf-8")
+                except:
+                    raise ValidationError.memberError(self, value, _member)
+            else:
+                result = value
         else:
             raise ValidationError.memberError(self, value, _member)
 

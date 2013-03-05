@@ -386,7 +386,7 @@ class TestModelValidation(unittest.TestCase):
         # Success
         v = m.validate("Foo")
         self.assertEqual(v, "Foo")
-        self.assertTrue(isinstance(v, str))
+        self.assertTrue(isinstance(v, unicode_))
 
         # Success - unicode
         v = m.validate(unicode_("Foo"))
