@@ -22,7 +22,7 @@
 
 from chisel import action, ActionError, decodeQueryString, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
-from chisel.compat import func_name, long_, StringIO, unichr_, unicode_, urllib
+from chisel.compat import func_name, long_, PY3, StringIO, unichr_, unicode_, urllib
 
 import json
 import logging
@@ -161,6 +161,7 @@ action myAction
         int a
     output
         int b
+        [optional] string c
     errors
         MyError
 
@@ -180,6 +181,8 @@ action myActionError
                 return { "error": "MyError" }
             elif request.a == 2:
                 return { "error": "BadError", "message": "My bad message" }
+            elif request.a == 10:
+                return { "b": 0, "c": chr(0xf1) } # c is invalid utf-8 string in Python 2.x
             else:
                 return { "b": request.a * 2 }
 
@@ -200,6 +203,7 @@ action myActionError
         requestErrorMessage = '{ "a": 0 }'
         requestError = '{ "a": 1 }'
         requestBadError = '{ "a": 2 }'
+        requestInvalidUtf8 = '{ "a": 10 }'
         request = '{ "a": 3 }'
 
         # Error with message
@@ -222,6 +226,14 @@ action myActionError
         self.assertEqual(response.error, "InvalidOutput")
         self.assertEqual(response.message, "Invalid value 'BadError' (type 'str') for member 'error', expected type 'myAction_Error'")
         self.assertEqual(response.member, "error")
+
+        # Bad error enum value
+        if not PY3:
+            status, headers, response = self.sendRequest(app, "POST", "/myAction", len(requestInvalidUtf8), requestInvalidUtf8)
+            self.assertEqual(status, "500 Internal Server Error")
+            self.assertEqual(len(response()), 2)
+            self.assertEqual(response.error, "InvalidOutput")
+            self.assertTrue("can't decode byte 0xf1" in response.message)
 
         # Non-error
         status, headers, response = self.sendRequest(app, "POST", "/myAction", len(request), request)

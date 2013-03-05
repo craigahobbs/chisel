@@ -324,7 +324,11 @@ class Application(object):
                 response["member"] = e.member
 
         # Serialize the response as JSON
-        jsonContent = self._serializeJSON(response)
+        try:
+            jsonContent = self._serializeJSON(response)
+        except Exception as e:
+            response = { "error": "InvalidOutput", "message": self._exceptionErrorMessage(e) }
+            jsonContent = self._serializeJSON(response)
 
         # Determine the HTTP status
         if "error" in response  and jsonpFunction is None:
