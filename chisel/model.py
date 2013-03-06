@@ -123,7 +123,9 @@ class TypeStruct(object):
         valueInner = value() if isinstance(value, Struct) else value
 
         # Validate dict value type
-        if not isinstance(valueInner, dict):
+        if acceptString and isinstance(valueInner, basestring_) and len(valueInner) == 0:
+            return {}
+        elif not isinstance(valueInner, dict):
             raise ValidationError.memberError(self, valueInner, _member)
 
         # Validate members

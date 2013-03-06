@@ -101,6 +101,9 @@ class TestModelValidation(unittest.TestCase):
         m.members.append(TypeStruct.Member("i", TypeDatetime(), isOptional = True))
         m.members.append(TypeStruct.Member("j", TypeArray(m), isOptional = True)) # Recursive struct...
         m.members.append(TypeStruct.Member("k", TypeUuid(), isOptional = True))
+        ml = TypeStruct()
+        ml.members.append(TypeStruct.Member("d", TypeBool(), isOptional = True))
+        m.members.append(TypeStruct.Member("l", ml, isOptional = True))
 
         # Success
         s = m.validate({ "a": 5,
@@ -110,7 +113,8 @@ class TestModelValidation(unittest.TestCase):
                          "g": Struct(Foo = long_(5)),
                          "h": "Foo",
                          "i": "2012-09-06T06:49:00-07:00",
-                         "k": "8daeb11e-3c83-11e2-a7aa-20c9d0427a89"
+                         "k": "8daeb11e-3c83-11e2-a7aa-20c9d0427a89",
+                         "l": {}
                          })
         self.assertTrue(isinstance(s, dict))
         self.assertTrue(isinstance(s["a"], int))
@@ -141,12 +145,14 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(s["i"].tzinfo.dst(s["i"]), timedelta(0))
         self.assertTrue(isinstance(s["k"], UUID))
         self.assertEqual(str(s["k"]), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
+        self.assertEqual(s["l"], {})
 
         # Success - accept strings
         s = m.validate(Struct(a = "5",
                               b = "Hello",
                               c = { "d": "true", "e": "5.5" },
-                              f = [ "Foo", "Bar" ]
+                              f = [ "Foo", "Bar" ],
+                              l = ""
                               ), acceptString = True)
         self.assertTrue(isinstance(s, Struct))
         self.assertTrue(isinstance(s.a, int))
@@ -164,6 +170,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(s.f[0], "Foo")
         self.assertTrue(isinstance(s.f[1], basestring_))
         self.assertEqual(s.f[1], "Bar")
+        self.assertEqual(s.l, {})
 
         # Failure - invalid type
         self.assertValidationError(m, [1, 2, 3],
@@ -220,6 +227,25 @@ class TestModelValidation(unittest.TestCase):
                                         "j": [{ "a": "bad" }]
                                         },
                                    "Invalid value 'bad' (type 'str') for member 'j[0].a', expected type 'int'")
+
+        # Failure - non-empty string for empty struct
+        self.assertValidationError(m, { "a": 5,
+                                        "b": "Hello",
+                                        "c": { "d": True, "e": 5.5 },
+                                        "f": [ "Foo", "Bar" ],
+                                        "l": " "
+                                        },
+                                   "Invalid value ' ' (type 'str') for member 'l', expected type 'struct'",
+                                   acceptString = True)
+
+        # Failure - empty string for empty struct - not accepting strings
+        self.assertValidationError(m, { "a": 5,
+                                        "b": "Hello",
+                                        "c": { "d": True, "e": 5.5 },
+                                        "f": [ "Foo", "Bar" ],
+                                        "l": ""
+                                        },
+                                   "Invalid value '' (type 'str') for member 'l', expected type 'struct'")
 
     # array type
     def test_model_array(self):

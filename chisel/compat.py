@@ -89,7 +89,7 @@ else:
     xrange_ = xrange
 
 # WSGI
-if PY3:
+if PY3: # pragma: no cover
     wsgistr_ = bytes
     def wsgistr_new(s):
         return s.encode("utf-8") if not isinstance(s, bytes) else s
