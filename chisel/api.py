@@ -21,7 +21,7 @@
 #
 
 from .doc import joinUrl, createIndexHtml, createActionHtml
-from .compat import func_name, itervalues, urllib
+from .compat import func_name, itervalues, urllib, wsgistr_, wsgistr_new
 from .model import jsonDefault, ValidationError, TypeStruct, TypeEnum, TypeString
 from .spec import SpecParser
 from .struct import Struct
@@ -224,7 +224,7 @@ class Application(object):
 
         # Return the response
         start_response(status, responseHeaders)
-        return responseBody
+        return [(wsgistr_new(x) if not isinstance(x, wsgistr_) else x) for x in responseBody]
 
     # Helper to send an HTTP 404 Not Found
     def _http404NotFound(self, environ, start_response):
@@ -311,7 +311,8 @@ class Application(object):
                         return start_response(status, responseHeaders)
 
                     # Response callbacks must respond as WSGI app (call start_response and return content)
-                    return actionCallback.responseCallback(environ, _start_response, actionContext, Struct(request), Struct(response))
+                    responseBody = actionCallback.responseCallback(environ, _start_response, actionContext, Struct(request), Struct(response))
+                    return [(wsgistr_new(x) if not isinstance(x, wsgistr_) else x) for x in responseBody]
                 except Exception as e:
                     raise ActionErrorInternal("UnexpectedError", self._exceptionErrorMessage(e))
 

@@ -21,7 +21,7 @@
 #
 
 from . import api
-from .compat import StringIO
+from .compat import StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .model import Struct
 from .spec import SpecParser
 
@@ -315,7 +315,7 @@ struct ApplicationConfig
 
         # Start the stand-alone server
         print("Serving on port %d..." % (opts.port,))
-        httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
+        httpd = wsgiref.simple_server.make_server("", opts.port, application_simple_server)
         httpd.serve_forever()
 
     # Call an action on this application
@@ -361,7 +361,7 @@ struct ApplicationConfig
             startResponseArgs["status"] = status
             startResponseArgs["responseHeaders"] = responseHeaders
         responseParts = self(_environ, startResponse)
-        responseString = "".join(responseParts)
+        responseString = wsgistr_str(wsgistr_new("").join(responseParts))
 
         return (startResponseArgs["status"],
                 startResponseArgs["responseHeaders"],

@@ -22,7 +22,7 @@
 
 from chisel import action, ActionError, decodeQueryString, encodeQueryString, SpecParser, Struct
 from chisel.api import Application
-from chisel.compat import func_name, long_, PY3, StringIO, unichr_, unicode_, urllib
+from chisel.compat import func_name, long_, PY3, StringIO, unichr_, unicode_, urllib, wsgistr_, wsgistr_new, wsgistr_str
 
 import json
 import logging
@@ -97,8 +97,8 @@ class TestApiRequest(unittest.TestCase):
         # Make the WSGI call
         responseList = app(environ, start_response)
         self.assertTrue(isinstance(responseList, (list, tuple)))
-        self.assertFalse([responsePart for responsePart in responseList if not isinstance(responsePart, str)])
-        response = "".join(responseList)
+        self.assertFalse([x for x in responseList if not isinstance(x, wsgistr_)])
+        response = wsgistr_str(wsgistr_new("").join(responseList))
         if decodeJSON:
             response = Struct(json.loads(response))
 
@@ -756,7 +756,7 @@ action myAction
 
         # Wrapped WSGI application
         def myApp(environ, start_response):
-            content = "Hello!"
+            content = wsgistr_new("Hello!")
             responseHeaders = [
                 ("Content-Type", "text/plain"),
                 ("Content-Length", str(len(content)))

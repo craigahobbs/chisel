@@ -21,7 +21,7 @@
 #
 
 from chisel import Application, ResourceType
-from chisel.compat import StringIO
+from chisel.compat import StringIO, wsgistr_new
 
 import os
 import unittest
@@ -80,7 +80,7 @@ class TestAppApplication(unittest.TestCase):
         resourceData, resourceTypes = self.getResourceTypes()
         app = Application(resourceTypes = resourceTypes)
         responseParts = app(environ, startResponse)
-        self.assertEqual(responseParts, ("{}",))
+        self.assertEqual(responseParts, [wsgistr_new("{}")])
         self.assertEqual(startResponseData["status"], ["200 OK"])
         self.assertEqual(resourceData["open"], ["Hello"])
         self.assertEqual(resourceData["close"], [1])
@@ -89,7 +89,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Call the application again (skips reloading)
         responseParts = app(environ, startResponse)
-        self.assertEqual(responseParts, ("{}",))
+        self.assertEqual(responseParts, [wsgistr_new("{}")])
         self.assertEqual(startResponseData["status"], ["200 OK", "200 OK"])
         self.assertEqual(resourceData["open"], ["Hello", "Hello"])
         self.assertEqual(resourceData["close"], [1, 2])
