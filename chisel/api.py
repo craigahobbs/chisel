@@ -214,6 +214,9 @@ class Application(object):
     # Helper to send an HTTP response
     def _httpResponse(self, start_response, actionContext, status, contentType, *responseBody):
 
+        # Ensure proper WSGI response data type
+        responseBody = [(wsgistr_new(x) if not isinstance(x, wsgistr_) else x) for x in responseBody]
+
         # Build the headers array
         responseHeaders = [
             ("Content-Type", contentType),
@@ -224,7 +227,7 @@ class Application(object):
 
         # Return the response
         start_response(status, responseHeaders)
-        return [(wsgistr_new(x) if not isinstance(x, wsgistr_) else x) for x in responseBody]
+        return responseBody
 
     # Helper to send an HTTP 404 Not Found
     def _http404NotFound(self, environ, start_response):
@@ -311,8 +314,7 @@ class Application(object):
                         return start_response(status, responseHeaders)
 
                     # Response callbacks must respond as WSGI app (call start_response and return content)
-                    responseBody = actionCallback.responseCallback(environ, _start_response, actionContext, Struct(request), Struct(response))
-                    return [(wsgistr_new(x) if not isinstance(x, wsgistr_) else x) for x in responseBody]
+                    return actionCallback.responseCallback(environ, _start_response, actionContext, Struct(request), Struct(response))
                 except Exception as e:
                     raise ActionErrorInternal("UnexpectedError", self._exceptionErrorMessage(e))
 

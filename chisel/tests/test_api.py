@@ -461,7 +461,7 @@ action myAction
         def myActionRespose(environ, start_response, ctx, request, response):
             if request.value == 2:
                 raise Exception("Barf")
-            content = "The integer %d times two is %d." % (request.value, response.valueTimesTwo)
+            content = wsgistr_new("The integer %d times two is %d." % (request.value, response.valueTimesTwo))
             responseHeaders = [
                 ("Content-Type", "text/plain"),
                 ("Content-Length", str(len(content)))
