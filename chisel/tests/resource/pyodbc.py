@@ -47,7 +47,7 @@ class ProgrammingError(DatabaseError):
 # Mock pyodbc.Connection
 class Connection(object):
 
-    def __init__(self, connectionString, autocommit = True):
+    def __init__(self, connectionString, autocommit = False):
 
         self.connectionString = connectionString
         self.autocommit = autocommit
@@ -67,6 +67,6 @@ class Connection(object):
 
 
 # Mock pyodbc.connect
-def connect(connectionString, autocommit = True):
+def connect(connectionString, autocommit = False, unicode_results = False):
 
     return Connection(connectionString, autocommit = autocommit)
