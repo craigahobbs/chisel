@@ -60,10 +60,11 @@ action doc
         else:
             status = "200 OK"
             contentType = "text/html"
+            docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
             if request.action is None:
-                content = createIndexHtml(environ["PATH_INFO"], itervalues(actions), docCssUri = self.docCssUri)
+                content = createIndexHtml(docRootUri, itervalues(actions), docCssUri = self.docCssUri)
             else:
-                content = createActionHtml(environ["PATH_INFO"], actions[request.action], docCssUri = self.docCssUri)
+                content = createActionHtml(docRootUri, actions[request.action], docCssUri = self.docCssUri)
 
         content = wsgistr_new(content)
         headers = [("Content-Type", contentType),

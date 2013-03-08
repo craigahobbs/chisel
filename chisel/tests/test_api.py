@@ -79,6 +79,7 @@ class TestApiRequest(unittest.TestCase):
         # WSGI environment
         environ = {
             "REQUEST_METHOD": method,
+            "SCRIPT_NAME": "",
             "PATH_INFO": pathInfo,
             "wsgi.input": StringIO("" if request is None else request)
             }
