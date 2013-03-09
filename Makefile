@@ -52,12 +52,14 @@ check: clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 # Clean
 .PHONY: clean
 clean:
-	-rm -rf $(shell find $(PACKAGE_NAME) -name '__pycache__')
-	-rm -rf $(shell find $(PACKAGE_NAME) -name '*.pyc')
-	-rm -rf build
-	-rm -rf dist
-	-rm -rf *.egg-info
-	-rm -rf .coverage $(COVER)
+	-rm -rf \
+		$$(find $(PACKAGE_NAME) -name '__pycache__') \
+		$$(find $(PACKAGE_NAME) -name '*.pyc') \
+		build \
+		dist \
+		*.egg-info \
+		.coverage \
+		$(COVER)
 
 # Superclean
 .PHONY: superclean
