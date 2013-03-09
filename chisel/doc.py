@@ -36,10 +36,14 @@ class DocAction(Action):
         self.docCssUri = docCssUri
         Action.__init__(self, self._actionCallback, responseCallback = self._actionResponse,
                         path = path, actionSpec = """\
+# Generate a documentation HTML for the actions implemented by the application.
 action doc
     input
+        # Generate documentation for the specified action name; generate the
+        # documentation index if the action is not specified.
         [optional] string action
     errors
+        # The action name is unknown.
         UnknownAction
 """)
 
@@ -60,11 +64,12 @@ action doc
         else:
             status = "200 OK"
             contentType = "text/html"
-            docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
             if request.action is None:
-                content = createIndexHtml(docRootUri, itervalues(actions), docCssUri = self.docCssUri)
+                content = createIndexHtml(environ["SCRIPT_NAME"], environ["PATH_INFO"],
+                                          itervalues(actions), docCssUri = self.docCssUri)
             else:
-                content = createActionHtml(docRootUri, actions[request.action], docCssUri = self.docCssUri)
+                content = createActionHtml(environ["SCRIPT_NAME"], environ["PATH_INFO"],
+                                           actions[request.action], docCssUri = self.docCssUri)
 
         content = wsgistr_new(content)
         headers = [("Content-Type", contentType),
@@ -140,7 +145,9 @@ class Element(object):
 
 
 # Generate the top-level action documentation index
-def createIndexHtml(docRootUri, actions, docCssUri = None):
+def createIndexHtml(envScriptName, envPathInfo, actions, docCssUri = None):
+
+    docRootUri = envScriptName + envPathInfo
 
     # Index page header
     root = Element("html")
@@ -167,7 +174,9 @@ def createIndexHtml(docRootUri, actions, docCssUri = None):
 
 
 # Generate the documentation for an action
-def createActionHtml(docRootUri, action, docCssUri = None):
+def createActionHtml(envScriptName, envPathInfo, action, docCssUri = None):
+
+    docRootUri = envScriptName + envPathInfo
 
     # Find all user types referenced by the action
     userTypes = {}
@@ -197,6 +206,33 @@ def createActionHtml(docRootUri, action, docCssUri = None):
     body.addChild("h1") \
         .addChild(action.name, isText = True, isInline = True)
     _addDocText(body, action.model.doc)
+
+    # Note for action URLs
+    urls = {}
+    for method, urlRel in action.path:
+        url = envScriptName + urlRel
+        if url not in urls:
+            urls[url] = []
+        urls[url].append(method)
+    notes = body.addChild("div", _class = "chsl-notes")
+    noteUrl = notes.addChild("div", _class = "chsl-note")
+    noteUrlP = noteUrl.addChild("p")
+    noteUrlP.addChild("b").addChild("Note: ", isText = True, isInline = True)
+    if not urls:
+        noteUrlP.addChild("The action is not exposed.", isText = True)
+    else:
+        noteUrlP.addChild("The action is exposed at the following " + ("URLs" if len(urls) > 1 else "URL") + ":", isText = True)
+        ulUrls = noteUrl.addChild("ul")
+        for url, methods in iteritems(urls):
+            ulUrls.addChild("li") \
+                .addChild(url + " (" + ", ".join(sorted(methods)) + ")", isText = True, isInline = True)
+
+    # Note for custom response callback
+    if action.responseCallback is not None:
+        noteResponse = notes.addChild("div", _class = "chsl-note")
+        noteResponseP = noteResponse.addChild("p")
+        noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
+        noteResponseP.addChild("The action has a custom response callback.", isText = True)
 
     # Action input and output structs
     _structSection(body, action.model.inputType, "h2", "Input Parameters", "The action has no input parameters.")
@@ -322,6 +358,19 @@ ul.chsl-action-list li {
 }
 div.chsl-header {
     margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
 }
 ul.chsl-constraint-list {
     list-style: none;
