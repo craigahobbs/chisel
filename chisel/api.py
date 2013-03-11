@@ -215,7 +215,7 @@ class Application(object):
         return "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
 
     # Helper serialize JSON content
-    def _serializeJSON(self, response):
+    def serializeJSON(self, response):
         return json.dumps(response, sort_keys = True, default = jsonDefault,
                           indent = 2 if self._isPretty else None,
                           separators = (", ", ": ") if self._isPretty else (",", ":"))
@@ -285,10 +285,10 @@ class Application(object):
 
         # Serialize the response as JSON
         try:
-            jsonContent = self._serializeJSON(response)
+            jsonContent = self.serializeJSON(response)
         except Exception as e:
             response = { "error": "InvalidOutput", "message": self._exceptionErrorMessage(e) }
-            jsonContent = self._serializeJSON(response)
+            jsonContent = self.serializeJSON(response)
 
         # Determine the HTTP status
         if "error" in response  and jsonpFunction is None:

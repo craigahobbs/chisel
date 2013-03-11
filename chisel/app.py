@@ -25,6 +25,7 @@ from .compat import StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .model import Struct
 from .spec import SpecParser
 
+from collections import namedtuple
 import json
 import logging
 import os
@@ -37,22 +38,18 @@ import threading
 class ResourceType(object):
 
     def __init__(self, resourceTypeName, resourceOpen, resourceClose):
-
         self._resourceTypeName = resourceTypeName
         self._resourceOpen = resourceOpen
         self._resourceClose = resourceClose
 
     @property
     def name(self):
-
         return self._resourceTypeName
 
     def open(self, resourceString):
-
         return self._resourceOpen(resourceString)
 
     def close(self, resource):
-
         if self._resourceClose is not None:
             return self._resourceClose(resource)
 
@@ -61,21 +58,17 @@ class ResourceType(object):
 class ResourceFactory(object):
 
     def __init__(self, name, resourceString, resourceType):
-
         self._name = name
         self._resourceString = resourceString
         self._resourceType = resourceType
 
     def __call__(self):
-
         return ResourceContext(self)
 
     def _open(self):
-
         return self._resourceType.open(self._resourceString)
 
     def _close(self, resource):
-
         return self._resourceType.close(resource)
 
 
@@ -83,123 +76,148 @@ class ResourceFactory(object):
 class ResourceContext(object):
 
     def __init__(self, resourceFactory):
-
         self._resourceFactory = resourceFactory
 
     def __enter__(self):
-
         self._resource = self._resourceFactory._open()
         return self._resource
 
     def __exit__(self, exc_type, exc_value, traceback):
-
         self._resourceFactory._close(self._resource)
 
 
 # Top-level WSGI application class
 class Application(object):
 
-    # Environment variables
-    ENV_CONFIG = "chisel.config"
+    _singleton = None
+    _logger = logging.getLoggerClass()("")
+    _logger.addHandler(logging.StreamHandler(sys.stderr))
+    _logger.setLevel(logging.WARNING)
 
-    def __init__(self, wrapApplication = None, resourceTypes = None, configPath = None, scriptFilename = None):
+    @classmethod
+    def getApp(cls):
+        return cls._singleton
+
+    @classmethod
+    def getLogger(cls):
+        return cls._singleton.log if cls._singleton else cls._logger
+
+    ThreadState = namedtuple("ThreadState", "environ, log")
+
+    def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
 
         self._wrapApplication = wrapApplication
         self._resourceTypes = resourceTypes
-        self._configPath = configPath
-        self._scriptFilename = scriptFilename
-        self._config = None
-        self._api = None
-        self._initLock = threading.Lock()
 
-        # Initialize now if possible
-        if configPath and scriptFilename:
-            self._init(None)
+        # Base path for relative paths
+        pathBaseFile = sys.modules[self.__module__].__file__
+        pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
+
+        # Load the config file
+        if not os.path.isabs(configPath):
+            configPath = os.path.join(pathBase, configPath)
+        self._config = self.loadConfig(configPath)
+
+        # Environment collection
+        self._threadStates = {}
+        self._threadStateDefault = self.ThreadState(None, self._createLogger(logStream))
+
+        # Create the API application helper application
+        self._api = api.Application(wrapApplication = self._wrapApplication,
+                                    isPretty = self._config.prettyOutput,
+                                    contextCallback = lambda environ: self,
+                                    docUriDir = None if self._config.disableDocs else "doc",
+                                    docCssUri = self._config.docCssUri)
+
+        # Load specs and modules
+        for specPath in self._config.specPaths:
+            if not os.path.isabs(specPath):
+                specPath = os.path.join(pathBase, specPath)
+            self._api.loadSpecs(specPath)
+        for modulePath in self._config.modulePaths:
+            if not os.path.isabs(modulePath):
+                modulePath = os.path.join(pathBase, modulePath)
+            self._api.loadModules(modulePath)
+
+        # Create resource factories
+        self._resources = {}
+        if self._config.resources:
+            for resource in self._config.resources:
+
+                # Find the resource type
+                if self._resourceTypes:
+                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
+                else:
+                    resourceType = []
+                if not resourceType:
+                    raise Exception("Unknown resource type '%s'" % (resource.type,))
+
+                # Add the resource factory
+                self._resources[resource.name] = \
+                    ResourceFactory(resource.name, resource.resourceString, resourceType[0])
+
+        # Set the application singleton
+        Application._singleton = self
 
     # WSGI entry point
     def __call__(self, environ, start_response):
 
-        # Initialize, if necessary
-        self._init(environ)
+        # Add the thread state
+        threadKey = threading.current_thread().ident
+        self._threadStates[threadKey] = self.ThreadState(environ, self._createLogger(environ["wsgi.errors"]))
 
-        # Delegate to API application helper
+        # Handle the request
+        try:
+            return self.call(environ, start_response)
+        finally:
+            # Remove the thread state
+            del self._threadStates[threadKey]
+
+    # Overridable WSGI entry point
+    def call(self, environ, start_response):
         return self._api(environ, start_response)
 
-    # Create the action context object
-    def createContext(self, environ):
+    # Serialize a JSON object
+    def serializeJSON(self, o):
+        return self._api.serializeJSON(o)
 
-        # Initialize, if necessary
-        self._init(environ)
-
-        # Do the work...
-        return self._createContext(environ)
-
-    def _createContext(self, environ):
-
-        # Create the logger
+    def _createLogger(self, logStream):
         logger = logging.getLoggerClass()("")
-        logger.addHandler(logging.StreamHandler(environ.get("wsgi.errors")))
-        logger.setLevel(self._getLogLevel(self._config))
+        if logStream:
+            logger.addHandler(logging.StreamHandler(logStream))
+        if self._config.logLevel == "Debug":
+            logger.setLevel(logging.DEBUG)
+        elif self._config.logLevel == "Info":
+            logger.setLevel(logging.INFO)
+        elif self._config.logLevel == "Error":
+            logger.setLevel(logging.ERROR)
+        else:
+            logger.setLevel(logging.WARNING)
+        return logger
 
-        # Create the action context
-        ctx = Struct()
-        ctx.resources = self._resources
-        ctx.config = self._config.config
-        ctx.environ = environ
-        ctx.log = logger
-        return ctx
+    def _getThreadState(self):
+        threadKey = threading.current_thread().ident
+        return self._threadStates.get(threadKey, self._threadStateDefault)
 
-    def _init(self, environ):
+    # Resources collection
+    @property
+    def resources(self):
+        return Struct(self._resources)
 
-        with self._initLock:
+    # Application-specific configuration values
+    @property
+    def config(self):
+        return self._config.config
 
-            # Already initialized?
-            if self._api is not None and not self._config.alwaysReload:
-                return
+    # WSGI request environ
+    @property
+    def environ(self):
+        return Struct(self._getThreadState().environ)
 
-            # Base path for relative paths
-            pathBaseFile = self._scriptFilename if self._scriptFilename else environ.get("SCRIPT_FILENAME")
-            pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
-
-            # Load the config file
-            configPath = self._configPath if self._configPath else environ.get(self.ENV_CONFIG)
-            if not os.path.isabs(configPath):
-                configPath = os.path.join(pathBase, configPath)
-            self._config = self.loadConfig(configPath)
-
-            # Create the API application helper application
-            self._api = api.Application(wrapApplication = self._wrapApplication,
-                                        isPretty = self._config.prettyOutput,
-                                        contextCallback = self._createContext,
-                                        docUriDir = None if self._config.disableDocs else "doc",
-                                        docCssUri = self._config.docCssUri)
-
-            # Load specs and modules
-            for specPath in self._config.specPaths:
-                if not os.path.isabs(specPath):
-                    specPath = os.path.join(pathBase, specPath)
-                self._api.loadSpecs(specPath)
-            for modulePath in self._config.modulePaths:
-                if not os.path.isabs(modulePath):
-                    modulePath = os.path.join(pathBase, modulePath)
-                self._api.loadModules(modulePath)
-
-            # Create resource factories
-            self._resources = {}
-            if self._config.resources:
-                for resource in self._config.resources:
-
-                    # Find the resource type
-                    if self._resourceTypes:
-                        resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
-                    else:
-                        resourceType = []
-                    if not resourceType:
-                        raise Exception("Unknown resource type '%s'" % (resource.type,))
-
-                    # Add the resource factory
-                    self._resources[resource.name] = \
-                        ResourceFactory(resource.name, resource.resourceString, resourceType[0])
+    # Logger object
+    @property
+    def log(self):
+        return self._getThreadState().log
 
     # Configuration file specification
     configSpec = """\
@@ -269,91 +287,22 @@ struct ApplicationConfig
             # Parse and validate the config string
             return Struct(cls._configModel.validate(json.loads(configString)))
 
-    # Get the Python logging level
-    def _getLogLevel(self, configSpec):
-
-        if configSpec.logLevel == "Debug":
-            return logging.DEBUG
-        elif configSpec.logLevel == "Info":
-            return logging.INFO
-        elif configSpec.logLevel == "Error":
-            return logging.ERROR
-        else:
-            return logging.WARNING
-
-    # Run as stand-alone server
-    @classmethod
-    def serve(cls, application):
-
-        import optparse
-        import wsgiref.util
-        import wsgiref.simple_server
-
-        # Command line options
-        optParser = optparse.OptionParser()
-        optParser.add_option("-c", dest = "configPath", metavar = "PATH",
-                             help = "Path to configuration file")
-        optParser.add_option("-p", dest = "port", type = "int", default = 8080,
-                             help = "Server port (default is 8080)")
-        optParser.add_option("--config-spec", dest = "configSpec", action = "store_true",
-                             help = "Dump configuration file specification")
-        (opts, args) = optParser.parse_args()
-        if not opts.configPath and not application._api:
-            optParser.error("Configuration file path required")
-
-        # Dump configuration specification
-        if opts.configSpec:
-            print(cls.configSpec)
-            return
-
-        # Stand-alone server WSGI entry point
-        def application_simple_server(environ, start_response):
-            wsgiref.util.setup_testing_defaults(environ)
-            if opts.configPath is not None:
-                environ[cls.ENV_CONFIG] = os.path.abspath(opts.configPath)
-            return application(environ, start_response)
-
-        # Start the stand-alone server
-        print("Serving on port %d..." % (opts.port,))
-        httpd = wsgiref.simple_server.make_server("", opts.port, application_simple_server)
-        httpd.serve_forever()
-
-    # Call an action on this application
-    def callAction(self, actionName, request, environ = None):
-
-        # Serialize the request
-        requestJson = json.dumps(request)
-
-        # Call the action
-        status, responseHeaders, responseString, wsgi_errors = \
-            self.callRaw("POST", "/" + actionName, requestJson, environ = environ)
-
-        # Deserialize the response
-        try:
-            response = json.loads(responseString)
-        except:
-            response = responseString
-
-        return (status,
-                responseHeaders,
-                response,
-                wsgi_errors)
-
     # Make an HTTP request on this application
-    def callRaw(self, method, url, data = None, environ = None):
+    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None):
 
         # WSGI environment - used passed-in environ if its complete
         _environ = dict(environ) if environ else {}
-        _environ["REQUEST_METHOD"] = method
-        _environ["PATH_INFO"] = url
-        if data is not None:
-            _environ["wsgi.input"] = StringIO(data)
-            _environ["CONTENT_LENGTH"] = str(len(data))
-        else:
-            _environ["wsgi.input"] = StringIO()
-            if "CONTENT_LENGTH" in _environ:
-                del _environ["CONTENT_LENGTH"]
-        _environ["wsgi.errors"] = StringIO()
+        _environ["REQUEST_METHOD"] = requestMethod
+        _environ["PATH_INFO"] = pathInfo
+        if "SCRIPT_NAME" not in _environ:
+            _environ["SCRIPT_NAME"] = ""
+        if "QUERY_STRING" not in _environ:
+            _environ["QUERY_STRING"] = queryString if queryString else ""
+        if "wsgi.input" not in _environ:
+            _environ["wsgi.input"] = StringIO(wsgiInput if wsgiInput else "")
+            _environ["CONTENT_LENGTH"] = str(len(wsgiInput)) if wsgiInput else "0"
+        if "wsgi.errors" not in _environ:
+            _environ["wsgi.errors"] = StringIO()
 
         # Call the action
         startResponseArgs = {}
@@ -367,3 +316,42 @@ struct ApplicationConfig
                 startResponseArgs["responseHeaders"],
                 responseString,
                 _environ["wsgi.errors"].getvalue())
+
+    # Run as stand-alone server
+    @classmethod
+    def serve(cls, application = None, configPath = None):
+
+        import optparse
+        import wsgiref.util
+        import wsgiref.simple_server
+
+        # Command line options
+        optParser = optparse.OptionParser()
+        optParser.add_option("-c", dest = "configPath", metavar = "PATH", default = configPath,
+                             help = "Path to configuration file")
+        optParser.add_option("-p", dest = "port", type = "int", default = 8080,
+                             help = "Server port (default is 8080)")
+        optParser.add_option("--config-spec", dest = "configSpec", action = "store_true",
+                             help = "Dump configuration file specification")
+        (opts, args) = optParser.parse_args()
+
+        # Dump configuration specification
+        if opts.configSpec:
+            print(cls.configSpec)
+            return
+
+        # Create the application instance
+        if application is None:
+            if not opts.configPath:
+                optParser.error("Configuration file path required")
+            application = cls(opts.configPath)
+
+        # Stand-alone server WSGI entry point
+        def application_simple_server(environ, start_response):
+            wsgiref.util.setup_testing_defaults(environ)
+            return application(environ, start_response)
+
+        # Start the stand-alone server
+        print("Serving on port %d..." % (opts.port,))
+        httpd = wsgiref.simple_server.make_server("", opts.port, application_simple_server)
+        httpd.serve_forever()
