@@ -344,7 +344,7 @@ struct ApplicationConfig
         if application is None:
             if not opts.configPath:
                 optParser.error("Configuration file path required")
-            application = cls(opts.configPath)
+            application = cls(os.path.abspath(opts.configPath))
 
         # Stand-alone server WSGI entry point
         def application_simple_server(environ, start_response):
