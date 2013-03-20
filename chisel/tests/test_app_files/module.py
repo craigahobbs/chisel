@@ -10,7 +10,7 @@ def myAction(ctx, req):
 
     # Log info and a warning
     ctx.log.debug("Some info")
-    chisel.Application.getLogger().warning("A warning %s, %s" % (ctx.config.foo, ctx.config.bonk))
+    ctx.log.warning("A warning %s, %s" % (ctx.config.foo, ctx.config.bonk))
 
     return {}
 

@@ -89,19 +89,6 @@ class ResourceContext(object):
 # Top-level WSGI application class
 class Application(object):
 
-    _singleton = None
-    _logger = logging.getLoggerClass()("")
-    _logger.addHandler(logging.StreamHandler(sys.stderr))
-    _logger.setLevel(logging.WARNING)
-
-    @classmethod
-    def getApp(cls):
-        return cls._singleton
-
-    @classmethod
-    def getLogger(cls):
-        return cls._singleton.log if cls._singleton else cls._logger
-
     ThreadState = namedtuple("ThreadState", "environ, log")
 
     def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
@@ -155,9 +142,6 @@ class Application(object):
                 # Add the resource factory
                 self._resources[resource.name] = \
                     ResourceFactory(resource.name, resource.resourceString, resourceType[0])
-
-        # Set the application singleton
-        Application._singleton = self
 
     # WSGI entry point
     def __call__(self, environ, start_response):
