@@ -101,7 +101,7 @@ class PymongoDatabaseResource(pymongo.database.Database):
         if userinfo: # Only add database if there is user info - avoids pymongo warn
             mongoUri += "/" + database
         if options:
-            mongoUri += "?" + "&".join(options)
+            mongoUri += ("?" if userinfo else "/?") + "&".join(options)
 
         # Connect to the database
         conn = pymongo.Connection(mongoUri)

@@ -47,7 +47,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
 
         # Mongo URI with database, no user info
         mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost?myoption=myvalue")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost/?myoption=myvalue")
         self.assertEqual(mongodb.conn.read_preference, None)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
         self.assertEqual(mongodb.dbname, "mydatabase")
@@ -63,7 +63,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
 
         # Mongo URI with database, with read preference
         mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue&readPreference=secondary")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost?myoption=myvalue")
+        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost/?myoption=myvalue")
         self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
         self.assertEqual(mongodb.dbname, "mydatabase")
