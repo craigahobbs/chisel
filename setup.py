@@ -28,10 +28,8 @@ setup(
     version = "0.2.3",
     author = "Craig Hobbs",
     author_email = "craigahobbs@gmail.com",
-    description = ("Chisel - JSON web APIs made dirt simple"),
-    long_description = """\
-TODO
-""",
+    description = ("JSON web APIs made dirt simple"),
+    long_description = "JSON web APIs made dirt simple",
     keywords = "json api server framework",
     url = "https://github.com/craigahobbs/chisel",
     license = "MIT",
