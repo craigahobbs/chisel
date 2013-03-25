@@ -54,19 +54,15 @@ def jsonDefault(obj):
 class JsonFloat(float):
 
     def __new__(cls, value, prec):
-
         return float.__new__(cls, value)
 
     def __init__(self, value, prec):
-
         self._formatString = "." + str(prec) + "f"
 
     def __repr__(self):
-
         return format(self, self._formatString).rstrip("0").rstrip(".")
 
     def __str__(self):
-
         return self.__repr__()
 
 

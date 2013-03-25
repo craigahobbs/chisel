@@ -25,6 +25,7 @@ __all__ = ["api", "app", "model", "spec", "struct", "url"]
 from .action import Action, Action as action, ActionError
 from .app import Application, ResourceType
 from .model import JsonFloat, ValidationError
+from .request import Request, Request as request
 from .spec import SpecParser, SpecParserError
 from .struct import Struct
 from .url import decodeQueryString, encodeQueryString

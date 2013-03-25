@@ -20,18 +20,21 @@
 # SOFTWARE.
 #
 
-from . import api
-from .compat import StringIO, wsgistr_, wsgistr_new, wsgistr_str
-from .model import Struct
+from .compat import basestring_, StringIO, wsgistr_, wsgistr_new, wsgistr_str
+from .doc import DocAction
+from .model import jsonDefault, Struct
+from .request import Request
 from .spec import SpecParser
 
 from collections import namedtuple
+import imp
 import json
 import logging
 import os
 import re
 import sys
 import threading
+import traceback
 
 
 # Application resource type
@@ -86,125 +89,8 @@ class ResourceContext(object):
         self._resourceFactory._close(self._resource)
 
 
-# Top-level WSGI application class
-class Application(object):
-
-    ThreadState = namedtuple("ThreadState", "environ, log")
-
-    def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
-
-        self._wrapApplication = wrapApplication
-        self._resourceTypes = resourceTypes
-
-        # Base path for relative paths
-        pathBaseFile = sys.modules[self.__module__].__file__
-        pathBase = os.path.dirname(pathBaseFile) if pathBaseFile else ""
-
-        # Load the config file
-        if not os.path.isabs(configPath):
-            configPath = os.path.join(pathBase, configPath)
-        self._config = self.loadConfig(configPath)
-
-        # Environment collection
-        self._threadStates = {}
-        self._threadStateDefault = self.ThreadState(None, self._createLogger(logStream))
-
-        # Create the API application helper application
-        self._api = api.Application(wrapApplication = self._wrapApplication,
-                                    isPretty = self._config.prettyOutput,
-                                    contextCallback = lambda environ: self,
-                                    docUriDir = None if self._config.disableDocs else "doc",
-                                    docCssUri = self._config.docCssUri)
-
-        # Load specs and modules
-        for specPath in self._config.specPaths:
-            if not os.path.isabs(specPath):
-                specPath = os.path.join(pathBase, specPath)
-            self._api.loadSpecs(specPath)
-        for modulePath in self._config.modulePaths:
-            if not os.path.isabs(modulePath):
-                modulePath = os.path.join(pathBase, modulePath)
-            self._api.loadModules(modulePath)
-
-        # Create resource factories
-        self._resources = {}
-        if self._config.resources:
-            for resource in self._config.resources:
-
-                # Find the resource type
-                if self._resourceTypes:
-                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
-                else:
-                    resourceType = []
-                if not resourceType:
-                    raise Exception("Unknown resource type '%s'" % (resource.type,))
-
-                # Add the resource factory
-                self._resources[resource.name] = \
-                    ResourceFactory(resource.name, resource.resourceString, resourceType[0])
-
-    # WSGI entry point
-    def __call__(self, environ, start_response):
-
-        # Add the thread state
-        threadKey = threading.current_thread().ident
-        self._threadStates[threadKey] = self.ThreadState(environ, self._createLogger(environ["wsgi.errors"]))
-
-        # Handle the request
-        try:
-            return self.call(environ, start_response)
-        finally:
-            # Remove the thread state
-            del self._threadStates[threadKey]
-
-    # Overridable WSGI entry point
-    def call(self, environ, start_response):
-        return self._api(environ, start_response)
-
-    # Serialize a JSON object
-    def serializeJSON(self, o):
-        return self._api.serializeJSON(o)
-
-    def _createLogger(self, logStream):
-        logger = logging.getLoggerClass()("")
-        if logStream:
-            logger.addHandler(logging.StreamHandler(logStream))
-        if self._config.logLevel == "Debug":
-            logger.setLevel(logging.DEBUG)
-        elif self._config.logLevel == "Info":
-            logger.setLevel(logging.INFO)
-        elif self._config.logLevel == "Error":
-            logger.setLevel(logging.ERROR)
-        else:
-            logger.setLevel(logging.WARNING)
-        return logger
-
-    def _getThreadState(self):
-        threadKey = threading.current_thread().ident
-        return self._threadStates.get(threadKey, self._threadStateDefault)
-
-    # Resources collection
-    @property
-    def resources(self):
-        return Struct(self._resources)
-
-    # Application-specific configuration values
-    @property
-    def config(self):
-        return self._config.config
-
-    # WSGI request environ
-    @property
-    def environ(self):
-        return Struct(self._getThreadState().environ)
-
-    # Logger object
-    @property
-    def log(self):
-        return self._getThreadState().log
-
-    # Configuration file specification
-    configSpec = """\
+# Application configuration file specification
+ConfigSpec = """\
 # Log level
 enum LogLevel
     Debug
@@ -254,22 +140,273 @@ struct ApplicationConfig
     # External CSS for generated documenation HTML (default is None)
     [optional] string docCssUri
 """
-    _configParser = SpecParser()
-    _configParser.parseString(configSpec)
-    _configModel = _configParser.types["ApplicationConfig"]
-    _reComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
 
-    # Load the configuration file
-    @classmethod
-    def loadConfig(cls, configPath):
+ConfigComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
 
-        with open(configPath, "r") as fh:
+# Application configuration file model
+ConfigParser = SpecParser()
+ConfigParser.parseString(ConfigSpec)
+ConfigModel = ConfigParser.types["ApplicationConfig"]
 
-            # Strip comments
-            configString = cls._reComment.sub("", fh.read())
 
-            # Parse and validate the config string
-            return Struct(cls._configModel.validate(json.loads(configString)))
+# Top-level WSGI application class
+class Application(object):
+
+    ThreadState = namedtuple("ThreadState", "environ, start_response, log")
+
+    def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
+
+        self._relPathBase = os.path.dirname(sys.modules[self.__module__].__file__)
+        if isinstance(configPath, basestring_):
+            self._configPath = configPath if os.path.isabs(configPath) else os.path.join(self._relPathBase, configPath)
+            self._configString = None
+        else:
+            self._configPath = None
+            self._configString = configPath.read()
+        self._wrapApplication = wrapApplication
+        self._resourceTypes = resourceTypes
+        self._logStream = logStream
+        self._threadStates = {}
+        self._init()
+        self._initLock = threading.Lock()
+
+    def _init(self):
+
+        # Read config file
+        if self._configPath:
+            with open(self._configPath, "r") as fConfig:
+                self._configString = fConfig.read()
+        self._config = Struct(ConfigModel.validate(json.loads(ConfigComment.sub("", self._configString))))
+
+        # Load specs
+        self._specParser = SpecParser()
+        for specPath in self._config.specPaths:
+            if not os.path.isabs(specPath):
+                specPath = os.path.join(self._relPathBase, specPath)
+            self.loadSpecs(specPath)
+
+        # Load modules
+        self._requests = {}
+        self._requestUrls = {}
+        for modulePath in self._config.modulePaths:
+            if not os.path.isabs(modulePath):
+                modulePath = os.path.join(self._relPathBase, modulePath)
+            self.loadModules(modulePath)
+
+        # Add the doc request
+        if not self._config.disableDocs:
+            self.addRequest(DocAction())
+
+        # Create resource factories
+        self._resources = {}
+        if self._config.resources:
+            for resource in self._config.resources:
+
+                # Find the resource type
+                if self._resourceTypes:
+                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
+                else:
+                    resourceType = []
+                if not resourceType:
+                    raise Exception("Unknown resource type '%s'" % (resource.type,))
+
+                # Add the resource factory
+                self._resources[resource.name] = \
+                    ResourceFactory(resource.name, resource.resourceString, resourceType[0])
+
+        # Default thread state
+        self._threadStateDefault = self.ThreadState(None, None, self._createLogger(self._logStream))
+
+    # Recursively load all specs in a directory
+    def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
+
+        # Does the path exist?
+        if not os.path.isdir(specPath):
+            raise IOError("%r not found or is not a directory" % (specPath,))
+
+        # Resursively find spec files
+        for dirpath, dirnames, filenames in os.walk(specPath):
+            for filename in filenames:
+                (base, ext) = os.path.splitext(filename)
+                if ext == specExt:
+                    self._specParser.parse(os.path.join(dirpath, filename), finalize = False)
+        if finalize:
+            self._specParser.finalize()
+
+    # Load a spec string
+    def loadSpecString(self, spec, fileName = "", finalize = True):
+        self._specParser.parseString(spec, fileName = fileName, finalize = finalize)
+
+    # Add a request handler (Request-wrapped WSGI application)
+    def addRequest(self, request):
+
+        # Wrap bare functions in a request decorator
+        if not isinstance(request, Request):
+            request = Request(request)
+
+        # Duplicate request name?
+        if request.name in self._requests:
+            raise Exception("Redefinition of request '%s'" % (request.name,))
+        self._requests[request.name] = request
+
+        # Add the request URLs
+        for url in request.urls:
+            if url in self._requestUrls:
+                raise Exception("Redefinition of request URL '%s'" % (url,))
+            self._requestUrls[url] = request
+
+        # Make the request app-aware at load-time
+        request.onload(self)
+
+    # Recursively load all modules in a directory
+    def loadModules(self, moduleDir, moduleExt = ".py"):
+
+        # Does the path exist?
+        if not os.path.isdir(moduleDir):
+            raise IOError("%r not found or is not a directory" % (moduleDir,))
+
+        # Recursively find module files
+        moduleDirNorm = os.path.normpath(moduleDir)
+        modulePathParent = os.path.dirname(moduleDirNorm)
+        modulePathBase = os.path.join(modulePathParent, "") if modulePathParent else modulePathParent
+        for dirpath, dirnames, filenames in os.walk(moduleDirNorm):
+            for filename in filenames:
+                (base, ext) = os.path.splitext(filename)
+                if ext == moduleExt:
+
+                    # Load the module
+                    module = None
+                    moduleParts = []
+                    for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
+                        moduleParts.append(modulePart)
+                        moduleFp, modulePath, moduleDesc = \
+                            imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
+                        try:
+                            module = imp.load_module(".".join(moduleParts), moduleFp, modulePath, moduleDesc)
+                        finally:
+                            if moduleFp:
+                                moduleFp.close()
+
+                    # Add the module's requests
+                    for moduleAttr in dir(module):
+                        request = getattr(module, moduleAttr)
+                        if isinstance(request, Request):
+                            self.addRequest(request)
+
+    # WSGI entry point
+    def __call__(self, environ, start_response):
+
+        # Add the thread state
+        threadKey = threading.current_thread().ident
+        threadState = self.ThreadState(environ, start_response, self._createLogger(environ["wsgi.errors"]))
+        self._threadStates[threadKey] = threadState
+
+        # Handle the request
+        try:
+            # Reload, if requested
+            if self._config.alwaysReload:
+                with self._initLock:
+                    self.log.info("Reloading application config...")
+                    self._init()
+                    return self.call(environ, start_response)
+            else:
+                return self.call(environ, start_response)
+        finally:
+            # Remove the thread state
+            del self._threadStates[threadKey]
+
+    # Overridable WSGI entry point
+    def call(self, environ, start_response):
+
+        # Find the matching request app and call it
+        request = self._requestUrls.get(environ["PATH_INFO"])
+        if request is not None:
+            return request(environ, start_response)
+        else:
+            return self.response("404 Not Found", "text/plain", "Not Found")
+
+    # Create a request logger
+    def _createLogger(self, logStream):
+        logger = logging.getLoggerClass()("")
+        if logStream:
+            logger.addHandler(logging.StreamHandler(logStream))
+        if self._config.logLevel == "Debug":
+            logger.setLevel(logging.DEBUG)
+        elif self._config.logLevel == "Info":
+            logger.setLevel(logging.INFO)
+        elif self._config.logLevel == "Error":
+            logger.setLevel(logging.ERROR)
+        else:
+            logger.setLevel(logging.WARNING)
+        return logger
+
+    # Retreive the WSGI thread state
+    def _getThreadState(self):
+        threadKey = threading.current_thread().ident
+        return self._threadStates.get(threadKey, self._threadStateDefault)
+
+    # Send an HTTP response
+    def response(self, status, contentType, *content):
+
+        # Ensure proper WSGI response data type
+        content = [(wsgistr_new(s) if not isinstance(s, wsgistr_) else s) for s in content]
+
+        # Build the headers array
+        responseHeaders = [
+            ("Content-Type", contentType),
+            ("Content-Length", str(sum([len(s) for s in content])))
+            ]
+
+        # Return the response
+        self._getThreadState().start_response(status, responseHeaders)
+        return content
+
+    # Serialize an object to JSON
+    def serializeJSON(self, o):
+        return json.dumps(o, sort_keys = True, default = jsonDefault,
+                          indent = 2 if self._config.prettyOutput else None,
+                          separators = (", ", ": ") if self._config.prettyOutput else (",", ":"))
+
+    # Helper to create an error message from an exception
+    def exceptionErrorMessage(self, e):
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
+        return "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
+
+    # Spec parser
+    @property
+    def specs(self):
+        return self._specParser
+
+    # Requests
+    @property
+    def requests(self):
+        return self._requests
+
+    # Resources collection
+    @property
+    def resources(self):
+        return Struct(self._resources)
+
+    # Application-specific configuration values
+    @property
+    def config(self):
+        return self._config.config
+
+    # WSGI request environ
+    @property
+    def environ(self):
+        return Struct(self._getThreadState().environ)
+
+    # WSGI request start_response
+    @property
+    def start_response(self):
+        return Struct(self._getThreadState().start_response)
+
+    # Logger object
+    @property
+    def log(self):
+        return self._getThreadState().log
 
     # Make an HTTP request on this application
     def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None):
@@ -284,11 +421,12 @@ struct ApplicationConfig
             _environ["QUERY_STRING"] = queryString if queryString else ""
         if "wsgi.input" not in _environ:
             _environ["wsgi.input"] = StringIO(wsgiInput if wsgiInput else "")
-            _environ["CONTENT_LENGTH"] = str(len(wsgiInput)) if wsgiInput else "0"
+            if "CONTENT_LENGTH" not in _environ:
+                _environ["CONTENT_LENGTH"] = str(len(wsgiInput)) if wsgiInput else "0"
         if "wsgi.errors" not in _environ:
             _environ["wsgi.errors"] = StringIO()
 
-        # Call the action
+        # Make the request
         startResponseArgs = {}
         def startResponse(status, responseHeaders):
             startResponseArgs["status"] = status
@@ -298,8 +436,7 @@ struct ApplicationConfig
 
         return (startResponseArgs["status"],
                 startResponseArgs["responseHeaders"],
-                responseString,
-                _environ["wsgi.errors"].getvalue())
+                responseString)
 
     # Run as stand-alone server
     @classmethod
@@ -325,10 +462,14 @@ struct ApplicationConfig
             return
 
         # Create the application instance
-        if application is None:
+        if not application:
             if not opts.configPath:
                 optParser.error("Configuration file path required")
             application = cls(os.path.abspath(opts.configPath))
+        elif opts.configPath:
+            application._configPath = opts.configPath
+            application._configString = None
+            application._init()
 
         # Stand-alone server WSGI entry point
         def application_simple_server(environ, start_response):

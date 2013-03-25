@@ -123,8 +123,8 @@ action myAction2
     # Test action model HTML generation
     def test_doc_createActionHtml(self):
 
-        myAction1 = Action(name = "myAction1", actionSpec = self._spec)
-        myAction2 = Action(name = "myAction2", actionSpec = self._spec)
+        myAction1 = Action(name = "myAction1", spec = self._spec)
+        myAction2 = Action(name = "myAction2", spec = self._spec)
 
         # Validate the first myAction1's HTML
         html = createActionHtml("", "/", myAction1)

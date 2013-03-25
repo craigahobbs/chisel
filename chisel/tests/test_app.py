@@ -101,30 +101,28 @@ class TestAppApplication(unittest.TestCase):
     def test_app_request(self):
 
         # POST
-        status, headers, response, logOutput = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 7}')
+        logStream = StringIO()
+        status, headers, response = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 7}', environ = {"wsgi.errors": logStream})
         self.assertEqual(response, '{"result":63}')
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(logOutput, "In myAction2\n")
+        self.assertEqual(logStream.getvalue(), "In myAction2\n")
 
         # GET
-        status, headers, response, logOutput = self.app.request("GET", "/myAction2", queryString = "value=8")
+        status, headers, response = self.app.request("GET", "/myAction2", queryString = "value=8")
         self.assertEqual(response, '{"result":72}')
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(logOutput, "In myAction2\n")
 
         # HTTP error
-        status, headers, response, logOutput = self.app.request("GET", "/unknownAction")
+        status, headers, response = self.app.request("GET", "/unknownAction")
         self.assertEqual(response, "Not Found")
         self.assertEqual(status, "404 Not Found")
         self.assertTrue(('Content-Type', 'text/plain') in headers)
-        self.assertEqual(logOutput, "")
 
         # Request with environ
-        status, headers, response, logOutput = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 9}',
+        status, headers, response = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 9}',
                                                            environ = { "MYENVIRON": "10" })
         self.assertEqual(response, '{"result":90}')
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(logOutput, "In myAction2\n")

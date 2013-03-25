@@ -21,7 +21,7 @@
 #
 
 from .action import Action, ActionError
-from .compat import cgi, iteritems, itervalues, StringIO, urllib, wsgistr_new
+from .compat import cgi, iteritems, itervalues, StringIO, urllib
 from .model import TypeStruct, TypeEnum, TypeArray, TypeDict
 
 import xml.sax.saxutils as saxutils
@@ -30,61 +30,45 @@ import xml.sax.saxutils as saxutils
 # Doc action callback
 class DocAction(Action):
 
-    def __init__(self, path, fnActions, docCssUri = None):
+    def __init__(self, docCssUri = None):
 
-        self.fnActions = fnActions
         self.docCssUri = docCssUri
-        Action.__init__(self, self._actionCallback, responseCallback = self._actionResponse,
-                        path = path, actionSpec = """\
+        Action.__init__(self, self.action, response = self.actionResponse,
+                        spec = """\
 # Generate a documentation HTML for the actions implemented by the application.
 action doc
-    input
-        # Generate documentation for the specified action name; generate the
-        # documentation index if the action is not specified.
-        [optional] string action
-    errors
-        # The action name is unknown.
-        UnknownAction
+  input
+    # Generate documentation for the specified action name; generate the
+    # documentation index if the action is not specified.
+    [optional] string action
 """)
 
-    def _actionCallback(self, ctx, request):
-
-        actionModels = self.fnActions()
-        if request.action is not None and request.action not in actionModels:
-            raise ActionError("UnknownAction")
+    def action(self, app, request):
         return {}
 
-    def _actionResponse(self, environ, start_response, ctx, request, response):
+    def actionResponse(self, app, request, response):
 
-        actions = self.fnActions()
-        if response.error is not None:
-            status = "500 Internal Server Error"
-            contentType = "text/plain"
-            content = response.error
+        actions = dict(x for x in iteritems(app.requests) if isinstance(x[1], Action))
+        if request.action is None:
+            return app.response("200 OK", "text/html",
+                                    createIndexHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
+                                                    itervalues(actions), docCssUri = self.docCssUri))
+        elif request.action in actions:
+            return app.response("200 OK", "text/html",
+                                    createActionHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
+                                                     actions[request.action], docCssUri = self.docCssUri))
         else:
-            status = "200 OK"
-            contentType = "text/html"
-            if request.action is None:
-                content = createIndexHtml(environ["SCRIPT_NAME"], environ["PATH_INFO"],
-                                          itervalues(actions), docCssUri = self.docCssUri)
-            else:
-                content = createActionHtml(environ["SCRIPT_NAME"], environ["PATH_INFO"],
-                                           actions[request.action], docCssUri = self.docCssUri)
-
-        content = wsgistr_new(content)
-        headers = [("Content-Type", contentType),
-                   ("Content-Length", str(len(content)))]
-        start_response(status, headers)
-        return [content]
+            return app.response("500 Internal Server Error", "text/plain", "Unknown Action")
 
 
 # HTML DOM helper class
 class Element(object):
 
-    def __init__(self, name, isText = False, isClosed = True, isInline = False, **attrs):
+    def __init__(self, name, isText = False, isTextEscaped = True, isClosed = True, isInline = False, **attrs):
 
         self.name = name
         self.isText = isText
+        self.isTextEscaped = isTextEscaped
         self.isClosed = isClosed
         self.isInline = isInline
         self.attrs = attrs
@@ -114,7 +98,7 @@ class Element(object):
 
         # Text element?
         if self.isText:
-            out.write(cgi.escape(self.name))
+            out.write(cgi.escape(self.name) if self.isTextEscaped else self.name)
             return
 
         # Element open
@@ -208,27 +192,21 @@ def createActionHtml(envScriptName, envPathInfo, action, docCssUri = None):
     _addDocText(body, action.model.doc)
 
     # Note for action URLs
-    urls = {}
-    for method, urlRel in action.path:
-        url = envScriptName + urlRel
-        if url not in urls:
-            urls[url] = []
-        urls[url].append(method)
     notes = body.addChild("div", _class = "chsl-notes")
     noteUrl = notes.addChild("div", _class = "chsl-note")
     noteUrlP = noteUrl.addChild("p")
     noteUrlP.addChild("b").addChild("Note: ", isText = True, isInline = True)
-    if not urls:
+    if not action.urls:
         noteUrlP.addChild("The action is not exposed.", isText = True)
     else:
-        noteUrlP.addChild("The action is exposed at the following " + ("URLs" if len(urls) > 1 else "URL") + ":", isText = True)
+        noteUrlP.addChild("The action is exposed at the following " + ("URLs" if len(action.urls) > 1 else "URL") + ":", isText = True)
         ulUrls = noteUrl.addChild("ul")
-        for url, methods in iteritems(urls):
+        for url in action.urls:
             ulUrls.addChild("li") \
-                .addChild(url + " (" + ", ".join(sorted(methods)) + ")", isText = True, isInline = True)
+                .addChild(url, isText = True, isInline = True)
 
     # Note for custom response callback
-    if action.responseCallback is not None:
+    if action.response is not None:
         noteResponse = notes.addChild("div", _class = "chsl-note")
         noteResponseP = noteResponse.addChild("p")
         noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
@@ -377,7 +355,7 @@ ul.chsl-constraint-list {
 }
 .chsl-emphasis {
     font-style:italic;
-}""", isText = True)
+}""", isText = True, isTextEscaped = False)
 
 # User type href helper
 def _userTypeHref(typeInst):

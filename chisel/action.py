@@ -20,73 +20,168 @@
 # SOFTWARE.
 #
 
-from collections import namedtuple
-
-from .compat import func_name, itervalues
+from .compat import itervalues
+from .model import ValidationError, TypeStruct, TypeString
+from .request import Request
 from .spec import SpecParser
+from .struct import Struct
+from .url import decodeQueryString
 
-
-# Action path helper class
-class ActionPath(namedtuple("ActionPath", "method path")):
-    def __new__(cls, method, path):
-        return super(cls, cls).__new__(cls, method.upper(), path)
-
-
-# API callback decorator - used to identify action callback functions during module loading
-class Action(object):
-
-    def __init__(self, _fn = None, name = None, path = None, actionSpec = None, actionModel = None,
-                 responseCallback = None, validateResponse = True):
-
-        # Spec provided?
-        if actionModel is None and actionSpec is not None:
-            specParser = SpecParser()
-            specParser.parseString(actionSpec)
-            if name is not None:
-                actionModel = specParser.actions[name]
-            else:
-                for actionModel in itervalues(specParser.actions):
-                    break
-
-        self.fn = _fn
-        self.name = name
-        self.path = path if path is None else [ActionPath(*p) for p in path]
-        self.model = actionModel
-        self._setDefaults()
-        self.responseCallback = responseCallback
-        self.validateResponse = validateResponse
-
-    def _setDefaults(self):
-
-        # Set the name - default is the function name
-        if self.name is None:
-            if self.model is not None:
-                self.name = self.model.name
-            elif self.fn is not None:
-                self.name = func_name(self.fn)
-
-        # Set the path - default is name at root
-        if self.path is None and self.name is not None:
-            defaultPath = "/" + self.name
-            self.path = [ActionPath("GET", defaultPath),
-                         ActionPath("POST", defaultPath)]
-
-    def __call__(self, *args):
-
-        # If not constructed as function decorator, first call must be function decorator...
-        if self.fn is None:
-            self.fn = args[0]
-            self._setDefaults()
-            return self
-        else:
-            return self.fn(*args)
+import json
 
 
 # Action error response exception
 class ActionError(Exception):
-
     def __init__(self, error, message = None):
-
-        Exception.__init__(self, error)
         self.error = error
         self.message = message
+
+
+# Internal action error response exception
+class _ActionErrorInternal(Exception):
+    def __init__(self, error, message = None, member = None):
+        self.error = error
+        self.message = message
+        self.member = member
+
+
+# Action callback decorator
+class Action(Request):
+
+    JSONP = "jsonp"
+
+    def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None):
+
+        # Spec provided?
+        self.model = None
+        if spec is not None:
+            specParser = SpecParser()
+            specParser.parseString(spec)
+            if name is not None:
+                self.model = specParser.actions[name]
+            else:
+                assert len(specParser.actions) == 1, "Action specification must contain exactly one action definition"
+                for self.model in itervalues(specParser.actions):
+                    break
+
+        # Use the action model name, if available
+        if name is None and self.model is not None:
+            name = self.model.name
+
+        self.response = response
+        Request.__init__(self, _fn = _fn, name = name, urls = urls)
+
+    def onload(self, app):
+
+        # Get the action model, if necessary
+        if self.model is None:
+            self.model = app.specs.actions.get(self.name)
+            if self.model is None:
+                raise Exception("No model defined for action callback '%s'" % (self.name,))
+
+        Request.onload(self, app)
+
+    def call(self, environ, start_response):
+
+        # Check the method
+        isGet = (environ["REQUEST_METHOD"] == "GET")
+        if not isGet and environ["REQUEST_METHOD"] != "POST":
+            return self.app.response("405 Method Not Allowed", "text/plain", "Method Not Allowed")
+
+        # Handle the action
+        jsonpFunction = None
+        try:
+            # Get the input struct
+            if environ["REQUEST_METHOD"] == "GET":
+
+                # Decode the query string
+                try:
+                    request = decodeQueryString(environ.get("QUERY_STRING", ""))
+                except Exception as e:
+                    raise _ActionErrorInternal("InvalidInput", str(e))
+
+            elif environ["REQUEST_METHOD"] == "POST":
+
+                # Get the content length
+                try:
+                    contentLength = int(environ["CONTENT_LENGTH"])
+                except:
+                    return self.app.response("411 Length Required", "text/plain", "Length Required")
+
+                # Read the request content
+                try:
+                    requestContent = environ["wsgi.input"].read(contentLength)
+                except:
+                    raise _ActionErrorInternal("IOError", "Error reading request content")
+
+                # De-serialize the JSON request
+                try:
+                    request = json.loads(requestContent)
+                except Exception as e:
+                    raise _ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+
+            # JSONP?
+            if isGet and self.JSONP in request:
+                jsonpFunction = str(request[self.JSONP])
+                del request[self.JSONP]
+
+            # Validate the request
+            try:
+                request = self.model.inputType.validate(request, acceptString = isGet)
+            except ValidationError as e:
+                raise _ActionErrorInternal("InvalidInput", str(e), e.member)
+
+            # Call the action callback
+            try:
+                response = self.fn(self.app, Struct(request))
+            except ActionError as e:
+                response = { "error": e.error }
+                if e.message is not None:
+                    response["message"] = e.message
+            except Exception as e:
+                raise _ActionErrorInternal("UnexpectedError", self.app.exceptionErrorMessage(e))
+
+            # Validate the response
+            try:
+                if isinstance(response, (dict, Struct)) and "error" in response:
+                    responseTypeInst = TypeStruct()
+                    responseTypeInst.members.append(TypeStruct.Member("error", self.model.errorType))
+                    responseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
+                else:
+                    responseTypeInst = self.model.outputType
+                response = responseTypeInst.validate(response)
+            except ValidationError as e:
+                raise _ActionErrorInternal("InvalidOutput", str(e), e.member)
+
+            # Custom response serialization?
+            if self.response is not None:
+                try:
+                    return self.response(self.app, Struct(request), Struct(response))
+                except Exception as e:
+                    raise _ActionErrorInternal("UnexpectedError", self.app.exceptionErrorMessage(e))
+
+        except _ActionErrorInternal as e:
+            response = { "error": e.error }
+            if e.message is not None:
+                response["message"] = e.message
+            if e.member is not None:
+                response["member"] = e.member
+
+        # Serialize the response as JSON
+        try:
+            jsonContent = self.app.serializeJSON(response)
+        except Exception as e:
+            response = { "error": "InvalidOutput", "message": self.app.exceptionErrorMessage(e) }
+            jsonContent = self.app.serializeJSON(response)
+
+        # Determine the HTTP status
+        if "error" in response  and jsonpFunction is None:
+            status = "500 Internal Server Error"
+        else:
+            status = "200 OK"
+
+        # Send the response
+        if jsonpFunction:
+            return self.app.response(status, "application/json", jsonpFunction, "(", jsonContent, ");")
+        else:
+            return self.app.response(status, "application/json", jsonContent)
