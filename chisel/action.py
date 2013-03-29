@@ -33,6 +33,7 @@ import json
 # Action error response exception
 class ActionError(Exception):
     def __init__(self, error, message = None):
+        Exception.__init__(self, error)
         self.error = error
         self.message = message
 
@@ -40,6 +41,7 @@ class ActionError(Exception):
 # Internal action error response exception
 class _ActionErrorInternal(Exception):
     def __init__(self, error, message = None, member = None):
+        Exception.__init__(self, error)
         self.error = error
         self.message = message
         self.member = member
