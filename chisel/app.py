@@ -327,6 +327,8 @@ class Application(object):
         request = self._requestUrls.get(environ["PATH_INFO"])
         if request is not None:
             return request(environ, start_response)
+        elif self._wrapApplication:
+            return self._wrapApplication(environ, start_response)
         else:
             return self.response("404 Not Found", "text/plain", "Not Found")
 
