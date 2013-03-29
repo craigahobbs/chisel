@@ -152,6 +152,8 @@ ConfigModel = ConfigParser.types["ApplicationConfig"]
 # Top-level WSGI application class
 class Application(object):
 
+    ENVIRON_APP = "chisel.app"
+
     ThreadState = namedtuple("ThreadState", "environ, start_response, log")
 
     def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
@@ -295,6 +297,9 @@ class Application(object):
 
     # WSGI entry point
     def __call__(self, environ, start_response):
+
+        # Set the app environment item
+        environ[self.ENVIRON_APP] = self
 
         # Add the thread state
         threadKey = threading.current_thread().ident
