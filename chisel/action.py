@@ -94,7 +94,7 @@ class Action(Request):
         jsonpFunction = None
         try:
             # Get the input struct
-            if environ["REQUEST_METHOD"] == "GET":
+            if isGet:
 
                 # Decode the query string
                 try:
@@ -102,7 +102,7 @@ class Action(Request):
                 except Exception as e:
                     raise _ActionErrorInternal("InvalidInput", str(e))
 
-            elif environ["REQUEST_METHOD"] == "POST":
+            else:
 
                 # Get the content length
                 try:
