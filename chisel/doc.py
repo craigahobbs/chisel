@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .action import Action, ActionError
+from .action import Action
 from .compat import cgi, iteritems, itervalues, StringIO, urllib
 from .model import TypeStruct, TypeEnum, TypeArray, TypeDict
 

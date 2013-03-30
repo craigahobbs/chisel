@@ -23,7 +23,6 @@
 from .compat import StringIO
 from .model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
-from .struct import Struct
 
 import re
 

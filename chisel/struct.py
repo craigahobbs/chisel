@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, itervalues, long_, pickle
+from .compat import iteritems, long_
 
 
 # Class-syntax wrapper around built-in dictionaries.

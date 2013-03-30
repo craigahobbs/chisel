@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_, PY3, unicode_, urllib, xrange_
+from .compat import basestring_, long_, PY3, urllib, xrange_
 from .struct import Struct
 
 
