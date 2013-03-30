@@ -446,7 +446,8 @@ errors
 
         # Parse spec string
         parser = SpecParser()
-        parser.parseString("""\
+        try:
+            parser.parseString("""\
 action MyAction
     int abc
 
@@ -458,6 +459,13 @@ enum MyEnum
 
 int cde
 """)
+        except SpecParserError as e:
+            self.assertEqual(str(e), """\
+:2: error: Member definition outside of struct scope
+:8: error: Member definition outside of struct scope
+:10: error: Syntax error""")
+        else:
+            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 3)
@@ -473,12 +481,12 @@ int cde
 
         # Check errors
         self.assertEqual(parser.errors,
-                         [":2: error: Member outside of struct scope",
-                          ":8: error: Member outside of struct scope",
+                         [":2: error: Member definition outside of struct scope",
+                          ":8: error: Member definition outside of struct scope",
                           ":10: error: Syntax error"])
 
     # Error - enum value definition outside enum scope
-    def test_spec_error_member(self):
+    def test_spec_error_enum(self):
 
         # Parse spec string
         parser = SpecParser()

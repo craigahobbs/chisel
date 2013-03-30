@@ -25,7 +25,7 @@ from chisel.compat import basestring_, long_, unicode_
 from chisel.model import JsonFloat, jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
 
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime, timedelta
 from decimal import Decimal
 import re
 import unittest

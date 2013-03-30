@@ -73,7 +73,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Verify that unknown resource type exception is raised
         try:
-            app = self.MyApplication(self.configPath)
+            self.MyApplication(self.configPath)
         except Exception as e:
             self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
         except:

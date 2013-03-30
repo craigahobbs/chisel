@@ -5,7 +5,7 @@ import chisel
 def myAction(ctx, req):
 
     # Get the test resource
-    with ctx.resources.testResource() as testResource:
+    with ctx.resources.testResource():
         pass
 
     # Log info and a warning

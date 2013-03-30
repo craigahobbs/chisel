@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from chisel.resource.pyodbc_connect_mock import PyodbcConnectResourceTypeMock, SimpleExecuteCallback, PyodbcConnectionMock
+from chisel.resource.pyodbc_connect_mock import PyodbcConnectResourceTypeMock, SimpleExecuteCallback
 
 import unittest
 
