@@ -28,6 +28,7 @@ from .struct import Struct
 from .url import decodeQueryString
 
 import json
+import traceback
 
 
 # Action error response exception
@@ -62,7 +63,7 @@ class Action(Request):
             if name is not None:
                 self.model = specParser.actions[name]
             else:
-                assert len(specParser.actions) == 1, "Action specification must contain exactly one action definition"
+                assert len(specParser.actions) == 1, "Action spec must contain exactly one action definition"
                 for self.model in itervalues(specParser.actions):
                     break
 
@@ -79,7 +80,7 @@ class Action(Request):
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
             if self.model is None:
-                raise Exception("No model defined for action callback '%s'" % (self.name,))
+                raise Exception("No spec defined for action '%s'" % (self.name,))
 
         Request.onload(self, app)
 
@@ -114,13 +115,14 @@ class Action(Request):
                 try:
                     requestContent = environ["wsgi.input"].read(contentLength)
                 except:
+                    self.app.log.warn("I/O error reading input for action '%s'", self.name)
                     raise _ActionErrorInternal("IOError", "Error reading request content")
 
                 # De-serialize the JSON request
                 try:
                     request = json.loads(requestContent)
                 except Exception as e:
-                    raise _ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e)))
+                    raise _ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e),))
 
             # JSONP?
             if isGet and self.JSONP in request:
@@ -141,7 +143,8 @@ class Action(Request):
                 if e.message is not None:
                     response["message"] = e.message
             except Exception as e:
-                raise _ActionErrorInternal("UnexpectedError", self.app.exceptionErrorMessage(e))
+                self.app.log.error("Unexpected error in action '%s': %s", self.name, traceback.format_exc())
+                raise _ActionErrorInternal("UnexpectedError")
 
             # Validate the response
             try:
@@ -153,6 +156,7 @@ class Action(Request):
                     responseTypeInst = self.model.outputType
                 response = responseTypeInst.validate(response)
             except ValidationError as e:
+                self.app.log.error("Invalid output returned from action '%s': %r", self.name, response)
                 raise _ActionErrorInternal("InvalidOutput", str(e), e.member)
 
             # Custom response serialization?
@@ -160,7 +164,8 @@ class Action(Request):
                 try:
                     return self.response(self.app, Struct(request), Struct(response))
                 except Exception as e:
-                    raise _ActionErrorInternal("UnexpectedError", self.app.exceptionErrorMessage(e))
+                    self.app.log.error("Unexpected error in response callback for action '%s': %s", self.name, traceback.format_exc())
+                    raise _ActionErrorInternal("UnexpectedError")
 
         except _ActionErrorInternal as e:
             response = { "error": e.error }
@@ -173,7 +178,8 @@ class Action(Request):
         try:
             jsonContent = self.app.serializeJSON(response)
         except Exception as e:
-            response = { "error": "InvalidOutput", "message": self.app.exceptionErrorMessage(e) }
+            self.app.log.error("Unexpected error serializing JSON for action '%s': %s", self.name, traceback.format_exc())
+            response = { "error": "InvalidOutput" }
             jsonContent = self.app.serializeJSON(response)
 
         # Determine the HTTP status

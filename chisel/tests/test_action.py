@@ -72,7 +72,7 @@ action myActionDefault
         try:
             self.app.addRequest(myAction)
         except Exception as e:
-            self.assertEqual(str(e), "No model defined for action callback 'myAction'")
+            self.assertEqual(str(e), "No spec defined for action 'myAction'")
         else:
             self.fail()
 
@@ -102,7 +102,7 @@ action myActionName
             def myAction(app, req):
                 return {}
         except Exception as e:
-            self.assertEqual(str(e), "Action specification must contain exactly one action definition")
+            self.assertEqual(str(e), "Action spec must contain exactly one action definition")
         else:
             self.fail()
 
@@ -117,7 +117,7 @@ action theAction
             def myAction(app, req):
                 return {}
         except Exception as e:
-            self.assertEqual(str(e), "Action specification must contain exactly one action definition")
+            self.assertEqual(str(e), "Action spec must contain exactly one action definition")
         else:
             self.fail()
 
@@ -456,7 +456,7 @@ action myAction
         status, headers, response = self.app.request("POST", "/myAction", wsgiInput = '{}')
         self.assertEqual(status, "500 Internal Server Error")
         self.assertTrue(("Content-Type", "application/json") in headers)
-        self.assertTrue(re.search('{"error":"UnexpectedError","message":"test_action.py:\d+: My unexpected error"}', response))
+        self.assertEqual(response, '{"error":"UnexpectedError"}')
 
     # Test action HTTP post IO error handling
     def test_action_error_io(self):
@@ -499,7 +499,7 @@ action myAction
         status, headers, response = self.app.request("POST", "/myAction", wsgiInput = "{}")
         self.assertEqual(status, "500 Internal Server Error")
         self.assertTrue(("Content-Type", "application/json") in headers)
-        self.assertTrue(re.search('{"error":"InvalidOutput","message":"test_action.py:\d+: FAIL"}', response))
+        self.assertEqual(response, '{"error":"InvalidOutput"}')
 
     # Test successful action with custom response
     def test_action_error_custom_response(self):
@@ -517,4 +517,4 @@ action myAction
         status, headers, response = self.app.request("POST", "/myAction", wsgiInput = '{}')
         self.assertEqual(status, "500 Internal Server Error")
         self.assertTrue(("Content-Type", "application/json") in headers)
-        self.assertTrue(re.search('{"error":"UnexpectedError","message":"test_action.py:\d+: FAIL"}', response))
+        self.assertEqual(response, '{"error":"UnexpectedError"}')

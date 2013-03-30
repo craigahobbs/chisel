@@ -374,12 +374,6 @@ class Application(object):
                           indent = 2 if self._config.prettyOutput else None,
                           separators = (", ", ": ") if self._config.prettyOutput else (",", ":"))
 
-    # Helper to create an error message from an exception
-    def exceptionErrorMessage(self, e):
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        exc_path, exc_line = traceback.extract_tb(exc_tb)[-1][:2]
-        return "%s:%d: %s" % (os.path.split(exc_path)[-1], exc_line, str(e))
-
     # Spec parser
     @property
     def specs(self):
