@@ -50,9 +50,6 @@ class TestAppApplication(unittest.TestCase):
 
         self.app = self.MyApplication(self.configPath, resourceTypes = resourceTypes)
 
-    def tearDown(self):
-        Application._singleton = None
-
     # Test default application functionality
     def test_app_default(self):
 
