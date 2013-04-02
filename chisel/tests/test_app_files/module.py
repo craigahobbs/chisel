@@ -5,7 +5,7 @@ import chisel
 def myAction(ctx, req):
 
     # Get the test resource
-    with ctx.resources.testResource():
+    with ctx.resources.testResource:
         pass
 
     # Log info and a warning
@@ -18,10 +18,10 @@ def myAction(ctx, req):
 def myAction2(ctx, request):
     ctx.log.info("In myAction2")
 
-    with ctx.resources.myresource() as resource:
+    with ctx.resources['myresource'] as resource:
 
-        if ctx.environ.MYENVIRON:
-            multiplier = int(ctx.environ.MYENVIRON)
+        if 'MYENVIRON' in ctx.environ:
+            multiplier = int(ctx.environ['MYENVIRON'])
         else:
             multiplier = resource
 

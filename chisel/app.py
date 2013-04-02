@@ -36,56 +36,61 @@ import sys
 import threading
 
 
-# Application resource type
+# Resource type
 class ResourceType(object):
 
-    def __init__(self, resourceTypeName, resourceOpen, resourceClose):
-        self._resourceTypeName = resourceTypeName
-        self._resourceOpen = resourceOpen
-        self._resourceClose = resourceClose
-
-    @property
-    def name(self):
-        return self._resourceTypeName
+    def __init__(self, name, resourceOpen, resourceClose):
+        self.name = name
+        self.__open = resourceOpen
+        self.__close = resourceClose
 
     def open(self, resourceString):
-        return self._resourceOpen(resourceString)
+        return self.__open(resourceString)
 
     def close(self, resource):
-        if self._resourceClose is not None:
-            return self._resourceClose(resource)
-
-
-# Resource factory - create a resource context manager
-class ResourceFactory(object):
-
-    def __init__(self, name, resourceString, resourceType):
-        self._name = name
-        self._resourceString = resourceString
-        self._resourceType = resourceType
-
-    def __call__(self):
-        return ResourceContext(self)
-
-    def _open(self):
-        return self._resourceType.open(self._resourceString)
-
-    def _close(self, resource):
-        return self._resourceType.close(resource)
+        if self.__close is not None:
+            return self.__close(resource)
 
 
 # Resource context manager
 class ResourceContext(object):
 
-    def __init__(self, resourceFactory):
-        self._resourceFactory = resourceFactory
+    def __init__(self, resourceType, resourceString):
+        self._resourceType = resourceType
+        self._resourceString = resourceString
+        self._resource = None
 
     def __enter__(self):
-        self._resource = self._resourceFactory._open()
+        self._resource = self._resourceType.open(self._resourceString)
         return self._resource
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._resourceFactory._close(self._resource)
+        self._resourceType.close(self._resource)
+        self._resource = None
+
+
+# Resource collection
+class ResourceCollection(object):
+
+    Resource = namedtuple("Resource", "resourceName, resourceType, resourceString")
+
+    def __init__(self):
+        self._resources = {}
+
+    def add(self, resourceName, resourceType, resourceString):
+        object.__getattribute__(self, "_resources")[resourceName] = self.Resource(resourceName, resourceType, resourceString)
+
+    def __getattribute__(self, name):
+        resource = object.__getattribute__(self, "_resources").get(name)
+        if resource is None:
+            return object.__getattribute__(self, name)
+        return ResourceContext(resource.resourceType, resource.resourceString)
+
+    def __getitem__(self, name):
+        resource = object.__getattribute__(self, "_resources").get(name)
+        if resource is None:
+            raise IndexError("No resource named '%s'" % (name,))
+        return ResourceContext(resource.resourceType, resource.resourceString)
 
 
 # Application configuration file specification
@@ -140,12 +145,12 @@ struct ApplicationConfig
     [optional] string docCssUri
 """
 
-ConfigComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
+configComment = re.compile("^\s*#.*$", flags = re.MULTILINE)
 
 # Application configuration file model
-ConfigParser = SpecParser()
-ConfigParser.parseString(ConfigSpec)
-ConfigModel = ConfigParser.types["ApplicationConfig"]
+_configParser = SpecParser()
+_configParser.parseString(ConfigSpec)
+configModel = _configParser.types["ApplicationConfig"]
 
 
 # Top-level WSGI application class
@@ -165,7 +170,7 @@ class Application(object):
             self._configPath = None
             self._configString = configPath.read()
         self._wrapApplication = wrapApplication
-        self._resourceTypes = resourceTypes
+        self._resourceTypes = dict((x.name, x) for x in resourceTypes) if resourceTypes else {}
         self._logStream = logStream
         self._threadStates = {}
         self._init()
@@ -177,7 +182,7 @@ class Application(object):
         if self._configPath:
             with open(self._configPath, "r") as fConfig:
                 self._configString = fConfig.read()
-        self._config = Struct(ConfigModel.validate(json.loads(ConfigComment.sub("", self._configString))))
+        self._config = Struct(configModel.validate(json.loads(configComment.sub("", self._configString))))
 
         # Load specs
         self._specParser = SpecParser()
@@ -198,22 +203,13 @@ class Application(object):
         if not self._config.disableDocs:
             self.addRequest(DocAction())
 
-        # Create resource factories
-        self._resources = {}
+        # Create resources collection
+        self._resources = ResourceCollection()
         if self._config.resources:
             for resource in self._config.resources:
-
-                # Find the resource type
-                if self._resourceTypes:
-                    resourceType = [resourceType for resourceType in self._resourceTypes if resourceType.name == resource.type]
-                else:
-                    resourceType = []
-                if not resourceType:
+                if resource.type not in self._resourceTypes:
                     raise Exception("Unknown resource type '%s'" % (resource.type,))
-
-                # Add the resource factory
-                self._resources[resource.name] = \
-                    ResourceFactory(resource.name, resource.resourceString, resourceType[0])
+                self._resources.add(resource.name, self._resourceTypes[resource.type], resource.resourceString)
 
         # Default thread state
         self._threadStateDefault = self.ThreadState(None, None, self._createLogger(self._logStream))
@@ -386,7 +382,7 @@ class Application(object):
     # Resources collection
     @property
     def resources(self):
-        return Struct(self._resources)
+        return self._resources
 
     # Application-specific configuration values
     @property
@@ -396,12 +392,12 @@ class Application(object):
     # WSGI request environ
     @property
     def environ(self):
-        return Struct(self._getThreadState().environ)
+        return self._getThreadState().environ
 
     # WSGI request start_response
     @property
     def start_response(self):
-        return Struct(self._getThreadState().start_response)
+        return self._getThreadState().start_response
 
     # Logger object
     @property
