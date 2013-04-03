@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from ..app import ResourceType
+from .base import ResourceType
 from ..compat import urllib2, urlparse
 
 

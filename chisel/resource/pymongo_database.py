@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from ..app import ResourceType
+from .base import ResourceType
 
 import pymongo
 import pymongo.database

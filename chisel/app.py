@@ -24,6 +24,7 @@ from .compat import basestring_, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
 from .model import jsonDefault, Struct
 from .request import Request
+from .resource.base import ResourceCollection
 from .spec import SpecParser
 
 from collections import namedtuple
@@ -34,63 +35,6 @@ import os
 import re
 import sys
 import threading
-
-
-# Resource type
-class ResourceType(object):
-
-    def __init__(self, name, resourceOpen, resourceClose):
-        self.name = name
-        self.__open = resourceOpen
-        self.__close = resourceClose
-
-    def open(self, resourceString):
-        return self.__open(resourceString)
-
-    def close(self, resource):
-        if self.__close is not None:
-            return self.__close(resource)
-
-
-# Resource context manager
-class ResourceContext(object):
-
-    def __init__(self, resourceType, resourceString):
-        self._resourceType = resourceType
-        self._resourceString = resourceString
-        self._resource = None
-
-    def __enter__(self):
-        self._resource = self._resourceType.open(self._resourceString)
-        return self._resource
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._resourceType.close(self._resource)
-        self._resource = None
-
-
-# Resource collection
-class ResourceCollection(object):
-
-    Resource = namedtuple("Resource", "resourceName, resourceType, resourceString")
-
-    def __init__(self):
-        self._resources = {}
-
-    def add(self, resourceName, resourceType, resourceString):
-        object.__getattribute__(self, "_resources")[resourceName] = self.Resource(resourceName, resourceType, resourceString)
-
-    def __getattribute__(self, name):
-        resource = object.__getattribute__(self, "_resources").get(name)
-        if resource is None:
-            return object.__getattribute__(self, name)
-        return ResourceContext(resource.resourceType, resource.resourceString)
-
-    def __getitem__(self, name):
-        resource = object.__getattribute__(self, "_resources").get(name)
-        if resource is None:
-            raise IndexError("No resource named '%s'" % (name,))
-        return ResourceContext(resource.resourceType, resource.resourceString)
 
 
 # Application configuration file specification
