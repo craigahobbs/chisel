@@ -173,10 +173,10 @@ class Application(object):
         self._resourceTypes = dict((x.name, x) for x in resourceTypes) if resourceTypes else {}
         self._logStream = logStream
         self._threadStates = {}
-        self._init()
+        self.init()
         self._initLock = threading.Lock()
 
-    def _init(self):
+    def init(self):
 
         # Read config file
         if self._configPath:
@@ -307,7 +307,7 @@ class Application(object):
             if self._config.alwaysReload:
                 with self._initLock:
                     self.log.info("Reloading application config...")
-                    self._init()
+                    self.init()
                     return self.call(environ, start_response)
             else:
                 return self.call(environ, start_response)
@@ -465,7 +465,7 @@ class Application(object):
         elif opts.configPath:
             application._configPath = opts.configPath
             application._configString = None
-            application._init()
+            application.init()
 
         # Stand-alone server WSGI entry point
         def application_simple_server(environ, start_response):
