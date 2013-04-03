@@ -104,7 +104,7 @@ class Application(object):
 
     ThreadState = namedtuple("ThreadState", "environ, start_response, log")
 
-    def __init__(self, configPath, wrapApplication = None, resourceTypes = None, logStream = sys.stderr):
+    def __init__(self, configPath, resourceTypes = None, logStream = sys.stderr):
 
         self._relPathBase = os.path.dirname(sys.modules[self.__module__].__file__)
         if isinstance(configPath, basestring_):
@@ -113,7 +113,6 @@ class Application(object):
         else:
             self._configPath = None
             self._configString = configPath.read()
-        self._wrapApplication = wrapApplication
         self._resourceTypes = dict((x.name, x) for x in resourceTypes) if resourceTypes else {}
         self._logStream = logStream
         self._threadStates = {}
@@ -266,8 +265,6 @@ class Application(object):
         request = self._requestUrls.get(environ["PATH_INFO"])
         if request is not None:
             return request(environ, start_response)
-        elif self._wrapApplication:
-            return self._wrapApplication(environ, start_response)
         else:
             return self.response("404 Not Found", "text/plain", "Not Found")
 
