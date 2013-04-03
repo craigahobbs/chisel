@@ -190,6 +190,6 @@ class Action(Request):
 
         # Send the response
         if jsonpFunction:
-            return self.app.response(status, "application/json", jsonpFunction, "(", jsonContent, ");")
+            return self.app.response(status, "application/json", [jsonpFunction, "(", jsonContent, ");"])
         else:
-            return self.app.response(status, "application/json", jsonContent)
+            return self.app.response(status, "application/json", [jsonContent])

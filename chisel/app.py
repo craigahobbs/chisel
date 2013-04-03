@@ -292,19 +292,23 @@ class Application(object):
         return self._threadStates.get(threadKey, self._threadStateDefault)
 
     # Send an HTTP response
-    def response(self, status, contentType, *content):
+    def response(self, status, contentType, content, headers = None):
 
         # Ensure proper WSGI response data type
+        if not isinstance(content, (list, tuple)):
+            content = [content]
         content = [(wsgistr_new(s) if not isinstance(s, wsgistr_) else s) for s in content]
 
         # Build the headers array
-        responseHeaders = [
+        _headers = [
             ("Content-Type", contentType),
             ("Content-Length", str(sum([len(s) for s in content])))
             ]
+        if headers:
+            _headers.extend(headers)
 
         # Return the response
-        self._getThreadState().start_response(status, responseHeaders)
+        self._getThreadState().start_response(status, _headers)
         return content
 
     # Serialize an object to JSON

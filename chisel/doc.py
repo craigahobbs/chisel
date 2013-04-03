@@ -51,12 +51,12 @@ action doc
         actions = dict(x for x in iteritems(app.requests) if isinstance(x[1], Action))
         if request.action is None:
             return app.response("200 OK", "text/html",
-                                    createIndexHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
-                                                    itervalues(actions), docCssUri = self.docCssUri))
+                                createIndexHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
+                                                itervalues(actions), docCssUri = self.docCssUri))
         elif request.action in actions:
             return app.response("200 OK", "text/html",
-                                    createActionHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
-                                                     actions[request.action], docCssUri = self.docCssUri))
+                                createActionHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
+                                                 actions[request.action], docCssUri = self.docCssUri))
         else:
             return app.response("500 Internal Server Error", "text/plain", "Unknown Action")
 
