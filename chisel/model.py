@@ -78,7 +78,7 @@ class ValidationError(Exception):
     def memberSyntax(cls, members):
 
         if members:
-            return "".join([((".%s" if isinstance(x, basestring_) else "[%d]") % (x,)) for x in members]).lstrip(".")
+            return "".join([((".%s" if isinstance(x, basestring_) else "[%r]") % (x,)) for x in members]).lstrip(".")
         else:
             return None
 
@@ -91,8 +91,8 @@ class ValidationError(Exception):
 
         # Format the error string
         memberSyntax = cls.memberSyntax(members)
-        msg = "Invalid value %r (type '%s')%s, expected type '%s'" % \
-            (value, value.__class__.__name__, " for member '%s'" % (memberSyntax,) if memberSyntax else "", typeInst.typeName)
+        msg = "Invalid value %r (type %r)%s, expected type %r" % \
+            (value, value.__class__.__name__, " for member %r" % (memberSyntax,) if memberSyntax else "", typeInst.typeName)
 
         return ValidationError(msg, member = memberSyntax)
 
@@ -135,7 +135,7 @@ class TypeStruct(object):
             memberValue = valueInner.get(member.name)
             if memberValue is None:
                 if not member.isOptional:
-                    raise ValidationError("Required member '%s' missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
+                    raise ValidationError("Required member %r missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
             else:
                 # Validate the member value
                 memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
@@ -145,7 +145,7 @@ class TypeStruct(object):
         # Check for invalid members
         for valueKey in valueInner:
             if valueKey not in memberNames:
-                raise ValidationError("Invalid member '%s'" % (ValidationError.memberSyntax((_member + (valueKey,)))))
+                raise ValidationError("Invalid member %r" % (ValidationError.memberSyntax((_member + (valueKey,)))))
 
         return value
 
