@@ -147,8 +147,9 @@ class Action(Request):
                 raise _ActionErrorInternal("UnexpectedError")
 
             # Validate the response
+            isErrorResponse = (hasattr(response, "__contains__") and "error" in response)
             try:
-                if isinstance(response, (dict, Struct)) and "error" in response:
+                if isErrorResponse:
                     responseTypeInst = TypeStruct()
                     responseTypeInst.members.append(TypeStruct.Member("error", self.model.errorType))
                     responseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
@@ -159,8 +160,8 @@ class Action(Request):
                 self.app.log.error("Invalid output returned from action '%s': %r", self.name, response)
                 raise _ActionErrorInternal("InvalidOutput", str(e), e.member)
 
-            # Custom response serialization?
-            if self.response is not None:
+            # Custom response serialization? Don't render error responses...
+            if self.response is not None and not isErrorResponse:
                 try:
                     return self.response(self.app, Struct(request), Struct(response))
                 except Exception as e:
