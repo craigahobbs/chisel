@@ -247,6 +247,14 @@ class TestModelValidation(unittest.TestCase):
                                         },
                                    "Invalid value '' (type 'str') for member 'l', expected type 'struct'")
 
+    # Test an optional member that is explicitly None
+    def test_model_optional_none(self):
+
+        mStruct = TypeStruct()
+        mStruct.members.append(TypeStruct.Member("a", TypeInt(), isOptional = True))
+        self.assertValidationError(mStruct, {"a": None},
+                                   "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
+
     # array type
     def test_model_array(self):
 

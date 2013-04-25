@@ -132,12 +132,12 @@ class TypeStruct(object):
             memberNames[member.name] = member
 
             # Is the required member not present?
-            memberValue = valueInner.get(member.name)
-            if memberValue is None:
+            if member.name not in valueInner:
                 if not member.isOptional:
                     raise ValidationError("Required member %r missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
             else:
                 # Validate the member value
+                memberValue = valueInner[member.name]
                 memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
                 if memberValueNew is not memberValue:
                     valueInner[member.name] = memberValueNew
