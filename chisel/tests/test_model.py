@@ -445,7 +445,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abc"), "abc")
         self.assertEqual(m.validate(""), "")
         self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcde' (type 'str', len < 5), expected type 'string'")
 
         # Length less-than or equal-to
         m = TypeString()
@@ -454,7 +454,7 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abcd"), "abcd")
         self.assertEqual(m.validate(""), "")
         self.assertValidationError(m, "abcdef",
-                                   "Invalid value 'abcdef' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcdef' (type 'str', len <= 5), expected type 'string'")
 
         # Length greater-than
         m = TypeString()
@@ -462,9 +462,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abcdef"), "abcdef")
         self.assertEqual(m.validate("abcdefg"), "abcdefg")
         self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcde' (type 'str', len > 5), expected type 'string'")
         self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'string'")
+                                   "Invalid value '' (type 'str', len > 5), expected type 'string'")
 
         # Length greater-than or equal-to
         m = TypeString()
@@ -472,9 +472,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abcde"), "abcde")
         self.assertEqual(m.validate("abcdef"), "abcdef")
         self.assertValidationError(m, "abcd",
-                                   "Invalid value 'abcd' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcd' (type 'str', len >= 5), expected type 'string'")
         self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'string'")
+                                   "Invalid value '' (type 'str', len >= 5), expected type 'string'")
 
         # Length >= and length <=
         m = TypeString()
@@ -485,9 +485,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abcdefgh"), "abcdefgh")
         self.assertEqual(m.validate("abcdefg"), "abcdefg")
         self.assertValidationError(m, "abcd",
-                                   "Invalid value 'abcd' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcd' (type 'str', len >= 5), expected type 'string'")
         self.assertValidationError(m, "abcdefghi",
-                                   "Invalid value 'abcdefghi' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcdefghi' (type 'str', len <= 8), expected type 'string'")
 
         # Length > and length <
         m = TypeString()
@@ -496,9 +496,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate("abcdef"), "abcdef")
         self.assertEqual(m.validate("abcdefg"), "abcdefg")
         self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcde' (type 'str', len > 5), expected type 'string'")
         self.assertValidationError(m, "abcdefgh",
-                                   "Invalid value 'abcdefgh' (type 'str'), expected type 'string'")
+                                   "Invalid value 'abcdefgh' (type 'str', len < 8), expected type 'string'")
 
     # int type
     def test_model_int(self):
@@ -571,9 +571,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(0), 0)
         self.assertEqual(m.validate(-4), -4)
         self.assertValidationError(m, 5,
-                                   "Invalid value 5 (type 'int'), expected type 'int'")
+                                   "Invalid value 5 (type 'int', < 5), expected type 'int'")
         self.assertValidationError(m, 50,
-                                   "Invalid value 50 (type 'int'), expected type 'int'")
+                                   "Invalid value 50 (type 'int', < 5), expected type 'int'")
 
         # Less-than or equal-to
         m = TypeInt()
@@ -582,9 +582,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(0), 0)
         self.assertEqual(m.validate(-4), -4)
         self.assertValidationError(m, 6,
-                                   "Invalid value 6 (type 'int'), expected type 'int'")
+                                   "Invalid value 6 (type 'int', <= 5), expected type 'int'")
         self.assertValidationError(m, 60,
-                                   "Invalid value 60 (type 'int'), expected type 'int'")
+                                   "Invalid value 60 (type 'int', <= 5), expected type 'int'")
 
         # Greater-than
         m = TypeInt()
@@ -592,9 +592,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(6), 6)
         self.assertEqual(m.validate(60), 60)
         self.assertValidationError(m, 5,
-                                   "Invalid value 5 (type 'int'), expected type 'int'")
+                                   "Invalid value 5 (type 'int', > 5), expected type 'int'")
         self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'int'")
+                                   "Invalid value 0 (type 'int', > 5), expected type 'int'")
 
         # Greater-than or equal-to
         m = TypeInt()
@@ -602,9 +602,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(5), 5)
         self.assertEqual(m.validate(50), 50)
         self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int'")
+                                   "Invalid value 4 (type 'int', >= 5), expected type 'int'")
         self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'int'")
+                                   "Invalid value 0 (type 'int', >= 5), expected type 'int'")
 
         # >= and <=
         m = TypeInt()
@@ -614,9 +614,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(8), 8)
         self.assertEqual(m.validate(10), 10)
         self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int'")
+                                   "Invalid value 4 (type 'int', >= 5), expected type 'int'")
         self.assertValidationError(m, 11,
-                                   "Invalid value 11 (type 'int'), expected type 'int'")
+                                   "Invalid value 11 (type 'int', <= 10), expected type 'int'")
 
         # > and <
         m = TypeInt()
@@ -626,9 +626,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(8), 8)
         self.assertEqual(m.validate(10), 10)
         self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int'")
+                                   "Invalid value 4 (type 'int', > 4.5), expected type 'int'")
         self.assertValidationError(m, 11,
-                                   "Invalid value 11 (type 'int'), expected type 'int'")
+                                   "Invalid value 11 (type 'int', < 10.5), expected type 'int'")
 
     # float type
     def test_model_float(self):
@@ -698,9 +698,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(0), 0)
         self.assertEqual(m.validate(-4), -4)
         self.assertValidationError(m, 5.5,
-                                   "Invalid value 5.5 (type 'float'), expected type 'float'")
+                                   "Invalid value 5.5 (type 'float', < 5.5), expected type 'float'")
         self.assertValidationError(m, 50,
-                                   "Invalid value 50 (type 'int'), expected type 'float'")
+                                   "Invalid value 50 (type 'int', < 5.5), expected type 'float'")
 
         # Less-than or equal-to
         m = TypeFloat()
@@ -709,9 +709,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(0), 0)
         self.assertEqual(m.validate(-4), -4)
         self.assertValidationError(m, JsonFloat(5.6, 1),
-                                   "Invalid value 5.6 (type 'JsonFloat'), expected type 'float'")
+                                   "Invalid value 5.6 (type 'JsonFloat', <= 5.5), expected type 'float'")
         self.assertValidationError(m, 60,
-                                   "Invalid value 60 (type 'int'), expected type 'float'")
+                                   "Invalid value 60 (type 'int', <= 5.5), expected type 'float'")
 
         # Greater-than
         m = TypeFloat()
@@ -719,11 +719,11 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(5.6), 5.6)
         self.assertEqual(m.validate(60), 60)
         self.assertValidationError(m, 5.5,
-                                   "Invalid value 5.5 (type 'float'), expected type 'float'")
+                                   "Invalid value 5.5 (type 'float', > 5.5), expected type 'float'")
         self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'float'")
+                                   "Invalid value 0 (type 'int', > 5.5), expected type 'float'")
         self.assertValidationError(m, -5,
-                                   "Invalid value -5 (type 'int'), expected type 'float'")
+                                   "Invalid value -5 (type 'int', > 5.5), expected type 'float'")
 
         # Greater-than or equal-to
         m = TypeFloat()
@@ -731,11 +731,11 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(5.5), 5.5)
         self.assertEqual(m.validate(50), 50)
         self.assertValidationError(m, JsonFloat(5.4, 1),
-                                   "Invalid value 5.4 (type 'JsonFloat'), expected type 'float'")
+                                   "Invalid value 5.4 (type 'JsonFloat', >= 5.5), expected type 'float'")
         self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'float'")
+                                   "Invalid value 0 (type 'int', >= 5.5), expected type 'float'")
         self.assertValidationError(m, -5,
-                                   "Invalid value -5 (type 'int'), expected type 'float'")
+                                   "Invalid value -5 (type 'int', >= 5.5), expected type 'float'")
 
         # >= and <=
         m = TypeFloat()
@@ -745,9 +745,9 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(8), 8)
         self.assertEqual(m.validate(10.5), 10.5)
         self.assertValidationError(m, JsonFloat(4.4, 1),
-                                   "Invalid value 4.4 (type 'JsonFloat'), expected type 'float'")
+                                   "Invalid value 4.4 (type 'JsonFloat', >= 4.5), expected type 'float'")
         self.assertValidationError(m, 10.6,
-                                   "Invalid value 10.6 (type 'float'), expected type 'float'")
+                                   "Invalid value 10.6 (type 'float', <= 10.5), expected type 'float'")
 
         # > and <
         m = TypeFloat()
@@ -757,11 +757,11 @@ class TestModelValidation(unittest.TestCase):
         self.assertEqual(m.validate(8), 8)
         self.assertEqual(m.validate(10), 10)
         self.assertValidationError(m, 4.5,
-                                   "Invalid value 4.5 (type 'float'), expected type 'float'")
+                                   "Invalid value 4.5 (type 'float', > 4.5), expected type 'float'")
         self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'float'")
+                                   "Invalid value 4 (type 'int', > 4.5), expected type 'float'")
         self.assertValidationError(m, 10.5,
-                                   "Invalid value 10.5 (type 'float'), expected type 'float'")
+                                   "Invalid value 10.5 (type 'float', < 10.5), expected type 'float'")
 
     # bool type
     def test_model_bool(self):

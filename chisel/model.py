@@ -70,29 +70,29 @@ class JsonFloat(float):
 class ValidationError(Exception):
 
     def __init__(self, msg, member = None):
-
         Exception.__init__(self, msg)
         self.member = member
 
     @classmethod
     def memberSyntax(cls, members):
-
         if members:
             return "".join([((".%s" if isinstance(x, basestring_) else "[%r]") % (x,)) for x in members]).lstrip(".")
         else:
             return None
 
     @classmethod
-    def memberError(cls, typeInst, value, members):
+    def memberError(cls, typeInst, value, members, constraintSyntax = None):
 
         # Unwrap structs
         if isinstance(value, Struct):
             value = value()
 
         # Format the error string
+        constraintPhrase = ", %s" % (constraintSyntax,) if constraintSyntax else ""
         memberSyntax = cls.memberSyntax(members)
-        msg = "Invalid value %r (type %r)%s, expected type %r" % \
-            (value, value.__class__.__name__, " for member %r" % (memberSyntax,) if memberSyntax else "", typeInst.typeName)
+        memberPhrase = " for member %r" % (memberSyntax,) if memberSyntax else ""
+        msg = "Invalid value %r (type %r%s)%s, expected type %r" % \
+              (value, value.__class__.__name__, constraintPhrase, memberPhrase, typeInst.typeName)
 
         return ValidationError(msg, member = memberSyntax)
 
@@ -266,15 +266,15 @@ class TypeString(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check contraints
+        # Check constraints
         if self.constraint_len_lt is not None and not len(result) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len < %r" % (self.constraint_len_lt,))
         if self.constraint_len_lte is not None and not len(result) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len <= %r" % (self.constraint_len_lte,))
         if self.constraint_len_gt is not None and not len(result) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len > %r" % (self.constraint_len_gt,))
         if self.constraint_len_gte is not None and not len(result) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len >= %r" % (self.constraint_len_gte,))
 
         return result
 
@@ -306,15 +306,15 @@ class TypeInt(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check contraints
+        # Check constraints
         if self.constraint_lt is not None and not result < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< %r" % (self.constraint_lt,))
         if self.constraint_lte is not None and not result <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= %r" % (self.constraint_lte,))
         if self.constraint_gt is not None and not result > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> %r" % (self.constraint_gt,))
         if self.constraint_gte is not None and not result >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= %r" % (self.constraint_gte,))
 
         return result
 
@@ -344,15 +344,15 @@ class TypeFloat(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check contraints
+        # Check constraints
         if self.constraint_lt is not None and not result < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< %r" % (self.constraint_lt,))
         if self.constraint_lte is not None and not result <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= %r" % (self.constraint_lte,))
         if self.constraint_gt is not None and not result > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> %r" % (self.constraint_gt,))
         if self.constraint_gte is not None and not result >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= %r" % (self.constraint_gte,))
 
         return result
 
