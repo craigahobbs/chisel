@@ -88,11 +88,11 @@ class ValidationError(Exception):
             value = value()
 
         # Format the error string
-        constraintPhrase = ", %s" % (constraintSyntax,) if constraintSyntax else ""
+        constraintPhrase = " [%s]" % (constraintSyntax,) if constraintSyntax else ""
         memberSyntax = cls.memberSyntax(members)
         memberPhrase = " for member %r" % (memberSyntax,) if memberSyntax else ""
-        msg = "Invalid value %r (type %r%s)%s, expected type %r" % \
-              (value, value.__class__.__name__, constraintPhrase, memberPhrase, typeInst.typeName)
+        msg = "Invalid value %r (type %r)%s, expected type %r%s" % \
+              (value, value.__class__.__name__, memberPhrase, typeInst.typeName, constraintPhrase)
 
         return ValidationError(msg, member = memberSyntax)
 
