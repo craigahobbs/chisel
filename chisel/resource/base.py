@@ -42,39 +42,41 @@ class ResourceType(object):
 # Resource context manager
 class ResourceContext(object):
 
-    def __init__(self, resourceType, resourceString):
-        self._resourceType = resourceType
+    def __init__(self, resourceOpen, resourceClose, resourceString):
+        self._resourceOpen = resourceOpen
+        self._resourceClose = resourceClose
         self._resourceString = resourceString
         self._resource = None
 
     def __enter__(self):
-        self._resource = self._resourceType.open(self._resourceString)
+        self._resource = self._resourceOpen(self._resourceString)
         return self._resource
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._resourceType.close(self._resource)
+        if self._resourceClose:
+            self._resourceClose(self._resource)
         self._resource = None
 
 
 # Resource collection
 class ResourceCollection(object):
 
-    Resource = namedtuple("Resource", "resourceName, resourceType, resourceString")
+    Resource = namedtuple("Resource", "resourceName, resourceOpen, resourceClose, resourceString")
 
     def __init__(self):
         self._resources = {}
 
-    def add(self, resourceName, resourceType, resourceString):
-        object.__getattribute__(self, "_resources")[resourceName] = self.Resource(resourceName, resourceType, resourceString)
+    def add(self, resourceName, resourceOpen, resourceClose, resourceString):
+        object.__getattribute__(self, "_resources")[resourceName] = self.Resource(resourceName, resourceOpen, resourceClose, resourceString)
 
     def __getattribute__(self, name):
         resource = object.__getattribute__(self, "_resources").get(name)
         if resource is None:
             return object.__getattribute__(self, name)
-        return ResourceContext(resource.resourceType, resource.resourceString)
+        return ResourceContext(resource.resourceOpen, resource.resourceClose, resource.resourceString)
 
     def __getitem__(self, name):
         resource = object.__getattribute__(self, "_resources").get(name)
         if resource is None:
             raise IndexError("No resource named '%s'" % (name,))
-        return ResourceContext(resource.resourceType, resource.resourceString)
+        return ResourceContext(resource.resourceOpen, resource.resourceClose, resource.resourceString)

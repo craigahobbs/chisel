@@ -152,7 +152,8 @@ class Application(object):
             for resource in self._config.resources:
                 if resource.type not in self._resourceTypes:
                     raise Exception("Unknown resource type '%s'" % (resource.type,))
-                self._resources.add(resource.name, self._resourceTypes[resource.type], resource.resourceString)
+                resourceType = self._resourceTypes[resource.type]
+                self.addResource(resource.name, resourceType.open, resourceType.close, resource.resourceString)
 
         # Default thread state
         self._threadStateDefault = self.ThreadState(None, None, self._createLogger(self._logStream))
@@ -232,6 +233,10 @@ class Application(object):
                         request = getattr(module, moduleAttr)
                         if isinstance(request, Request):
                             self.addRequest(request)
+
+    # Add a resource
+    def addResource(self, resourceName, resourceOpen, resourceClose, resourceString):
+        self._resources.add(resourceName, resourceOpen, resourceClose, resourceString)
 
     # WSGI entry point
     def __call__(self, environ, start_response):
