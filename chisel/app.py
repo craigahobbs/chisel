@@ -116,10 +116,11 @@ class Application(object):
         self._resourceTypes = dict((x.name, x) for x in resourceTypes) if resourceTypes else {}
         self._logStream = logStream
         self._threadStates = {}
-        self.init()
         self._initLock = threading.Lock()
 
-    def init(self):
+        self._init()
+
+    def _init(self):
 
         # Read config file
         if self._configPath:
@@ -127,16 +128,27 @@ class Application(object):
                 self._configString = fConfig.read()
         self._config = Struct(configModel.validate(json.loads(configComment.sub("", self._configString))))
 
-        # Load specs
+        # Default thread state
+        self._threadStateDefault = self.ThreadState(None, None, self._createLogger(self._logStream))
+
+        # Reset the application specs, modules, and resources
         self._specParser = SpecParser()
+        self._requests = {}
+        self._requestUrls = {}
+        self._resources = ResourceCollection()
+
+        # Call the overridable init
+        self.init()
+
+    def init(self):
+
+        # Load specs
         for specPath in self._config.specPaths:
             if not os.path.isabs(specPath):
                 specPath = os.path.join(self._relPathBase, specPath)
             self.loadSpecs(specPath)
 
         # Load modules
-        self._requests = {}
-        self._requestUrls = {}
         for modulePath in self._config.modulePaths:
             if not os.path.isabs(modulePath):
                 modulePath = os.path.join(self._relPathBase, modulePath)
@@ -147,16 +159,12 @@ class Application(object):
             self.addRequest(DocAction())
 
         # Create resources collection
-        self._resources = ResourceCollection()
         if self._config.resources:
             for resource in self._config.resources:
                 if resource.type not in self._resourceTypes:
                     raise Exception("Unknown resource type '%s'" % (resource.type,))
                 resourceType = self._resourceTypes[resource.type]
                 self.addResource(resource.name, resourceType.open, resourceType.close, resource.resourceString)
-
-        # Default thread state
-        self._threadStateDefault = self.ThreadState(None, None, self._createLogger(self._logStream))
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
@@ -255,7 +263,7 @@ class Application(object):
             if self._config.alwaysReload:
                 with self._initLock:
                     self.log.info("Reloading application config...")
-                    self.init()
+                    self._init()
                     return self.call(environ, start_response)
             else:
                 return self.call(environ, start_response)
