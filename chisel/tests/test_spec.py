@@ -545,6 +545,7 @@ struct MyStruct
     [> 5] int[] ai1
     [< 15] int{} di1
     [ > 0, <= 10] int i3
+    [> -4, < -1.4] int i4
 """, fileName = "foo")
         s = parser.types["MyStruct"]
 
@@ -564,6 +565,7 @@ struct MyStruct
                                  ("ai1", TypeArray, False),
                                  ("di1", TypeDict, False),
                                  ("i3", TypeInt, False),
+                                 ("i4", TypeInt, False),
                                  ))
 
         # Check i1 constraints
@@ -628,6 +630,13 @@ struct MyStruct
         self.assertEqual(i3.constraint_lte, 10)
         self.assertEqual(i3.constraint_gt, 0)
         self.assertEqual(i3.constraint_gte, None)
+
+        # Check i4 constraints
+        i4 = s.members[9].typeInst
+        self.assertEqual(i4.constraint_lt, -1.4)
+        self.assertEqual(i4.constraint_lte, None)
+        self.assertEqual(i4.constraint_gt, -4)
+        self.assertEqual(i4.constraint_gte, None)
 
     # Test invalid member attribute usage
     def test_spec_error_attributes(self):

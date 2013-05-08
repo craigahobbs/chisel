@@ -53,8 +53,8 @@ class SpecParser(object):
 
     # Parser regex
     _rePartId = "([A-Za-z]\w*)"
-    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>[0-9]\d*(\.\d+)?)|" + \
-        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>[0-9]\d*))"
+    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>-?\d+(\.\d+)?)|" + \
+        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))"
     _reAttrGroup = re.compile(_rePartAttrGroup)
     _rePartAttr = re.sub("\\(\\?P<[^>]+>", "(", _rePartAttrGroup)
     _reFindAttrs = re.compile(_rePartAttr + "(?:\s*,\s*|\s*\Z)")
