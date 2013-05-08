@@ -99,6 +99,7 @@ class SpecParser(object):
 
     # Parse a specification from an input stream
     def parseStream(self, specStream, fileName = "", finalize = True):
+        assert not self.errors
 
         # Set the parser state
         self._parseStream = specStream
@@ -124,6 +125,7 @@ class SpecParser(object):
                 member.typeInst = typeInst
             else:
                 self._error("Unknown member type '%s'" % (typeRef.typeName,), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+        self._typeRefs = []
 
         # Raise a parser exception if there are any errors
         if self.errors:

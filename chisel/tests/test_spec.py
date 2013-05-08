@@ -256,6 +256,46 @@ enum MyEnum2
         self.assertEqual(parser.actions["MyAction2"].inputType.members[0].typeInst.typeName, "MyStruct")
         self.assertEqual(parser.actions["MyAction2"].outputType.members[0].typeInst.typeName, "MyStruct2")
 
+    # Test multiple finalize
+    def test_spec_multiple_finalize(self):
+
+        # Parse spec strings
+        parser = SpecParser()
+        parser.parseString("""\
+struct MyStruct
+    MyEnum a
+
+enum MyEnum
+    A
+    B
+""")
+        parser.parseString("""\
+struct MyStruct2
+    int a
+    MyEnum b
+    MyEnum2 c
+
+enum MyEnum2
+    C
+    D
+""")
+
+        # Check enum types
+        self.assertEnumByName(parser, "MyEnum",
+                              ("A",
+                               "B"))
+        self.assertEnumByName(parser, "MyEnum2",
+                              ("C",
+                               "D"))
+
+        # Check struct types
+        self.assertStructByName(parser, "MyStruct",
+                                (("a", parser.types["MyEnum"], False),))
+        self.assertStructByName(parser, "MyStruct2",
+                                (("a", TypeInt, False),
+                                 ("b", parser.types["MyEnum"], False),
+                                 ("c", parser.types["MyEnum2"], False)))
+
     # Test members referencing unknown user types
     def test_spec_error_unknown_type(self):
 
