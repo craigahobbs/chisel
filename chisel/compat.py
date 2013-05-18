@@ -22,6 +22,7 @@
 
 import sys
 
+PY27 = (sys.version_info == (2, 7))
 PY3 = (sys.version_info >= (3, 0))
 PY32 = (sys.version_info >= (3, 2))
 
@@ -32,6 +33,15 @@ if PY32: # pragma: no cover
         escape = _html.escape
 else:
     import cgi
+
+# json
+if PY27:
+    import json
+else:
+    try:
+        import simplejson as json
+    except:
+        import json
 
 # pickle
 if PY3: # pragma: no cover
