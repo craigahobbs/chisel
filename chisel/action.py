@@ -20,14 +20,13 @@
 # SOFTWARE.
 #
 
-from .compat import itervalues
-from .model import ValidationError, TypeStruct, TypeString
+from .compat import itervalues, json
+from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
 from .struct import Struct
 from .url import decodeQueryString
 
-import json
 import traceback
 
 
@@ -131,7 +130,7 @@ class Action(Request):
 
             # Validate the request
             try:
-                request = self.model.inputType.validate(request, acceptString = isGet)
+                request = self.model.inputType.validate(request, mode = VALIDATE_QUERY_STRING if isGet else VALIDATE_JSON_INPUT)
             except ValidationError as e:
                 raise _ActionErrorInternal("InvalidInput", str(e), e.member)
 
@@ -151,11 +150,11 @@ class Action(Request):
             try:
                 if isErrorResponse:
                     responseTypeInst = TypeStruct()
-                    responseTypeInst.members.append(TypeStruct.Member("error", self.model.errorType))
-                    responseTypeInst.members.append(TypeStruct.Member("message", TypeString(), isOptional = True))
+                    responseTypeInst.addMember("error", self.model.errorType)
+                    responseTypeInst.addMember("message", TypeString(), isOptional = True)
                 else:
                     responseTypeInst = self.model.outputType
-                response = responseTypeInst.validate(response)
+                response = responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
             except ValidationError as e:
                 self.app.log.error("Invalid output returned from action '%s': %r", self.name, response)
                 raise _ActionErrorInternal("InvalidOutput", str(e), e.member)

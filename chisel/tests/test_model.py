@@ -20,945 +20,1442 @@
 # SOFTWARE.
 #
 
-from chisel import Struct, ValidationError
-from chisel.compat import basestring_, long_, unicode_
-from chisel.model import JsonFloat, jsonDefault, TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TypeString, TypeInt, TypeFloat, TypeBool, TypeDatetime, TypeUuid
+from chisel.struct import Struct
+from chisel.compat import long_, unicode_
+from chisel.model import JsonFloat, ValidationError, \
+    VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
+    TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
+    TypeUuid, TypeDatetime
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-import re
 import unittest
 from uuid import UUID
 
 
-# jsonDefault tests
-class TestModelJsonDefault(unittest.TestCase):
-
-    def test_model_jsonDefault(self):
-
-        # Test unwrapping of Struct-wrapped objects
-        o = Struct(a = 3, b = 5)
-        self.assertTrue(jsonDefault(o) is o())
-
-        # Test formatting of datetime objects with tzinfo
-        o = datetime(2012, 11, 16, tzinfo = TypeDatetime.TZUTC())
-        self.assertTrue(isinstance(jsonDefault(o), basestring_))
-        self.assertEqual(jsonDefault(o), "2012-11-16T00:00:00+00:00")
-
-        # Test formatting of datetime objects without tzinfo
-        o = datetime(2012, 11, 16)
-        self.assertTrue(isinstance(jsonDefault(o), basestring_))
-        self.assertTrue(re.search("^2012-11-16T00:00:00[+-]\\d\\d:\\d\\d$", jsonDefault(o)))
-
-        # Test uuid object
-        o = UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-        self.assertTrue(isinstance(jsonDefault(o), basestring_))
-        self.assertEqual(jsonDefault(o), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-
-        # JsonFloat
-        o = JsonFloat(1000431.7599999997005, 3)
-        self.assertTrue(jsonDefault(o) is o)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), "1000431.76")
-
-        # Test unknown class instance
-        class MyType(object):
-            pass
-        o = MyType()
-        self.assertTrue(jsonDefault(o) is o)
-
-
-# Model validation tests
-class TestModelValidation(unittest.TestCase):
-
-    # Helper to assert validation errors
-    def assertValidationError(self, m, v, errorStr, acceptString = False):
-        try:
-            m.validate(v, acceptString = acceptString)
-        except ValidationError as e:
-            self.assertEqual(str(e), errorStr)
-        else:
-            self.fail()
-
-    # Test successful validation
-    def test_model_struct(self):
-
-        # The struct model
-        m = TypeStruct()
-        m.members.append(TypeStruct.Member("a", TypeInt()))
-        m.members.append(TypeStruct.Member("b", TypeString()))
-        mc = TypeStruct()
-        mc.members.append(TypeStruct.Member("d", TypeBool()))
-        mc.members.append(TypeStruct.Member("e", TypeFloat()))
-        m.members.append(TypeStruct.Member("c", mc))
-        m.members.append(TypeStruct.Member("f", TypeArray(TypeString())))
-        m.members.append(TypeStruct.Member("g", TypeDict(TypeInt()), isOptional = True))
-        me = TypeEnum()
-        me.values.append(TypeEnum.Value("Foo"))
-        me.values.append(TypeEnum.Value("Bar"))
-        m.members.append(TypeStruct.Member("h", me, isOptional = True))
-        m.members.append(TypeStruct.Member("i", TypeDatetime(), isOptional = True))
-        m.members.append(TypeStruct.Member("j", TypeArray(m), isOptional = True)) # Recursive struct...
-        m.members.append(TypeStruct.Member("k", TypeUuid(), isOptional = True))
-        ml = TypeStruct()
-        ml.members.append(TypeStruct.Member("d", TypeBool(), isOptional = True))
-        m.members.append(TypeStruct.Member("l", ml, isOptional = True))
-
-        # Success
-        s = m.validate({ "a": 5,
-                         "b": "Hello",
-                         "c": Struct(d = True, e = 5.5),
-                         "f": [ "Foo", "Bar" ],
-                         "g": Struct(Foo = long_(5)),
-                         "h": "Foo",
-                         "i": "2012-09-06T06:49:00-07:00",
-                         "k": "8daeb11e-3c83-11e2-a7aa-20c9d0427a89",
-                         "l": {}
-                         })
-        self.assertTrue(isinstance(s, dict))
-        self.assertTrue(isinstance(s["a"], int))
-        self.assertEqual(s["a"], 5)
-        self.assertTrue(isinstance(s["b"], basestring_))
-        self.assertEqual(s["b"], "Hello")
-        self.assertTrue(isinstance(s["c"], Struct))
-        self.assertTrue(isinstance(s["c"].d, bool))
-        self.assertEqual(s["c"].d, True)
-        self.assertTrue(isinstance(s["c"].e, float))
-        self.assertEqual(s["c"].e, 5.5)
-        self.assertTrue(isinstance(s["f"], list))
-        self.assertTrue(isinstance(s["f"][0], basestring_))
-        self.assertEqual(s["f"][0], "Foo")
-        self.assertTrue(isinstance(s["f"][1], basestring_))
-        self.assertEqual(s["f"][1], "Bar")
-        self.assertEqual(s["g"]["Foo"], 5)
-        self.assertEqual(s["h"], "Foo")
-        self.assertTrue(isinstance(s["i"], datetime))
-        self.assertEqual(s["i"].year, 2012)
-        self.assertEqual(s["i"].month, 9)
-        self.assertEqual(s["i"].day, 6)
-        self.assertEqual(s["i"].hour, 13)
-        self.assertEqual(s["i"].minute, 49)
-        self.assertEqual(s["i"].second, 0)
-        self.assertEqual(s["i"].microsecond, 0)
-        self.assertEqual(s["i"].tzinfo.utcoffset(s["i"]), timedelta(0))
-        self.assertEqual(s["i"].tzinfo.dst(s["i"]), timedelta(0))
-        self.assertTrue(isinstance(s["k"], UUID))
-        self.assertEqual(str(s["k"]), "8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-        self.assertEqual(s["l"], {})
-
-        # Success - accept strings
-        s = m.validate(Struct(a = "5",
-                              b = "Hello",
-                              c = { "d": "true", "e": "5.5" },
-                              f = [ "Foo", "Bar" ],
-                              l = ""
-                              ), acceptString = True)
-        self.assertTrue(isinstance(s, Struct))
-        self.assertTrue(isinstance(s.a, int))
-        self.assertEqual(s.a, 5)
-        self.assertTrue(isinstance(s.b, basestring_))
-        self.assertEqual(s.b, "Hello")
-        self.assertTrue(isinstance(s.c, Struct))
-        self.assertTrue(isinstance(s.c.d, bool))
-        self.assertEqual(s.c.d, True)
-        self.assertTrue(isinstance(s.c.e, float))
-        self.assertEqual(s.c.e, 5.5)
-        self.assertTrue(isinstance(s.f, Struct))
-        self.assertTrue(isinstance(s.f(), list))
-        self.assertTrue(isinstance(s.f[0], basestring_))
-        self.assertEqual(s.f[0], "Foo")
-        self.assertTrue(isinstance(s.f[1], basestring_))
-        self.assertEqual(s.f[1], "Bar")
-        self.assertEqual(s.l, {})
-
-        # Failure - invalid type
-        self.assertValidationError(m, [1, 2, 3],
-                                   "Invalid value [1, 2, 3] (type 'list'), expected type 'struct'")
-
-        # Failure - invalid non-wrapped type
-        self.assertValidationError(m, Struct(a = Struct([1, 2, 3])),
-                                   "Invalid value [1, 2, 3] (type 'list') for member 'a', expected type 'int'")
-
-        # Failure - invalid type - struct
-        self.assertValidationError(m, Struct(a = [1, 2, 3]).a,
-                                   "Invalid value [1, 2, 3] (type 'list'), expected type 'struct'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'struct'")
-
-        # Failure - missing member
-        self.assertValidationError(m, { "a": 5,
-                                        "c": { "d": True, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ]
-                                        },
-                                   "Required member 'b' missing")
-
-        # Failure - invalid member
-        self.assertValidationError(m, { "a": 5,
-                                        "b": "Hello",
-                                        "c": { "d": True, "e": 5.5, "bad": "bad value" },
-                                        "f": [ "Foo", "Bar" ],
-                                        },
-                                   "Invalid member 'c.bad'")
-
-        # Failure - invalid member type
-        self.assertValidationError(m, { "a": "Hello",
-                                        "b": "Hello",
-                                        "c": { "d": True, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ],
-                                        },
-                                   "Invalid value 'Hello' (type 'str') for member 'a', expected type 'int'")
-
-        # Failure - invalid nested member type
-        self.assertValidationError(m, { "a": 5,
-                                        "b": "Hello",
-                                        "c": { "d": 1, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ]
-                                        },
-                                   "Invalid value 1 (type 'int') for member 'c.d', expected type 'bool'")
-
-        # Failure - invalid nested member type
-        self.assertValidationError(m, { "a": 5,
-                                        "b": "Hello",
-                                        "c": { "d": True, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ],
-                                        "j": [{ "a": "bad" }]
-                                        },
-                                   "Invalid value 'bad' (type 'str') for member 'j[0].a', expected type 'int'")
-
-        # Failure - non-empty string for empty struct
-        self.assertValidationError(m, { "a": 5,
-                                        "b": "Hello",
-                                        "c": { "d": True, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ],
-                                        "l": " "
-                                        },
-                                   "Invalid value ' ' (type 'str') for member 'l', expected type 'struct'",
-                                   acceptString = True)
-
-        # Failure - empty string for empty struct - not accepting strings
-        self.assertValidationError(m, { "a": 5,
-                                        "b": "Hello",
-                                        "c": { "d": True, "e": 5.5 },
-                                        "f": [ "Foo", "Bar" ],
-                                        "l": ""
-                                        },
-                                   "Invalid value '' (type 'str') for member 'l', expected type 'struct'")
-
-    # Test an optional member that is explicitly None
-    def test_model_optional_none(self):
-
-        mStruct = TypeStruct()
-        mStruct.members.append(TypeStruct.Member("a", TypeInt(), isOptional = True))
-        self.assertValidationError(mStruct, {"a": None},
-                                   "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
-
-    # array type
-    def test_model_array(self):
-
-        # Array models
-        mInt = TypeArray(TypeInt())
-        mStruct = TypeArray(TypeStruct())
-        mStruct.typeInst.members.append(TypeStruct.Member("a", TypeInt()))
-
-        # Success - array of integers
-        self.assertEqual(mInt.validate([1, 2, 3]), [1, 2, 3])
-
-        # Success - array of integers - acceptString
-        self.assertEqual(mInt.validate([1, "2", 3], acceptString = True), [1, 2, 3])
-
-        # Success - array of struct
-        self.assertEqual(mStruct.validate([Struct(a = 1), { "a": 2 }]), [{ "a": 1 }, { "a": 2 }])
-
-        # Success - array of integers - tuple
-        self.assertEqual(mInt.validate((1, 2, 3)), (1, 2, 3))
-
-        # Success - empty array (indicated by an empty string)
-        self.assertEqual(mInt.validate("", acceptString = True), [])
-
-        # Failure - invalid type - string
-        self.assertValidationError(mInt, "Hello",
-                                   "Invalid value 'Hello' (type 'str'), expected type 'array'")
-
-        # Failure - invalid type - dict
-        self.assertValidationError(mInt, {},
-                                   "Invalid value {} (type 'dict'), expected type 'array'")
-
-        # Failure - invalid type - struct
-        self.assertValidationError(mInt, Struct(),
-                                   "Invalid value {} (type 'dict'), expected type 'array'")
-
-        # Failure - None
-        self.assertValidationError(mInt, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'array'")
-
-        # Failure - Invalid array member
-        self.assertValidationError(mInt, [1, "Hello", 3],
-                                   "Invalid value 'Hello' (type 'str') for member '[1]', expected type 'int'")
-
-        # Failure - missing struct member
-        self.assertValidationError(mStruct, [{ "a": 1 }, {}],
-                                   "Required member '[1].a' missing")
-
-        # Failure - invalid struct member
-        self.assertValidationError(mStruct, [{ "a": 1 }, { "a": 2, "b": True }],
-                                   "Invalid member '[1].b'")
-
-        # Failure - invalid struct member type
-        self.assertValidationError(mStruct, [{ "a": True }],
-                                   "Invalid value True (type 'bool') for member '[0].a', expected type 'int'")
-
-        # Failure - non-empty string
-        self.assertValidationError(mInt, "a",
-                                   "Invalid value 'a' (type 'str'), expected type 'array'", acceptString = True)
-
-        # Failure - empty string (and not accepting strings)
-        self.assertValidationError(mInt, "",
-                                   "Invalid value '' (type 'str'), expected type 'array'")
-
-    # dict type
-    def test_model_dict(self):
-
-        # Dictionary model
-        mInt = TypeDict(TypeInt())
-        mArray = TypeDict(TypeArray(TypeString()))
-
-        # Success - int dict
-        self.assertEqual(mInt.validate({ "a": 1, "abc": 17 }), { "a": 1, "abc": 17 })
-
-        # Success - int dict - acceptString
-        self.assertEqual(mInt.validate({ "a": "1", "abc": "17" }, acceptString = True), { "a": 1, "abc": 17 })
-
-        # Success - array dict
-        self.assertEqual(mArray.validate({ "a": ["foo", "bar"], "abc": [] }), { "a": ["foo", "bar"], "abc": [] })
-
-        # Success - empty int dict
-        self.assertEqual(mInt.validate({}), {})
-
-        # Success - empty array dict
-        self.assertEqual(mArray.validate({}), {})
-
-        # Success - unicode key
-        self.assertEqual(mInt.validate({ unicode_("a"): 7 }), { unicode_("a"): 7 })
-
-        # Success - empty array (indicated by an empty string)
-        self.assertEqual(mInt.validate("", acceptString = True), {})
-
-        # Failure - int value
-        self.assertValidationError(mInt, 7,
-                                   "Invalid value 7 (type 'int'), expected type 'dict'")
-
-        # Failure - None value
-        self.assertValidationError(mInt, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'dict'")
-
-        # Failure - non-string key
-        self.assertValidationError(mInt, { "a": 1, 1: 2 },
-                                   "Invalid value 1 (type 'int') for member '[1]', expected type 'string'")
-
-        # Failure - invalid value type
-        self.assertValidationError(mInt, { "a": "bad" },
-                                   "Invalid value 'bad' (type 'str') for member 'a', expected type 'int'")
-
-        # Failure - invalid contained value type
-        self.assertValidationError(mArray, { "a": ["a", 2, "c"] },
-                                   "Invalid value 2 (type 'int') for member 'a[1]', expected type 'string'")
-
-        # Failure - non-empty string
-        self.assertValidationError(mInt, "a",
-                                   "Invalid value 'a' (type 'str'), expected type 'dict'", acceptString = True)
-
-        # Failure - empty string (and not accepting strings)
-        self.assertValidationError(mInt, "",
-                                   "Invalid value '' (type 'str'), expected type 'dict'")
-
-    # enum type
-    def test_model_enum(self):
-
-        # Enum model
-        m = TypeEnum(typeName = "FooBar")
-        m.values.append(TypeEnum.Value("Foo"))
-        m.values.append(TypeEnum.Value("Bar"))
-
-        # Success
-        v = m.validate("Foo")
-        self.assertEqual(v, "Foo")
-        self.assertTrue(isinstance(v, str))
-        v = m.validate("Bar")
-        self.assertEqual(v, "Bar")
-        self.assertTrue(isinstance(v, str))
-
-        # Success - unicode
-        v = m.validate(unicode_("Foo"))
-        self.assertEqual(v, unicode_("Foo"))
-        self.assertTrue(isinstance(v, unicode_))
-
-        # Failure
-        self.assertValidationError(m, "Thud",
-                                   "Invalid value 'Thud' (type 'str'), expected type 'FooBar'")
-
-        # Failure - empty string
-        self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'FooBar'")
-
-        # Failure - non-string
-        self.assertValidationError(m, 7,
-                                   "Invalid value 7 (type 'int'), expected type 'FooBar'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'FooBar'")
-
-    # string type
-    def test_model_string(self):
-
-        # String model
-        m = TypeString()
-
-        # Success
-        v = m.validate("Foo")
-        self.assertEqual(v, "Foo")
-        self.assertTrue(isinstance(v, unicode_))
-
-        # Success - unicode
-        v = m.validate(unicode_("Foo"))
-        self.assertEqual(v, "Foo")
-        self.assertTrue(isinstance(v, unicode_))
-
-        # Failure - int
-        self.assertValidationError(m, 7,
-                                   "Invalid value 7 (type 'int'), expected type 'string'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'string'")
-
-    # string type constraints
-    def test_model_string_constraint(self):
-
-        # Length less-than
-        m = TypeString()
-        m.constraint_len_lt = 5
-        self.assertEqual(m.validate("abcd"), "abcd")
-        self.assertEqual(m.validate("abc"), "abc")
-        self.assertEqual(m.validate(""), "")
-        self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string' [len < 5]")
-
-        # Length less-than or equal-to
-        m = TypeString()
-        m.constraint_len_lte = 5
-        self.assertEqual(m.validate("abcde"), "abcde")
-        self.assertEqual(m.validate("abcd"), "abcd")
-        self.assertEqual(m.validate(""), "")
-        self.assertValidationError(m, "abcdef",
-                                   "Invalid value 'abcdef' (type 'str'), expected type 'string' [len <= 5]")
-
-        # Length greater-than
-        m = TypeString()
-        m.constraint_len_gt = 5
-        self.assertEqual(m.validate("abcdef"), "abcdef")
-        self.assertEqual(m.validate("abcdefg"), "abcdefg")
-        self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string' [len > 5]")
-        self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'string' [len > 5]")
-
-        # Length greater-than or equal-to
-        m = TypeString()
-        m.constraint_len_gte = 5
-        self.assertEqual(m.validate("abcde"), "abcde")
-        self.assertEqual(m.validate("abcdef"), "abcdef")
-        self.assertValidationError(m, "abcd",
-                                   "Invalid value 'abcd' (type 'str'), expected type 'string' [len >= 5]")
-        self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'string' [len >= 5]")
-
-        # Length >= and length <=
-        m = TypeString()
-        m.constraint_len_gte = 5
-        m.constraint_len_lte = 8
-        self.assertEqual(m.validate("abcde"), "abcde")
-        self.assertEqual(m.validate("abcdef"), "abcdef")
-        self.assertEqual(m.validate("abcdefgh"), "abcdefgh")
-        self.assertEqual(m.validate("abcdefg"), "abcdefg")
-        self.assertValidationError(m, "abcd",
-                                   "Invalid value 'abcd' (type 'str'), expected type 'string' [len >= 5]")
-        self.assertValidationError(m, "abcdefghi",
-                                   "Invalid value 'abcdefghi' (type 'str'), expected type 'string' [len <= 8]")
-
-        # Length > and length <
-        m = TypeString()
-        m.constraint_len_gt = 5
-        m.constraint_len_lt = 8
-        self.assertEqual(m.validate("abcdef"), "abcdef")
-        self.assertEqual(m.validate("abcdefg"), "abcdefg")
-        self.assertValidationError(m, "abcde",
-                                   "Invalid value 'abcde' (type 'str'), expected type 'string' [len > 5]")
-        self.assertValidationError(m, "abcdefgh",
-                                   "Invalid value 'abcdefgh' (type 'str'), expected type 'string' [len < 8]")
-
-    # int type
-    def test_model_int(self):
-
-        # Int model
-        m = TypeInt()
-
-        # Success
-        v = m.validate(5)
-        self.assertEqual(v, 5)
-        self.assertTrue(isinstance(v, int))
-
-        # Success - long
-        v = m.validate(long_(5))
-        self.assertEqual(v, long_(5))
-        self.assertTrue(isinstance(v, long_))
-
-        # Success - float
-        v = m.validate(5.)
-        self.assertEqual(v, 5.)
-        self.assertTrue(isinstance(v, int))
-
-        # Success - Decimal
-        v = m.validate(Decimal(5))
-        self.assertEqual(v, Decimal(5))
-        self.assertTrue(isinstance(v, int))
-
-        # Success - accept string
-        v = m.validate("5", acceptString = True)
-        self.assertEqual(v, 5)
-        self.assertTrue(isinstance(v, int))
-
-        # Success - accept unicode string
-        v = m.validate(unicode_("7"), acceptString = True)
-        self.assertEqual(v, 7)
-        self.assertTrue(isinstance(v, int))
-
-        # Failure - invalid float
-        self.assertValidationError(m, 5.5,
-                                   "Invalid value 5.5 (type 'float'), expected type 'int'")
-
-        # Failure - invalid Decimal
-        self.assertValidationError(m, Decimal("5.5"),
-                                   "Invalid value Decimal('5.5') (type 'Decimal'), expected type 'int'")
-
-        # Failure - string
-        self.assertValidationError(m, "5",
-                                   "Invalid value '5' (type 'str'), expected type 'int'")
-
-        # Failure - bool
-        self.assertValidationError(m, True,
-                                   "Invalid value True (type 'bool'), expected type 'int'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'int'")
-
-        # Failure - invalid accept string
-        self.assertValidationError(m, "5L",
-                                   "Invalid value '5L' (type 'str'), expected type 'int'",
-                                   acceptString = True)
-
-    # int type constraints
-    def test_model_int_constraint(self):
-
-        # Less-than
-        m = TypeInt()
-        m.constraint_lt = 5
-        self.assertEqual(m.validate(4), 4)
-        self.assertEqual(m.validate(0), 0)
-        self.assertEqual(m.validate(-4), -4)
-        self.assertValidationError(m, 5,
-                                   "Invalid value 5 (type 'int'), expected type 'int' [< 5]")
-        self.assertValidationError(m, 50,
-                                   "Invalid value 50 (type 'int'), expected type 'int' [< 5]")
-
-        # Less-than or equal-to
-        m = TypeInt()
-        m.constraint_lte = 5
-        self.assertEqual(m.validate(5), 5)
-        self.assertEqual(m.validate(0), 0)
-        self.assertEqual(m.validate(-4), -4)
-        self.assertValidationError(m, 6,
-                                   "Invalid value 6 (type 'int'), expected type 'int' [<= 5]")
-        self.assertValidationError(m, 60,
-                                   "Invalid value 60 (type 'int'), expected type 'int' [<= 5]")
-
-        # Greater-than
-        m = TypeInt()
-        m.constraint_gt = 5
-        self.assertEqual(m.validate(6), 6)
-        self.assertEqual(m.validate(60), 60)
-        self.assertValidationError(m, 5,
-                                   "Invalid value 5 (type 'int'), expected type 'int' [> 5]")
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'int' [> 5]")
-
-        # Greater-than or equal-to
-        m = TypeInt()
-        m.constraint_gte = 5
-        self.assertEqual(m.validate(5), 5)
-        self.assertEqual(m.validate(50), 50)
-        self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int' [>= 5]")
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'int' [>= 5]")
-
-        # >= and <=
-        m = TypeInt()
-        m.constraint_gte = 5
-        m.constraint_lte = 10
-        self.assertEqual(m.validate(5), 5)
-        self.assertEqual(m.validate(8), 8)
-        self.assertEqual(m.validate(10), 10)
-        self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int' [>= 5]")
-        self.assertValidationError(m, 11,
-                                   "Invalid value 11 (type 'int'), expected type 'int' [<= 10]")
-
-        # > and <
-        m = TypeInt()
-        m.constraint_gt = 4.5
-        m.constraint_lt = 10.5
-        self.assertEqual(m.validate(5), 5)
-        self.assertEqual(m.validate(8), 8)
-        self.assertEqual(m.validate(10), 10)
-        self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'int' [> 4.5]")
-        self.assertValidationError(m, 11,
-                                   "Invalid value 11 (type 'int'), expected type 'int' [< 10.5]")
-
-    # float type
-    def test_model_float(self):
-
-        # Float model
-        m = TypeFloat()
-
-        # Success
-        v = m.validate(5.5)
-        self.assertEqual(v, 5.5)
-        self.assertTrue(isinstance(v, float))
-
-        # Success - int
-        v = m.validate(6)
-        self.assertEqual(v, 6.)
-        self.assertTrue(isinstance(v, float))
-
-        # Success - long
-        v = m.validate(long_(7))
-        self.assertEqual(v, 7.)
-        self.assertTrue(isinstance(v, float))
-
-        # Success - Decimal
-        v = m.validate(Decimal("5.5"))
-        self.assertEqual(float(v), 5.5)
-        self.assertTrue(isinstance(v, float))
-
-        # Success - JsonFloat
-        v = m.validate(JsonFloat(5.53, 1))
-        self.assertEqual(v, 5.53)
-        self.assertTrue(isinstance(v, JsonFloat))
-
-        # Success - accept string
-        v = m.validate("8.5", acceptString = True)
-        self.assertEqual(v, 8.5)
-        self.assertTrue(isinstance(v, float))
-
-        # Success - accept unicode string
-        v = m.validate(unicode_("8.5"), acceptString = True)
-        self.assertEqual(v, 8.5)
-        self.assertTrue(isinstance(v, float))
-
-        # Failure - string
-        self.assertValidationError(m, "17.5",
-                                   "Invalid value '17.5' (type 'str'), expected type 'float'")
-
-        # Failure - bool
-        self.assertValidationError(m, False,
-                                   "Invalid value False (type 'bool'), expected type 'float'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'float'")
-
-        # Failure - invalid accept string
-        self.assertValidationError(m, "asdf",
-                                   "Invalid value 'asdf' (type 'str'), expected type 'float'",
-                                   acceptString = True)
-
-    # float type constraints
-    def test_model_float_constraint(self):
-
-        # Less-than
-        m = TypeFloat()
-        m.constraint_lt = 5.5
-        self.assertEqual(m.validate(5.4), 5.4)
-        self.assertEqual(m.validate(0), 0)
-        self.assertEqual(m.validate(-4), -4)
-        self.assertValidationError(m, 5.5,
-                                   "Invalid value 5.5 (type 'float'), expected type 'float' [< 5.5]")
-        self.assertValidationError(m, 50,
-                                   "Invalid value 50 (type 'int'), expected type 'float' [< 5.5]")
-
-        # Less-than or equal-to
-        m = TypeFloat()
-        m.constraint_lte = 5.5
-        self.assertEqual(m.validate(5.5), 5.5)
-        self.assertEqual(m.validate(0), 0)
-        self.assertEqual(m.validate(-4), -4)
-        self.assertValidationError(m, JsonFloat(5.6, 1),
-                                   "Invalid value 5.6 (type 'JsonFloat'), expected type 'float' [<= 5.5]")
-        self.assertValidationError(m, 60,
-                                   "Invalid value 60 (type 'int'), expected type 'float' [<= 5.5]")
-
-        # Greater-than
-        m = TypeFloat()
-        m.constraint_gt = 5.5
-        self.assertEqual(m.validate(5.6), 5.6)
-        self.assertEqual(m.validate(60), 60)
-        self.assertValidationError(m, 5.5,
-                                   "Invalid value 5.5 (type 'float'), expected type 'float' [> 5.5]")
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'float' [> 5.5]")
-        self.assertValidationError(m, -5,
-                                   "Invalid value -5 (type 'int'), expected type 'float' [> 5.5]")
-
-        # Greater-than or equal-to
-        m = TypeFloat()
-        m.constraint_gte = 5.5
-        self.assertEqual(m.validate(5.5), 5.5)
-        self.assertEqual(m.validate(50), 50)
-        self.assertValidationError(m, JsonFloat(5.4, 1),
-                                   "Invalid value 5.4 (type 'JsonFloat'), expected type 'float' [>= 5.5]")
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'float' [>= 5.5]")
-        self.assertValidationError(m, -5,
-                                   "Invalid value -5 (type 'int'), expected type 'float' [>= 5.5]")
-
-        # >= and <=
-        m = TypeFloat()
-        m.constraint_gte = 4.5
-        m.constraint_lte = 10.5
-        self.assertEqual(m.validate(4.5), 4.5)
-        self.assertEqual(m.validate(8), 8)
-        self.assertEqual(m.validate(10.5), 10.5)
-        self.assertValidationError(m, JsonFloat(4.4, 1),
-                                   "Invalid value 4.4 (type 'JsonFloat'), expected type 'float' [>= 4.5]")
-        self.assertValidationError(m, 10.6,
-                                   "Invalid value 10.6 (type 'float'), expected type 'float' [<= 10.5]")
-
-        # > and <
-        m = TypeFloat()
-        m.constraint_gt = 4.5
-        m.constraint_lt = 10.5
-        self.assertEqual(m.validate(5), 5)
-        self.assertEqual(m.validate(8), 8)
-        self.assertEqual(m.validate(10), 10)
-        self.assertValidationError(m, 4.5,
-                                   "Invalid value 4.5 (type 'float'), expected type 'float' [> 4.5]")
-        self.assertValidationError(m, 4,
-                                   "Invalid value 4 (type 'int'), expected type 'float' [> 4.5]")
-        self.assertValidationError(m, 10.5,
-                                   "Invalid value 10.5 (type 'float'), expected type 'float' [< 10.5]")
-
-    # bool type
-    def test_model_bool(self):
-
-        # Bool model
-        m = TypeBool()
-
-        # Success
-        v = m.validate(True)
-        self.assertEqual(v, True)
-        self.assertTrue(isinstance(v, bool))
-        v = m.validate(False)
-        self.assertEqual(v, False)
-        self.assertTrue(isinstance(v, bool))
-
-        # Success - accept string
-        v = m.validate("true", acceptString = True)
-        self.assertEqual(v, True)
-        self.assertTrue(isinstance(v, bool))
-        v = m.validate("false", acceptString = True)
-        self.assertEqual(v, False)
-        self.assertTrue(isinstance(v, bool))
-
-        # Failure - int
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'bool'")
-
-        # Failure - string
-        self.assertValidationError(m, "true",
-                                   "Invalid value 'true' (type 'str'), expected type 'bool'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'bool'")
-
-        # Failure - invalid accept string
-        self.assertValidationError(m, "True",
-                                   "Invalid value 'True' (type 'str'), expected type 'bool'",
-                                   acceptString = True)
-
-    # datetime type
-    def test_model_datetime(self):
-
-        # Datetime model
-        m = TypeDatetime()
-
-        # Success - "zulu" date/time
-        v = m.validate("2012-09-06T07:05:00Z")
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T07:05:00+00:00")
-
-        # Success - date string
-        v = m.validate("2012-09-06")
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T00:00:00+00:00")
-
-        # Success - date/time string with offset
-        v = m.validate("2012-09-06T07:05:00-07:00")
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00+00:00")
-
-        # Success - fractional date/time string with offset
-        v = m.validate("2012-09-06T07:05:00.5-07:00")
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00.500000+00:00")
-
-        # Success - fraction (comma) date/time string with offset
-        v = m.validate("2012-09-06T07:05:00,5-07:00")
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T14:05:00.500000+00:00")
-
-        # Success - UTC date/time object
-        v = m.validate(datetime(2012, 9, 6, 7, 5, 0, 0, TypeDatetime.TZUTC()))
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(jsonDefault(v), "2012-09-06T07:05:00+00:00")
-
-        # Success - Local date/time object
-        v = m.validate(datetime(2012, 9, 6, 7, 5, 0, 0, TypeDatetime.TZLocal()))
-        self.assertTrue(isinstance(v, datetime))
-        self.assertTrue(isinstance(v.tzinfo, TypeDatetime.TZLocal))
-        self.assertTrue(v.isoformat().startswith("2012-09-06T07:05:00"))
-        v2 = m.validate(jsonDefault(v))
-        self.assertTrue(isinstance(v2, datetime))
-        self.assertTrue(isinstance(v2.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(v, v2)
-
-        # Success - date/time object with no TZ
-        v = m.validate(datetime(2012, 9, 6, 7, 5))
-        self.assertTrue(isinstance(v, datetime))
-        self.assertEqual(v.tzinfo, None)
-        self.assertTrue(jsonDefault(v).startswith("2012-09-06T07:05:00"))
-        v2 = m.validate(jsonDefault(v))
-        self.assertTrue(isinstance(v2, datetime))
-        self.assertTrue(isinstance(v2.tzinfo, TypeDatetime.TZUTC))
-        self.assertEqual(datetime(2012, 9, 6, 7, 5, tzinfo = TypeDatetime.TZLocal()), v2)
-
-        # Failure - empty string
-        self.assertValidationError(m, "",
-                                   "Invalid value '' (type 'str'), expected type 'datetime'")
-
-        # Failure - garbage string
-        self.assertValidationError(m, "asdfasdfasdfasdfasdf",
-                                   "Invalid value 'asdfasdfasdfasdfasdf' (type 'str'), expected type 'datetime'")
-
-        # Failure - int
-        self.assertValidationError(m, 17,
-                                   "Invalid value 17 (type 'int'), expected type 'datetime'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'datetime'")
-
-        # Failure - no offset
-        self.assertValidationError(m, "2012-09-06T07:05:00",
-                                   "Invalid value '2012-09-06T07:05:00' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid year
-        self.assertValidationError(m, "12-09-06T07:05:00Z",
-                                   "Invalid value '12-09-06T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid year
-        self.assertValidationError(m, "0000-09-06T07:05:00Z",
-                                   "Invalid value '0000-09-06T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid month
-        self.assertValidationError(m, "2012-00-06T07:05:00Z",
-                                   "Invalid value '2012-00-06T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid month
-        self.assertValidationError(m, "2012-13-06T07:05:00Z",
-                                   "Invalid value '2012-13-06T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid day
-        self.assertValidationError(m, "2012-12-00T07:05:00Z",
-                                   "Invalid value '2012-12-00T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid day
-        self.assertValidationError(m, "2012-12-32T07:05:00Z",
-                                   "Invalid value '2012-12-32T07:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid hour
-        self.assertValidationError(m, "2012-12-30T24:05:00Z",
-                                   "Invalid value '2012-12-30T24:05:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid minute
-        self.assertValidationError(m, "2012-12-30T23:60:00Z",
-                                   "Invalid value '2012-12-30T23:60:00Z' (type 'str'), expected type 'datetime'")
-
-        # Failure - invalid seconds
-        self.assertValidationError(m, "2012-12-30T23:59:60Z",
-                                   "Invalid value '2012-12-30T23:59:60Z' (type 'str'), expected type 'datetime'")
-
-    # uuid type
-    def test_model_uuid(self):
-
-        # Uuid model
-        m = TypeUuid()
-
-        # Success - UUID object
-        o = UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-        v = m.validate(o)
-        self.assertTrue(v is o)
-
-        # Success - lowercase
-        v = m.validate("8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
-
-        # Success - uppercase
-        v = m.validate("8DAEB11E-3C83-11E2-A7AA-20C9D0427A89")
-        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
-
-        # Success - braces
-        v = m.validate("{8daeb11e-3c83-11e2-a7aa-20c9d0427a89}")
-        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
-
-        # Success - urn
-        v = m.validate("urn:uuid:8daeb11e-3c83-11e2-a7aa-20c9d0427a89")
-        self.assertEqual(v, UUID("8daeb11e-3c83-11e2-a7aa-20c9d0427a89"))
-
-        # Failure - int
-        self.assertValidationError(m, 0,
-                                   "Invalid value 0 (type 'int'), expected type 'uuid'")
-
-        # Failure - bool
-        self.assertValidationError(m, True,
-                                   "Invalid value True (type 'bool'), expected type 'uuid'")
-
-        # Failure - None
-        self.assertValidationError(m, None,
-                                   "Invalid value None (type 'NoneType'), expected type 'uuid'")
-
-        # Failure - invalid string
-        self.assertValidationError(m, "asdfasdf",
-                                   "Invalid value 'asdfasdf' (type 'str'), expected type 'uuid'")
+ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)
+
+
+# JsonFloat unit tests
+class TestModelJsonFloat(unittest.TestCase):
+
+    # Basic two decimal places float repr
+    def test_model_jsonFloat_basic(self):
+
+        f = JsonFloat(2.25, 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2.25")
+        self.assertEqual(str(f), "2.25")
+
+    # Two decimal places float repr round up
+    def test_model_jsonFloat_round_up(self):
+
+        f = JsonFloat(2.256, 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2.26")
+        self.assertEqual(str(f), "2.26")
+
+    # Two decimal places float repr round down
+    def test_model_jsonFloat_round_down(self):
+
+        f = JsonFloat(2.254, 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2.25")
+        self.assertEqual(str(f), "2.25")
+
+    # Two decimal places float repr - ugly in Python 2.6
+    def test_model_jsonFloat_ugly(self):
+
+        f = JsonFloat(2.03, 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2.03")
+        self.assertEqual(str(f), "2.03")
+
+    # Two decimal places float repr with end-zero trimming
+    def test_model_jsonFloat_zero_trim(self):
+
+        f = JsonFloat(2.5, 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2.5")
+        self.assertEqual(str(f), "2.5")
+
+    # Two decimal places float repr with end-point trimming
+    def test_model_jsonFloat_point_trim(self):
+
+        f = JsonFloat(2., 2)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2")
+        self.assertEqual(str(f), "2")
+
+    # Zero decimal places
+    def test_model_jsonFloat_zero_prec(self):
+
+        f = JsonFloat(2.25, 0)
+        self.assertTrue(isinstance(f, float))
+        self.assertEqual(repr(f), "2")
+        self.assertEqual(str(f), "2")
+
+
+# ValidationError unit tests
+class TestModelValidationError(unittest.TestCase):
+
+    def test_model_memberSyntax_dict_single(self):
+        self.assertEqual(ValidationError.memberSyntax(("a",)), "a")
+
+    def test_model_memberSyntax_dict_nested(self):
+        self.assertEqual(ValidationError.memberSyntax(("a", "b", "c")), "a.b.c")
+
+    def test_model_memberSyntax_array_single(self):
+        self.assertEqual(ValidationError.memberSyntax((0,)), "[0]")
+
+    def test_model_memberSyntax_array_nested(self):
+        self.assertEqual(ValidationError.memberSyntax((0, 1, 0)), "[0][1][0]")
+
+    def test_model_memberSyntax_mixed(self):
+        self.assertEqual(ValidationError.memberSyntax(("a", 1, "b")), "a[1].b")
+
+    def test_model_memberSyntax_mixed2(self):
+        self.assertEqual(ValidationError.memberSyntax((1, "a", 0)), "[1].a[0]")
+
+    def test_model_memberSyntax_empty(self):
+        self.assertEqual(ValidationError.memberSyntax(()), None)
+
+    def test_model_memberSyntax_none(self):
+        self.assertEqual(ValidationError.memberSyntax(None), None)
+
+    def test_model_memberError_basic(self):
+        e = ValidationError.memberError(TypeInt(), "abc", ("a",))
+        self.assertTrue(isinstance(e, Exception))
+        self.assertTrue(isinstance(e, ValidationError))
+        self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+        self.assertEqual(e.member, "a")
+
+    def test_model_memberError_no_member(self):
+        e = ValidationError.memberError(TypeInt(), "abc", ())
+        self.assertTrue(isinstance(e, Exception))
+        self.assertTrue(isinstance(e, ValidationError))
+        self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
+        self.assertEqual(e.member, None)
+
+    def test_model_memberError_constraint(self):
+        e = ValidationError.memberError(TypeInt(), 6, ("a",), constraintSyntax = "< 5")
+        self.assertTrue(isinstance(e, Exception))
+        self.assertTrue(isinstance(e, ValidationError))
+        self.assertEqual(str(e), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
+        self.assertEqual(e.member, "a")
+
+
+# TypeStruct validation tests
+class TestModelStructValidation(unittest.TestCase):
+
+    # Test struct type construction
+    def test_model_struct_init(self):
+
+        t = TypeStruct()
+        self.assertEqual(t.typeName, "struct")
+        self.assertEqual(t.members, [])
+        self.assertEqual(t.doc, [])
+
+        t.addMember("a", TypeStruct())
+        self.assertEqual(len(t.members), 1)
+        self.assertEqual(t.members[0].name, "a")
+        self.assertTrue(isinstance(t.members[0].typeInst, TypeStruct))
+        self.assertEqual(t.members[0].isOptional, False)
+        self.assertEqual(t.members[0].doc, [])
+
+    # All validation modes - success
+    def test_model_struct_validation(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+        t.addMember("b", TypeString())
+
+        o = {"a": 7, "b": "abc"}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7, "b": "abc"})
+
+    # All validation modes - optional member present
+    def test_model_struct_validation_optional_present(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+        t.addMember("b", TypeString(), isOptional = True)
+
+        o = {"a": 7, "b": "abc"}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7, "b": "abc"})
+
+    # All validation modes - optional member missing
+    def test_model_struct_validation_optional_missing(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+        t.addMember("b", TypeString(), isOptional = True)
+
+        o = {"a": 7}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7})
+
+    # All validation modes - nested structure
+    def test_model_struct_validation_nested(self):
+
+        t = TypeStruct()
+        t2 = TypeStruct()
+        t.addMember("a", t2)
+        t2.addMember("b", TypeInt())
+
+        o = {"a": {"b": 7}}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+                self.assertTrue(o["a"] is o2["a"])
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(o["a"] is not o2["a"])
+                self.assertTrue(isinstance(o2, dict))
+                self.assertTrue(isinstance(o2["a"], dict))
+            self.assertEqual(o2, {"a": {"b": 7}})
+
+    # All validation modes - struct
+    def test_model_struct_validation_struct(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = Struct(a = 7)
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7})
+
+    # Query string validation mode - transformed member
+    def test_model_struct_validation_query_string_transformed_member(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = {"a": "7"}
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": 7})
+
+    # Query string validation mode - empty string
+    def test_model_struct_validation_query_string_empty_string(self):
+
+        t = TypeStruct()
+
+        o = ""
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {})
+
+    # JSON input validation mode - transformed member
+    def test_model_struct_validation_json_input_transformed_member(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeUuid())
+
+        o = {"a": "184EAB31-4307-416C-AAC4-3B92B2358677"}
+        o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": UUID("184EAB31-4307-416C-AAC4-3B92B2358677")})
+
+    # JSON output validation mode - transformed member
+    def test_model_struct_validation_json_output_transformed_member(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeUuid())
+
+        o = {"a": UUID("184EAB31-4307-416C-AAC4-3B92B2358677")}
+        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": "184eab31-4307-416c-aac4-3b92b2358677"})
+
+    # All validation modes - error - invalid value
+    def test_model_struct_validation_error_invalid_value(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'struct'")
+            else:
+                self.fail()
+
+    # All validation modes - error - optional none value
+    def test_model_struct_validation_error_optional_none_value(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt(), isOptional = True)
+
+        o = {"a": None}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - array struct
+    def test_model_struct_validation_error_array_struct(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = Struct([])
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [] (type 'Struct'), expected type 'struct'")
+            else:
+                self.fail()
+
+    # All validation modes - error - member validation
+    def test_model_struct_validation_error_member_validation(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = {"a": "abc"}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - nested member validation
+    def test_model_struct_validation_error_nested_member_validation(self):
+
+        t = TypeStruct()
+        t2 = TypeStruct()
+        t.addMember("a", t2)
+        t2.addMember("b", TypeInt())
+
+        o = {"a": {"b": "abc"}}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - unknown member
+    def test_model_struct_validation_error_unknown_member(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = {"a": 7, "b": 8}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Unknown member 'b'")
+            else:
+                self.fail()
+
+    # All validation modes - error - missing member
+    def test_model_struct_validation_error_missing_member(self):
+
+        t = TypeStruct()
+        t.addMember("a", TypeInt())
+
+        o = {}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Required member 'a' missing")
+            else:
+                self.fail()
+
+
+# TypeArray validation tests
+class TestModelArrayValidation(unittest.TestCase):
+
+    # Test array type construction
+    def test_model_array_init(self):
+
+        t = TypeArray(TypeInt())
+        self.assertEqual(t.typeName, "array")
+        self.assertTrue(isinstance(t.typeInst, TypeInt))
+
+    # All validation modes - success
+    def test_model_array_validation(self):
+
+        t = TypeArray(TypeInt())
+
+        o = [1, 2, 3]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, list))
+            self.assertEqual(o2, [1, 2, 3])
+
+    # All validation modes - nested
+    def test_model_array_validation_nested(self):
+
+        t = TypeArray(TypeArray(TypeInt()))
+
+        o = [[1, 2, 3], [4, 5, 6]]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, list))
+            self.assertEqual(o2, [[1, 2, 3], [4, 5, 6]])
+
+    # All validation modes - struct
+    def test_model_array_validation_struct(self):
+
+        t = TypeArray(TypeInt())
+
+        o = Struct([1, 2, 3])
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, list))
+            self.assertEqual(o2, [1, 2, 3])
+
+    # Query string validation mode - transformed member
+    def test_model_array_validation_query_string_transformed_member(self):
+
+        t = TypeArray(TypeInt())
+
+        o = [1, "2", 3]
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, [1, 2, 3])
+
+    # Query string validation mode - empty string
+    def test_model_array_validation_query_string_empty_string(self):
+
+        t = TypeArray(TypeInt())
+
+        o = ""
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, [])
+
+    # JSON input validation mode - transformed member
+    def test_model_array_validation_json_input_transformed_member(self):
+
+        t = TypeArray(TypeUuid())
+
+        o = ["39E23A29-2BEA-4402-A4D2-BB3DC057D17A"]
+        o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, [UUID("39E23A29-2BEA-4402-A4D2-BB3DC057D17A")])
+
+    # JSON output validation mode - transformed member
+    def test_model_array_validation_json_output_transformed_member(self):
+
+        t = TypeArray(TypeUuid())
+
+        o = [UUID("39E23A29-2BEA-4402-A4D2-BB3DC057D17A")]
+        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, ["39e23a29-2bea-4402-a4d2-bb3dc057d17a"])
+
+    # All validation modes - error - invalid value
+    def test_model_array_validation_error_invalid_value(self):
+
+        t = TypeArray(TypeInt())
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'array'")
+            else:
+                self.fail()
+
+    # All validation modes - error - dict struct
+    def test_model_array_validation_error_dict_struct(self):
+
+        t = TypeArray(TypeInt())
+
+        o = Struct({})
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value {} (type 'Struct'), expected type 'array'")
+            else:
+                self.fail()
+
+    # All validation modes - error - member validation
+    def test_model_array_validation_error_member_validation(self):
+
+        t = TypeArray(TypeInt())
+
+        o = [1, "abc", 3]
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '[1]', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - error nested
+    def test_model_array_validation_error_nested(self):
+
+        t = TypeArray(TypeArray(TypeInt()))
+
+        o = [[1, 2, 3], [4, 5, "abc"]]
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
+            else:
+                self.fail()
+
+
+# TypeDict validation tests
+class TestModelDictValidation(unittest.TestCase):
+
+    # Test dict type construction
+    def test_model_dict_init(self):
+
+        t = TypeDict(TypeInt())
+        self.assertEqual(t.typeName, "dict")
+        self.assertTrue(isinstance(t.typeInst, TypeInt))
+
+    # All validation modes - success
+    def test_model_dict_validation(self):
+
+        t = TypeDict(TypeInt())
+
+        o = {"a": 7, "b": 8}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7, "b": 8})
+
+    # All validation modes - nested
+    def test_model_dict_validation_nested(self):
+
+        t = TypeDict(TypeDict(TypeInt()))
+
+        o = {"a": {"b": 7}}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": {"b": 7}})
+
+    # All validation modes - struct
+    def test_model_dict_validation_struct(self):
+
+        t = TypeDict(TypeInt())
+
+        o = Struct({"a": 7})
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {"a": 7})
+
+    # Query string validation mode - transformed member
+    def test_model_dict_validation_query_string_transformed_member(self):
+
+        t = TypeDict(TypeInt())
+
+        o = {"a": "7"}
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": 7})
+
+    # Query string validation mode - empty string
+    def test_model_dict_validation_query_string_empty_string(self):
+
+        t = TypeDict(TypeInt())
+
+        o = ""
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {})
+
+    # JSON input validation mode - transformed member
+    def test_model_dict_validation_json_input_transformed_member(self):
+
+        t = TypeDict(TypeUuid())
+
+        o = {"a": "72D33C44-7D30-4F15-903C-56DCC6DECD75"}
+        o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": UUID("72D33C44-7D30-4F15-903C-56DCC6DECD75")})
+
+    # JSON output validation mode - transformed member
+    def test_model_dict_validation_json_output_transformed_member(self):
+
+        t = TypeDict(TypeUuid())
+
+        o = {"a": UUID("72D33C44-7D30-4F15-903C-56DCC6DECD75")}
+        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, {"a": "72d33c44-7d30-4f15-903c-56dcc6decd75"})
+
+    # All validation modes - error - invalid value
+    def test_model_dict_validation_error_invalid_value(self):
+
+        t = TypeDict(TypeInt())
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'dict'")
+            else:
+                self.fail()
+
+    # All validation modes - error - member key validation
+    def test_model_dict_validation_error_member_key_validation(self):
+
+        t = TypeDict(TypeInt())
+
+        o = {7: 7}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
+            else:
+                self.fail()
+
+    # All validation modes - error - member validation
+    def test_model_dict_validation_error_member_validation(self):
+
+        t = TypeDict(TypeInt())
+
+        o = {"7": "abc"}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - nested member validation
+    def test_model_dict_validation_error_nested_member_validation(self):
+
+        t = TypeDict(TypeDict(TypeInt()))
+
+        o = {"a": {"b": "abc"}}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - array struct
+    def test_model_dict_validation_error_array_struct(self):
+
+        t = TypeDict(TypeInt())
+
+        o = Struct([])
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [] (type 'Struct'), expected type 'dict'")
+            else:
+                self.fail()
+
+
+# TypeEnum validation tests
+class TestModelEnumValidation(unittest.TestCase):
+
+    # Test enum type construction
+    def test_model_enum_init(self):
+
+        t = TypeEnum()
+        t.addValue("a")
+        t.addValue("b")
+
+        self.assertEqual(t.typeName, "enum")
+        self.assertEqual(t.values[0].value, "a")
+        self.assertEqual(t.values[0].doc, [])
+        self.assertEqual(t.values[1].value, "b")
+        self.assertEqual(t.values[1].doc, [])
+        self.assertEqual(t.doc, [])
+
+    # All validation modes - valid enumeration value
+    def test_model_enum_validate(self):
+
+        t = TypeEnum()
+        t.addValue("a")
+        t.addValue("b")
+
+        o = "a"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - valid enumeration value
+    def test_model_enum_validate_error(self):
+
+        t = TypeEnum()
+        t.addValue("a")
+        t.addValue("b")
+
+        o = "c"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'c' (type 'str'), expected type 'enum'")
+            else:
+                self.fail()
+
+
+# TypeString validation tests
+class TestModelStringValidation(unittest.TestCase):
+
+    # Test string type construction
+    def test_model_string_init(self):
+
+        t = TypeString()
+
+        self.assertEqual(t.typeName, "string")
+        self.assertEqual(t.constraint_len_lt, None)
+        self.assertEqual(t.constraint_len_lte, None)
+        self.assertEqual(t.constraint_len_gt, None)
+        self.assertEqual(t.constraint_len_gte, None)
+
+    # All validation modes - success
+    def test_model_string_validate(self):
+
+        t = TypeString()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - unicode
+    def test_model_string_validate_unicode(self):
+
+        t = TypeString()
+
+        o = unicode_("abc")
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - error - invalid value
+    def test_model_string_validate_error(self):
+
+        t = TypeString()
+
+        o = 7
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7 (type 'int'), expected type 'string'")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_lt
+    def test_model_string_validate_constraint_len_lt(self):
+
+        t = TypeString()
+        t.constraint_len_lt = 5
+
+        o = "abcd"
+        oError = "abcde"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abcde' (type 'str'), expected type 'string' [len < 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_lte
+    def test_model_string_validate_constraint_len_lte(self):
+
+        t = TypeString()
+        t.constraint_len_lte = 5
+
+        o = "abcde"
+        oError = "abcdef"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abcdef' (type 'str'), expected type 'string' [len <= 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gt
+    def test_model_string_validate_constraint_len_gt(self):
+
+        t = TypeString()
+        t.constraint_len_gt = 5
+
+        o = "abcdef"
+        oError = "abcde"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abcde' (type 'str'), expected type 'string' [len > 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gte
+    def test_model_string_validate_constraint_len_gte(self):
+
+        t = TypeString()
+        t.constraint_len_gte = 5
+
+        o = "abcde"
+        oError = "abcd"
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abcd' (type 'str'), expected type 'string' [len >= 5]")
+            else:
+                self.fail()
+
+
+# TypeInt validation tests
+class TestModelIntValidation(unittest.TestCase):
+
+    # Test int type construction
+    def test_model_int_init(self):
+
+        t = TypeInt()
+
+        self.assertEqual(t.typeName, "int")
+        self.assertEqual(t.constraint_lt, None)
+        self.assertEqual(t.constraint_lte, None)
+        self.assertEqual(t.constraint_gt, None)
+        self.assertEqual(t.constraint_gte, None)
+
+    # All validation modes - success
+    def test_model_int_validate(self):
+
+        t = TypeInt()
+
+        o = 7
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - float
+    def test_model_int_validate_float(self):
+
+        t = TypeInt()
+
+        o = 7.
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, (int, long_)))
+                self.assertEqual(o2, 7)
+
+    # All validation modes - Decimal
+    def test_model_int_validate_decimal(self):
+
+        t = TypeInt()
+
+        o = Decimal("7")
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, (int, long_)))
+                self.assertEqual(o2, 7)
+
+    # Query string validation mode - string
+    def test_model_int_query_string(self):
+
+        t = TypeInt()
+
+        o = "7"
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, 7)
+
+    # All validation modes - error - invalid value
+    def test_model_int_validate_error(self):
+
+        t = TypeInt()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - not-integer float
+    def test_model_int_validate_error_float(self):
+
+        t = TypeInt()
+
+        o = 7.5
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7.5 (type 'float'), expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - not-integer Decimal
+    def test_model_int_validate_error_decimal(self):
+
+        t = TypeInt()
+
+        o = Decimal("7.5")
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value Decimal('7.5') (type 'Decimal'), expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - bool
+    def test_model_int_validate_error_bool(self):
+
+        t = TypeInt()
+
+        o = True
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value True (type 'bool'), expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_lt
+    def test_model_int_validate_constraint_lt(self):
+
+        t = TypeInt()
+        t.constraint_lt = 5
+
+        o = 4
+        oError = 5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5 (type 'int'), expected type 'int' [< 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_lte
+    def test_model_int_validate_constraint_lte(self):
+
+        t = TypeInt()
+        t.constraint_lte = 5
+
+        o = 5
+        oError = 6
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 6 (type 'int'), expected type 'int' [<= 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_gt
+    def test_model_int_validate_constraint_gt(self):
+
+        t = TypeInt()
+        t.constraint_gt = 5
+
+        o = 6
+        oError = 5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5 (type 'int'), expected type 'int' [> 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_gte
+    def test_model_int_validate_constraint_gte(self):
+
+        t = TypeInt()
+        t.constraint_gte = 5
+
+        o = 5
+        oError = 4
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 4 (type 'int'), expected type 'int' [>= 5]")
+            else:
+                self.fail()
+
+
+# TypeFloat validation tests
+class TestModelFloatValidation(unittest.TestCase):
+
+    # Test float type construction
+    def test_model_float_init(self):
+
+        t = TypeFloat()
+
+        self.assertEqual(t.typeName, "float")
+        self.assertEqual(t.constraint_lt, None)
+        self.assertEqual(t.constraint_lte, None)
+        self.assertEqual(t.constraint_gt, None)
+        self.assertEqual(t.constraint_gte, None)
+
+    # All validation modes - success
+    def test_model_float_validate(self):
+
+        t = TypeFloat()
+
+        o = 7.5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - int
+    def test_model_float_validate_int(self):
+
+        t = TypeFloat()
+
+        o = 7
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, float))
+                self.assertEqual(o2, 7.)
+
+    # All validation modes - long
+    def test_model_float_validate_long(self):
+
+        t = TypeFloat()
+
+        o = long_(7)
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, float))
+                self.assertEqual(o2, 7.)
+
+    # All validation modes - Decimal
+    def test_model_float_validate_decimal(self):
+
+        t = TypeFloat()
+
+        o = Decimal("7.5")
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_DEFAULT:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, float))
+                self.assertEqual(o2, 7.5)
+
+    # Query string validation mode - string
+    def test_model_float_query_string(self):
+
+        t = TypeFloat()
+
+        o = "7.5"
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, 7.5)
+
+    # All validation modes - error - invalid value
+    def test_model_float_validate_error(self):
+
+        t = TypeFloat()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'float'")
+            else:
+                self.fail()
+
+    # All validation modes - error - bool
+    def test_model_float_validate_error_bool(self):
+
+        t = TypeFloat()
+
+        o = True
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value True (type 'bool'), expected type 'float'")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_lt
+    def test_model_float_validate_constraint_lt(self):
+
+        t = TypeFloat()
+        t.constraint_lt = 5.5
+
+        o = 5.375
+        oError = 5.5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5.5 (type 'float'), expected type 'float' [< 5.5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_lte
+    def test_model_float_validate_constraint_lte(self):
+
+        t = TypeFloat()
+        t.constraint_lte = 5.5
+
+        o = 5.5
+        oError = 5.625
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5.625 (type 'float'), expected type 'float' [<= 5.5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_gt
+    def test_model_float_validate_constraint_gt(self):
+
+        t = TypeFloat()
+        t.constraint_gt = 5.5
+
+        o = 5.625
+        oError = 5.5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5.5 (type 'float'), expected type 'float' [> 5.5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_gte
+    def test_model_float_validate_constraint_gte(self):
+
+        t = TypeFloat()
+        t.constraint_gte = 5.5
+
+        o = 5.5
+        oError = 5.375
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 5.375 (type 'float'), expected type 'float' [>= 5.5]")
+            else:
+                self.fail()
+
+
+# TypeBool validation tests
+class TestModelBoolValidation(unittest.TestCase):
+
+    # Test bool type construction
+    def test_model_bool_init(self):
+
+        t = TypeBool()
+
+        self.assertEqual(t.typeName, "bool")
+
+    # All validation modes - success
+    def test_model_bool_validate(self):
+
+        t = TypeBool()
+
+        o = False
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # Query string validation mode - string
+    def test_model_bool_validate_query_string(self):
+
+        t = TypeBool()
+
+        for o, expected in (("false", False), ("true", True)):
+            o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+            self.assertTrue(o is not o2)
+            self.assertTrue(isinstance(o2, bool))
+            self.assertEqual(o2, expected)
+
+    # All validation modes - error - invalid value
+    def test_model_bool_validate_error(self):
+
+        t = TypeBool()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'bool'")
+            else:
+                self.fail()
+
+
+# TypeUuid validation tests
+class TestModelUuidValidation(unittest.TestCase):
+
+    # Test uuid type construction
+    def test_model_uuid_init(self):
+
+        t = TypeUuid()
+
+        self.assertEqual(t.typeName, "uuid")
+
+    # All validation modes - success
+    def test_model_uuid_validate(self):
+
+        t = TypeUuid()
+
+        o = UUID("AED91C7B-DCFD-49B3-A483-DBC9EA2031A3")
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_JSON_OUTPUT:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o2, "aed91c7b-dcfd-49b3-a483-dbc9ea2031a3")
+            else:
+                self.assertTrue(o is o2)
+
+    # Query string and JSON input validation modes - string
+    def test_model_uuid_validate_string(self):
+
+        t = TypeUuid()
+
+        o = "AED91C7B-DCFD-49B3-A483-DBC9EA2031A3"
+        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is not o2)
+            self.assertTrue(isinstance(o2, UUID))
+            self.assertEqual(o2, UUID("AED91C7B-DCFD-49B3-A483-DBC9EA2031A3"))
+
+    # All validation modes - error - invalid value
+    def test_model_uuid_validate_error(self):
+
+        t = TypeUuid()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
+            else:
+                self.fail()
+
+
+# TypeDatetime validation tests
+class TestModelDatetimeValidation(unittest.TestCase):
+
+    # Test datetime type construction
+    def test_model_datetime_init(self):
+
+        t = TypeDatetime()
+
+        self.assertEqual(t.typeName, "datetime")
+
+    # All validation modes - success
+    def test_model_datetime_validate(self):
+
+        t = TypeDatetime()
+
+        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZUTC())
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_JSON_OUTPUT:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o2, "2013-05-26T11:01:00+00:00")
+            else:
+                self.assertTrue(o is o2)
+
+    # All validation modes - no timezone
+    def test_model_datetime_validate_no_timezone(self):
+
+        t = TypeDatetime()
+
+        o = datetime(2013, 5, 26, 11, 1, 0)
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode == VALIDATE_JSON_OUTPUT:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZLocal()).isoformat())
+            elif mode != VALIDATE_DEFAULT:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZLocal()))
+            else:
+                self.assertTrue(o is o2)
+
+    # Query string and JSON input validation modes - string
+    def test_model_datetime_validate_query_string(self):
+
+        t = TypeDatetime()
+
+        o = "2013-05-26T11:01:00+08:00"
+        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is not o2)
+            self.assertTrue(isinstance(o2, datetime))
+            self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo = TypeDatetime.TZUTC()))
+
+    # Query string and JSON input validation modes - string - zulu
+    def test_model_datetime_validate_query_string_zulu(self):
+
+        t = TypeDatetime()
+
+        o = "2013-05-26T11:01:00Z"
+        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is not o2)
+            self.assertTrue(isinstance(o2, datetime))
+            self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZUTC()))
+
+    # Query string and JSON input validation modes - string - fraction second
+    def test_model_datetime_validate_query_string_fracsec(self):
+
+        t = TypeDatetime()
+
+        o = "2013-05-26T11:01:00.1234Z"
+        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is not o2)
+            self.assertTrue(isinstance(o2, datetime))
+            self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo = TypeDatetime.TZUTC()))
+
+    # All validation modes - error - invalid value
+    def test_model_datetime_validate_error(self):
+
+        t = TypeDatetime()
+
+        o = "abc"
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
+            else:
+                self.fail()

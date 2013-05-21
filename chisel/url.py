@@ -61,7 +61,7 @@ def encodeQueryString(o, encoding = "utf-8"):
     iterateItems(o, (), topLevel = True)
 
     # Join the object query string
-    return "&".join(["=".join((".".join(k), v)) for k, v in sorted(keysValues)])
+    return "&".join("=".join((".".join(k), v)) for k, v in sorted(keysValues))
 
 
 # Decode an object from a URL query string
@@ -87,10 +87,10 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
         if PY3: # pragma: no cover
-            keys = [makeKey(urllib.unquote(key, encoding = encoding)) for key in keysValue[0].split(".")]
+            keys = (makeKey(urllib.unquote(key, encoding = encoding)) for key in keysValue[0].split("."))
             value = urllib.unquote(keysValue[1], encoding = encoding)
         else:
-            keys = [makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split(".")]
+            keys = (makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split("."))
             value = urllib.unquote(keysValue[1]).decode(encoding)
 
         # Find/create the object on which to set the value

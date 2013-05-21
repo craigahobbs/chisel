@@ -30,26 +30,6 @@ import re
 from uuid import UUID
 
 
-# Python json module "default" function
-def jsonDefault(obj):
-
-    # Unwrap structs
-    if isinstance(obj, Struct):
-        obj = obj()
-
-    # Control serialization of specific types
-    if isinstance(obj, datetime):
-        if obj.tzinfo is None:
-            dt = datetime(obj.year, obj.month, obj.day, obj.hour, obj.minute, obj.second, obj.microsecond, TypeDatetime.TZLocal())
-        else:
-            dt = obj
-        return dt.isoformat()
-    elif isinstance(obj, UUID):
-        return str(obj)
-    else:
-        return obj
-
-
 # Floating point number with precision for JSON encoding
 class JsonFloat(float):
 
@@ -66,6 +46,13 @@ class JsonFloat(float):
         return self.__repr__()
 
 
+# Validation mode
+VALIDATE_DEFAULT = 0
+VALIDATE_QUERY_STRING = 1
+VALIDATE_JSON_INPUT = 2
+VALIDATE_JSON_OUTPUT = 3
+
+
 # Type validation exception
 class ValidationError(Exception):
 
@@ -76,24 +63,16 @@ class ValidationError(Exception):
     @classmethod
     def memberSyntax(cls, members):
         if members:
-            return "".join([((".%s" if isinstance(x, basestring_) else "[%r]") % (x,)) for x in members]).lstrip(".")
-        else:
-            return None
+            return "".join((("." + x) if isinstance(x, basestring_) else ("[" + repr(x) + "]")) for x in members).lstrip(".")
+        return None
 
     @classmethod
     def memberError(cls, typeInst, value, members, constraintSyntax = None):
-
-        # Unwrap structs
-        if isinstance(value, Struct):
-            value = value()
-
-        # Format the error string
-        constraintPhrase = " [%s]" % (constraintSyntax,) if constraintSyntax else ""
         memberSyntax = cls.memberSyntax(members)
-        memberPhrase = " for member %r" % (memberSyntax,) if memberSyntax else ""
-        msg = "Invalid value %r (type %r)%s, expected type %r%s" % \
-              (value, value.__class__.__name__, memberPhrase, typeInst.typeName, constraintPhrase)
-
+        msg = "Invalid value " + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
+              ((" for member '" + memberSyntax + "'") if memberSyntax else "") + \
+              ", expected type '" + typeInst.typeName + "'" + \
+              ((" [" + constraintSyntax + "]") if constraintSyntax else "")
         return ValidationError(msg, member = memberSyntax)
 
 
@@ -113,41 +92,49 @@ class TypeStruct(object):
         self.members = []
         self.doc = [] if doc is None else doc
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def addMember(self, name, typeInst, isOptional = False, doc = None):
+        member = self.Member(name, typeInst, isOptional, doc)
+        self.members.append(member)
+        return member
 
-        # Unwrap structs
-        valueInner = value() if isinstance(value, Struct) else value
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
-        # Validate dict value type
-        if acceptString and isinstance(valueInner, basestring_) and len(valueInner) == 0:
-            return {}
-        elif not isinstance(valueInner, dict):
-            raise ValidationError.memberError(self, valueInner, _member)
+        # Validate and translate the value
+        if isinstance(value, dict):
+            valueX = value
+        elif isinstance(value, Struct):
+            valueX = value()
+            if not isinstance(valueX, dict):
+                raise ValidationError.memberError(self, value, _member)
+        elif mode == VALIDATE_QUERY_STRING and value == "":
+            valueX = {}
+        else:
+            raise ValidationError.memberError(self, value, _member)
+
+        # Result a copy?
+        valueCopy = None if mode == VALIDATE_DEFAULT else {}
 
         # Validate members
-        memberNames = {}
+        memberNames = set()
         for member in self.members:
-
-            # Index the member names
-            memberNames[member.name] = member
+            memberNames.add(member.name)
 
             # Is the required member not present?
-            if member.name not in valueInner:
+            if member.name not in valueX:
                 if not member.isOptional:
-                    raise ValidationError("Required member %r missing" % (ValidationError.memberSyntax((_member + (member.name,)))))
+                    raise ValidationError("Required member '" + ValidationError.memberSyntax(_member + (member.name,)) + "' missing")
             else:
                 # Validate the member value
-                memberValue = valueInner[member.name]
-                memberValueNew = member.typeInst.validate(memberValue, acceptString = acceptString, _member = _member + (member.name,))
-                if memberValueNew is not memberValue:
-                    valueInner[member.name] = memberValueNew
+                memberValue = member.typeInst.validate(valueX[member.name], mode, _member + (member.name,))
+                if valueCopy is not None:
+                    valueCopy[member.name] = memberValue
 
         # Check for invalid members
-        for valueKey in valueInner:
+        for valueKey in valueX:
             if valueKey not in memberNames:
-                raise ValidationError("Invalid member %r" % (ValidationError.memberSyntax((_member + (valueKey,)))))
+                raise ValidationError("Unknown member '" + ValidationError.memberSyntax(_member + (valueKey,)) + "'")
 
-        return value
+        return value if valueCopy is None else valueCopy
 
 
 # Array type
@@ -158,25 +145,30 @@ class TypeArray(object):
         self.typeName = typeName
         self.typeInst = typeInst
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
-        # Unwrap structs
-        valueInner = value() if isinstance(value, Struct) else value
+        # Validate and translate the value
+        if isinstance(value, (list, tuple)):
+            valueX = value
+        elif isinstance(value, Struct):
+            valueX = value()
+            if not isinstance(valueX, (list, tuple)):
+                raise ValidationError.memberError(self, value, _member)
+        elif mode == VALIDATE_QUERY_STRING and value == "":
+            valueX = []
+        else:
+            raise ValidationError.memberError(self, value, _member)
 
-        # Validate list value type
-        if acceptString and isinstance(value, basestring_) and len(value) == 0:
-            return []
-        elif not isinstance(valueInner, (list, tuple)):
-            raise ValidationError.memberError(self, valueInner, _member)
+        # Result a copy?
+        valueCopy = None if mode == VALIDATE_DEFAULT else []
 
         # Validate the list contents
-        for ix in xrange_(0, len(valueInner)):
-            arrayValue = valueInner[ix]
-            arrayValueNew = self.typeInst.validate(arrayValue, acceptString = acceptString, _member = _member + (ix,))
-            if arrayValueNew is not arrayValue:
-                valueInner[ix] = arrayValueNew
+        for ixArrayValue, arrayValue in enumerate(valueX):
+            arrayValue = self.typeInst.validate(arrayValue, mode, _member + (ixArrayValue,))
+            if valueCopy is not None:
+                valueCopy.append(arrayValue)
 
-        return value
+        return value if valueCopy is None else valueCopy
 
 
 # Dict type
@@ -187,45 +179,47 @@ class TypeDict(object):
         self.typeName = typeName
         self.typeInst = typeInst
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
-        # Unwrap structs
-        valueInner = value() if isinstance(value, Struct) else value
+        # Validate and translate the value
+        if isinstance(value, dict):
+            valueX = value
+        elif isinstance(value, Struct):
+            valueX = value()
+            if not isinstance(valueX, dict):
+                raise ValidationError.memberError(self, value, _member)
+        elif mode == VALIDATE_QUERY_STRING and value == "":
+            valueX = {}
+        else:
+            raise ValidationError.memberError(self, value, _member)
 
-        # Validate dict value type
-        if acceptString and isinstance(value, basestring_) and len(value) == 0:
-            return {}
-        elif not isinstance(valueInner, dict):
-            raise ValidationError.memberError(self, valueInner, _member)
+        # Result a copy?
+        valueCopy = None if mode == VALIDATE_DEFAULT else {}
 
         # Validate the dict key/value pairs
-        for key in valueInner:
+        for key in valueX:
 
             # Dict keys must be strings
             if not isinstance(key, basestring_):
                 raise ValidationError.memberError(TypeString(), key, _member + (key,))
 
             # Validate the value
-            dictValue = valueInner[key]
-            dictValueNew = self.typeInst.validate(dictValue, acceptString = acceptString, _member = _member + (key,))
-            if dictValueNew is not dictValue:
-                valueInner[key] = dictValueNew
+            dictValue = self.typeInst.validate(valueX[key], mode, _member + (key,))
+            if valueCopy is not None:
+                valueCopy[key] = dictValue
 
-        return value
+        return value if valueCopy is None else valueCopy
 
 
 # Enumeration type
 class TypeEnum(object):
 
     class Value(object):
-
-        def __init__(self, value, doc = None):
-
-            self.value = value
+        def __init__(self, valueString, doc = None):
+            self.value = valueString
             self.doc = [] if doc is None else doc
 
         def __eq__(self, other):
-
             return self.value == other
 
     def __init__(self, typeName = "enum", doc = None):
@@ -234,12 +228,18 @@ class TypeEnum(object):
         self.values = []
         self.doc = [] if doc is None else doc
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def addValue(self, valueString, doc = None):
+        value = self.Value(valueString, doc)
+        self.values.append(value)
+        return value
 
-        if not isinstance(value, basestring_) or value not in self.values:
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+
+        # Validate the value
+        if value not in self.values:
             raise ValidationError.memberError(self, value, _member)
-        else:
-            return value
+
+        return value
 
 
 # String type
@@ -253,30 +253,23 @@ class TypeString(object):
         self.constraint_len_gt = None
         self.constraint_len_gte = None
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
-        if isinstance(value, basestring_):
-            if not isinstance(value, unicode_):
-                try:
-                    result = value.decode("utf-8")
-                except:
-                    raise ValidationError.memberError(self, value, _member)
-            else:
-                result = value
-        else:
+        # Validate the value
+        if not isinstance(value, basestring_):
             raise ValidationError.memberError(self, value, _member)
 
-        # Check constraints
-        if self.constraint_len_lt is not None and not len(result) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len < %r" % (self.constraint_len_lt,))
-        if self.constraint_len_lte is not None and not len(result) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len <= %r" % (self.constraint_len_lte,))
-        if self.constraint_len_gt is not None and not len(result) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len > %r" % (self.constraint_len_gt,))
-        if self.constraint_len_gte is not None and not len(result) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len >= %r" % (self.constraint_len_gte,))
+        # Check string constraints - lengths computed in unicode
+        if self.constraint_len_lt is not None and not len(value) < self.constraint_len_lt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len < " + repr(self.constraint_len_lt))
+        if self.constraint_len_lte is not None and not len(value) <= self.constraint_len_lte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len <= " + repr(self.constraint_len_lte))
+        if self.constraint_len_gt is not None and not len(value) > self.constraint_len_gt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len > " + repr(self.constraint_len_gt))
+        if self.constraint_len_gte is not None and not len(value) >= self.constraint_len_gte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "len >= " + repr(self.constraint_len_gte))
 
-        return result
+        return value
 
 
 # Int type
@@ -290,33 +283,34 @@ class TypeInt(object):
         self.constraint_gt = None
         self.constraint_gte = None
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
+        # Validate and translate the value
         if isinstance(value, (int, long_)) and not isinstance(value, bool):
-            result = value
+            valueX = value
         elif isinstance(value, (float, Decimal)):
-            result = int(value)
-            if result != value:
+            valueX = int(value)
+            if valueX != value:
                 raise ValidationError.memberError(self, value, _member)
-        elif acceptString and isinstance(value, basestring_):
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
-                result = int(value)
+                valueX = int(value)
             except:
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
         # Check constraints
-        if self.constraint_lt is not None and not result < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< %r" % (self.constraint_lt,))
-        if self.constraint_lte is not None and not result <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= %r" % (self.constraint_lte,))
-        if self.constraint_gt is not None and not result > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> %r" % (self.constraint_gt,))
-        if self.constraint_gte is not None and not result >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= %r" % (self.constraint_gte,))
+        if self.constraint_lt is not None and not valueX < self.constraint_lt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< " + repr(self.constraint_lt))
+        if self.constraint_lte is not None and not valueX <= self.constraint_lte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= " + repr(self.constraint_lte))
+        if self.constraint_gt is not None and not valueX > self.constraint_gt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> " + repr(self.constraint_gt))
+        if self.constraint_gte is not None and not valueX >= self.constraint_gte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= " + repr(self.constraint_gte))
 
-        return result
+        return value if mode == VALIDATE_DEFAULT else valueX
 
 
 # Float type
@@ -330,48 +324,85 @@ class TypeFloat(object):
         self.constraint_gt = None
         self.constraint_gte = None
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
+        # Validate and translate the value
         if isinstance(value, float):
-            result = value
+            valueX = value
         elif isinstance(value, (int, long_, Decimal)) and not isinstance(value, bool):
-            result = float(value)
-        elif acceptString and isinstance(value, basestring_):
+            valueX = float(value)
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
-                result = float(value)
+                valueX = float(value)
             except:
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
         # Check constraints
-        if self.constraint_lt is not None and not result < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< %r" % (self.constraint_lt,))
-        if self.constraint_lte is not None and not result <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= %r" % (self.constraint_lte,))
-        if self.constraint_gt is not None and not result > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> %r" % (self.constraint_gt,))
-        if self.constraint_gte is not None and not result >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= %r" % (self.constraint_gte,))
+        if self.constraint_lt is not None and not valueX < self.constraint_lt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "< " + repr(self.constraint_lt))
+        if self.constraint_lte is not None and not valueX <= self.constraint_lte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "<= " + repr(self.constraint_lte))
+        if self.constraint_gt is not None and not valueX > self.constraint_gt:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = "> " + repr(self.constraint_gt))
+        if self.constraint_gte is not None and not valueX >= self.constraint_gte:
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = ">= " + repr(self.constraint_gte))
 
-        return result
+        return value if mode == VALIDATE_DEFAULT else valueX
 
 
 # Bool type
 class TypeBool(object):
 
+    VALUES = {
+        "true" : True,
+        "false": False
+    }
+
     def __init__(self, typeName = "bool"):
 
         self.typeName = typeName
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
+        # Validate and translate the value
         if isinstance(value, bool):
             return value
-        elif acceptString and isinstance(value, basestring_) and value in ("true", "false"):
-            return value in ("true")
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
+            try:
+                return self.VALUES[value]
+            except:
+                raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
+
+
+# Uuid type
+class TypeUuid(object):
+
+    def __init__(self, typeName = "uuid"):
+
+        self.typeName = typeName
+
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+
+        # Validate and translate the value
+        if isinstance(value, UUID):
+            valueX = value
+        elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
+            try:
+                valueX = UUID(value)
+            except:
+                raise ValidationError.memberError(self, value, _member)
+        else:
+            raise ValidationError.memberError(self, value, _member)
+
+        # Convert to string for JSON output
+        if mode == VALIDATE_JSON_OUTPUT:
+            return str(valueX)
+
+        return value if mode == VALIDATE_DEFAULT else valueX
 
 
 # Datetime type
@@ -381,25 +412,32 @@ class TypeDatetime(object):
 
         self.typeName = typeName
 
-    def validate(self, value, acceptString = False, _member = ()):
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
+        # Validate and translate the value
         if isinstance(value, datetime):
-            return value
-        elif isinstance(value, basestring_):
+            valueX = value
+        elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
             try:
-                return self.parseISO8601Datetime(value)
-            except ValueError:
+                valueX = self.parseISO8601Datetime(value)
+            except:
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
-    # ISO 8601 regex
-    _reISO8601 = re.compile("^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})" +
-                            "(T(?P<hour>\d{2}):(?P<min>\d{2}?):(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?" +
-                            "(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$")
+        # Set a time zone
+        if mode != VALIDATE_DEFAULT and valueX.tzinfo is None:
+            valueX = datetime(valueX.year, valueX.month, valueX.day, valueX.hour,
+                              valueX.minute, valueX.second, valueX.microsecond, TypeDatetime.TZLocal())
 
-    # GMT tzinfo class for parseISO8601Datetime
-    class TZUTC(tzinfo):
+        # Convert to string for JSON output
+        if mode == VALIDATE_JSON_OUTPUT:
+            return valueX.isoformat()
+
+        return value if mode == VALIDATE_DEFAULT else valueX
+
+    # GMT tzinfo class for parseISO8601Datetime (from Python docs)
+    class TZUTC(tzinfo): # pragma: no cover
 
         def utcoffset(self, dt):
             return timedelta(0)
@@ -410,8 +448,8 @@ class TypeDatetime(object):
         def tzname(self, dt):
             return "UTC"
 
-    # Local time zone tzinfo class (for jsonDefault)
-    class TZLocal(tzinfo):
+    # Local time zone tzinfo class (from Python docs)
+    class TZLocal(tzinfo): # pragma: no cover
 
         def utcoffset(self, dt):
             if self._isdst(dt):
@@ -446,12 +484,17 @@ class TypeDatetime(object):
             tt = time.localtime(stamp)
             return tt.tm_isdst > 0
 
+    # ISO 8601 regex
+    reISO8601 = re.compile("^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})" +
+                           "(T(?P<hour>\d{2}):(?P<min>\d{2}?):(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?" +
+                           "(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$")
+
     # Static helper function to parse ISO 8601 date/time
     @classmethod
     def parseISO8601Datetime(cls, s):
 
         # Match ISO 8601?
-        m = cls._reISO8601.search(s)
+        m = cls.reISO8601.search(s)
         if not m:
             raise ValueError("Expected ISO 8601 date/time")
 
@@ -468,23 +511,3 @@ class TypeDatetime(object):
 
         return (datetime(year, month, day, hour, minute, sec, microsec, cls.TZUTC()) -
                 timedelta(hours = offhour, minutes = offmin))
-
-
-# Uuid type
-class TypeUuid(object):
-
-    def __init__(self, typeName = "uuid"):
-
-        self.typeName = typeName
-
-    def validate(self, value, acceptString = False, _member = ()):
-
-        if isinstance(value, UUID):
-            return value
-        elif isinstance(value, basestring_):
-            try:
-                return UUID(value)
-            except ValueError:
-                raise ValidationError.memberError(self, value, _member)
-        else:
-            raise ValidationError.memberError(self, value, _member)

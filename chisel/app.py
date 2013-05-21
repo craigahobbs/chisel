@@ -20,16 +20,15 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, StringIO, wsgistr_, wsgistr_new, wsgistr_str
+from .compat import basestring_, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
-from .model import jsonDefault, Struct
 from .request import Request
 from .resource.base import ResourceCollection
 from .spec import SpecParser
+from .struct import Struct
 
 from collections import namedtuple
 import imp
-import json
 import logging
 import os
 import re
@@ -312,7 +311,7 @@ class Application(object):
         # Build the headers array
         _headers = [
             ("Content-Type", contentType),
-            ("Content-Length", str(sum([len(s) for s in content])))
+            ("Content-Length", str(sum(len(s) for s in content)))
             ]
         if headers:
             _headers.extend(headers)
@@ -323,7 +322,7 @@ class Application(object):
 
     # Serialize an object to JSON
     def serializeJSON(self, o):
-        return json.dumps(o, sort_keys = True, default = jsonDefault,
+        return json.dumps(o, sort_keys = True,
                           indent = 2 if self._config.prettyOutput else None,
                           separators = (", ", ": ") if self._config.prettyOutput else (",", ":"))
 

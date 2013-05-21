@@ -288,12 +288,12 @@ class SpecParser(object):
                     continue
 
                 # Member ID already defined?
-                if [m for m in self._curType.members if m.name == memId]:
+                if any(m.name == memId for m in self._curType.members):
                     self._error("Redefinition of member '%s'" % (memId,))
 
                 # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
-                member = TypeStruct.Member(memId, self._getTypeInst(memTypeRef) or memTypeRef, doc = self._curDoc)
+                member = self._curType.addMember(memId, self._getTypeInst(memTypeRef) or memTypeRef, doc = self._curDoc)
                 self._curDoc = []
                 if isinstance(member.typeInst, self._TypeRef):
                     self._typeRefs.append(member)
@@ -335,9 +335,6 @@ class SpecParser(object):
                         else:
                             self._error("Invalid attribute '%s'" % (memAttr[0],))
 
-                # Add the struct member
-                self._curType.members.append(member)
-
             # Enum value?
             elif mValue:
 
@@ -353,9 +350,8 @@ class SpecParser(object):
                     self._error("Duplicate enumeration value '%s'" % (memId,))
 
                 # Add the enum value
-                value = TypeEnum.Value(memId, doc = self._curDoc)
+                value = self._curType.addValue(memId, doc = self._curDoc)
                 self._curDoc = []
-                self._curType.values.append(value)
 
             # Unrecognized line syntax
             else:
