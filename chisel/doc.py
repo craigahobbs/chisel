@@ -210,7 +210,7 @@ def createRequestHtml(environ, request, docCssUri = None):
             noteResponse = notes.addChild("div", _class = "chsl-note")
             noteResponseP = noteResponse.addChild("p")
             noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
-            noteResponseP.addChild("The action has a custom response callback.", isText = True)
+            noteResponseP.addChild("The action has a non-default response. See documentation for details.", isText = True)
 
         # Find all user types referenced by the action
         userTypes = {}
