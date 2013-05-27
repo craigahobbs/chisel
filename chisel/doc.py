@@ -35,12 +35,12 @@ class DocAction(Action):
         self.docCssUri = docCssUri
         Action.__init__(self, self.action, response = self.actionResponse,
                         spec = """\
-# Generate a documentation HTML for the actions implemented by the application.
+# Generate a documentation HTML for the requests implemented by the application.
 action doc
   input
-    # Generate documentation for the specified action name; generate the
-    # documentation index if the action is not specified.
-    [optional] string action
+    # Generate documentation for the specified request name; generate the
+    # documentation index if the request name is not specified.
+    [optional] string name
 """)
 
     def action(self, app, request):
@@ -48,15 +48,13 @@ action doc
 
     def actionResponse(self, app, request, response):
 
-        actions = dict(x for x in iteritems(app.requests) if isinstance(x[1], Action))
-        if request.action is None:
+        if request.name is None:
+            requests = sorted(itervalues(app.requests), key = lambda x: x.name)
             return app.response("200 OK", "text/html",
-                                createIndexHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
-                                                itervalues(actions), docCssUri = self.docCssUri))
-        elif request.action in actions:
+                                createIndexHtml(app.environ, requests, self.docCssUri))
+        elif request.name in app.requests:
             return app.response("200 OK", "text/html",
-                                createActionHtml(app.environ["SCRIPT_NAME"], app.environ["PATH_INFO"],
-                                                 actions[request.action], docCssUri = self.docCssUri))
+                                createRequestHtml(app.environ, app.requests[request.name], self.docCssUri))
         else:
             return app.response("500 Internal Server Error", "text/plain", "Unknown Action")
 
@@ -129,9 +127,9 @@ class Element(object):
 
 
 # Generate the top-level action documentation index
-def createIndexHtml(envScriptName, envPathInfo, actions, docCssUri = None):
+def createIndexHtml(environ, requests, docCssUri = None):
 
-    docRootUri = envScriptName + envPathInfo
+    docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
 
     # Index page header
     root = Element("html")
@@ -140,15 +138,30 @@ def createIndexHtml(envScriptName, envPathInfo, actions, docCssUri = None):
     head.addChild("title").addChild("Actions", isText = True, isInline = True)
     _addStyle(head, docCssUri)
     body = root.addChild("body", _class = "chsl-index-body")
-    body.addChild("h1") \
-        .addChild("Actions", isText = True, isInline = True)
 
-    # Action docs hyperlinks
-    ul = body.addChild("ul", _class = "chsl-action-list")
-    for action in sorted(actions, key = lambda x: x.name):
-        li = ul.addChild("li")
-        li.addChild("a", isInline = True, href = docRootUri + "?action=" + urllib.quote(action.name)) \
-            .addChild(action.name, isText = True)
+    # Index page title
+    if "HTTP_HOST" in environ:
+        title = environ["HTTP_HOST"]
+    else:
+        title = environ["SERVER_NAME"] + (":" + environ["SERVER_PORT"] if environ["SERVER_NAME"] != 80 else "")
+    body.addChild("h1").addChild(title, isText = True, isInline = True)
+
+    # Action and request links
+    ulSections = body.addChild("ul", _class = "chsl-request-section")
+    for sectionTitle, sectionFilter in \
+        (("Actions", lambda request: isinstance(request, Action)),
+         ("Other Requests", lambda request: not isinstance(request, Action))):
+
+        sectionRequests = [request for request in requests if sectionFilter(request)]
+        if sectionRequests:
+            liSection = ulSections.addChild("li")
+            liSection.addChild("span", isInline = True) \
+                     .addChild(sectionTitle, isText = True, isInline = True)
+            ulRequests = liSection.addChild("ul", _class = "chsl-request-list")
+            for request in sectionRequests:
+                liRequest = ulRequests.addChild("li")
+                liRequest.addChild("a", isInline = True, href = docRootUri + "?name=" + urllib.quote(request.name)) \
+                         .addChild(request.name, isText = True)
 
     # Serialize
     out = StringIO()
@@ -157,75 +170,75 @@ def createIndexHtml(envScriptName, envPathInfo, actions, docCssUri = None):
     return out.getvalue()
 
 
-# Generate the documentation for an action
-def createActionHtml(envScriptName, envPathInfo, action, docCssUri = None):
+# Generate the documentation for a request
+def createRequestHtml(environ, request, docCssUri = None):
 
-    docRootUri = envScriptName + envPathInfo
+    docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
+    isAction = isinstance(request, Action)
 
-    # Find all user types referenced by the action
-    userTypes = {}
-    def findUserTypes(structType):
-        for member in structType.members:
-            baseType = member.typeInst.typeInst if hasattr(member.typeInst, "typeInst") else member.typeInst
-            if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
-                if baseType.typeName not in userTypes:
-                    userTypes[baseType.typeName] = baseType
-                    if isinstance(baseType, TypeStruct):
-                        findUserTypes(baseType)
-    findUserTypes(action.model.inputType)
-    findUserTypes(action.model.outputType)
-
-    # Action page header
+    # Request page header
     root = Element("html")
     head = root.addChild("head")
     head.addChild("meta", isClosed = False, charset = "UTF-8")
-    head.addChild("title").addChild(action.name, isText = True, isInline = True)
+    head.addChild("title").addChild(request.name, isText = True, isInline = True)
     _addStyle(head, docCssUri)
-    body = root.addChild("body", _class = "chsl-action-body")
+    body = root.addChild("body", _class = "chsl-request-body")
     header = body.addChild("div", _class = "chsl-header");
     header.addChild("a", href = docRootUri) \
         .addChild("Back to documentation index", isText = True, isInline = True)
 
-    # Action title
+    # Request title
     body.addChild("h1") \
-        .addChild(action.name, isText = True, isInline = True)
-    _addDocText(body, action.model.doc)
+        .addChild(request.name, isText = True, isInline = True)
+    _addDocText(body, request.model.doc if isAction else request.doc)
 
-    # Note for action URLs
+    # Note for request URLs
     notes = body.addChild("div", _class = "chsl-notes")
     noteUrl = notes.addChild("div", _class = "chsl-note")
     noteUrlP = noteUrl.addChild("p")
     noteUrlP.addChild("b").addChild("Note: ", isText = True, isInline = True)
-    if not action.urls:
-        noteUrlP.addChild("The action is not exposed.", isText = True)
-    else:
-        noteUrlP.addChild("The action is exposed at the following " + ("URLs" if len(action.urls) > 1 else "URL") + ":", isText = True)
+    if request.urls:
+        noteUrlP.addChild("The request is exposed at the following " + ("URLs" if len(request.urls) > 1 else "URL") + ":", isText = True)
         ulUrls = noteUrl.addChild("ul")
-        for url in action.urls:
+        for url in request.urls:
             ulUrls.addChild("li") \
                 .addChild(url, isText = True, isInline = True)
 
-    # Note for custom response callback
-    if action.response is not None:
-        noteResponse = notes.addChild("div", _class = "chsl-note")
-        noteResponseP = noteResponse.addChild("p")
-        noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
-        noteResponseP.addChild("The action has a custom response callback.", isText = True)
+    if isAction:
+        # Note for custom response callback
+        if isAction and request.response is not None:
+            noteResponse = notes.addChild("div", _class = "chsl-note")
+            noteResponseP = noteResponse.addChild("p")
+            noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
+            noteResponseP.addChild("The action has a custom response callback.", isText = True)
 
-    # Action input and output structs
-    _structSection(body, action.model.inputType, "h2", "Input Parameters", "The action has no input parameters.")
-    _structSection(body, action.model.outputType, "h2", "Output Parameters", "The action has no output parameters.")
-    _enumSection(body, action.model.errorType, "h2", "Error Codes", "The action returns no custom error codes.")
+        # Find all user types referenced by the action
+        userTypes = {}
+        def findUserTypes(structType):
+            for member in structType.members:
+                baseType = member.typeInst.typeInst if hasattr(member.typeInst, "typeInst") else member.typeInst
+                if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
+                    if baseType.typeName not in userTypes:
+                        userTypes[baseType.typeName] = baseType
+                        if isinstance(baseType, TypeStruct):
+                            findUserTypes(baseType)
+        findUserTypes(request.model.inputType)
+        findUserTypes(request.model.outputType)
 
-    # User types
-    if userTypes:
-        body.addChild("h2") \
-            .addChild("User Types", isText = True, isInline = True)
-        for userType in sorted(itervalues(userTypes), key = lambda x: x.typeName):
-            if isinstance(userType, TypeStruct):
-                _structSection(body, userType)
-            elif isinstance(userType, TypeEnum):
-                _enumSection(body, userType)
+        # Request input and output structs
+        _structSection(body, request.model.inputType, "h2", "Input Parameters", "The action has no input parameters.")
+        _structSection(body, request.model.outputType, "h2", "Output Parameters", "The action has no output parameters.")
+        _enumSection(body, request.model.errorType, "h2", "Error Codes", "The action returns no custom error codes.")
+
+        # User types
+        if userTypes:
+            body.addChild("h2") \
+                .addChild("User Types", isText = True, isInline = True)
+            for userType in sorted(itervalues(userTypes), key = lambda x: x.typeName):
+                if isinstance(userType, TypeStruct):
+                    _structSection(body, userType)
+                elif isinstance(userType, TypeEnum):
+                    _enumSection(body, userType)
 
     # Serialize
     out = StringIO()
@@ -275,8 +288,6 @@ h1 {
 }
 h2 {
     font-size: 1.4em;
-    border-style: none none solid none;
-    border-width: 1px;
     margin: 1.4em 0 1em 0;
 }
 h3 {
@@ -326,12 +337,24 @@ a.linktarget {
 a.linktarget:hover {
     text-decoration: none;
 }
-ul.chsl-action-list {
+ul.chsl-request-section {
     list-style: none;
-    margin: 0 .2em;
+    margin: 0 0.5em;
 }
-ul.chsl-action-list li {
+ul.chsl-request-section li {
+    margin: 1.5em 0;
+}
+ul.chsl-request-section li span {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
     margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
     font-size: 1.25em;
 }
 div.chsl-header {
@@ -421,17 +444,20 @@ def _addTypeAttr(parent, typeInst):
 # Add text DOM elements
 def _addText(parent, texts):
 
-    if texts:
-        div = parent.addChild("div", _class = "chsl-text")
-        for text in texts:
-            div.addChild("p") \
-                .addChild(text, isText = True)
+    div = None
+    for text in texts:
+        if div is None:
+            div = parent.addChild("div", _class = "chsl-text")
+        div.addChild("p") \
+           .addChild(text, isText = True)
 
 # Documentation comment text HTML helper
 def _addDocText(parent, doc):
 
     # Group paragraphs
     paragraphs = []
+    if not isinstance(doc, (list, tuple)):
+        doc = (line.strip() for line in doc.splitlines())
     if doc:
         lines = []
         for line in doc:
@@ -445,7 +471,7 @@ def _addDocText(parent, doc):
             paragraphs.append(lines)
 
     # Add the text DOM elements
-    _addText(parent, ["\n".join(lines) for lines in paragraphs])
+    _addText(parent, ("\n".join(lines) for lines in paragraphs))
 
 # Struct section helper
 def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
@@ -467,7 +493,7 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
     # Empty struct?
     if not typeInst.members:
 
-        _addText(parent, [emptyMessage])
+        _addText(parent, (emptyMessage,))
 
     else:
 
@@ -509,7 +535,7 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
     # Empty struct?
     if not typeInst.values:
 
-        _addText(parent, [emptyMessage])
+        _addText(parent, (emptyMessage,))
 
     else:
 

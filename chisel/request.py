@@ -26,12 +26,13 @@ from .compat import func_name
 # Request WSGI application decorator
 class Request(object):
 
-    def __init__(self, _fn = None, name = None, urls = None):
+    def __init__(self, _fn = None, name = None, urls = None, doc = None):
 
         self.app = None
         self.fn = _fn
         self.name = name
         self.urls = urls
+        self.doc = [] if doc is None else doc
         self._setDefaults()
 
     def _setDefaults(self):

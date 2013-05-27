@@ -22,7 +22,7 @@
 
 import sys
 
-PY27 = (sys.version_info == (2, 7))
+PY27 = (sys.version_info >= (2, 7))
 PY3 = (sys.version_info >= (3, 0))
 PY32 = (sys.version_info >= (3, 2))
 
@@ -37,7 +37,7 @@ else:
 # json
 if PY27:
     import json
-else:
+else: # pragma: no cover
     try:
         import simplejson as json
     except:
