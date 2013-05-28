@@ -34,13 +34,7 @@ class TestAction(unittest.TestCase):
 
         # Application object
         self.logStream = StringIO()
-        self.app = chisel.Application(logStream = self.logStream,
-                                      configPath = StringIO("""\
-{
-    "specPaths": [],
-    "modulePaths": []
-}
-"""))
+        self.app = chisel.Application(logStream = self.logStream)
         self.app.loadSpecString("""\
 action myActionDefault
 """)

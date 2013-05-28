@@ -20,8 +20,8 @@
 # SOFTWARE.
 #
 
-from chisel import Action, SpecParser
-from chisel.compat import HTMLParser, itervalues, StringIO
+from chisel import Action
+from chisel.compat import HTMLParser, StringIO
 from chisel.doc import createIndexHtml, createRequestHtml, Element
 
 import unittest

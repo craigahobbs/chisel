@@ -350,7 +350,7 @@ class SpecParser(object):
                     self._error("Duplicate enumeration value '%s'" % (memId,))
 
                 # Add the enum value
-                value = self._curType.addValue(memId, doc = self._curDoc)
+                self._curType.addValue(memId, doc = self._curDoc)
                 self._curDoc = []
 
             # Unrecognized line syntax

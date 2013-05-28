@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_, unicode_, xrange_
+from .compat import basestring_, long_
 from .struct import Struct
 
 from datetime import datetime, timedelta, tzinfo

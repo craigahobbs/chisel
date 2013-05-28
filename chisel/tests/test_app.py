@@ -20,9 +20,10 @@
 # SOFTWARE.
 #
 
-from chisel import Application, ResourceType
+from chisel import Application
 from chisel.compat import StringIO, wsgistr_new
 
+import logging
 import os
 import unittest
 
@@ -30,11 +31,7 @@ import unittest
 # Main WSGI application callable-object tests
 class TestAppApplication(unittest.TestCase):
 
-    class MyApplication(Application):
-        pass
-
     def setUp(self):
-        self.configPath = os.path.join("test_app_files", "default.json")
 
         self.resourceData = {
             "open": [],
@@ -45,10 +42,17 @@ class TestAppApplication(unittest.TestCase):
             return len(self.resourceData["open"])
         def resourceTypeClose(resource):
             self.resourceData["close"].append(resource)
-        resourceTypes = [ResourceType("test_app_resource", resourceTypeOpen, resourceTypeClose),
-                         ResourceType("mytype", lambda resourceString: 9, lambda resource: None)]
 
-        self.app = self.MyApplication(self.configPath, resourceTypes = resourceTypes)
+        class MyApplication(Application):
+            def init(self):
+                self.loadSpecs(os.path.join(os.path.dirname(__file__), "test_app_files"))
+                self.loadRequests(os.path.join(os.path.dirname(__file__), "test_app_files"))
+                self.addResource("testResource", resourceTypeOpen, resourceTypeClose, "Hello")
+                self.addResource("myresource", lambda resourceString: 9, lambda resource: None, "mystring")
+                self.logLevel = logging.INFO
+                Application.init(self)
+
+        self.app = MyApplication()
 
     # Test default application functionality
     def test_app_default(self):
@@ -68,14 +72,6 @@ class TestAppApplication(unittest.TestCase):
             startResponseData["status"].append(status)
             startResponseData["responseHeaders"].append(responseHeaders)
 
-        # Verify that unknown resource type exception is raised
-        try:
-            self.MyApplication(self.configPath)
-        except Exception as e:
-            self.assertEqual(str(e), "Unknown resource type 'test_app_resource'")
-        except:
-            self.fail()
-
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
         self.assertEqual(responseParts, [wsgistr_new("{}")])
@@ -83,7 +79,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(self.resourceData["open"], ["Hello"])
         self.assertEqual(self.resourceData["close"], [1])
         self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
-        self.assertTrue("A warning bar, thud" in environ["wsgi.errors"].getvalue())
+        self.assertTrue("A warning..." in environ["wsgi.errors"].getvalue())
 
         # Call the application again (skips reloading)
         responseParts = self.app(environ, startResponse)
@@ -92,7 +88,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(self.resourceData["open"], ["Hello", "Hello"])
         self.assertEqual(self.resourceData["close"], [1, 2])
         self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
-        self.assertTrue("A warning bar, thud" in environ["wsgi.errors"].getvalue())
+        self.assertTrue("A warning..." in environ["wsgi.errors"].getvalue())
 
     # Test callAction method
     def test_app_request(self):

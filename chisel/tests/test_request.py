@@ -31,15 +31,8 @@ class TestRequest(unittest.TestCase):
 
     def setUp(self):
 
-        # Application object
         self.logStream = StringIO()
-        self.app = chisel.Application(logStream = self.logStream,
-                                      configPath = StringIO("""\
-{
-    "specPaths": [],
-    "modulePaths": []
-}
-"""))
+        self.app = chisel.Application(logStream = self.logStream)
 
     # Default request decorator
     def test_request_decorator(self):
