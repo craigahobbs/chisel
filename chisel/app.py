@@ -64,7 +64,8 @@ class Application(object):
     # Overridable initialization function
     def init(self):
 
-        pass
+        # Re-create default logger - application may have changed log level in its init
+        self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
 
     # Overridable WSGI entry point
     def call(self, environ, start_response):
