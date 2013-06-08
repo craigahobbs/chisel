@@ -300,7 +300,10 @@ class Application(object):
         def startResponse(status, responseHeaders):
             startResponseArgs["status"] = status
             startResponseArgs["responseHeaders"] = responseHeaders
-        responseParts = self(_environ, startResponse)
+        if self.environ:
+            responseParts = self.call(_environ, startResponse)
+        else:
+            responseParts = self(_environ, startResponse)
         responseString = wsgistr_str(wsgistr_new("").join(responseParts))
 
         return (startResponseArgs["status"],
