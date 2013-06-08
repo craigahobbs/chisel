@@ -26,3 +26,8 @@ def myAction2(ctx, request):
             multiplier = resource
 
         return { "result": request.value * multiplier }
+
+@chisel.action(urls = ("/myAction3/{myArg}",))
+def myAction3(ctx, request):
+    urlArgs = ctx.environ[chisel.Application.ENVIRON_URL_ARGS]
+    return {"myArg": urlArgs["myArg"]}

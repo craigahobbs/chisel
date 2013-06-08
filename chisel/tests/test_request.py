@@ -45,7 +45,7 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, "myRequest")
-        self.assertEqual(myRequest.urls, ["/myRequest"])
+        self.assertEqual(myRequest.urls, ("/myRequest",))
 
     # Request decorator with name
     def test_request_decorator_name(self):
@@ -58,12 +58,12 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, "foo")
-        self.assertEqual(myRequest.urls, ["/foo"])
+        self.assertEqual(myRequest.urls, ("/foo",))
 
     # Request decorator with URLs
     def test_request_decorator_urls(self):
 
-        @chisel.request(urls = ["/bar", "/thud"])
+        @chisel.request(urls = ("/bar", "/thud",))
         def myRequest(environ, start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
@@ -71,12 +71,12 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, "myRequest")
-        self.assertEqual(myRequest.urls, ["/bar", "/thud"])
+        self.assertEqual(myRequest.urls, ("/bar", "/thud"))
 
     # Decorator with name and URLs
     def test_request_decorator_name_and_urls(self):
 
-        @chisel.request(name = "foo", urls = ["/bar", "/thud"])
+        @chisel.request(name = "foo", urls = ("/bar", "/thud"))
         def myRequest(environ, start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
@@ -84,4 +84,4 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, "foo")
-        self.assertEqual(myRequest.urls, ["/bar", "/thud"])
+        self.assertEqual(myRequest.urls, ("/bar", "/thud"))

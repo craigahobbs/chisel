@@ -5,3 +5,7 @@ action myAction2
         int value
     output
         int result
+
+action myAction3
+    output
+        string myArg

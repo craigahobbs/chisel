@@ -30,6 +30,7 @@ from collections import namedtuple
 import imp
 import logging
 import os
+import re
 import sys
 import threading
 
@@ -38,6 +39,7 @@ import threading
 class Application(object):
 
     ENVIRON_APP = "chisel.app"
+    ENVIRON_URL_ARGS = 'chisel.urlArgs'
 
     ThreadState = namedtuple("ThreadState", ("environ", "start_response", "log"))
 
@@ -57,6 +59,7 @@ class Application(object):
         self.__specParser = SpecParser()
         self.__requests = {}
         self.__requestUrls = {}
+        self.__requestUrlRegex = []
         self.__resources = ResourceCollection()
         self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
         self.init()
@@ -70,7 +73,20 @@ class Application(object):
     # Overridable WSGI entry point
     def call(self, environ, start_response):
 
-        request = self.__requestUrls.get(environ["PATH_INFO"])
+        # Match the request by exact URL
+        pathInfo = environ["PATH_INFO"]
+        request = self.__requestUrls.get(pathInfo)
+
+        # If no request was matched, match by url regular expression
+        if not request:
+            for reUrl, requestRegex in self.__requestUrlRegex:
+                mUrl = reUrl.match(pathInfo)
+                if mUrl:
+                    request = requestRegex
+                    environ[self.ENVIRON_URL_ARGS] = mUrl.groupdict()
+                    break
+
+        # Handle the request
         if request is not None:
             return request(environ, start_response)
         else:
@@ -187,6 +203,10 @@ class Application(object):
     def loadSpecString(self, spec, fileName = "", finalize = True):
         self.__specParser.parseString(spec, fileName = fileName, finalize = finalize)
 
+    # Regular expression for matching URL arguments
+    __reUrlArg = re.compile("/\{([A-Za-z]\w*)\}")
+    __reUrlArgEsc = re.compile("/\\\{([A-Za-z]\w*)\\\}")
+
     # Add a request handler (Request-wrapped WSGI application)
     def addRequest(self, request):
 
@@ -201,9 +221,15 @@ class Application(object):
 
         # Add the request URLs
         for url in request.urls:
-            if url in self.__requestUrls:
-                raise Exception("Redefinition of request URL '%s'" % (url,))
-            self.__requestUrls[url] = request
+
+            # URL with arguments?
+            if self.__reUrlArg.search(url):
+                urlRegex = self.__reUrlArgEsc.sub("/(?P<\\1>[^/]+)", re.escape(url))
+                self.__requestUrlRegex.append((re.compile(urlRegex), request))
+            else:
+                if url in self.__requestUrls:
+                    raise Exception("Redefinition of request URL '%s'" % (url,))
+                self.__requestUrls[url] = request
 
         # Make the request app-aware at load-time
         request.onload(self)

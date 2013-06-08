@@ -115,7 +115,13 @@ class TestAppApplication(unittest.TestCase):
 
         # Request with environ
         status, headers, response = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 9}',
-                                                           environ = { "MYENVIRON": "10" })
+                                                     environ = { "MYENVIRON": "10" })
         self.assertEqual(response, '{"result":90}')
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+
+        # Request action matched by regex
+        status, headers, response = self.app.request("GET", "/myAction3/abcde")
+        self.assertEqual(response, '{"myArg":"abcde"}')
         self.assertEqual(status, "200 OK")
         self.assertTrue(('Content-Type', 'application/json') in headers)

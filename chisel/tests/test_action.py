@@ -50,7 +50,7 @@ action myActionDefault
         self.app.addRequest(myActionDefault)
         self.assertEqual(myActionDefault.app, self.app)
         self.assertEqual(myActionDefault.name, "myActionDefault")
-        self.assertEqual(myActionDefault.urls, ["/myActionDefault"])
+        self.assertEqual(myActionDefault.urls, ("/myActionDefault",))
         self.assertTrue(isinstance(myActionDefault.model, chisel.spec.Action))
         self.assertEqual(myActionDefault.model.name, "myActionDefault")
         self.assertEqual(myActionDefault.response, None)
@@ -83,7 +83,7 @@ action myActionName
         self.app.addRequest(myAction)
         self.assertEqual(myAction.app, self.app)
         self.assertEqual(myAction.name, "myActionName")
-        self.assertEqual(myAction.urls, ["/myActionName"])
+        self.assertEqual(myAction.urls, ("/myActionName",))
         self.assertTrue(isinstance(myAction.model, chisel.spec.Action))
         self.assertEqual(myAction.model.name, "myActionName")
         self.assertEqual(myAction.response, None)
@@ -142,7 +142,7 @@ action theAction
         self.app.addRequest(myAction)
         self.assertEqual(myAction.app, self.app)
         self.assertEqual(myAction.name, "theAction")
-        self.assertEqual(myAction.urls, ["/theAction"])
+        self.assertEqual(myAction.urls, ("/theAction",))
         self.assertTrue(isinstance(myAction.model, chisel.spec.Action))
         self.assertEqual(myAction.model.name, "theAction")
         self.assertEqual(myAction.response, None)
@@ -153,13 +153,13 @@ action theAction
         # Action decorator with urls, custom response callback, and validate response bool
         def myResponse(app, req, response):
             return []
-        @chisel.action(urls = ["/foo"], response = myResponse)
+        @chisel.action(urls = ("/foo",), response = myResponse)
         def myActionDefault(app, req):
             return {}
         self.app.addRequest(myActionDefault)
         self.assertEqual(myActionDefault.app, self.app)
         self.assertEqual(myActionDefault.name, "myActionDefault")
-        self.assertEqual(myActionDefault.urls, ["/foo"])
+        self.assertEqual(myActionDefault.urls, ("/foo",))
         self.assertTrue(isinstance(myActionDefault.model, chisel.spec.Action))
         self.assertEqual(myActionDefault.model.name, "myActionDefault")
         self.assertEqual(myActionDefault.response, myResponse)
