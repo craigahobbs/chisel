@@ -29,9 +29,7 @@ import re
 
 # Action class
 class Action(object):
-
     def __init__(self, name, doc = None):
-
         self.name = name
         self.inputType = TypeStruct(typeName = name + '_Input')
         self.outputType = TypeStruct(typeName = name + '_Output')
@@ -41,9 +39,7 @@ class Action(object):
 
 # Spec parser exception
 class SpecParserError(Exception):
-
     def __init__(self, errors):
-
         Exception.__init__(self, '\n'.join(errors))
         self.errors = errors
 
@@ -78,7 +74,6 @@ class SpecParser(object):
         }
 
     def __init__(self):
-
         self.types = {}
         self.actions = {}
         self.errors = []
@@ -151,9 +146,9 @@ class SpecParser(object):
 
     # Type id reference - converted to types on parser finalization
     class _TypeRef(object):
+        __slots__ = ('fileName', 'fileLine', 'typeName', 'isArray', 'isDict')
 
         def __init__(self, fileName, fileLine, typeName, isArray, isDict):
-
             self.fileName = fileName
             self.fileLine = fileLine
             self.typeName = typeName

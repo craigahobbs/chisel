@@ -32,6 +32,7 @@ from uuid import UUID
 
 # Floating point number with precision for JSON encoding
 class JsonFloat(float):
+    __slots__ = ('_formatString')
 
     def __new__(cls, value, prec):
         return float.__new__(cls, value)
@@ -78,8 +79,11 @@ class ValidationError(Exception):
 
 # Struct type
 class TypeStruct(object):
+    __slots__ = ('typeName', 'members', 'doc')
 
     class Member(object):
+        __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
+
         def __init__(self, name, typeInst, isOptional = False, doc = None):
             self.name = name
             self.typeInst = typeInst
@@ -87,7 +91,6 @@ class TypeStruct(object):
             self.doc = [] if doc is None else doc
 
     def __init__(self, typeName = 'struct', doc = None):
-
         self.typeName = typeName
         self.members = []
         self.doc = [] if doc is None else doc
@@ -139,9 +142,9 @@ class TypeStruct(object):
 
 # Array type
 class TypeArray(object):
+    __slots__ = ('typeName', 'typeInst')
 
     def __init__(self, typeInst, typeName = 'array'):
-
         self.typeName = typeName
         self.typeInst = typeInst
 
@@ -173,9 +176,9 @@ class TypeArray(object):
 
 # Dict type
 class TypeDict(object):
+    __slots__ = ('typeName', 'typeInst')
 
     def __init__(self, typeInst, typeName = 'dict'):
-
         self.typeName = typeName
         self.typeInst = typeInst
 
@@ -213,8 +216,11 @@ class TypeDict(object):
 
 # Enumeration type
 class TypeEnum(object):
+    __slots__ = ('typeName', 'values', 'doc')
 
     class Value(object):
+        __slots__ = ('value', 'doc')
+
         def __init__(self, valueString, doc = None):
             self.value = valueString
             self.doc = [] if doc is None else doc
@@ -223,7 +229,6 @@ class TypeEnum(object):
             return self.value == other
 
     def __init__(self, typeName = 'enum', doc = None):
-
         self.typeName = typeName
         self.values = []
         self.doc = [] if doc is None else doc
@@ -244,9 +249,9 @@ class TypeEnum(object):
 
 # String type
 class TypeString(object):
+    __slots__ = ('typeName', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte')
 
     def __init__(self, typeName = 'string'):
-
         self.typeName = typeName
         self.constraint_len_lt = None
         self.constraint_len_lte = None
@@ -274,9 +279,9 @@ class TypeString(object):
 
 # Int type
 class TypeInt(object):
+    __slots__ = ('typeName', 'constraint_lt', 'constraint_lte', 'constraint_gt', 'constraint_gte')
 
     def __init__(self, typeName = 'int'):
-
         self.typeName = typeName
         self.constraint_lt = None
         self.constraint_lte = None
@@ -315,9 +320,9 @@ class TypeInt(object):
 
 # Float type
 class TypeFloat(object):
+    __slots__ = ('typeName', 'constraint_lt', 'constraint_lte', 'constraint_gt', 'constraint_gte')
 
     def __init__(self, typeName = 'float'):
-
         self.typeName = typeName
         self.constraint_lt = None
         self.constraint_lte = None
@@ -354,6 +359,7 @@ class TypeFloat(object):
 
 # Bool type
 class TypeBool(object):
+    __slots__ = ('typeName')
 
     VALUES = {
         'true' : True,
@@ -361,7 +367,6 @@ class TypeBool(object):
     }
 
     def __init__(self, typeName = 'bool'):
-
         self.typeName = typeName
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
@@ -380,9 +385,9 @@ class TypeBool(object):
 
 # Uuid type
 class TypeUuid(object):
+    __slots__ = ('typeName')
 
     def __init__(self, typeName = 'uuid'):
-
         self.typeName = typeName
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
@@ -407,9 +412,9 @@ class TypeUuid(object):
 
 # Datetime type
 class TypeDatetime(object):
+    __slots__ = ('typeName')
 
     def __init__(self, typeName = 'datetime'):
-
         self.typeName = typeName
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):

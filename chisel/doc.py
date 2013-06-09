@@ -61,9 +61,9 @@ action doc
 
 # HTML DOM helper class
 class Element(object):
+    __slots__ = ('name', 'isText', 'isTextEscaped', 'isClosed', 'isInline', 'attrs', 'children')
 
     def __init__(self, name, isText = False, isTextEscaped = True, isClosed = True, isInline = False, **attrs):
-
         self.name = name
         self.isText = isText
         self.isTextEscaped = isTextEscaped

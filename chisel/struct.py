@@ -25,6 +25,7 @@ from .compat import iteritems, long_
 
 # Class-syntax wrapper around built-in dictionaries.
 class Struct(object):
+    __slots__ = ('_container')
 
     def __init__(self, container = None, **members):
 

@@ -27,7 +27,6 @@ from .compat import func_name
 class Request(object):
 
     def __init__(self, _fn = None, name = None, urls = None, doc = None):
-
         self.app = None
         self.fn = _fn
         self.name = name
