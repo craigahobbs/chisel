@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import itervalues, json
+from .compat import iteritems, itervalues, json
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
@@ -93,10 +93,11 @@ class Action(Request):
         # Handle the action
         jsonpFunction = None
         try:
-            # Get the input struct
+            # Get the input dict
             if isGet:
 
                 # Decode the query string
+                validateMode = VALIDATE_QUERY_STRING
                 try:
                     request = decodeQueryString(environ.get("QUERY_STRING", ""))
                 except Exception as e:
@@ -118,10 +119,20 @@ class Action(Request):
                     raise _ActionErrorInternal("IOError", "Error reading request content")
 
                 # De-serialize the JSON request
+                validateMode = VALIDATE_JSON_INPUT
                 try:
                     request = json.loads(requestContent)
                 except Exception as e:
                     raise _ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e),))
+
+            # Add url arguments
+            urlArgs = environ.get(self.app.ENVIRON_URL_ARGS)
+            if urlArgs:
+                validateMode = VALIDATE_QUERY_STRING
+                for urlArg, urlValue in iteritems(urlArgs):
+                    if urlArg in request:
+                        raise _ActionErrorInternal("InvalidInput", "Duplicate member URL argument '" + urlArg + "'")
+                    request[urlArg] = urlValue
 
             # JSONP?
             if isGet and self.JSONP in request:
@@ -130,7 +141,7 @@ class Action(Request):
 
             # Validate the request
             try:
-                request = self.model.inputType.validate(request, mode = VALIDATE_QUERY_STRING if isGet else VALIDATE_JSON_INPUT)
+                request = self.model.inputType.validate(request, validateMode)
             except ValidationError as e:
                 raise _ActionErrorInternal("InvalidInput", str(e), e.member)
 

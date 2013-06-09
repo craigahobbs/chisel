@@ -20,11 +20,12 @@
 # SOFTWARE.
 #
 
-from .compat import json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
+from .compat import iteritems, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
 from .request import Request
 from .resource.base import ResourceCollection
 from .spec import SpecParser
+from .url import unquote
 
 from collections import namedtuple
 import imp
@@ -83,7 +84,7 @@ class Application(object):
                 mUrl = reUrl.match(pathInfo)
                 if mUrl:
                     request = requestRegex
-                    environ[self.ENVIRON_URL_ARGS] = mUrl.groupdict()
+                    environ[self.ENVIRON_URL_ARGS] = dict((unquote(urlArg), unquote(urlValue)) for urlArg, urlValue in iteritems(mUrl.groupdict()))
                     break
 
         # Handle the request

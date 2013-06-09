@@ -121,7 +121,19 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex
-        status, headers, response = self.app.request("GET", "/myAction3/abcde")
-        self.assertEqual(response, '{"myArg":"abcde"}')
+        status, headers, response = self.app.request("GET", "/myAction3/123")
+        self.assertEqual(response, '{"myArg":"123"}')
         self.assertEqual(status, "200 OK")
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+
+        # Request action matched by regex - POST
+        status, headers, response = self.app.request("POST", "/myAction3/123", wsgiInput = '{}')
+        self.assertEqual(response, '{"myArg":"123"}')
+        self.assertEqual(status, "200 OK")
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+
+        # Request action matched by regex - duplicate member error
+        status, headers, response = self.app.request("GET", "/myAction3/123", queryString = "myArg=321")
+        self.assertEqual(response, '{"error":"InvalidInput","message":"Duplicate member URL argument \'myArg\'"}')
+        self.assertEqual(status, "500 Internal Server Error")
         self.assertTrue(('Content-Type', 'application/json') in headers)

@@ -24,15 +24,24 @@ from .compat import basestring_, long_, PY3, urllib, xrange_
 from .struct import Struct
 
 
+# Helper to quote strings
+def quote(s, encoding = "utf-8"):
+    if PY3: # pragma: no cover
+        return urllib.quote(s if isinstance(s, str) else str(s), encoding = encoding)
+    else:
+        return urllib.quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
+
+
+# Helper to unquote a URL key or value
+def unquote(s, encoding = "utf-8"):
+    if PY3: # pragma: no cover
+        return urllib.unquote(s, encoding = encoding)
+    else:
+        return urllib.unquote(s).decode(encoding)
+
+
 # Encode an object as a URL query string
 def encodeQueryString(o, encoding = "utf-8"):
-
-    # Helper to quote strings
-    def quote(o):
-        if PY3: # pragma: no cover
-            return urllib.quote(o if isinstance(o, str) else str(o), encoding = encoding)
-        else:
-            return urllib.quote((o if isinstance(o, basestring_) else str(o)).encode(encoding))
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
@@ -46,17 +55,17 @@ def encodeQueryString(o, encoding = "utf-8"):
         if isinstance(o, dict):
             if o:
                 for member in o:
-                    iterateItems(o[member], parent + (quote(member),))
+                    iterateItems(o[member], parent + (quote(member, encoding),))
             elif not topLevel:
                 keysValues.append((parent, ""))
         elif isinstance(o, (list, tuple)):
             if o:
                 for ix in xrange_(0, len(o)):
-                    iterateItems(o[ix], parent + (quote(ix),))
+                    iterateItems(o[ix], parent + (quote(ix, encoding),))
             elif not topLevel:
                 keysValues.append((parent, ""))
         elif o is not None:
-            keysValues.append((parent, quote(o)))
+            keysValues.append((parent, quote(o, encoding)))
 
     iterateItems(o, (), topLevel = True)
 
@@ -64,15 +73,16 @@ def encodeQueryString(o, encoding = "utf-8"):
     return "&".join("=".join((".".join(k), v)) for k, v in sorted(keysValues))
 
 
+# Helper to make a key - int means array index
+def _makeQueryStringKey(keyString):
+    try:
+        return int(keyString)
+    except:
+        return keyString
+
+
 # Decode an object from a URL query string
 def decodeQueryString(queryString, encoding = "utf-8"):
-
-    # Helper to make a key - int means array index
-    def makeKey(keyString):
-        try:
-            return int(keyString)
-        except:
-            return keyString
 
     # Build the object
     oResult = [None]
@@ -86,12 +96,8 @@ def decodeQueryString(queryString, encoding = "utf-8"):
         keysValue = keysValueString.split("=")
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
-        if PY3: # pragma: no cover
-            keys = (makeKey(urllib.unquote(key, encoding = encoding)) for key in keysValue[0].split("."))
-            value = urllib.unquote(keysValue[1], encoding = encoding)
-        else:
-            keys = (makeKey(urllib.unquote(key).decode(encoding)) for key in keysValue[0].split("."))
-            value = urllib.unquote(keysValue[1]).decode(encoding)
+        keys = (_makeQueryStringKey(unquote(key, encoding)) for key in keysValue[0].split("."))
+        value = unquote(keysValue[1], encoding)
 
         # Find/create the object on which to set the value
         oParent = oResult

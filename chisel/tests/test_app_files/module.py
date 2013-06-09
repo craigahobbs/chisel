@@ -29,5 +29,5 @@ def myAction2(ctx, request):
 
 @chisel.action(urls = ("/myAction3/{myArg}",))
 def myAction3(ctx, request):
-    urlArgs = ctx.environ[chisel.Application.ENVIRON_URL_ARGS]
-    return {"myArg": urlArgs["myArg"]}
+    assert request["myArg"] == 123
+    return {"myArg": str(request["myArg"])}

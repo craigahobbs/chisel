@@ -7,5 +7,7 @@ action myAction2
         int result
 
 action myAction3
+    input
+        int myArg
     output
         string myArg
