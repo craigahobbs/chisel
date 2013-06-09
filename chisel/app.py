@@ -51,7 +51,6 @@ class Application(object):
         self.alwaysReload = False
         self.__logStream = logStream
         self.__threadStates = {}
-        self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
         self.__initLock = threading.Lock()
         self.__init()
 
@@ -123,6 +122,30 @@ class Application(object):
         if logStream:
             logger.addHandler(logging.StreamHandler(logStream))
         return logger
+
+    # Logging level
+    @property
+    def logLevel(self):
+        return self.__logLevel
+    @logLevel.setter
+    def logLevel(self, value):
+        self.__logLevel = value
+
+    # Pretty output
+    @property
+    def prettyOutput(self):
+        return self.__prettyOutput
+    @prettyOutput.setter
+    def prettyOutput(self, value):
+        self.__prettyOutput = value
+
+    # Re-init specs and modules each request
+    @property
+    def alwaysReload(self):
+        return self.__alwaysReload
+    @alwaysReload.setter
+    def alwaysReload(self, value):
+        self.__alwaysReload = value
 
     # Spec parser
     @property
