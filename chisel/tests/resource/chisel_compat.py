@@ -57,7 +57,7 @@ class urllib2(object):
         parts.extend([str(x) for x in request.header])
         parts.extend([str(x) for x in request.unredirected_header])
         parts.extend(request.data)
-        return StringIO("\n".join(parts))
+        return StringIO('\n'.join(parts))
 
 
     # Mock url error

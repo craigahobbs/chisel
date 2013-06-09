@@ -23,12 +23,12 @@
 # Replace pyodbc with mock
 import sys
 from . import pyodbc
-sys.modules["pyodbc"] = pyodbc
+sys.modules['pyodbc'] = pyodbc
 
 from chisel.resource.pyodbc_connect import PyodbcConnectResourceType
 
 # Restore pyodbc
-del sys.modules["pyodbc"]
+del sys.modules['pyodbc']
 
 import unittest
 
@@ -41,17 +41,17 @@ class TestResourcePyodbcConnect(unittest.TestCase):
 
         # Create the resource type (default autocommit)
         resourceType = PyodbcConnectResourceType()
-        self.assertEqual(resourceType.name, "pyodbc_connect")
+        self.assertEqual(resourceType.name, 'pyodbc_connect')
 
         # Create a connection
-        conn = resourceType.open("MyConnectionString")
-        self.assertEqual(conn._connection.connectionString, "MyConnectionString")
+        conn = resourceType.open('MyConnectionString')
+        self.assertEqual(conn._connection.connectionString, 'MyConnectionString')
         self.assertTrue(conn._connection.autocommit)
         self.assertTrue(not conn._connection.isClosed)
 
         # Create a cursor and execute
         conn.cursor()
-        conn.execute("MyQuery ? ? ?", 1, 2, 3)
+        conn.execute('MyQuery ? ? ?', 1, 2, 3)
 
         # Close the connection
         resourceType.close(conn)
@@ -59,11 +59,11 @@ class TestResourcePyodbcConnect(unittest.TestCase):
 
         # Create the resource type (autocommit = False)
         resourceType = PyodbcConnectResourceType(autocommit = False)
-        self.assertEqual(resourceType.name, "pyodbc_connect_noautocommit")
+        self.assertEqual(resourceType.name, 'pyodbc_connect_noautocommit')
 
         # Create a connection
-        conn = resourceType.open("MyConnectionString2")
-        self.assertEqual(conn._connection.connectionString, "MyConnectionString2")
+        conn = resourceType.open('MyConnectionString2')
+        self.assertEqual(conn._connection.connectionString, 'MyConnectionString2')
         self.assertTrue(not conn._connection.autocommit)
         self.assertTrue(not conn._connection.isClosed)
 

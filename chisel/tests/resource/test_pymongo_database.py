@@ -23,14 +23,14 @@
 # Replace pymongo with mock
 import sys
 from . import pymongo
-sys.modules["pymongo"] = pymongo
-sys.modules["pymongo.database"] = pymongo
+sys.modules['pymongo'] = pymongo
+sys.modules['pymongo.database'] = pymongo
 
 from chisel.resource.pymongo_database import PymongoDatabaseResourceType
 
 # Restore pymongo
-del sys.modules["pymongo"]
-del sys.modules["pymongo.database"]
+del sys.modules['pymongo']
+del sys.modules['pymongo.database']
 
 import unittest
 
@@ -43,43 +43,43 @@ class TestResourcePymongoDatabase(unittest.TestCase):
 
         # Create the resource type (default autocommit)
         resourceType = PymongoDatabaseResourceType()
-        self.assertEqual(resourceType.name, "pymongo_database")
+        self.assertEqual(resourceType.name, 'pymongo_database')
 
         # Mongo URI with database, no user info
-        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost/?myoption=myvalue")
+        mongodb = resourceType.open('mongodb://myhost/mydatabase?myoption=myvalue')
+        self.assertEqual(mongodb.conn.mongoUri, 'mongodb://myhost/?myoption=myvalue')
         self.assertEqual(mongodb.conn.read_preference, None)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
-        self.assertEqual(mongodb.dbname, "mydatabase")
+        self.assertEqual(mongodb.dbname, 'mydatabase')
         resourceType.close(mongodb)
 
         # Mongo URI with database, with user info
-        mongodb = resourceType.open("mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue")
+        mongodb = resourceType.open('mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue')
+        self.assertEqual(mongodb.conn.mongoUri, 'mongodb://myuser:mypass@myhost/mydatabase?myoption=myvalue')
         self.assertEqual(mongodb.conn.read_preference, None)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
-        self.assertEqual(mongodb.dbname, "mydatabase")
+        self.assertEqual(mongodb.dbname, 'mydatabase')
         resourceType.close(mongodb)
 
         # Mongo URI with database, with read preference
-        mongodb = resourceType.open("mongodb://myhost/mydatabase?myoption=myvalue&readPreference=secondary")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost/?myoption=myvalue")
+        mongodb = resourceType.open('mongodb://myhost/mydatabase?myoption=myvalue&readPreference=secondary')
+        self.assertEqual(mongodb.conn.mongoUri, 'mongodb://myhost/?myoption=myvalue')
         self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
-        self.assertEqual(mongodb.dbname, "mydatabase")
+        self.assertEqual(mongodb.dbname, 'mydatabase')
         resourceType.close(mongodb)
 
         # Mongo URI with database, with read_preference #2
-        mongodb = resourceType.open("mongodb://myhost/mydatabase?readPreference=secondary")
-        self.assertEqual(mongodb.conn.mongoUri, "mongodb://myhost")
+        mongodb = resourceType.open('mongodb://myhost/mydatabase?readPreference=secondary')
+        self.assertEqual(mongodb.conn.mongoUri, 'mongodb://myhost')
         self.assertEqual(mongodb.conn.read_preference, pymongo.ReadPreference.SECONDARY)
         self.assertTrue(isinstance(mongodb, pymongo.database.Database))
-        self.assertEqual(mongodb.dbname, "mydatabase")
+        self.assertEqual(mongodb.dbname, 'mydatabase')
         resourceType.close(mongodb)
 
         # No database
         try:
-            resourceType.open("mongodb://myhost")
+            resourceType.open('mongodb://myhost')
         except pymongo.errors.InvalidURI:
             pass
         else:
@@ -87,7 +87,7 @@ class TestResourcePymongoDatabase(unittest.TestCase):
 
         # Invalid read preference
         try:
-            resourceType.open("mongodb://myhost/mydatabase?readPreference=asdf")
+            resourceType.open('mongodb://myhost/mydatabase?readPreference=asdf')
         except pymongo.errors.ConfigurationError:
             pass
         else:

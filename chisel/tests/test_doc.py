@@ -35,7 +35,7 @@ class HTMLValidator(HTMLParser):
         self.elements = []
 
     def handle_starttag(self, tag, attrs):
-        if tag not in ("br", "img", "link", "meta"):
+        if tag not in ('br', 'img', 'link', 'meta'):
             self.elements.append(tag)
 
     def handle_endtag(self, tag):
@@ -43,7 +43,7 @@ class HTMLValidator(HTMLParser):
         assert expectedTag == tag, "Expected '%s' element, got '%s'" % (expectedTag, tag)
 
     def close(self):
-        assert not self.elements, "Un-popped HTML elements! %r" % (self.elements,)
+        assert not self.elements, 'Un-popped HTML elements! %r' % (self.elements,)
         HTMLParser.close(self)
 
     @staticmethod
@@ -56,7 +56,7 @@ class HTMLValidator(HTMLParser):
 # Documentation generation tests
 class TestDoc(unittest.TestCase):
 
-    _spec = """
+    _spec = '''
 enum MyEnum
     Value1
     Value2
@@ -96,19 +96,19 @@ action myAction2
     errors
         MyError1
         MyError2
-"""
+'''
 
     _environ = {
-        "SCRIPT_NAME": "",
-        "PATH_INFO": "/",
-        "HTTP_HOST": "localhost:8080"
+        'SCRIPT_NAME': '',
+        'PATH_INFO': '/',
+        'HTTP_HOST': 'localhost:8080'
     }
 
     _environ2 = {
-        "SCRIPT_NAME": "",
-        "PATH_INFO": "/",
-        "SERVER_NAME": "localhost",
-        "SERVER_PORT": "8080"
+        'SCRIPT_NAME': '',
+        'PATH_INFO': '/',
+        'SERVER_NAME': 'localhost',
+        'SERVER_PORT': '8080'
     }
 
     # Test documentation index HTML generation
@@ -116,8 +116,8 @@ action myAction2
 
         # Create the action models
         actions = (
-            Action(name = "myAction1", spec = self._spec),
-            Action(name = "myAction2", spec = self._spec)
+            Action(name = 'myAction1', spec = self._spec),
+            Action(name = 'myAction2', spec = self._spec)
             )
 
         # Validate the HTML
@@ -128,7 +128,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
-        html = createIndexHtml(self._environ2, actions, docCssUri = "/mystyle.css")
+        html = createIndexHtml(self._environ2, actions, docCssUri = '/mystyle.css')
         HTMLValidator.validate(html)
         self.assertTrue('<li><a href="/?name=myAction1">myAction1</a></li>' in html)
         self.assertTrue('<li><a href="/?name=myAction2">myAction2</a></li>' in html)
@@ -137,8 +137,8 @@ action myAction2
     # Test action model HTML generation
     def test_doc_createRequestHtml(self):
 
-        myAction1 = Action(name = "myAction1", spec = self._spec)
-        myAction2 = Action(name = "myAction2", spec = self._spec)
+        myAction1 = Action(name = 'myAction1', spec = self._spec)
+        myAction2 = Action(name = 'myAction2', spec = self._spec)
 
         # Validate the first myAction1's HTML
         html = createRequestHtml(self._environ, myAction1)
@@ -167,7 +167,7 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the first myAction1's HTML (custom CSS)
-        html = createRequestHtml(self._environ, myAction1, docCssUri = "/mystyle.css")
+        html = createRequestHtml(self._environ, myAction1, docCssUri = '/mystyle.css')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -183,17 +183,17 @@ action myAction2
     def test_doc_element(self):
 
         # Test basic DOM element serialization functionality
-        root = Element("a")
-        b = root.addChild("b")
-        b.addChild("Hello!", isInline = True, isText = True)
-        b.addChild("span", isInline = True).addChild(" There!", isText = True)
-        root.addChild("c", isClosed = False, foo = "bar")
-        root.addChild("d", attr1 = "asdf", _attr2 = "sdfg").addChild("e")
+        root = Element('a')
+        b = root.addChild('b')
+        b.addChild('Hello!', isInline = True, isText = True)
+        b.addChild('span', isInline = True).addChild(' There!', isText = True)
+        root.addChild('c', isClosed = False, foo = 'bar')
+        root.addChild('d', attr1 = 'asdf', _attr2 = 'sdfg').addChild('e')
 
         # Default (indented)
         out = StringIO()
         root.serialize(out)
-        self.assertEqual(out.getvalue(), """\
+        self.assertEqual(out.getvalue(), '''\
 <a>
   <b>Hello!<span> There!</span></b>
   <c foo="bar">
@@ -201,12 +201,12 @@ action myAction2
     <e>
     </e>
   </d>
-</a>""")
+</a>''')
 
         # Not indented
         out = StringIO()
-        root.serialize(out, indent = "")
-        self.assertEqual(out.getvalue(), """\
+        root.serialize(out, indent = '')
+        self.assertEqual(out.getvalue(), '''\
 <a>
 <b>Hello!<span> There!</span></b>
 <c foo="bar">
@@ -214,4 +214,4 @@ action myAction2
 <e>
 </e>
 </d>
-</a>""")
+</a>''')

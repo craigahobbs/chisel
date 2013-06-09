@@ -34,21 +34,21 @@ class TestAppApplication(unittest.TestCase):
     def setUp(self):
 
         self.resourceData = {
-            "open": [],
-            "close": []
+            'open': [],
+            'close': []
             }
         def resourceTypeOpen(resourceString):
-            self.resourceData["open"].append(resourceString)
-            return len(self.resourceData["open"])
+            self.resourceData['open'].append(resourceString)
+            return len(self.resourceData['open'])
         def resourceTypeClose(resource):
-            self.resourceData["close"].append(resource)
+            self.resourceData['close'].append(resource)
 
         class MyApplication(Application):
             def init(self):
-                self.loadSpecs(os.path.join(os.path.dirname(__file__), "test_app_files"))
-                self.loadRequests(os.path.join(os.path.dirname(__file__), "test_app_files"))
-                self.addResource("testResource", resourceTypeOpen, resourceTypeClose, "Hello")
-                self.addResource("myresource", lambda resourceString: 9, lambda resource: None, "mystring")
+                self.loadSpecs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+                self.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+                self.addResource('testResource', resourceTypeOpen, resourceTypeClose, 'Hello')
+                self.addResource('myresource', lambda resourceString: 9, lambda resource: None, 'mystring')
                 self.logLevel = logging.INFO
                 Application.init(self)
 
@@ -59,81 +59,81 @@ class TestAppApplication(unittest.TestCase):
 
         # Test WSGI environment
         environ = {
-            "SCRIPT_FILENAME": os.path.join(__file__),
-            "REQUEST_METHOD": "GET",
-            "PATH_INFO": "/myAction",
-            "wsgi.errors": StringIO()
+            'SCRIPT_FILENAME': os.path.join(__file__),
+            'REQUEST_METHOD': 'GET',
+            'PATH_INFO': '/myAction',
+            'wsgi.errors': StringIO()
             }
         startResponseData = {
-            "status": [],
-            "responseHeaders": []
+            'status': [],
+            'responseHeaders': []
             }
         def startResponse(status, responseHeaders):
-            startResponseData["status"].append(status)
-            startResponseData["responseHeaders"].append(responseHeaders)
+            startResponseData['status'].append(status)
+            startResponseData['responseHeaders'].append(responseHeaders)
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new("{}")])
-        self.assertEqual(startResponseData["status"], ["200 OK"])
-        self.assertEqual(self.resourceData["open"], ["Hello"])
-        self.assertEqual(self.resourceData["close"], [1])
-        self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
-        self.assertTrue("A warning..." in environ["wsgi.errors"].getvalue())
+        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(startResponseData['status'], ['200 OK'])
+        self.assertEqual(self.resourceData['open'], ['Hello'])
+        self.assertEqual(self.resourceData['close'], [1])
+        self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
+        self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
         # Call the application again (skips reloading)
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new("{}")])
-        self.assertEqual(startResponseData["status"], ["200 OK", "200 OK"])
-        self.assertEqual(self.resourceData["open"], ["Hello", "Hello"])
-        self.assertEqual(self.resourceData["close"], [1, 2])
-        self.assertTrue("Some info" not in environ["wsgi.errors"].getvalue())
-        self.assertTrue("A warning..." in environ["wsgi.errors"].getvalue())
+        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(startResponseData['status'], ['200 OK', '200 OK'])
+        self.assertEqual(self.resourceData['open'], ['Hello', 'Hello'])
+        self.assertEqual(self.resourceData['close'], [1, 2])
+        self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
+        self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
     # Test callAction method
     def test_app_request(self):
 
         # POST
         logStream = StringIO()
-        status, headers, response = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 7}', environ = {"wsgi.errors": logStream})
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
         self.assertEqual(response, '{"result":63}')
-        self.assertEqual(status, "200 OK")
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(logStream.getvalue(), "In myAction2\n")
+        self.assertEqual(logStream.getvalue(), 'In myAction2\n')
 
         # GET
-        status, headers, response = self.app.request("GET", "/myAction2", queryString = "value=8")
+        status, headers, response = self.app.request('GET', '/myAction2', queryString = 'value=8')
         self.assertEqual(response, '{"result":72}')
-        self.assertEqual(status, "200 OK")
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # HTTP error
-        status, headers, response = self.app.request("GET", "/unknownAction")
-        self.assertEqual(response, "Not Found")
-        self.assertEqual(status, "404 Not Found")
+        status, headers, response = self.app.request('GET', '/unknownAction')
+        self.assertEqual(response, 'Not Found')
+        self.assertEqual(status, '404 Not Found')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
-        status, headers, response = self.app.request("POST", "/myAction2", wsgiInput = '{"value": 9}',
-                                                     environ = { "MYENVIRON": "10" })
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 9}',
+                                                     environ = { 'MYENVIRON': '10' })
         self.assertEqual(response, '{"result":90}')
-        self.assertEqual(status, "200 OK")
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex
-        status, headers, response = self.app.request("GET", "/myAction3/123")
+        status, headers, response = self.app.request('GET', '/myAction3/123')
         self.assertEqual(response, '{"myArg":"123"}')
-        self.assertEqual(status, "200 OK")
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
-        status, headers, response = self.app.request("POST", "/myAction3/123", wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = '{}')
         self.assertEqual(response, '{"myArg":"123"}')
-        self.assertEqual(status, "200 OK")
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
-        status, headers, response = self.app.request("GET", "/myAction3/123", queryString = "myArg=321")
+        status, headers, response = self.app.request('GET', '/myAction3/123', queryString = 'myArg=321')
         self.assertEqual(response, '{"error":"InvalidInput","message":"Duplicate member URL argument \'myArg\'"}')
-        self.assertEqual(status, "500 Internal Server Error")
+        self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)

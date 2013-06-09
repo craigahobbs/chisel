@@ -33,9 +33,9 @@ class Action(object):
     def __init__(self, name, doc = None):
 
         self.name = name
-        self.inputType = TypeStruct(typeName = name + "_Input")
-        self.outputType = TypeStruct(typeName = name + "_Output")
-        self.errorType = TypeEnum(typeName = name + "_Error")
+        self.inputType = TypeStruct(typeName = name + '_Input')
+        self.outputType = TypeStruct(typeName = name + '_Output')
+        self.errorType = TypeEnum(typeName = name + '_Error')
         self.doc = [] if doc is None else doc
 
 
@@ -44,7 +44,7 @@ class SpecParserError(Exception):
 
     def __init__(self, errors):
 
-        Exception.__init__(self, "\n".join(errors))
+        Exception.__init__(self, '\n'.join(errors))
         self.errors = errors
 
 
@@ -52,29 +52,29 @@ class SpecParserError(Exception):
 class SpecParser(object):
 
     # Parser regex
-    _rePartId = "([A-Za-z]\w*)"
-    _rePartAttrGroup = "((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>-?\d+(\.\d+)?)|" + \
-        "len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))"
+    _rePartId = '([A-Za-z]\w*)'
+    _rePartAttrGroup = '((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>-?\d+(\.\d+)?)|' + \
+        'len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))'
     _reAttrGroup = re.compile(_rePartAttrGroup)
-    _rePartAttr = re.sub("\\(\\?P<[^>]+>", "(", _rePartAttrGroup)
-    _reFindAttrs = re.compile(_rePartAttr + "(?:\s*,\s*|\s*\Z)")
-    _rePartAttrs = "(\\[\s*(?P<attrs>" + _rePartAttr + "(\s*,\s*" + _rePartAttr + ")*)\s*\\])"
-    _reLineCont = re.compile("\\\s*$")
-    _reComment = re.compile("^\s*(#-.*|#(?P<doc>.*))?$")
-    _reDefinition = re.compile("^(?P<type>action|struct|enum)\s+(?P<id>" + _rePartId + ")\s*$")
-    _reSection = re.compile("^\s+(?P<type>input|output|errors)\s*$")
-    _reMember = re.compile("^\s+(" + _rePartAttrs + "\s+)?(?P<type>" + _rePartId +
-                           ")((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>" + _rePartId + ")\s*$")
-    _reValue = re.compile("^\s+(?P<id>" + _rePartId + ")\s*$")
+    _rePartAttr = re.sub('\\(\\?P<[^>]+>', '(', _rePartAttrGroup)
+    _reFindAttrs = re.compile(_rePartAttr + '(?:\s*,\s*|\s*\Z)')
+    _rePartAttrs = '(\\[\s*(?P<attrs>' + _rePartAttr + '(\s*,\s*' + _rePartAttr + ')*)\s*\\])'
+    _reLineCont = re.compile('\\\s*$')
+    _reComment = re.compile('^\s*(#-.*|#(?P<doc>.*))?$')
+    _reDefinition = re.compile('^(?P<type>action|struct|enum)\s+(?P<id>' + _rePartId + ')\s*$')
+    _reSection = re.compile('^\s+(?P<type>input|output|errors)\s*$')
+    _reMember = re.compile('^\s+(' + _rePartAttrs + '\s+)?(?P<type>' + _rePartId +
+                           ')((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>' + _rePartId + ')\s*$')
+    _reValue = re.compile('^\s+(?P<id>' + _rePartId + ')\s*$')
 
     # Types
     _types = {
-        "string": TypeString,
-        "int": TypeInt,
-        "float": TypeFloat,
-        "bool": TypeBool,
-        "datetime": TypeDatetime,
-        "uuid": TypeUuid
+        'string': TypeString,
+        'int': TypeInt,
+        'float': TypeFloat,
+        'bool': TypeBool,
+        'datetime': TypeDatetime,
+        'uuid': TypeUuid
         }
 
     def __init__(self):
@@ -89,16 +89,16 @@ class SpecParser(object):
     # Parse a specification file
     def parse(self, specPath, finalize = True):
 
-        with open(specPath, "r") as specStream:
+        with open(specPath, 'r') as specStream:
             self.parseStream(specStream, finalize = finalize, fileName = specPath)
 
     # Parse a specification string
-    def parseString(self, spec, fileName = "", finalize = True):
+    def parseString(self, spec, fileName = '', finalize = True):
 
         self.parseStream(StringIO(spec), finalize = finalize, fileName = fileName)
 
     # Parse a specification from an input stream
-    def parseStream(self, specStream, fileName = "", finalize = True):
+    def parseStream(self, specStream, fileName = '', finalize = True):
         assert not self.errors
 
         # Set the parser state
@@ -124,7 +124,7 @@ class SpecParser(object):
             if typeInst is not None:
                 member.typeInst = typeInst
             else:
-                self._error("Unknown member type '%s'" % (typeRef.typeName,), fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+                self._error("Unknown member type '" + typeRef.typeName + "'", fileName = typeRef.fileName, fileLine = typeRef.fileLine)
         self._typeRefs = []
 
         # Raise a parser exception if there are any errors
@@ -143,11 +143,11 @@ class SpecParser(object):
             self._parseLine += 1
             isLineCont = self._reLineCont.search(line)
             if isLineCont:
-                line = self._reLineCont.sub("", line)
+                line = self._reLineCont.sub('', line)
             lines.append(line)
             if not isLineCont:
                 break
-        return " ".join(lines) if lines else None
+        return ' '.join(lines) if lines else None
 
     # Type id reference - converted to types on parser finalization
     class _TypeRef(object):
@@ -182,8 +182,7 @@ class SpecParser(object):
 
     # Record an error
     def _error(self, msg, fileName = None, fileLine = None):
-
-        self.errors.append("%s:%d: error: %s" % (fileName or self._parseFileName, fileLine or self._parseLine, msg))
+        self.errors.append('%s:%d: error: %s' % (fileName or self._parseFileName, fileLine or self._parseLine, msg))
 
     # Parse a specification from a stream
     def _parse(self):
@@ -206,22 +205,22 @@ class SpecParser(object):
             # Comment?
             if mComment:
 
-                doc = mComment.group("doc")
+                doc = mComment.group('doc')
                 if doc is not None:
                     self._curDoc.append(doc.strip())
 
             # Definition?
             elif mDefinition:
 
-                defType = mDefinition.group("type")
-                defId = mDefinition.group("id")
+                defType = mDefinition.group('type')
+                defId = mDefinition.group('id')
 
                 # Action definition
-                if defType == "action":
+                if defType == 'action':
 
                     # Action already defined?
                     if defId in self.actions:
-                        self._error("Redefinition of action '%s'" % (defId,))
+                        self._error("Redefinition of action '" + defId + "'")
 
                     # Create the new action
                     self._curAction = Action(defId, doc = self._curDoc)
@@ -230,11 +229,11 @@ class SpecParser(object):
                     self.actions[self._curAction.name] = self._curAction
 
                 # Struct definition
-                elif defType == "struct":
+                elif defType == 'struct':
 
                     # Type already defined?
                     if defId in self._types or defId in self.types:
-                        self._error("Redefinition of type '%s'" % (defId,))
+                        self._error("Redefinition of type '" + defId + "'")
 
                     # Create the new struct type
                     self._curAction = None
@@ -243,11 +242,11 @@ class SpecParser(object):
                     self.types[self._curType.typeName] = self._curType
 
                 # Enum definition
-                elif defType == "enum":
+                elif defType == 'enum':
 
                     # Type already defined?
                     if defId in self._types or defId in self.types:
-                        self._error("Redefinition of type '%s'" % (defId,))
+                        self._error("Redefinition of type '" + defId + "'")
 
                     # Create the new enum type
                     self._curAction = None
@@ -258,38 +257,38 @@ class SpecParser(object):
             # Section?
             elif mSection:
 
-                sectType = mSection.group("type")
+                sectType = mSection.group('type')
 
                 # Not in an action scope?
                 if not self._curAction:
-                    self._error("Action section outside of action scope")
+                    self._error('Action section outside of action scope')
                     continue
 
                 # Set the action section type
-                if sectType == "input":
+                if sectType == 'input':
                     self._curType = self._curAction.inputType
-                elif sectType == "output":
+                elif sectType == 'output':
                     self._curType = self._curAction.outputType
-                elif sectType == "errors":
+                elif sectType == 'errors':
                     self._curType = self._curAction.errorType
 
             # Struct member?
             elif mMember:
 
-                memAttrs = self._reFindAttrs.findall(mMember.group("attrs")) if mMember.group("attrs") else []
-                memTypeName = mMember.group("type")
-                memIsArray = mMember.group("isArray")
-                memIsDict = mMember.group("isDict")
-                memId = mMember.group("id")
+                memAttrs = self._reFindAttrs.findall(mMember.group('attrs')) if mMember.group('attrs') else []
+                memTypeName = mMember.group('type')
+                memIsArray = mMember.group('isArray')
+                memIsDict = mMember.group('isDict')
+                memId = mMember.group('id')
 
                 # Not in a struct scope?
                 if not isinstance(self._curType, TypeStruct):
-                    self._error("Member definition outside of struct scope")
+                    self._error('Member definition outside of struct scope')
                     continue
 
                 # Member ID already defined?
                 if any(m.name == memId for m in self._curType.members):
-                    self._error("Redefinition of member '%s'" % (memId,))
+                    self._error("Redefinition of member '" + memId + "'")
 
                 # Create the struct member
                 memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
@@ -310,44 +309,44 @@ class SpecParser(object):
                 # Apply member attributes - type attributes only apply to built-in types
                 for memAttr in memAttrs:
                     mAttr = self._reAttrGroup.match(memAttr[0])
-                    if mAttr.group("optional"):
+                    if mAttr.group('optional'):
                         member.isOptional = True
-                    elif mAttr.group("op"):
-                        if mAttr.group("op") == "<" and hasattr(memTypeInst, "constraint_lt"):
-                            memTypeInst.constraint_lt = float(mAttr.group("opnum"))
-                        elif mAttr.group("op") == "<=" and hasattr(memTypeInst, "constraint_lte"):
-                            memTypeInst.constraint_lte = float(mAttr.group("opnum"))
-                        elif mAttr.group("op") == ">" and hasattr(memTypeInst, "constraint_gt"):
-                            memTypeInst.constraint_gt = float(mAttr.group("opnum"))
-                        elif mAttr.group("op") == ">=" and hasattr(memTypeInst, "constraint_gte"):
-                            memTypeInst.constraint_gte = float(mAttr.group("opnum"))
+                    elif mAttr.group('op'):
+                        if mAttr.group('op') == '<' and hasattr(memTypeInst, 'constraint_lt'):
+                            memTypeInst.constraint_lt = float(mAttr.group('opnum'))
+                        elif mAttr.group('op') == '<=' and hasattr(memTypeInst, 'constraint_lte'):
+                            memTypeInst.constraint_lte = float(mAttr.group('opnum'))
+                        elif mAttr.group('op') == '>' and hasattr(memTypeInst, 'constraint_gt'):
+                            memTypeInst.constraint_gt = float(mAttr.group('opnum'))
+                        elif mAttr.group('op') == '>=' and hasattr(memTypeInst, 'constraint_gte'):
+                            memTypeInst.constraint_gte = float(mAttr.group('opnum'))
                         else:
-                            self._error("Invalid attribute '%s'" % (memAttr[0],))
-                    elif mAttr.group("lop"):
-                        if mAttr.group("lop") == "<" and hasattr(memTypeInst, "constraint_len_lt"):
-                            memTypeInst.constraint_len_lt = int(mAttr.group("lopnum"))
-                        elif mAttr.group("lop") == "<=" and hasattr(memTypeInst, "constraint_len_lte"):
-                            memTypeInst.constraint_len_lte = int(mAttr.group("lopnum"))
-                        elif mAttr.group("lop") == ">" and hasattr(memTypeInst, "constraint_len_gt"):
-                            memTypeInst.constraint_len_gt = int(mAttr.group("lopnum"))
-                        elif mAttr.group("lop") == ">=" and hasattr(memTypeInst, "constraint_len_gte"):
-                            memTypeInst.constraint_len_gte = int(mAttr.group("lopnum"))
+                            self._error("Invalid attribute '" + memAttr[0] + "'")
+                    elif mAttr.group('lop'):
+                        if mAttr.group('lop') == '<' and hasattr(memTypeInst, 'constraint_len_lt'):
+                            memTypeInst.constraint_len_lt = int(mAttr.group('lopnum'))
+                        elif mAttr.group('lop') == '<=' and hasattr(memTypeInst, 'constraint_len_lte'):
+                            memTypeInst.constraint_len_lte = int(mAttr.group('lopnum'))
+                        elif mAttr.group('lop') == '>' and hasattr(memTypeInst, 'constraint_len_gt'):
+                            memTypeInst.constraint_len_gt = int(mAttr.group('lopnum'))
+                        elif mAttr.group('lop') == '>=' and hasattr(memTypeInst, 'constraint_len_gte'):
+                            memTypeInst.constraint_len_gte = int(mAttr.group('lopnum'))
                         else:
-                            self._error("Invalid attribute '%s'" % (memAttr[0],))
+                            self._error("Invalid attribute '" + memAttr[0] + "'")
 
             # Enum value?
             elif mValue:
 
-                memId = mValue.group("id")
+                memId = mValue.group('id')
 
                 # Not in an enum scope?
                 if not isinstance(self._curType, TypeEnum):
-                    self._error("Enumeration value outside of enum scope")
+                    self._error('Enumeration value outside of enum scope')
                     continue
 
                 # Duplicate enum value?
                 if memId in self._curType.values:
-                    self._error("Duplicate enumeration value '%s'" % (memId,))
+                    self._error("Duplicate enumeration value '" + memId + "'")
 
                 # Add the enum value
                 self._curType.addValue(memId, doc = self._curDoc)
@@ -355,4 +354,4 @@ class SpecParser(object):
 
             # Unrecognized line syntax
             else:
-                self._error("Syntax error")
+                self._error('Syntax error')

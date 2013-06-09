@@ -33,7 +33,7 @@ class UrlRequestResourceTypeMock(ResourceType):
     def __init__(self, sendCallback):
 
         self.sendCallback = sendCallback
-        ResourceType.__init__(self, "url_request", self._open, None)
+        ResourceType.__init__(self, 'url_request', self._open, None)
 
     def _open(self, resourceString):
 
@@ -64,7 +64,7 @@ class UrlRequestResourceMock(object):
         fullUrl = urlparse.urljoin(self.hostUrl, url)
         isSuccess, responseString = self.sendCallback(fullUrl, self.header, self.unredirected_header, self.data)
         if not isSuccess:
-            raise self.URLError("HTTP Error 500: Internal Server Error")
+            raise self.URLError('HTTP Error 500: Internal Server Error')
 
         # Reset the resource
         self.reset()

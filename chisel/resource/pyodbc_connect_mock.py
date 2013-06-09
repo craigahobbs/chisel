@@ -35,7 +35,7 @@ class PyodbcConnectResourceTypeMock(ResourceType):
 
         self.executeCallback = executeCallback
         self.autocommit = autocommit
-        resourceTypeName = "pyodbc_connect" if autocommit else "pyodbc_connect_noautocommit"
+        resourceTypeName = 'pyodbc_connect' if autocommit else 'pyodbc_connect_noautocommit'
         ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
     def _open(self, resourceString):
@@ -82,18 +82,18 @@ class PyodbcConnectionMock(object):
     def close(self):
 
         if self.isClosed:
-            raise self.ProgrammingError("Attempt to close an already-closed connection")
+            raise self.ProgrammingError('Attempt to close an already-closed connection')
 
         for cursor in self.cursors:
             if not cursor.isClosed:
-                raise self.ProgrammingError("Attempt to close a connection with open cursors")
+                raise self.ProgrammingError('Attempt to close a connection with open cursors')
 
         self.isClosed = True
 
     def cursor(self):
 
         if self.isClosed:
-            raise self.ProgrammingError("Attempt to get a cursor on an already-closed connection")
+            raise self.ProgrammingError('Attempt to get a cursor on an already-closed connection')
 
         cursor = PyodbcCursorMock(self)
         self.cursors.append(cursor)
@@ -102,7 +102,7 @@ class PyodbcConnectionMock(object):
     def execute(self, query, *args):
 
         if self.isClosed:
-            raise self.ProgrammingError("Attempt to execute with an already-closed connection")
+            raise self.ProgrammingError('Attempt to execute with an already-closed connection')
 
         cursor = PyodbcCursorMock(self).execute(query, *args)
         self.cursors.append(cursor)
@@ -123,7 +123,7 @@ class PyodbcRowMock(object):
         try:
             return self.columnData[ixColumn]
         except:
-            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column index %r" % (ixColumn,))
+            raise PyodbcConnectionMock.ProgrammingError('Attempt to get invalid row column index %r' % (ixColumn,))
 
     def __getattr__(self, columnName):
 
@@ -131,7 +131,7 @@ class PyodbcRowMock(object):
             ixColumn = self.columnNames.index(columnName)
             return self.columnData[ixColumn]
         except:
-            raise PyodbcConnectionMock.ProgrammingError("Attempt to get invalid row column name %r" % (columnName,))
+            raise PyodbcConnectionMock.ProgrammingError('Attempt to get invalid row column name %r' % (columnName,))
 
     def __nonzero__(self):
 
@@ -142,24 +142,24 @@ class PyodbcRowMock(object):
 def assertRowSets(rowSets):
 
     assert isinstance(rowSets, (tuple, list)), \
-        "Invalid rowset collection %r - list expected" % (rowSets,)
+        'Invalid rowset collection %r - list expected' % (rowSets,)
     for rowSet in rowSets:
         assert isinstance(rowSet[0], (tuple)), \
-            "Invalid rowset %r - tuple expected" % (rowSet,)
+            'Invalid rowset %r - tuple expected' % (rowSet,)
         assert len(rowSet) == 2, \
-            "Invalid rowset %r - rowset should have only two elements" % (rowSet,)
+            'Invalid rowset %r - rowset should have only two elements' % (rowSet,)
         assert isinstance(rowSet[0], (tuple)), \
-            "Invalid column names collection %r - tuple expected" % (rowSet[1],)
+            'Invalid column names collection %r - tuple expected' % (rowSet[1],)
         for columnName in rowSet[0]:
             assert isinstance(columnName, str), \
-                "Invalid column name %r - string expected" % (columnName,)
+                'Invalid column name %r - string expected' % (columnName,)
         assert isinstance(rowSet[1], (tuple, list)), \
-            "Invalid rows collection %r - list expected" % (rowSet[1],)
+            'Invalid rows collection %r - list expected' % (rowSet[1],)
         for columnData in rowSet[1]:
             assert isinstance(columnData, (tuple, list)), \
-                "Invalid row %r - tuple expected" % (columnData,)
+                'Invalid row %r - tuple expected' % (columnData,)
             assert len(rowSet[0]) == len(columnData), \
-                "Column data tuple has different length than column names tuple (%r, %r)" % (rowSet[0], columnData)
+                'Column data tuple has different length than column names tuple (%r, %r)' % (rowSet[0], columnData)
             for data in columnData:
                 assert isinstance(data, (type(None),
                                          str,
@@ -172,7 +172,7 @@ def assertRowSets(rowSets):
                                          long_,
                                          float,
                                          decimal.Decimal)), \
-                                         "Invalid column data %r" % (data,)
+                                         'Invalid column data %r' % (data,)
 
 
 # pyodbc cursor mock
@@ -194,20 +194,20 @@ class PyodbcCursorMock(object):
     def close(self):
 
         if self.isClosed or self.connection.isClosed:
-            raise self.connection.ProgrammingError("Attempt to close an already-closed cursor")
+            raise self.connection.ProgrammingError('Attempt to close an already-closed cursor')
 
         self.isClosed = True
 
     def commit(self):
 
         if self.connection.autocommit:
-            raise self.connection.ProgrammingError("Attempt to commit an autocommit cursor")
+            raise self.connection.ProgrammingError('Attempt to commit an autocommit cursor')
         if self.rowSets is None:
-            raise self.connection.ProgrammingError("Attempt to commit cursor before execute")
+            raise self.connection.ProgrammingError('Attempt to commit cursor before execute')
         if self.isClosed or self.connection.isClosed:
-            raise self.connection.ProgrammingError("Attempt to commit an already-closed cursor")
+            raise self.connection.ProgrammingError('Attempt to commit an already-closed cursor')
         if self.isCommit:
-            raise self.connection.ProgrammingError("Attempt to commit an already-committed cursor")
+            raise self.connection.ProgrammingError('Attempt to commit an already-committed cursor')
 
         self.isCommit = True
 
@@ -216,9 +216,9 @@ class PyodbcCursorMock(object):
         assert isinstance(query, str)
 
         if self.rowSets is not None:
-            raise self.connection.ProgrammingError("Attempt to execute on an already-executed-on cursor")
+            raise self.connection.ProgrammingError('Attempt to execute on an already-executed-on cursor')
         if self.isClosed or self.connection.isClosed:
-            raise self.connection.ProgrammingError("Attempt to execute on a closed cursor")
+            raise self.connection.ProgrammingError('Attempt to execute on a closed cursor')
 
         # Call the execute callback
         self.rowSets = self.connection.executeCallback(self.connection.resourceString, query, *args)
@@ -229,11 +229,11 @@ class PyodbcCursorMock(object):
     def nextset(self):
 
         if self.isClosed or self.connection.isClosed:
-            raise self.connection.ProgrammingError("Attempt to call nextset on a closed cursor")
+            raise self.connection.ProgrammingError('Attempt to call nextset on a closed cursor')
         if self.isCommit:
-            raise self.connection.ProgrammingError("Attempt to call nextset on a committed cursor")
+            raise self.connection.ProgrammingError('Attempt to call nextset on a committed cursor')
         if self.rowSets is None or self.ixRowSet + 1 >= len(self.rowSets):
-            raise self.connection.ProgrammingError("Attempt to call nextset when no more row sets available")
+            raise self.connection.ProgrammingError('Attempt to call nextset when no more row sets available')
 
         self.ixRowSet += 1
         self.ixRow = 0
@@ -252,11 +252,11 @@ class PyodbcCursorMock(object):
     def __next__(self):
 
         if self.isClosed or self.connection.isClosed:
-            raise self.connection.ProgrammingError("Attempt to iterate a closed cursor")
+            raise self.connection.ProgrammingError('Attempt to iterate a closed cursor')
         if self.isCommit:
-            raise self.connection.ProgrammingError("Attempt to iterate a committed cursor")
+            raise self.connection.ProgrammingError('Attempt to iterate a committed cursor')
         if self.rowSets is None:
-            raise self.connection.ProgrammingError("Attempt to iterate a cursor before execute")
+            raise self.connection.ProgrammingError('Attempt to iterate a cursor before execute')
 
         if self.ixRowSet >= len(self.rowSets) or self.ixRow >= len(self.rowSets[self.ixRowSet][1]):
             raise StopIteration
@@ -312,4 +312,4 @@ class SimpleExecuteCallback(object):
             self.executeCount += 1
             return self.executes[key].pop(0)
         else:
-            raise PyodbcConnectionMock.DatabaseError("No row sets for %r" % (key,))
+            raise PyodbcConnectionMock.DatabaseError('No row sets for %r' % (key,))

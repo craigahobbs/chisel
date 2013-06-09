@@ -61,22 +61,22 @@ class ResourceContext(object):
 # Resource collection
 class ResourceCollection(object):
 
-    Resource = namedtuple("Resource", "resourceName, resourceOpen, resourceClose, resourceString")
+    Resource = namedtuple('Resource', ('resourceName', 'resourceOpen', 'resourceClose', 'resourceString'))
 
     def __init__(self):
         self._resources = {}
 
     def add(self, resourceName, resourceOpen, resourceClose, resourceString):
-        object.__getattribute__(self, "_resources")[resourceName] = self.Resource(resourceName, resourceOpen, resourceClose, resourceString)
+        object.__getattribute__(self, '_resources')[resourceName] = self.Resource(resourceName, resourceOpen, resourceClose, resourceString)
 
     def __getattribute__(self, name):
-        resource = object.__getattribute__(self, "_resources").get(name)
+        resource = object.__getattribute__(self, '_resources').get(name)
         if resource is None:
             return object.__getattribute__(self, name)
         return ResourceContext(resource.resourceOpen, resource.resourceClose, resource.resourceString)
 
     def __getitem__(self, name):
-        resource = object.__getattribute__(self, "_resources").get(name)
+        resource = object.__getattribute__(self, '_resources').get(name)
         if resource is None:
-            raise IndexError("No resource named '%s'" % (name,))
+            raise IndexError("No resource named '" + name + "'")
         return ResourceContext(resource.resourceOpen, resource.resourceClose, resource.resourceString)

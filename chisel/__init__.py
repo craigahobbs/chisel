@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-__all__ = ["api", "app", "model", "spec", "struct", "url"]
+__all__ = ['api', 'app', 'model', 'spec', 'struct', 'url']
 
 from .action import Action, Action as action, ActionError
 from .app import Application

@@ -29,7 +29,7 @@ class UrlRequestResourceType(ResourceType):
 
     def __init__(self):
 
-        ResourceType.__init__(self, "url_request", UrlRequestResource, None)
+        ResourceType.__init__(self, 'url_request', UrlRequestResource, None)
 
 
 # Url request resource

@@ -34,14 +34,14 @@ class DocAction(Action):
 
         self.docCssUri = docCssUri
         Action.__init__(self, self.action, response = self.actionResponse,
-                        spec = """\
+                        spec = '''\
 # Generate a documentation HTML for the requests implemented by the application.
 action doc
   input
     # Generate documentation for the specified request name; generate the
     # documentation index if the request name is not specified.
     [optional] string name
-""")
+''')
 
     def action(self, app, request):
         return {}
@@ -50,13 +50,13 @@ action doc
 
         if request.name is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name)
-            return app.response("200 OK", "text/html",
+            return app.response('200 OK', 'text/html',
                                 createIndexHtml(app.environ, requests, self.docCssUri))
         elif request.name in app.requests:
-            return app.response("200 OK", "text/html",
+            return app.response('200 OK', 'text/html',
                                 createRequestHtml(app.environ, app.requests[request.name], self.docCssUri))
         else:
-            return app.response("500 Internal Server Error", "text/plain", "Unknown Action")
+            return app.response('500 Internal Server Error', 'text/plain', 'Unknown Action')
 
 
 # HTML DOM helper class
@@ -80,7 +80,7 @@ class Element(object):
         self.children.append(child)
         return child
 
-    def serialize(self, out, indent = "  "):
+    def serialize(self, out, indent = '  '):
 
         self._serialize(out, indent, 0, True)
 
@@ -90,7 +90,7 @@ class Element(object):
 
         # Initial newline and indent as necessary...
         if not self.isInline and not isRoot:
-            out.write("\n")
+            out.write('\n')
             if not self.isText:
                 out.write(indentCur)
 
@@ -100,14 +100,14 @@ class Element(object):
             return
 
         # Element open
-        out.write("<")
+        out.write('<')
         out.write(self.name)
-        for attrKey, attrValue in sorted(iteritems(self.attrs), key = lambda x: x[0].lstrip("_")):
-            out.write(" ")
-            out.write(attrKey.lstrip("_"))
-            out.write("=")
+        for attrKey, attrValue in sorted(iteritems(self.attrs), key = lambda x: x[0].lstrip('_')):
+            out.write(' ')
+            out.write(attrKey.lstrip('_'))
+            out.write('=')
             out.write(saxutils.quoteattr(attrValue))
-        out.write(">")
+        out.write('>')
         if not self.isClosed and not self.children:
             return
 
@@ -119,53 +119,53 @@ class Element(object):
 
         # Element close
         if not childPrevInline:
-            out.write("\n")
+            out.write('\n')
             out.write(indentCur)
-        out.write("</")
+        out.write('</')
         out.write(self.name)
-        out.write(">")
+        out.write('>')
 
 
 # Generate the top-level action documentation index
 def createIndexHtml(environ, requests, docCssUri = None):
 
-    docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
+    docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
     # Index page header
-    root = Element("html")
-    head = root.addChild("head")
-    head.addChild("meta", isClosed = False, charset = "UTF-8")
-    head.addChild("title").addChild("Actions", isText = True, isInline = True)
+    root = Element('html')
+    head = root.addChild('head')
+    head.addChild('meta', isClosed = False, charset = 'UTF-8')
+    head.addChild('title').addChild('Actions', isText = True, isInline = True)
     _addStyle(head, docCssUri)
-    body = root.addChild("body", _class = "chsl-index-body")
+    body = root.addChild('body', _class = 'chsl-index-body')
 
     # Index page title
-    if "HTTP_HOST" in environ:
-        title = environ["HTTP_HOST"]
+    if 'HTTP_HOST' in environ:
+        title = environ['HTTP_HOST']
     else:
-        title = environ["SERVER_NAME"] + (":" + environ["SERVER_PORT"] if environ["SERVER_NAME"] != 80 else "")
-    body.addChild("h1").addChild(title, isText = True, isInline = True)
+        title = environ['SERVER_NAME'] + (':' + environ['SERVER_PORT'] if environ['SERVER_NAME'] != 80 else '')
+    body.addChild('h1').addChild(title, isText = True, isInline = True)
 
     # Action and request links
-    ulSections = body.addChild("ul", _class = "chsl-request-section")
+    ulSections = body.addChild('ul', _class = 'chsl-request-section')
     for sectionTitle, sectionFilter in \
-        (("Actions", lambda request: isinstance(request, Action)),
-         ("Other Requests", lambda request: not isinstance(request, Action))):
+        (('Actions', lambda request: isinstance(request, Action)),
+         ('Other Requests', lambda request: not isinstance(request, Action))):
 
         sectionRequests = [request for request in requests if sectionFilter(request)]
         if sectionRequests:
-            liSection = ulSections.addChild("li")
-            liSection.addChild("span", isInline = True) \
+            liSection = ulSections.addChild('li')
+            liSection.addChild('span', isInline = True) \
                      .addChild(sectionTitle, isText = True, isInline = True)
-            ulRequests = liSection.addChild("ul", _class = "chsl-request-list")
+            ulRequests = liSection.addChild('ul', _class = 'chsl-request-list')
             for request in sectionRequests:
-                liRequest = ulRequests.addChild("li")
-                liRequest.addChild("a", isInline = True, href = docRootUri + "?name=" + urllib.quote(request.name)) \
+                liRequest = ulRequests.addChild('li')
+                liRequest.addChild('a', isInline = True, href = docRootUri + '?name=' + urllib.quote(request.name)) \
                          .addChild(request.name, isText = True)
 
     # Serialize
     out = StringIO()
-    out.write("<!doctype html>")
+    out.write('<!doctype html>')
     root.serialize(out)
     return out.getvalue()
 
@@ -173,50 +173,50 @@ def createIndexHtml(environ, requests, docCssUri = None):
 # Generate the documentation for a request
 def createRequestHtml(environ, request, docCssUri = None):
 
-    docRootUri = environ["SCRIPT_NAME"] + environ["PATH_INFO"]
+    docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
     isAction = isinstance(request, Action)
 
     # Request page header
-    root = Element("html")
-    head = root.addChild("head")
-    head.addChild("meta", isClosed = False, charset = "UTF-8")
-    head.addChild("title").addChild(request.name, isText = True, isInline = True)
+    root = Element('html')
+    head = root.addChild('head')
+    head.addChild('meta', isClosed = False, charset = 'UTF-8')
+    head.addChild('title').addChild(request.name, isText = True, isInline = True)
     _addStyle(head, docCssUri)
-    body = root.addChild("body", _class = "chsl-request-body")
-    header = body.addChild("div", _class = "chsl-header");
-    header.addChild("a", href = docRootUri) \
-        .addChild("Back to documentation index", isText = True, isInline = True)
+    body = root.addChild('body', _class = 'chsl-request-body')
+    header = body.addChild('div', _class = 'chsl-header');
+    header.addChild('a', href = docRootUri) \
+        .addChild('Back to documentation index', isText = True, isInline = True)
 
     # Request title
-    body.addChild("h1") \
+    body.addChild('h1') \
         .addChild(request.name, isText = True, isInline = True)
     _addDocText(body, request.model.doc if isAction else request.doc)
 
     # Note for request URLs
-    notes = body.addChild("div", _class = "chsl-notes")
-    noteUrl = notes.addChild("div", _class = "chsl-note")
-    noteUrlP = noteUrl.addChild("p")
-    noteUrlP.addChild("b").addChild("Note: ", isText = True, isInline = True)
+    notes = body.addChild('div', _class = 'chsl-notes')
+    noteUrl = notes.addChild('div', _class = 'chsl-note')
+    noteUrlP = noteUrl.addChild('p')
+    noteUrlP.addChild('b').addChild('Note: ', isText = True, isInline = True)
     if request.urls:
-        noteUrlP.addChild("The request is exposed at the following " + ("URLs" if len(request.urls) > 1 else "URL") + ":", isText = True)
-        ulUrls = noteUrl.addChild("ul")
+        noteUrlP.addChild('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', isText = True)
+        ulUrls = noteUrl.addChild('ul')
         for url in request.urls:
-            ulUrls.addChild("li") \
+            ulUrls.addChild('li') \
                 .addChild(url, isText = True, isInline = True)
 
     if isAction:
         # Note for custom response callback
         if isAction and request.response is not None:
-            noteResponse = notes.addChild("div", _class = "chsl-note")
-            noteResponseP = noteResponse.addChild("p")
-            noteResponseP.addChild("b").addChild("Note: ", isText = True, isInline = True)
-            noteResponseP.addChild("The action has a non-default response. See documentation for details.", isText = True)
+            noteResponse = notes.addChild('div', _class = 'chsl-note')
+            noteResponseP = noteResponse.addChild('p')
+            noteResponseP.addChild('b').addChild('Note: ', isText = True, isInline = True)
+            noteResponseP.addChild('The action has a non-default response. See documentation for details.', isText = True)
 
         # Find all user types referenced by the action
         userTypes = {}
         def findUserTypes(structType):
             for member in structType.members:
-                baseType = member.typeInst.typeInst if hasattr(member.typeInst, "typeInst") else member.typeInst
+                baseType = member.typeInst.typeInst if hasattr(member.typeInst, 'typeInst') else member.typeInst
                 if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
                     if baseType.typeName not in userTypes:
                         userTypes[baseType.typeName] = baseType
@@ -226,14 +226,14 @@ def createRequestHtml(environ, request, docCssUri = None):
         findUserTypes(request.model.outputType)
 
         # Request input and output structs
-        _structSection(body, request.model.inputType, "h2", "Input Parameters", "The action has no input parameters.")
-        _structSection(body, request.model.outputType, "h2", "Output Parameters", "The action has no output parameters.")
-        _enumSection(body, request.model.errorType, "h2", "Error Codes", "The action returns no custom error codes.")
+        _structSection(body, request.model.inputType, 'h2', 'Input Parameters', 'The action has no input parameters.')
+        _structSection(body, request.model.outputType, 'h2', 'Output Parameters', 'The action has no output parameters.')
+        _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
         # User types
         if userTypes:
-            body.addChild("h2") \
-                .addChild("User Types", isText = True, isInline = True)
+            body.addChild('h2') \
+                .addChild('User Types', isText = True, isInline = True)
             for userType in sorted(itervalues(userTypes), key = lambda x: x.typeName):
                 if isinstance(userType, TypeStruct):
                     _structSection(body, userType)
@@ -242,7 +242,7 @@ def createRequestHtml(environ, request, docCssUri = None):
 
     # Serialize
     out = StringIO()
-    out.write("<!doctype html>")
+    out.write('<!doctype html>')
     root.serialize(out)
     return out.getvalue()
 
@@ -254,13 +254,13 @@ def _addStyle(parent, docCssUri = None):
     if docCssUri is not None:
 
         # External style
-        parent.addChild("link", isClosed = False, _type = "text/css", rel = "stylesheet", href = docCssUri)
+        parent.addChild('link', isClosed = False, _type = 'text/css', rel = 'stylesheet', href = docCssUri)
 
     else:
 
         # Default style
-        parent.addChild("style", _type = "text/css") \
-            .addChild("""\
+        parent.addChild('style', _type = 'text/css') \
+            .addChild('''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
     padding: 0;
@@ -271,7 +271,7 @@ html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
 }
 body, td, th {
     background-color: white;
-    font-family: "Helvetica", "Arial", sans-serif;
+    font-family: 'Helvetica', 'Arial', sans-serif;
     font-size: 10pt;
     line-height: 1.2em;
     color: black;
@@ -378,7 +378,7 @@ ul.chsl-constraint-list {
 }
 .chsl-emphasis {
     font-style:italic;
-}""", isText = True, isTextEscaped = False)
+}''', isText = True, isTextEscaped = False)
 
 # User type href helper
 def _userTypeHref(typeInst):
@@ -391,17 +391,17 @@ def _addTypeName(parent, typeInst):
     # Compute the type string
     if isinstance(typeInst, TypeArray):
         baseTypeInst = typeInst.typeInst
-        typeExtra = "[]"
+        typeExtra = '[]'
     elif isinstance(typeInst, TypeDict):
         baseTypeInst = typeInst.typeInst
-        typeExtra = "{}"
+        typeExtra = '{}'
     else:
         baseTypeInst = typeInst
         typeExtra = None
 
     # Generate the type string DOM
     if isinstance(baseTypeInst, TypeStruct) or isinstance(baseTypeInst, TypeEnum):
-        parent.addChild("a", isInline = True, href = "#" + _userTypeHref(baseTypeInst)) \
+        parent.addChild('a', isInline = True, href = '#' + _userTypeHref(baseTypeInst)) \
             .addChild(baseTypeInst.typeName, isText = True)
     else:
         parent.addChild(baseTypeInst.typeName, isText = True, isInline = True)
@@ -413,33 +413,33 @@ def _addTypeAttr(parent, typeInst):
 
     # Constraint DOM helper
     def constraintDom(ul, lhs, op, rhs):
-        li = ul.addChild("li")
-        li.addChild("span", isInline = True, _class = "chsl-emphasis").addChild(lhs, isText = True)
+        li = ul.addChild('li')
+        li.addChild('span', isInline = True, _class = 'chsl-emphasis').addChild(lhs, isText = True)
         if op is not None and rhs is not None:
-            li.addChild(" %s %g" % (op, rhs), isText = True, isInline = True)
+            li.addChild(' ' + op + ' ' + repr(rhs).rstrip('0').rstrip('.'), isText = True, isInline = True)
 
     # Add constraint DOM elements
-    ul = parent.addChild("ul", _class = "chsl-constraint-list")
-    if hasattr(typeInst, "constraint_gt") and typeInst.constraint_gt is not None:
-        constraintDom(ul, "value", ">", typeInst.constraint_gt)
-    if hasattr(typeInst, "constraint_gte") and typeInst.constraint_gte is not None:
-        constraintDom(ul, "value", ">=", typeInst.constraint_gte)
-    if hasattr(typeInst, "constraint_lt") and typeInst.constraint_lt is not None:
-        constraintDom(ul, "value", "<", typeInst.constraint_lt)
-    if hasattr(typeInst, "constraint_lte") and typeInst.constraint_lte is not None:
-        constraintDom(ul, "value", "<=", typeInst.constraint_lte)
-    if hasattr(typeInst, "constraint_len_gt") and typeInst.constraint_len_gt is not None:
-        constraintDom(ul, "len", ">", typeInst.constraint_len_gt)
-    if hasattr(typeInst, "constraint_len_gte") and typeInst.constraint_len_gte is not None:
-        constraintDom(ul, "len", ">=", typeInst.constraint_len_gte)
-    if hasattr(typeInst, "constraint_len_lt") and typeInst.constraint_len_lt is not None:
-        constraintDom(ul, "len", "<", typeInst.constraint_len_lt)
-    if hasattr(typeInst, "constraint_len_lte") and typeInst.constraint_len_lte is not None:
-        constraintDom(ul, "len", "<=", typeInst.constraint_len_lte)
+    ul = parent.addChild('ul', _class = 'chsl-constraint-list')
+    if hasattr(typeInst, 'constraint_gt') and typeInst.constraint_gt is not None:
+        constraintDom(ul, 'value', '>', typeInst.constraint_gt)
+    if hasattr(typeInst, 'constraint_gte') and typeInst.constraint_gte is not None:
+        constraintDom(ul, 'value', '>=', typeInst.constraint_gte)
+    if hasattr(typeInst, 'constraint_lt') and typeInst.constraint_lt is not None:
+        constraintDom(ul, 'value', '<', typeInst.constraint_lt)
+    if hasattr(typeInst, 'constraint_lte') and typeInst.constraint_lte is not None:
+        constraintDom(ul, 'value', '<=', typeInst.constraint_lte)
+    if hasattr(typeInst, 'constraint_len_gt') and typeInst.constraint_len_gt is not None:
+        constraintDom(ul, 'len', '>', typeInst.constraint_len_gt)
+    if hasattr(typeInst, 'constraint_len_gte') and typeInst.constraint_len_gte is not None:
+        constraintDom(ul, 'len', '>=', typeInst.constraint_len_gte)
+    if hasattr(typeInst, 'constraint_len_lt') and typeInst.constraint_len_lt is not None:
+        constraintDom(ul, 'len', '<', typeInst.constraint_len_lt)
+    if hasattr(typeInst, 'constraint_len_lte') and typeInst.constraint_len_lte is not None:
+        constraintDom(ul, 'len', '<=', typeInst.constraint_len_lte)
 
     # No constraints?
     if not ul.children:
-        constraintDom(ul, "None", None, None)
+        constraintDom(ul, 'None', None, None)
 
 # Add text DOM elements
 def _addText(parent, texts):
@@ -447,8 +447,8 @@ def _addText(parent, texts):
     div = None
     for text in texts:
         if div is None:
-            div = parent.addChild("div", _class = "chsl-text")
-        div.addChild("p") \
+            div = parent.addChild('div', _class = 'chsl-text')
+        div.addChild('p') \
            .addChild(text, isText = True)
 
 # Documentation comment text HTML helper
@@ -471,22 +471,22 @@ def _addDocText(parent, doc):
             paragraphs.append(lines)
 
     # Add the text DOM elements
-    _addText(parent, ("\n".join(lines) for lines in paragraphs))
+    _addText(parent, ('\n'.join(lines) for lines in paragraphs))
 
 # Struct section helper
 def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
 
     # Defaults
     if titleTag is None:
-        titleTag = "h3"
+        titleTag = 'h3'
     if title is None:
-        title = "struct " + typeInst.typeName
+        title = 'struct ' + typeInst.typeName
     if emptyMessage is None:
-        emptyMessage = "The struct is empty."
+        emptyMessage = 'The struct is empty.'
 
     # Section title
     parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
-        .addChild("a", isInline = True, _class = "linktarget") \
+        .addChild('a', isInline = True, _class = 'linktarget') \
         .addChild(title, isText = True)
     _addDocText(parent, typeInst.doc)
 
@@ -498,37 +498,37 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
     else:
 
         # Table header
-        table = parent.addChild("table")
-        tr = table.addChild("tr")
-        tr.addChild("th").addChild("Name", isText = True, isInline = True)
-        tr.addChild("th").addChild("Type", isText = True, isInline = True)
-        tr.addChild("th").addChild("Optional", isText = True, isInline = True)
-        tr.addChild("th").addChild("Constraints", isText = True, isInline = True)
-        tr.addChild("th").addChild("Description", isText = True, isInline = True)
+        table = parent.addChild('table')
+        tr = table.addChild('tr')
+        tr.addChild('th').addChild('Name', isText = True, isInline = True)
+        tr.addChild('th').addChild('Type', isText = True, isInline = True)
+        tr.addChild('th').addChild('Optional', isText = True, isInline = True)
+        tr.addChild('th').addChild('Constraints', isText = True, isInline = True)
+        tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Struct member rows
         for member in typeInst.members:
-            tr = table.addChild("tr")
-            tr.addChild("td").addChild(member.name, isText = True, isInline = True)
-            _addTypeName(tr.addChild("td"), member.typeInst)
-            tr.addChild("td").addChild("yes" if member.isOptional else "no", isText = True, isInline = True)
-            _addTypeAttr(tr.addChild("td"), member.typeInst)
-            _addDocText(tr.addChild("td"), member.doc)
+            tr = table.addChild('tr')
+            tr.addChild('td').addChild(member.name, isText = True, isInline = True)
+            _addTypeName(tr.addChild('td'), member.typeInst)
+            tr.addChild('td').addChild('yes' if member.isOptional else 'no', isText = True, isInline = True)
+            _addTypeAttr(tr.addChild('td'), member.typeInst)
+            _addDocText(tr.addChild('td'), member.doc)
 
 # Enum section helper
 def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
 
     # Defaults
     if titleTag is None:
-        titleTag = "h3"
+        titleTag = 'h3'
     if title is None:
-        title = "enum " + typeInst.typeName
+        title = 'enum ' + typeInst.typeName
     if emptyMessage is None:
-        emptyMessage = "The enum is empty."
+        emptyMessage = 'The enum is empty.'
 
     # Section title
     parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
-        .addChild("a", isInline = True, _class = "linktarget") \
+        .addChild('a', isInline = True, _class = 'linktarget') \
         .addChild(title, isText = True)
     _addDocText(parent, typeInst.doc)
 
@@ -540,13 +540,13 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
     else:
 
         # Table header
-        table = parent.addChild("table")
-        tr = table.addChild("tr")
-        tr.addChild("th").addChild("Value", isText = True, isInline = True)
-        tr.addChild("th").addChild("Description", isText = True, isInline = True)
+        table = parent.addChild('table')
+        tr = table.addChild('tr')
+        tr.addChild('th').addChild('Value', isText = True, isInline = True)
+        tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Enum value rows
         for value in typeInst.values:
-            tr = table.addChild("tr")
-            tr.addChild("td").addChild(value.value, isText = True, isInline = True)
-            _addDocText(tr.addChild("td"), value.doc)
+            tr = table.addChild('tr')
+            tr.addChild('td').addChild(value.value, isText = True, isInline = True)
+            _addDocText(tr.addChild('td'), value.doc)

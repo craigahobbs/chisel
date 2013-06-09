@@ -38,20 +38,20 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.b, None)
 
         s.a = 17
-        s.b = "hello"
+        s.b = 'hello'
         self.assertEqual(s.a, 17)
-        self.assertEqual(s.b, "hello")
+        self.assertEqual(s.b, 'hello')
 
         s.c = {
-            "d": 19,
-            "e": "goodbye",
-            "f": {
-                "g": 21
+            'd': 19,
+            'e': 'goodbye',
+            'f': {
+                'g': 21
                 }
             }
         self.assertTrue(isinstance(s.c, Struct))
         self.assertEqual(s.c.d, 19)
-        self.assertEqual(s.c.e, "goodbye")
+        self.assertEqual(s.c.e, 'goodbye')
         self.assertTrue(isinstance(s.c.f, Struct))
         self.assertEqual(s.c.f.g, 21)
 
@@ -64,7 +64,7 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(len(s), 1)
         self.assertEqual(s.a, 17)
 
-        s = Struct({"a": 17, "b": None})
+        s = Struct({'a': 17, 'b': None})
         self.assertEqual(len(s), 2)
         self.assertEqual(s.a, 17)
         self.assertEqual(s.b, None)
@@ -73,8 +73,8 @@ class TestStruct(unittest.TestCase):
     def test_struct_set_struct(self):
 
         s = Struct(a = 17,
-                   b = Struct(c = "foo"),
-                   c = { "c": "bar" },
+                   b = Struct(c = 'foo'),
+                   c = { 'c': 'bar' },
                    d = [1,2,3],
                    e = (1,2,3),
                    f = None)
@@ -83,10 +83,10 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.a, 17)
         self.assertTrue(isinstance(s.b, Struct))
         self.assertTrue(isinstance(s.b(), dict))
-        self.assertEqual(s.b.c, "foo")
+        self.assertEqual(s.b.c, 'foo')
         self.assertTrue(isinstance(s.c, Struct))
         self.assertTrue(isinstance(s.c(), dict))
-        self.assertEqual(s.c.c, "bar")
+        self.assertEqual(s.c.c, 'bar')
         self.assertTrue(isinstance(s.d, Struct))
         self.assertTrue(isinstance(s.d(), list))
         self.assertEqual(len(s.d), 3)
@@ -99,16 +99,16 @@ class TestStruct(unittest.TestCase):
     # Test callable behavior - gets the wrapped container
     def test_struct_dict(self):
 
-        s = Struct(a = 17, b = 19, c = { "a": 14 })
+        s = Struct(a = 17, b = 19, c = { 'a': 14 })
         self.assertTrue(isinstance(s(), dict))
-        self.assertEqual(s(), { "a": 17, "b": 19, "c": { "a": 14 } })
+        self.assertEqual(s(), { 'a': 17, 'b': 19, 'c': { 'a': 14 } })
         self.assertTrue(isinstance(s.c, Struct))
-        self.assertTrue(isinstance(s()["c"], dict))
+        self.assertTrue(isinstance(s()['c'], dict))
 
     # Test container comparison
     def test_struct_cmp(self):
 
-        s1 = { "a": 17, "b": 19, "c": { "d": 20 },  "d": [1,2,3], "e": (1,2,3) }
+        s1 = { 'a': 17, 'b': 19, 'c': { 'd': 20 },  'd': [1,2,3], 'e': (1,2,3) }
         s2 = Struct(**s1)
 
         self.assertTrue(s1 == s2)
@@ -133,30 +133,30 @@ class TestStruct(unittest.TestCase):
 
         s = Struct(a = 17, b = 19, c = [1,2,3], d = (1,2,3))
 
-        self.assertEqual(s["a"], 17)
-        self.assertEqual(s["b"], 19)
-        self.assertEqual(s["c"], [1,2,3])
-        self.assertEqual(s["c"][0], 1)
-        self.assertEqual(s["c"][1], 2)
-        self.assertEqual(s["c"][2], 3)
-        self.assertEqual(s["c"][3], None)
-        self.assertEqual(s["c"][-1], None)
-        self.assertEqual(s["d"], (1,2,3))
-        self.assertEqual(s["d"][0], 1)
-        self.assertEqual(s["d"][1], 2)
-        self.assertEqual(s["d"][2], 3)
-        self.assertEqual(s["d"][3], None)
-        self.assertEqual(s["d"][-1], None)
-        self.assertEqual(s["e"], None)
+        self.assertEqual(s['a'], 17)
+        self.assertEqual(s['b'], 19)
+        self.assertEqual(s['c'], [1,2,3])
+        self.assertEqual(s['c'][0], 1)
+        self.assertEqual(s['c'][1], 2)
+        self.assertEqual(s['c'][2], 3)
+        self.assertEqual(s['c'][3], None)
+        self.assertEqual(s['c'][-1], None)
+        self.assertEqual(s['d'], (1,2,3))
+        self.assertEqual(s['d'][0], 1)
+        self.assertEqual(s['d'][1], 2)
+        self.assertEqual(s['d'][2], 3)
+        self.assertEqual(s['d'][3], None)
+        self.assertEqual(s['d'][-1], None)
+        self.assertEqual(s['e'], None)
 
-        s["b"] = 20
-        self.assertEqual(s["b"], 20)
+        s['b'] = 20
+        self.assertEqual(s['b'], 20)
 
-        s["c"][1] = 20
-        self.assertEqual(s["c"][1], 20)
+        s['c'][1] = 20
+        self.assertEqual(s['c'][1], 20)
 
         try:
-            s["d"][1] = 20
+            s['d'][1] = 20
         except TypeError as e:
             self.assertEqual(str(e), "'tuple' object does not support item assignment")
         else:
@@ -165,59 +165,59 @@ class TestStruct(unittest.TestCase):
     # Test "contained" behavior
     def test_struct_contains(self):
 
-        s = Struct(a = 17, b = Struct(a = "foo", b = "bar"), c = [1,2,3], d = (1,2,3))
-        self.assertTrue("a" in s)
-        self.assertTrue("b" in s)
-        self.assertTrue("a" in s.b)
-        self.assertTrue("b" in s.b)
-        self.assertFalse("c" in s.b)
+        s = Struct(a = 17, b = Struct(a = 'foo', b = 'bar'), c = [1,2,3], d = (1,2,3))
+        self.assertTrue('a' in s)
+        self.assertTrue('b' in s)
+        self.assertTrue('a' in s.b)
+        self.assertTrue('b' in s.b)
+        self.assertFalse('c' in s.b)
         self.assertTrue(1 in s.c)
         self.assertFalse(4 in s.c)
-        self.assertTrue("d" in s)
+        self.assertTrue('d' in s)
         self.assertTrue(1 in s.d)
         self.assertFalse(4 in s.d)
-        self.assertFalse("e" in s)
+        self.assertFalse('e' in s)
 
     # Test iterator behavior
     def test_struct_iter(self):
 
-        s = Struct(a = 17, b = 19, c = [{ "a": 1 }, {"b": 2}], d = [1,2,3,None], e = (1,2,3,None), f = None)
+        s = Struct(a = 17, b = 19, c = [{ 'a': 1 }, {'b': 2}], d = [1,2,3,None], e = (1,2,3,None), f = None)
 
         self.assertEqual(len(s), 5)
         for k in s:
             v = s[k]
-            if k == "a":
+            if k == 'a':
                 self.assertEqual(v, 17)
-            elif k == "b":
+            elif k == 'b':
                 self.assertEqual(v, 19)
-            elif k == "c":
+            elif k == 'c':
                 self.assertTrue(isinstance(v, Struct))
                 self.assertEqual(len(v), 2)
                 self.assertEqual(v[0].a, 1)
                 self.assertEqual(v[1].b, 2)
-            elif k == "d":
+            elif k == 'd':
                 self.assertTrue(isinstance(v, Struct))
                 self.assertEqual(len(v), 4)
                 self.assertEqual(v[0], 1)
                 self.assertEqual(v[1], 2)
                 self.assertEqual(v[2], 3)
                 self.assertEqual(v[3], None)
-            elif k == "e":
+            elif k == 'e':
                 self.assertTrue(isinstance(v, Struct))
                 self.assertEqual(len(v), 4)
                 self.assertEqual(v[0], 1)
                 self.assertEqual(v[1], 2)
                 self.assertEqual(v[2], 3)
                 self.assertEqual(v[3], None)
-            elif k == "f":
+            elif k == 'f':
                 self.assertEqual(v, None)
             else:
                 self.fail()
 
         for v in s.c:
-            if "a" in v:
+            if 'a' in v:
                 self.assertEqual(v.a, 1)
-            elif "b" in v:
+            elif 'b' in v:
                 self.assertEqual(v.b, 2)
             else:
                 self.fail()
@@ -238,13 +238,13 @@ class TestStruct(unittest.TestCase):
         self.assertEqual(s.a, 17)
         s.a = None
         self.assertEqual(s.a, None)
-        self.assertFalse("a" in s)
+        self.assertFalse('a' in s)
 
         self.assertEqual(len(s), 3)
         self.assertEqual(s.b, 19)
-        del s["b"]
+        del s['b']
         self.assertEqual(s.b, None)
-        self.assertFalse("b" in s)
+        self.assertFalse('b' in s)
 
         self.assertEqual(len(s), 2)
         self.assertEqual(len(s.c), 3)
@@ -291,8 +291,8 @@ class TestStruct(unittest.TestCase):
     # Test struct repr
     def test_struct_repr(self):
 
-        d = {"a": {"a": [1,2,3]}, "b": {"a": [1,2,3]}, "c": [1,2,3], "d": (1,2,3)}
-        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1,2,3], d = (1,2,3))
+        d = {'a': {'a': [1,2,3]}, 'b': {'a': [1,2,3]}, 'c': [1,2,3], 'd': (1,2,3)}
+        s = Struct(a = {'a': [1,2,3]}, b = Struct(a = [1,2,3]), c = [1,2,3], d = (1,2,3))
 
         self.assertEqual(repr(s), repr(d))
         self.assertEqual(str(s), repr(d))
@@ -300,7 +300,7 @@ class TestStruct(unittest.TestCase):
     # Test struct pickle
     def test_struct_pickle(self):
 
-        s = Struct(a = {"a": [1,2,3]}, b = Struct(a = [1,2,3]), c = [1, 2, 3], d = (1,2,3))
+        s = Struct(a = {'a': [1,2,3]}, b = Struct(a = [1,2,3]), c = [1, 2, 3], d = (1,2,3))
 
         p = pickle.dumps(s)
         o = pickle.loads(p)
@@ -318,7 +318,7 @@ class TestStruct(unittest.TestCase):
         self.assertTrue(dict(s) is not s())
         self.assertEqual(dict(s), s)
         self.assertEqual(dict(s), s())
-        self.assertEqual(dict(s), {"a": 7, "b": 8})
+        self.assertEqual(dict(s), {'a': 7, 'b': 8})
 
     def test_getattr_special(self):
 

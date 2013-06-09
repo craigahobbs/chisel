@@ -50,7 +50,7 @@ class _ActionErrorInternal(Exception):
 # Action callback decorator
 class Action(Request):
 
-    JSONP = "jsonp"
+    JSONP = 'jsonp'
 
     def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None):
 
@@ -62,7 +62,7 @@ class Action(Request):
             if name is not None:
                 self.model = specParser.actions[name]
             else:
-                assert len(specParser.actions) == 1, "Action spec must contain exactly one action definition"
+                assert len(specParser.actions) == 1, 'Action spec must contain exactly one action definition'
                 for self.model in itervalues(specParser.actions):
                     break
 
@@ -86,9 +86,9 @@ class Action(Request):
     def call(self, environ, start_response):
 
         # Check the method
-        isGet = (environ["REQUEST_METHOD"] == "GET")
-        if not isGet and environ["REQUEST_METHOD"] != "POST":
-            return self.app.response("405 Method Not Allowed", "text/plain", "Method Not Allowed")
+        isGet = (environ['REQUEST_METHOD'] == 'GET')
+        if not isGet and environ['REQUEST_METHOD'] != 'POST':
+            return self.app.response('405 Method Not Allowed', 'text/plain', 'Method Not Allowed')
 
         # Handle the action
         jsonpFunction = None
@@ -99,31 +99,31 @@ class Action(Request):
                 # Decode the query string
                 validateMode = VALIDATE_QUERY_STRING
                 try:
-                    request = decodeQueryString(environ.get("QUERY_STRING", ""))
+                    request = decodeQueryString(environ.get('QUERY_STRING', ''))
                 except Exception as e:
-                    raise _ActionErrorInternal("InvalidInput", str(e))
+                    raise _ActionErrorInternal('InvalidInput', str(e))
 
             else:
 
                 # Get the content length
                 try:
-                    contentLength = int(environ["CONTENT_LENGTH"])
+                    contentLength = int(environ['CONTENT_LENGTH'])
                 except:
-                    return self.app.response("411 Length Required", "text/plain", "Length Required")
+                    return self.app.response('411 Length Required', 'text/plain', 'Length Required')
 
                 # Read the request content
                 try:
-                    requestContent = environ["wsgi.input"].read(contentLength)
+                    requestContent = environ['wsgi.input'].read(contentLength)
                 except:
                     self.app.log.warn("I/O error reading input for action '%s'", self.name)
-                    raise _ActionErrorInternal("IOError", "Error reading request content")
+                    raise _ActionErrorInternal('IOError', 'Error reading request content')
 
                 # De-serialize the JSON request
                 validateMode = VALIDATE_JSON_INPUT
                 try:
                     request = json.loads(requestContent)
                 except Exception as e:
-                    raise _ActionErrorInternal("InvalidInput", "Invalid request JSON: %s" % (str(e),))
+                    raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(e))
 
             # Add url arguments
             urlArgs = environ.get(self.app.ENVIRON_URL_ARGS)
@@ -131,7 +131,7 @@ class Action(Request):
                 validateMode = VALIDATE_QUERY_STRING
                 for urlArg, urlValue in iteritems(urlArgs):
                     if urlArg in request:
-                        raise _ActionErrorInternal("InvalidInput", "Duplicate member URL argument '" + urlArg + "'")
+                        raise _ActionErrorInternal('InvalidInput', "Duplicate member URL argument '%s'" % (urlArg,))
                     request[urlArg] = urlValue
 
             # JSONP?
@@ -143,32 +143,32 @@ class Action(Request):
             try:
                 request = self.model.inputType.validate(request, validateMode)
             except ValidationError as e:
-                raise _ActionErrorInternal("InvalidInput", str(e), e.member)
+                raise _ActionErrorInternal('InvalidInput', str(e), e.member)
 
             # Call the action callback
             try:
                 response = self.fn(self.app, Struct(request))
             except ActionError as e:
-                response = { "error": e.error }
+                response = { 'error': e.error }
                 if e.message is not None:
-                    response["message"] = e.message
+                    response['message'] = e.message
             except Exception as e:
                 self.app.log.error("Unexpected error in action '%s': %s", self.name, traceback.format_exc())
-                raise _ActionErrorInternal("UnexpectedError")
+                raise _ActionErrorInternal('UnexpectedError')
 
             # Validate the response
-            isErrorResponse = (hasattr(response, "__contains__") and "error" in response)
+            isErrorResponse = (hasattr(response, '__contains__') and 'error' in response)
             try:
                 if isErrorResponse:
                     responseTypeInst = TypeStruct()
-                    responseTypeInst.addMember("error", self.model.errorType)
-                    responseTypeInst.addMember("message", TypeString(), isOptional = True)
+                    responseTypeInst.addMember('error', self.model.errorType)
+                    responseTypeInst.addMember('message', TypeString(), isOptional = True)
                 else:
                     responseTypeInst = self.model.outputType
                 response = responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
             except ValidationError as e:
                 self.app.log.error("Invalid output returned from action '%s': %r", self.name, response)
-                raise _ActionErrorInternal("InvalidOutput", str(e), e.member)
+                raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
 
             # Custom response serialization? Don't render error responses...
             if self.response is not None and not isErrorResponse:
@@ -176,31 +176,31 @@ class Action(Request):
                     return self.response(self.app, Struct(request), Struct(response))
                 except Exception as e:
                     self.app.log.error("Unexpected error in response callback for action '%s': %s", self.name, traceback.format_exc())
-                    raise _ActionErrorInternal("UnexpectedError")
+                    raise _ActionErrorInternal('UnexpectedError')
 
         except _ActionErrorInternal as e:
-            response = { "error": e.error }
+            response = { 'error': e.error }
             if e.message is not None:
-                response["message"] = e.message
+                response['message'] = e.message
             if e.member is not None:
-                response["member"] = e.member
+                response['member'] = e.member
 
         # Serialize the response as JSON
         try:
             jsonContent = self.app.serializeJSON(response)
         except Exception as e:
             self.app.log.error("Unexpected error serializing JSON for action '%s': %s", self.name, traceback.format_exc())
-            response = { "error": "InvalidOutput" }
+            response = { 'error': 'InvalidOutput' }
             jsonContent = self.app.serializeJSON(response)
 
         # Determine the HTTP status
-        if "error" in response  and jsonpFunction is None:
-            status = "500 Internal Server Error"
+        if 'error' in response  and jsonpFunction is None:
+            status = '500 Internal Server Error'
         else:
-            status = "200 OK"
+            status = '200 OK'
 
         # Send the response
         if jsonpFunction:
-            return self.app.response(status, "application/json", [jsonpFunction, "(", jsonContent, ");"])
+            return self.app.response(status, 'application/json', [jsonpFunction, '(', jsonContent, ');'])
         else:
-            return self.app.response(status, "application/json", [jsonContent])
+            return self.app.response(status, 'application/json', [jsonContent])

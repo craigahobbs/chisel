@@ -9,14 +9,14 @@ def myAction(ctx, req):
         pass
 
     # Log info and a warning
-    ctx.log.debug("Some info")
-    ctx.log.warning("A warning...")
+    ctx.log.debug('Some info')
+    ctx.log.warning('A warning...')
 
     return {}
 
 @chisel.action
 def myAction2(ctx, request):
-    ctx.log.info("In myAction2")
+    ctx.log.info('In myAction2')
 
     with ctx.resources['myresource'] as resource:
 
@@ -25,9 +25,9 @@ def myAction2(ctx, request):
         else:
             multiplier = resource
 
-        return { "result": request.value * multiplier }
+        return { 'result': request.value * multiplier }
 
-@chisel.action(urls = ("/myAction3/{myArg}",))
+@chisel.action(urls = ('/myAction3/{myArg}',))
 def myAction3(ctx, request):
-    assert request["myArg"] == 123
-    return {"myArg": str(request["myArg"])}
+    assert request['myArg'] == 123
+    return {'myArg': str(request['myArg'])}

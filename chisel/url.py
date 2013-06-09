@@ -25,7 +25,7 @@ from .struct import Struct
 
 
 # Helper to quote strings
-def quote(s, encoding = "utf-8"):
+def quote(s, encoding = 'utf-8'):
     if PY3: # pragma: no cover
         return urllib.quote(s if isinstance(s, str) else str(s), encoding = encoding)
     else:
@@ -33,7 +33,7 @@ def quote(s, encoding = "utf-8"):
 
 
 # Helper to unquote a URL key or value
-def unquote(s, encoding = "utf-8"):
+def unquote(s, encoding = 'utf-8'):
     if PY3: # pragma: no cover
         return urllib.unquote(s, encoding = encoding)
     else:
@@ -41,7 +41,7 @@ def unquote(s, encoding = "utf-8"):
 
 
 # Encode an object as a URL query string
-def encodeQueryString(o, encoding = "utf-8"):
+def encodeQueryString(o, encoding = 'utf-8'):
 
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
@@ -57,20 +57,20 @@ def encodeQueryString(o, encoding = "utf-8"):
                 for member in o:
                     iterateItems(o[member], parent + (quote(member, encoding),))
             elif not topLevel:
-                keysValues.append((parent, ""))
+                keysValues.append((parent, ''))
         elif isinstance(o, (list, tuple)):
             if o:
                 for ix in xrange_(0, len(o)):
                     iterateItems(o[ix], parent + (quote(ix, encoding),))
             elif not topLevel:
-                keysValues.append((parent, ""))
+                keysValues.append((parent, ''))
         elif o is not None:
             keysValues.append((parent, quote(o, encoding)))
 
     iterateItems(o, (), topLevel = True)
 
     # Join the object query string
-    return "&".join("=".join((".".join(k), v)) for k, v in sorted(keysValues))
+    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(keysValues))
 
 
 # Helper to make a key - int means array index
@@ -82,21 +82,21 @@ def _makeQueryStringKey(keyString):
 
 
 # Decode an object from a URL query string
-def decodeQueryString(queryString, encoding = "utf-8"):
+def decodeQueryString(queryString, encoding = 'utf-8'):
 
     # Build the object
     oResult = [None]
-    for keysValueString in queryString.split("&"):
+    for keysValueString in queryString.split('&'):
 
         # Ignore empty key/value strings
         if not keysValueString:
             continue
 
         # Split the key/value string
-        keysValue = keysValueString.split("=")
+        keysValue = keysValueString.split('=')
         if len(keysValue) != 2:
-            raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
-        keys = (_makeQueryStringKey(unquote(key, encoding)) for key in keysValue[0].split("."))
+            raise ValueError("Invalid key/value pair '" + keysValueString + "'")
+        keys = (_makeQueryStringKey(unquote(key, encoding)) for key in keysValue[0].split('.'))
         value = unquote(keysValue[1], encoding)
 
         # Find/create the object on which to set the value
@@ -112,13 +112,13 @@ def decodeQueryString(queryString, encoding = "utf-8"):
                 if o is None:
                     o = oParent[keyParent] = []
                 elif not isinstance(o, list):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
+                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
                 # Create the index for this key
                 if key == len(o):
                     o.extend([None])
                 elif key < 0 or key > len(o):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
+                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
                 # Update the parent object and key
                 oParent = o
@@ -132,7 +132,7 @@ def decodeQueryString(queryString, encoding = "utf-8"):
                 if o is None:
                     o = oParent[keyParent] = {}
                 elif not isinstance(o, dict):
-                    raise ValueError("Invalid key/value pair '%s'" % (keysValueString,))
+                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
                 # Create the index for this key
                 if o.get(key) is None:

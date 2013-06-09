@@ -102,9 +102,9 @@ else:
 if PY3: # pragma: no cover
     wsgistr_ = bytes
     def wsgistr_new(s):
-        return s.encode("utf-8") if not isinstance(s, bytes) else s
+        return s.encode('utf-8') if not isinstance(s, bytes) else s
     def wsgistr_str(s):
-        return s.decode("utf-8")
+        return s.decode('utf-8')
 else:
     wsgistr_ = str
     def wsgistr_new(s):

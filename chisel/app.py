@@ -39,10 +39,10 @@ import threading
 # Top-level WSGI application class
 class Application(object):
 
-    ENVIRON_APP = "chisel.app"
+    ENVIRON_APP = 'chisel.app'
     ENVIRON_URL_ARGS = 'chisel.urlArgs'
 
-    ThreadState = namedtuple("ThreadState", ("environ", "start_response", "log"))
+    ThreadState = namedtuple('ThreadState', ('environ', 'start_response', 'log'))
 
     def __init__(self, logStream = sys.stderr):
 
@@ -74,7 +74,7 @@ class Application(object):
     def call(self, environ, start_response):
 
         # Match the request by exact URL
-        pathInfo = environ["PATH_INFO"]
+        pathInfo = environ['PATH_INFO']
         request = self.__requestUrls.get(pathInfo)
 
         # If no request was matched, match by url regular expression
@@ -90,7 +90,7 @@ class Application(object):
         if request is not None:
             return request(environ, start_response)
         else:
-            return self.response("404 Not Found", "text/plain", "Not Found")
+            return self.response('404 Not Found', 'text/plain', 'Not Found')
 
     # WSGI entry point
     def __call__(self, environ, start_response):
@@ -100,7 +100,7 @@ class Application(object):
 
         # Add the thread state
         threadKey = threading.current_thread().ident
-        threadState = self.ThreadState(environ, start_response, self.__createLogger(environ["wsgi.errors"]))
+        threadState = self.ThreadState(environ, start_response, self.__createLogger(environ['wsgi.errors']))
         self.__threadStates[threadKey] = threadState
 
         # Handle the request - re-initialize if necessary
@@ -117,7 +117,7 @@ class Application(object):
 
     # Create a request logger
     def __createLogger(self, logStream):
-        logger = logging.getLoggerClass()("")
+        logger = logging.getLoggerClass()('')
         logger.setLevel(self.logLevel)
         if logStream:
             logger.addHandler(logging.StreamHandler(logStream))
@@ -193,9 +193,9 @@ class Application(object):
 
         # Build the headers array
         _headers = list(headers or [])
-        if not any(header[0] == "Content-Type" for header in _headers):
-            _headers.append(("Content-Type", contentType))
-        _headers.append(("Content-Length", str(sum(len(s) for s in content))))
+        if not any(header[0] == 'Content-Type' for header in _headers):
+            _headers.append(('Content-Type', contentType))
+        _headers.append(('Content-Length', str(sum(len(s) for s in content))))
 
         # Return the response
         self.start_response(status, _headers)
@@ -205,14 +205,14 @@ class Application(object):
     def serializeJSON(self, o):
         return json.dumps(o, sort_keys = True,
                           indent = 2 if self.prettyOutput else None,
-                          separators = (", ", ": ") if self.prettyOutput else (",", ":"))
+                          separators = (', ', ': ') if self.prettyOutput else (',', ':'))
 
     # Recursively load all specs in a directory
-    def loadSpecs(self, specPath, specExt = ".chsl", finalize = True):
+    def loadSpecs(self, specPath, specExt = '.chsl', finalize = True):
 
         # Does the path exist?
         if not os.path.isdir(specPath):
-            raise IOError("%r not found or is not a directory" % (specPath,))
+            raise IOError('%r not found or is not a directory' % (specPath,))
 
         # Resursively find spec files
         for dirpath, dirnames, filenames in os.walk(specPath):
@@ -224,12 +224,12 @@ class Application(object):
             self.__specParser.finalize()
 
     # Load a spec string
-    def loadSpecString(self, spec, fileName = "", finalize = True):
+    def loadSpecString(self, spec, fileName = '', finalize = True):
         self.__specParser.parseString(spec, fileName = fileName, finalize = finalize)
 
     # Regular expression for matching URL arguments
-    __reUrlArg = re.compile("/\{([A-Za-z]\w*)\}")
-    __reUrlArgEsc = re.compile("/\\\{([A-Za-z]\w*)\\\}")
+    __reUrlArg = re.compile('/\{([A-Za-z]\w*)\}')
+    __reUrlArgEsc = re.compile('/\\\{([A-Za-z]\w*)\\\}')
 
     # Add a request handler (Request-wrapped WSGI application)
     def addRequest(self, request):
@@ -248,7 +248,7 @@ class Application(object):
 
             # URL with arguments?
             if self.__reUrlArg.search(url):
-                urlRegex = self.__reUrlArgEsc.sub("/(?P<\\1>[^/]+)", re.escape(url))
+                urlRegex = self.__reUrlArgEsc.sub('/(?P<\\1>[^/]+)', re.escape(url))
                 self.__requestUrlRegex.append((re.compile(urlRegex), request))
             else:
                 if url in self.__requestUrls:
@@ -263,16 +263,16 @@ class Application(object):
         self.addRequest(DocAction())
 
     # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt = ".py"):
+    def loadRequests(self, moduleDir, moduleExt = '.py'):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
-            raise IOError("%r not found or is not a directory" % (moduleDir,))
+            raise IOError('%r not found or is not a directory' % (moduleDir,))
 
         # Recursively find module files
         moduleDirNorm = os.path.normpath(moduleDir)
         modulePathParent = os.path.dirname(moduleDirNorm)
-        modulePathBase = os.path.join(modulePathParent, "") if modulePathParent else modulePathParent
+        modulePathBase = os.path.join(modulePathParent, '') if modulePathParent else modulePathParent
         for dirpath, dirnames, filenames in os.walk(moduleDirNorm):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
@@ -286,7 +286,7 @@ class Application(object):
                         moduleFp, modulePath, moduleDesc = \
                             imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
                         try:
-                            module = imp.load_module(".".join(moduleParts), moduleFp, modulePath, moduleDesc)
+                            module = imp.load_module('.'.join(moduleParts), moduleFp, modulePath, moduleDesc)
                         finally:
                             if moduleFp:
                                 moduleFp.close()
@@ -306,32 +306,32 @@ class Application(object):
 
         # WSGI environment - used passed-in environ if its complete
         _environ = dict(environ) if environ else {}
-        _environ["REQUEST_METHOD"] = requestMethod
-        _environ["PATH_INFO"] = pathInfo
-        if "SCRIPT_NAME" not in _environ:
-            _environ["SCRIPT_NAME"] = ""
-        if "QUERY_STRING" not in _environ:
-            _environ["QUERY_STRING"] = queryString if queryString else ""
-        if "wsgi.input" not in _environ:
-            _environ["wsgi.input"] = StringIO(wsgiInput if wsgiInput else "")
-            if "CONTENT_LENGTH" not in _environ:
-                _environ["CONTENT_LENGTH"] = str(len(wsgiInput)) if wsgiInput else "0"
-        if "wsgi.errors" not in _environ:
-            _environ["wsgi.errors"] = StringIO()
+        _environ['REQUEST_METHOD'] = requestMethod
+        _environ['PATH_INFO'] = pathInfo
+        if 'SCRIPT_NAME' not in _environ:
+            _environ['SCRIPT_NAME'] = ''
+        if 'QUERY_STRING' not in _environ:
+            _environ['QUERY_STRING'] = queryString if queryString else ''
+        if 'wsgi.input' not in _environ:
+            _environ['wsgi.input'] = StringIO(wsgiInput if wsgiInput else '')
+            if 'CONTENT_LENGTH' not in _environ:
+                _environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
+        if 'wsgi.errors' not in _environ:
+            _environ['wsgi.errors'] = StringIO()
 
         # Make the request
         startResponseArgs = {}
         def startResponse(status, responseHeaders):
-            startResponseArgs["status"] = status
-            startResponseArgs["responseHeaders"] = responseHeaders
+            startResponseArgs['status'] = status
+            startResponseArgs['responseHeaders'] = responseHeaders
         if self.environ:
             responseParts = self.call(_environ, startResponse)
         else:
             responseParts = self(_environ, startResponse)
-        responseString = wsgistr_str(wsgistr_new("").join(responseParts))
+        responseString = wsgistr_str(wsgistr_new('').join(responseParts))
 
-        return (startResponseArgs["status"],
-                startResponseArgs["responseHeaders"],
+        return (startResponseArgs['status'],
+                startResponseArgs['responseHeaders'],
                 responseString)
 
     # Run as stand-alone server
@@ -344,8 +344,8 @@ class Application(object):
 
         # Command line options
         optParser = optparse.OptionParser()
-        optParser.add_option("-p", dest = "port", type = "int", default = 8080,
-                             help = "Server port (default is 8080)")
+        optParser.add_option('-p', dest = 'port', type = 'int', default = 8080,
+                             help = 'Server port (default is 8080)')
         (opts, args) = optParser.parse_args()
 
         # Stand-alone server WSGI entry point
@@ -354,6 +354,6 @@ class Application(object):
             return application(environ, start_response)
 
         # Start the stand-alone server
-        print("Serving on port %d..." % (opts.port,))
-        httpd = wsgiref.simple_server.make_server("", opts.port, application_simple_server)
+        print('Serving on port %d...' % (opts.port,))
+        httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
         httpd.serve_forever()

@@ -33,7 +33,7 @@ class PymongoDatabaseResourceType(ResourceType):
 
     def __init__(self):
 
-        resourceTypeName = "pymongo_database"
+        resourceTypeName = 'pymongo_database'
         ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
     def _open(self, resourceString):
@@ -61,13 +61,13 @@ class PymongoDatabaseResource(pymongo.database.Database):
     TimeoutError = pymongo.errors.TimeoutError
     UnsupportedOption = pymongo.errors.UnsupportedOption
 
-    _reMongoUri = re.compile("^mongodb://((?P<userinfo>.+?)@)?(?P<hosts>.+?)(/(?P<database>.+?))(\?(?P<options>.+))?$")
+    _reMongoUri = re.compile('^mongodb://((?P<userinfo>.+?)@)?(?P<hosts>.+?)(/(?P<database>.+?))(\?(?P<options>.+))?$')
     _readPreferences = {
-        "primary": pymongo.ReadPreference.PRIMARY,
-        "primary_preferred": pymongo.ReadPreference.PRIMARY_PREFERRED,
-        "secondary": pymongo.ReadPreference.SECONDARY,
-        "secondary_preferred": pymongo.ReadPreference.SECONDARY_PREFERRED,
-        "nearest": pymongo.ReadPreference.NEAREST
+        'primary': pymongo.ReadPreference.PRIMARY,
+        'primary_preferred': pymongo.ReadPreference.PRIMARY_PREFERRED,
+        'secondary': pymongo.ReadPreference.SECONDARY,
+        'secondary_preferred': pymongo.ReadPreference.SECONDARY_PREFERRED,
+        'nearest': pymongo.ReadPreference.NEAREST
         }
 
     def __init__(self, resourceString):
@@ -75,33 +75,33 @@ class PymongoDatabaseResource(pymongo.database.Database):
         # Parse the mongo URI
         mMongoUri = self._reMongoUri.search(resourceString)
         if not mMongoUri:
-            raise self.InvalidURI("Unrecognized mongo database URI")
-        userinfo = mMongoUri.group("userinfo")
-        hosts = mMongoUri.group("hosts")
-        database = mMongoUri.group("database")
-        _options = mMongoUri.group("options")
+            raise self.InvalidURI('Unrecognized mongo database URI')
+        userinfo = mMongoUri.group('userinfo')
+        hosts = mMongoUri.group('hosts')
+        database = mMongoUri.group('database')
+        _options = mMongoUri.group('options')
 
         # Remove the readPreference option to work around pymongo uri_parser bug
         options = []
         readPreference = None
         if _options:
-            for option in _options.split("&"):
-                if option.startswith("readPreference="):
-                    readPreference = self._readPreferences.get(option.split("=")[1])
+            for option in _options.split('&'):
+                if option.startswith('readPreference='):
+                    readPreference = self._readPreferences.get(option.split('=')[1])
                     if not readPreference:
-                        raise self.ConfigurationError("Not a valid read preference")
+                        raise self.ConfigurationError('Not a valid read preference')
                 else:
                     options.append(option)
 
         # Rebuild the URI
-        mongoUri = "mongodb://"
+        mongoUri = 'mongodb://'
         if userinfo:
-            mongoUri += userinfo + "@"
+            mongoUri += userinfo + '@'
         mongoUri += hosts
         if userinfo: # Only add database if there is user info - avoids pymongo warn
-            mongoUri += "/" + database
+            mongoUri += '/' + database
         if options:
-            mongoUri += ("?" if userinfo else "/?") + "&".join(options)
+            mongoUri += ('?' if userinfo else '/?') + '&'.join(options)
 
         # Connect to the database
         conn = pymongo.Connection(mongoUri)

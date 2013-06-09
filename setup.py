@@ -23,28 +23,28 @@
 from setuptools import setup
 
 setup(
-    name = "chisel",
-    version = "0.4.1",
-    author = "Craig Hobbs",
-    author_email = "craigahobbs@gmail.com",
-    description = ("JSON web APIs made dirt simple"),
-    long_description = "JSON web APIs made dirt simple",
-    keywords = "json api server framework",
-    url = "https://github.com/craigahobbs/chisel",
-    license = "MIT",
+    name = 'chisel',
+    version = '0.4.1',
+    author = 'Craig Hobbs',
+    author_email = 'craigahobbs@gmail.com',
+    description = ('JSON web APIs made dirt simple'),
+    long_description = 'JSON web APIs made dirt simple',
+    keywords = 'json api server framework',
+    url = 'https://github.com/craigahobbs/chisel',
+    license = 'MIT',
     classifiers = [
-        "Environment :: Web Environment",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.1",
-        "Programming Language :: Python :: 3.2",
-        "Programming Language :: Python :: 3.3"
-        ],
+        'Environment :: Web Environment',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3'
+    ],
     packages = [
-        "chisel",
-        "chisel/resource"
-        ],
+        'chisel',
+        'chisel/resource'
+    ],
     test_suite='chisel.tests'
-    )
+)

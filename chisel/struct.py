@@ -29,18 +29,18 @@ class Struct(object):
     def __init__(self, container = None, **members):
 
         if container is not None:
-            object.__setattr__(self, "_container", container)
+            object.__setattr__(self, '_container', container)
         else:
-            object.__setattr__(self, "_container", dict((k, v) for k, v in iteritems(members) if v is not None))
+            object.__setattr__(self, '_container', dict((k, v) for k, v in iteritems(members) if v is not None))
 
     def __call__(self):
 
-        return object.__getattribute__(self, "_container")
+        return object.__getattribute__(self, '_container')
 
     def __getattr__(self, key):
 
         container = self()
-        if key.startswith("__") and key.endswith("__"):
+        if key.startswith('__') and key.endswith('__'):
             return object.__getattribute__(self, key)
         elif isinstance(container, dict) and (key in container or not hasattr(container, key)):
             return self[key]
@@ -126,4 +126,4 @@ class Struct(object):
 
     def __setstate__(self, d):
 
-        object.__setattr__(self, "_container", d)
+        object.__setattr__(self, '_container', d)

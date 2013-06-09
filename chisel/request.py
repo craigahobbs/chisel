@@ -43,7 +43,7 @@ class Request(object):
 
         # Set the default urls, if necessary
         if self.urls is None and self.name is not None:
-            self.urls = ("/" + self.name,)
+            self.urls = ('/' + self.name,)
 
     def __call__(self, *args):
 
