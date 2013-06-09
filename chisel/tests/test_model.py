@@ -837,7 +837,7 @@ class TestModelStringValidation(unittest.TestCase):
     def test_model_string_validate_constraint_len_lte(self):
 
         t = TypeString()
-        t.constraint_len_lte = 5
+        t.constraint_len_lte = 5.0
 
         o = 'abcde'
         oError = 'abcdef'

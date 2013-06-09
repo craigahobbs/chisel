@@ -261,13 +261,13 @@ class TypeString(object):
 
         # Check string constraints - lengths computed in unicode
         if self.constraint_len_lt is not None and not len(value) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len < ' + repr(self.constraint_len_lt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
         if self.constraint_len_lte is not None and not len(value) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len <= ' + repr(self.constraint_len_lte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
         if self.constraint_len_gt is not None and not len(value) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len > ' + repr(self.constraint_len_gt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
         if self.constraint_len_gte is not None and not len(value) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len >= ' + repr(self.constraint_len_gte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
 
         return value
 
@@ -302,13 +302,13 @@ class TypeInt(object):
 
         # Check constraints
         if self.constraint_lt is not None and not valueX < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(self.constraint_lt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.constraint_lt, 6)))
         if self.constraint_lte is not None and not valueX <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(self.constraint_lte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.constraint_lte, 6)))
         if self.constraint_gt is not None and not valueX > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(self.constraint_gt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.constraint_gt, 6)))
         if self.constraint_gte is not None and not valueX >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(self.constraint_gte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
 
         return value if mode == VALIDATE_DEFAULT else valueX
 
@@ -341,13 +341,13 @@ class TypeFloat(object):
 
         # Check constraints
         if self.constraint_lt is not None and not valueX < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(self.constraint_lt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.constraint_lt, 6)))
         if self.constraint_lte is not None and not valueX <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(self.constraint_lte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.constraint_lte, 6)))
         if self.constraint_gt is not None and not valueX > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(self.constraint_gt))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.constraint_gt, 6)))
         if self.constraint_gte is not None and not valueX >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(self.constraint_gte))
+            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
 
         return value if mode == VALIDATE_DEFAULT else valueX
 
