@@ -28,20 +28,17 @@ class Struct(object):
     __slots__ = ('_container')
 
     def __init__(self, container = None, **members):
-
         if container is not None:
             object.__setattr__(self, '_container', container)
         else:
             object.__setattr__(self, '_container', dict((k, v) for k, v in iteritems(members) if v is not None))
 
     def __call__(self):
-
         return object.__getattribute__(self, '_container')
 
     def __getattr__(self, key):
-
-        container = self()
-        if key.startswith('__') and key.endswith('__'):
+        container = object.__getattribute__(self, '_container')
+        if key.startswith('__'):
             return object.__getattribute__(self, key)
         elif isinstance(container, dict) and (key in container or not hasattr(container, key)):
             return self[key]
@@ -49,17 +46,16 @@ class Struct(object):
             return getattr(container, key)
 
     def __setattr__(self, key, value):
-
-        container = self()
+        container = object.__getattribute__(self, '_container')
         if isinstance(container, dict):
             self[key] = value
         else:
             return type(container).__setattr__(container, key, value)
 
     def __getitem__(self, key):
+        container = object.__getattribute__(self, '_container')
 
         # Lookup the value in the container - return None if not found
-        container = self()
         if isinstance(container, dict):
             value = container.get(key)
         elif isinstance(key, (int, long_)) and key >= 0 and key < len(container):
@@ -71,9 +67,9 @@ class Struct(object):
         return Struct(value) if isinstance(value, (dict, list, tuple)) else value
 
     def __setitem__(self, key, value):
+        container = object.__getattribute__(self, '_container')
 
         # Delete member if value is None
-        container = self()
         if value is None and isinstance(container, dict):
             if key in container:
                 del container[key]
@@ -81,50 +77,46 @@ class Struct(object):
             container[key] = value
 
     def __delitem__(self, key):
-
-        container = self()
+        container = object.__getattribute__(self, '_container')
         del container[key]
 
     def __contains__(self, item):
-
-        return item in self()
+        container = object.__getattribute__(self, '_container')
+        return item in container
 
     def __len__(self):
-
-        return len(self())
+        container = object.__getattribute__(self, '_container')
+        return len(container)
 
     class _ContainerIter(object):
+        __slots__ = ('_it', 'next')
 
         def __init__(self, container):
-
             self._it = iter(container)
 
         def __next__(self):
-
             # Return the value - wrap containers
             value = next(self._it)
             return Struct(value) if isinstance(value, (dict, list, tuple)) else value
 
         def next(self):
-
             return self.__next__()
 
     def __iter__(self):
-
-        return Struct._ContainerIter(self())
+        container = object.__getattribute__(self, '_container')
+        return Struct._ContainerIter(container)
 
     def __eq__(self, other):
-
-        return self() == (other() if isinstance(other, Struct) else other)
+        container = object.__getattribute__(self, '_container')
+        return container == (object.__getattribute__(other, '_container') if isinstance(other, Struct) else other)
 
     def __repr__(self):
-
-        return str(self())
+        container = object.__getattribute__(self, '_container')
+        return str(container)
 
     def __getstate__(self):
-
-        return self()
+        container = object.__getattribute__(self, '_container')
+        return container
 
     def __setstate__(self, d):
-
         object.__setattr__(self, '_container', d)
