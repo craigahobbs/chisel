@@ -21,7 +21,6 @@
 #
 
 from .compat import basestring_, long_, PY3, urllib, xrange_
-from .struct import Struct
 
 
 # Helper to quote strings
@@ -46,10 +45,6 @@ def encodeQueryString(o, encoding = 'utf-8'):
     # Get the flattened list of URL-quoted name/value pairs
     keysValues = []
     def iterateItems(o, parent, topLevel = False):
-
-        # Get the wrapped object of a Struct
-        if isinstance(o, Struct):
-            o = o()
 
         # Add the object keys
         if isinstance(o, dict):

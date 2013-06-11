@@ -176,7 +176,7 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req.a + req.b }
+            return { 'c': req['a'] + req['b'] }
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8')
@@ -197,7 +197,7 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req.a + req.b }
+            return { 'c': req['a'] + req['b'] }
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8&jsonp=foo')
@@ -218,7 +218,7 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req.a + req.b }
+            return { 'c': req['a'] + req['b'] }
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": 7, "b": 8}')
@@ -231,7 +231,7 @@ action myAction
     def test_action_success_custom_response(self):
 
         def myResponse(app, req, response):
-            return app.response('200 OK', 'text/plain', 'Hello ' + str(response.b))
+            return app.response('200 OK', 'text/plain', 'Hello ' + str(response['b']))
 
         @chisel.action(response = myResponse, spec = '''\
 action myAction
@@ -241,7 +241,7 @@ action myAction
     string b
 ''')
         def myAction(app, req):
-            return {'b': req.a.upper()}
+            return {'b': req['a'].upper()}
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": "world"}')

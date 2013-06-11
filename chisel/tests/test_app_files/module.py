@@ -15,7 +15,7 @@ def myAction(ctx, req):
     return {}
 
 @chisel.action
-def myAction2(ctx, request):
+def myAction2(ctx, req):
     ctx.log.info('In myAction2')
 
     with ctx.resources['myresource'] as resource:
@@ -25,9 +25,9 @@ def myAction2(ctx, request):
         else:
             multiplier = resource
 
-        return { 'result': request.value * multiplier }
+        return { 'result': req['value'] * multiplier }
 
 @chisel.action(urls = ('/myAction3/{myArg}',))
-def myAction3(ctx, request):
-    assert request['myArg'] == 123
-    return {'myArg': str(request['myArg'])}
+def myAction3(ctx, req):
+    assert req['myArg'] == 123
+    return {'myArg': str(req['myArg'])}

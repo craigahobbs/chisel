@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from chisel import decodeQueryString, encodeQueryString, Struct
+from chisel import decodeQueryString, encodeQueryString
 from chisel.compat import unichr_, unicode_
 
 import unittest
@@ -182,11 +182,6 @@ class TestUrl(unittest.TestCase):
 
         # Complex dict
         o = { 'a': 7, '_a': '7', 'b': { 'c': '+x y + z', 'd': [2, -4, 6] } }
-        s = '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'
-        self.assertEqual(encodeQueryString(o), s)
-
-        # Complex Struct
-        o = Struct(a = 7, _a = '7', b = Struct(c = '+x y + z', d = [2, -4, 6]))
         s = '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'
         self.assertEqual(encodeQueryString(o), s)
 

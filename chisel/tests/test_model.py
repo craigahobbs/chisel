@@ -20,7 +20,6 @@
 # SOFTWARE.
 #
 
-from chisel.struct import Struct
 from chisel.compat import long_, unicode_
 from chisel.model import JsonFloat, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
@@ -235,22 +234,6 @@ class TestModelStructValidation(unittest.TestCase):
                 self.assertTrue(isinstance(o2['a'], dict))
             self.assertEqual(o2, {'a': {'b': 7}})
 
-    # All validation modes - struct
-    def test_model_struct_validation_struct(self):
-
-        t = TypeStruct()
-        t.addMember('a', TypeInt())
-
-        o = Struct(a = 7)
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7})
-
     # Query string validation mode - transformed member
     def test_model_struct_validation_query_string_transformed_member(self):
 
@@ -321,21 +304,6 @@ class TestModelStructValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
-            else:
-                self.fail()
-
-    # All validation modes - error - array struct
-    def test_model_struct_validation_error_array_struct(self):
-
-        t = TypeStruct()
-        t.addMember('a', TypeInt())
-
-        o = Struct([])
-        for mode in ALL_VALIDATION_MODES:
-            try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [] (type 'Struct'), expected type 'struct'")
             else:
                 self.fail()
 
@@ -442,21 +410,6 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.assertTrue(isinstance(o2, list))
             self.assertEqual(o2, [[1, 2, 3], [4, 5, 6]])
 
-    # All validation modes - struct
-    def test_model_array_validation_struct(self):
-
-        t = TypeArray(TypeInt())
-
-        o = Struct([1, 2, 3])
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, list))
-            self.assertEqual(o2, [1, 2, 3])
-
     # Query string validation mode - transformed member
     def test_model_array_validation_query_string_transformed_member(self):
 
@@ -508,20 +461,6 @@ class TestModelArrayValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'array'")
-            else:
-                self.fail()
-
-    # All validation modes - error - dict struct
-    def test_model_array_validation_error_dict_struct(self):
-
-        t = TypeArray(TypeInt())
-
-        o = Struct({})
-        for mode in ALL_VALIDATION_MODES:
-            try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value {} (type 'Struct'), expected type 'array'")
             else:
                 self.fail()
 
@@ -593,21 +532,6 @@ class TestModelDictValidation(unittest.TestCase):
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, dict))
             self.assertEqual(o2, {'a': {'b': 7}})
-
-    # All validation modes - struct
-    def test_model_dict_validation_struct(self):
-
-        t = TypeDict(TypeInt())
-
-        o = Struct({'a': 7})
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7})
 
     # Query string validation mode - transformed member
     def test_model_dict_validation_query_string_transformed_member(self):
@@ -702,20 +626,6 @@ class TestModelDictValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
-            else:
-                self.fail()
-
-    # All validation modes - error - array struct
-    def test_model_dict_validation_error_array_struct(self):
-
-        t = TypeDict(TypeInt())
-
-        o = Struct([])
-        for mode in ALL_VALIDATION_MODES:
-            try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [] (type 'Struct'), expected type 'dict'")
             else:
                 self.fail()
 

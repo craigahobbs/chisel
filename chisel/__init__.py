@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-__all__ = ['api', 'app', 'model', 'spec', 'struct', 'url']
+__all__ = ['action', 'api', 'app', 'model', 'request', 'spec', 'url']
 
 from .action import Action, Action as action, ActionError
 from .app import Application
@@ -28,5 +28,4 @@ from .model import JsonFloat, ValidationError
 from .request import Request, Request as request
 from .resource.base import ResourceType
 from .spec import SpecParser, SpecParserError
-from .struct import Struct
 from .url import decodeQueryString, encodeQueryString

@@ -21,7 +21,6 @@
 #
 
 from .compat import basestring_, long_
-from .struct import Struct
 
 from datetime import datetime, timedelta, tzinfo
 from decimal import Decimal
@@ -105,10 +104,6 @@ class TypeStruct(object):
         # Validate and translate the value
         if isinstance(value, dict):
             valueX = value
-        elif isinstance(value, Struct):
-            valueX = value()
-            if not isinstance(valueX, dict):
-                raise ValidationError.memberError(self, value, _member)
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = {}
         else:
@@ -153,10 +148,6 @@ class TypeArray(object):
         # Validate and translate the value
         if isinstance(value, (list, tuple)):
             valueX = value
-        elif isinstance(value, Struct):
-            valueX = value()
-            if not isinstance(valueX, (list, tuple)):
-                raise ValidationError.memberError(self, value, _member)
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = []
         else:
@@ -187,10 +178,6 @@ class TypeDict(object):
         # Validate and translate the value
         if isinstance(value, dict):
             valueX = value
-        elif isinstance(value, Struct):
-            valueX = value()
-            if not isinstance(valueX, dict):
-                raise ValidationError.memberError(self, value, _member)
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = {}
         else:

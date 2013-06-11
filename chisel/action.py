@@ -24,7 +24,6 @@ from .compat import iteritems, itervalues, json
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
-from .struct import Struct
 from .url import decodeQueryString
 
 import traceback
@@ -151,7 +150,7 @@ class Action(Request):
 
             # Call the action callback
             try:
-                response = self.fn(self.app, Struct(request))
+                response = self.fn(self.app, request)
             except ActionError as e:
                 response = { 'error': e.error }
                 if e.message is not None:
@@ -177,7 +176,7 @@ class Action(Request):
             # Custom response serialization? Don't render error responses...
             if self.response is not None and not isErrorResponse:
                 try:
-                    return self.response(self.app, Struct(request), Struct(response))
+                    return self.response(self.app, request, response)
                 except Exception as e:
                     self.app.log.error("Unexpected error in response callback for action '%s': %s", self.name, traceback.format_exc())
                     raise _ActionErrorInternal('UnexpectedError')
