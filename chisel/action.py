@@ -51,6 +51,7 @@ class _ActionErrorInternal(Exception):
 class Action(Request):
 
     JSONP = 'jsonp'
+    ENVIRON_JSONP = 'chisel.action.jsonp'
 
     def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None):
 
@@ -136,7 +137,7 @@ class Action(Request):
 
             # JSONP?
             if isGet and self.JSONP in request:
-                jsonpFunction = str(request[self.JSONP])
+                jsonpFunction = environ[self.ENVIRON_JSONP] = str(request[self.JSONP])
                 del request[self.JSONP]
 
             # Validate the request
