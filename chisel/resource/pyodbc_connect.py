@@ -20,31 +20,25 @@
 # SOFTWARE.
 #
 
-from .base import ResourceType
-
 import pyodbc
 
 
 # pyodbc_connect resource type
-class PyodbcConnectResourceType(ResourceType):
+class PyodbcConnectResourceType(object):
+    __slots__ = ()
 
-    def __init__(self, autocommit = True):
+    @staticmethod
+    def open(resourceString):
+        return PyodbcConnectResource(resourceString)
 
-        self.autocommit = autocommit
-        resourceTypeName = 'pyodbc_connect' if autocommit else 'pyodbc_connect_noautocommit'
-        ResourceType.__init__(self, resourceTypeName, self._open, self._close)
-
-    def _open(self, resourceString):
-
-        return PyodbcConnectResource(resourceString, self.autocommit)
-
-    def _close(self, resource):
-
+    @staticmethod
+    def close(resource):
         resource.close()
 
 
 # pyodbc_connect resource
 class PyodbcConnectResource(object):
+    __slots__ = ('_connection')
 
     DatabaseError = pyodbc.DatabaseError
     DataError = pyodbc.DataError
@@ -53,34 +47,28 @@ class PyodbcConnectResource(object):
     InternalError = pyodbc.InternalError
     ProgrammingError = pyodbc.ProgrammingError
 
-    def __init__(self, resourceString, autocommit):
-
-        self._connection = pyodbc.connect(resourceString, autocommit = autocommit, unicode_results = True)
+    def __init__(self, resourceString):
+        self._connection = pyodbc.connect(resourceString, autocommit = True, unicode_results = True)
 
     def close(self):
-
         self._connection.close()
 
     def cursor(self):
-
         return PyodbcCursorContext(self._connection.cursor())
 
     def execute(self, query, *args):
-
         return PyodbcCursorContext(self._connection.execute(query, *args))
 
 
 # pyodbc cursor context manager
 class PyodbcCursorContext(object):
+    __slots__ = ('cursor')
 
     def __init__(self, cursor):
-
         self.cursor = cursor
 
     def __enter__(self):
-
         return self.cursor
 
     def __exit__(self, exc_type, exc_value, traceback):
-
         self.cursor.close()

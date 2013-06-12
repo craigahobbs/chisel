@@ -20,7 +20,6 @@
 # SOFTWARE.
 #
 
-from .base import ResourceType
 from ..compat import long_
 
 import datetime
@@ -28,22 +27,17 @@ import decimal
 
 
 # pyodbc_connect resource type mock
-class PyodbcConnectResourceTypeMock(ResourceType):
+class PyodbcConnectResourceTypeMock(object):
 
     # executeCallback(resourceString, query, *args), returns [(columnNames, columnDatas), ...]
     def __init__(self, executeCallback, autocommit = True):
-
         self.executeCallback = executeCallback
         self.autocommit = autocommit
-        resourceTypeName = 'pyodbc_connect' if autocommit else 'pyodbc_connect_noautocommit'
-        ResourceType.__init__(self, resourceTypeName, self._open, self._close)
 
-    def _open(self, resourceString):
-
+    def open(self, resourceString):
         return PyodbcConnectionMock(resourceString, self.executeCallback, self.autocommit)
 
-    def _close(self, resource):
-
+    def close(self, resource):
         resource.close()
 
 
@@ -239,14 +233,12 @@ class PyodbcCursorMock(object):
         self.ixRow = 0
 
     def fetchone(self):
-
         try:
             return self.__next__()
         except StopIteration:
             return None
 
     def __iter__(self):
-
         return self
 
     def __next__(self):
@@ -267,7 +259,6 @@ class PyodbcCursorMock(object):
         return row
 
     def next(self):
-
         return self.__next__()
 
 
@@ -275,15 +266,12 @@ class PyodbcCursorMock(object):
 class PyodbcCursorContext(object):
 
     def __init__(self, cursor):
-
         self.cursor = cursor
 
     def __enter__(self):
-
         return self.cursor
 
     def __exit__(self, exc_type, exc_value, traceback):
-
         self.cursor.close()
 
 

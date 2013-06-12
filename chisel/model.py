@@ -31,7 +31,7 @@ from uuid import UUID
 
 # Floating point number with precision for JSON encoding
 class JsonFloat(float):
-    __slots__ = ('_formatString')
+    __slots__ = ('_formatString',)
 
     def __new__(cls, value, prec):
         return float.__new__(cls, value)
@@ -346,7 +346,7 @@ class TypeFloat(object):
 
 # Bool type
 class TypeBool(object):
-    __slots__ = ('typeName')
+    __slots__ = ('typeName',)
 
     VALUES = {
         'true' : True,
@@ -372,7 +372,7 @@ class TypeBool(object):
 
 # Uuid type
 class TypeUuid(object):
-    __slots__ = ('typeName')
+    __slots__ = ('typeName',)
 
     def __init__(self, typeName = 'uuid'):
         self.typeName = typeName
@@ -399,7 +399,7 @@ class TypeUuid(object):
 
 # Datetime type
 class TypeDatetime(object):
-    __slots__ = ('typeName')
+    __slots__ = ('typeName',)
 
     def __init__(self, typeName = 'datetime'):
         self.typeName = typeName

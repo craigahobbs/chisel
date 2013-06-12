@@ -20,25 +20,29 @@
 # SOFTWARE.
 #
 
-from .base import ResourceType
 from ..compat import urllib2, urlparse
 
 
 # Url request resource type
-class UrlRequestResourceType(ResourceType):
+class UrlRequestResourceType(object):
+    __slots__ = ()
 
-    def __init__(self):
+    @staticmethod
+    def open(resourceString):
+        return UrlRequestResource(resourceString)
 
-        ResourceType.__init__(self, 'url_request', UrlRequestResource, None)
+    @staticmethod
+    def close(resource):
+        pass
 
 
 # Url request resource
 class UrlRequestResource(object):
+    __slots__ = ('hostUrl', 'data', 'header', 'unredirected_header')
 
     URLError = urllib2.URLError
 
     def __init__(self, hostUrl):
-
         self.hostUrl = hostUrl
         self.reset()
 
@@ -74,13 +78,10 @@ class UrlRequestResource(object):
         return responseString
 
     def add_data(self, data):
-
         self.data.append(data)
 
     def add_header(self, key, val):
-
         self.header.append((key, val))
 
     def add_unredirected_header(self, key, val):
-
         self.unredirected_header.append((key, val))

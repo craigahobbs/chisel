@@ -33,12 +33,12 @@ class TestResourcePyodbcConnectMock(unittest.TestCase):
 
         # Create the resource type (default non-autocommit)
         resourceType = PyodbcConnectResourceTypeMock(None, autocommit = False)
-        self.assertEqual(resourceType.name, 'pyodbc_connect_noautocommit')
+        self.assertEqual(resourceType.autocommit, False)
 
         # Create the resource type (default autocommit)
         rowSets = SimpleExecuteCallback()
         resourceType = PyodbcConnectResourceTypeMock(rowSets)
-        self.assertEqual(resourceType.name, 'pyodbc_connect')
+        self.assertEqual(resourceType.autocommit, True)
 
     # Test PyodbcConnectConnectionMock
     def test_resource_pyodbc_connect_mock_connection(self):

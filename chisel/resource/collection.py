@@ -23,24 +23,9 @@
 from collections import namedtuple
 
 
-# Resource type
-class ResourceType(object):
-
-    def __init__(self, name, resourceOpen, resourceClose):
-        self.name = name
-        self.__open = resourceOpen
-        self.__close = resourceClose
-
-    def open(self, resourceString):
-        return self.__open(resourceString)
-
-    def close(self, resource):
-        if self.__close is not None:
-            return self.__close(resource)
-
-
 # Resource context manager
 class ResourceContext(object):
+    __slots__ = ('_resourceOpen', '_resourceClose', '_resourceString', '_resource')
 
     def __init__(self, resourceOpen, resourceClose, resourceString):
         self._resourceOpen = resourceOpen
@@ -60,6 +45,7 @@ class ResourceContext(object):
 
 # Resource collection
 class ResourceCollection(object):
+    __slots__ = ('_resources',)
 
     Resource = namedtuple('Resource', ('resourceName', 'resourceOpen', 'resourceClose', 'resourceString'))
 

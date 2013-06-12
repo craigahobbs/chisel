@@ -20,8 +20,6 @@
 # SOFTWARE.
 #
 
-from .base import ResourceType
-
 import pymongo
 import pymongo.database
 
@@ -29,24 +27,21 @@ import re
 
 
 # pymongo_database resource type
-class PymongoDatabaseResourceType(ResourceType):
+class PymongoDatabaseResourceType(object):
+    __slots__ = ()
 
-    def __init__(self):
-
-        resourceTypeName = 'pymongo_database'
-        ResourceType.__init__(self, resourceTypeName, self._open, self._close)
-
-    def _open(self, resourceString):
-
+    @staticmethod
+    def open(resourceString):
         return PymongoDatabaseResource(resourceString)
 
-    def _close(self, resource):
-
+    @staticmethod
+    def close(resource):
         pass
 
 
 # pymongo_database resource
 class PymongoDatabaseResource(pymongo.database.Database):
+    __slots__ = ()
 
     AutoReconnect = pymongo.errors.AutoReconnect
     CollectionInvalid = pymongo.errors.CollectionInvalid

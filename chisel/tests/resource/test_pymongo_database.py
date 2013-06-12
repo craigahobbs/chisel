@@ -41,9 +41,8 @@ class TestResourcePymongoDatabase(unittest.TestCase):
     # Test PymongoDatabaseResource usage
     def test_resource_pymongo_database(self):
 
-        # Create the resource type (default autocommit)
+        # Create the resource type
         resourceType = PymongoDatabaseResourceType()
-        self.assertEqual(resourceType.name, 'pymongo_database')
 
         # Mongo URI with database, no user info
         mongodb = resourceType.open('mongodb://myhost/mydatabase?myoption=myvalue')

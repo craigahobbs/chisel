@@ -41,7 +41,6 @@ class TestResourceUrlRequest(unittest.TestCase):
 
         # Create the resource type
         urlRequestType = UrlRequestResourceType()
-        self.assertEqual(urlRequestType.name, 'url_request')
 
         request = urlRequestType.open('http://myhost.com/mypath/')
 

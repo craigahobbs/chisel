@@ -20,7 +20,6 @@
 # SOFTWARE.
 #
 
-from .base import ResourceType
 from ..compat import urllib2, urlparse
 
 
@@ -28,16 +27,16 @@ from ..compat import urllib2, urlparse
 #
 # sendCallback(url, headers, unredirected_headers, requestData) - return isSuccess, responseData
 #
-class UrlRequestResourceTypeMock(ResourceType):
+class UrlRequestResourceTypeMock(object):
 
     def __init__(self, sendCallback):
-
         self.sendCallback = sendCallback
-        ResourceType.__init__(self, 'url_request', self._open, None)
 
-    def _open(self, resourceString):
-
+    def open(self, resourceString):
         return UrlRequestResourceMock(resourceString, self.sendCallback)
+
+    def close(self, resource):
+        pass
 
 
 # Url request resource mock
@@ -46,7 +45,6 @@ class UrlRequestResourceMock(object):
     URLError = urllib2.URLError
 
     def __init__(self, hostUrl, sendCallback):
-
         self.hostUrl = hostUrl
         self.sendCallback = sendCallback
         self.reset()
@@ -72,15 +70,12 @@ class UrlRequestResourceMock(object):
         return responseString
 
     def add_data(self, data):
-
         self.data.append(data)
 
     def add_header(self, key, val):
-
         self.header.append((key, val))
 
     def add_unredirected_header(self, key, val):
-
         self.unredirected_header.append((key, val))
 
 
@@ -88,7 +83,6 @@ class UrlRequestResourceMock(object):
 class SimpleSendCallback(object):
 
     def __init__(self):
-
         self.responses = {}
         self.requests = {}
 
@@ -120,13 +114,10 @@ class SimpleSendCallback(object):
             return isSuccess, responseData
 
         else:
-
             return False, None
 
     def __len__(self):
-
         return len(self.requests)
 
     def __getitem__(self, key):
-
         return self.requests[key]

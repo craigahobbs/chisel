@@ -26,6 +26,5 @@ from .action import Action, Action as action, ActionError
 from .app import Application
 from .model import JsonFloat, ValidationError
 from .request import Request, Request as request
-from .resource.base import ResourceType
 from .spec import SpecParser, SpecParserError
 from .url import decodeQueryString, encodeQueryString

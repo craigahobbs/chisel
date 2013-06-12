@@ -23,7 +23,7 @@
 from .compat import iteritems, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
 from .request import Request
-from .resource.base import ResourceCollection
+from .resource.collection import ResourceCollection
 from .spec import SpecParser
 from .url import unquote
 
