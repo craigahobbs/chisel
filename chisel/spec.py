@@ -27,8 +27,10 @@ from .model import TypeStruct, TypeArray, TypeDict, TypeEnum, \
 import re
 
 
-# Action class
-class Action(object):
+# Action model
+class ActionModel(object):
+    __slots__ = ('name', 'inputType', 'outputType', 'errorType', 'doc')
+
     def __init__(self, name, doc = None):
         self.name = name
         self.inputType = TypeStruct(typeName = name + '_Input')
@@ -83,13 +85,11 @@ class SpecParser(object):
 
     # Parse a specification file
     def parse(self, specPath, finalize = True):
-
         with open(specPath, 'r') as specStream:
             self.parseStream(specStream, finalize = finalize, fileName = specPath)
 
     # Parse a specification string
     def parseString(self, spec, fileName = '', finalize = True):
-
         self.parseStream(StringIO(spec), finalize = finalize, fileName = fileName)
 
     # Parse a specification from an input stream
@@ -145,7 +145,7 @@ class SpecParser(object):
         return ' '.join(lines) if lines else None
 
     # Type id reference - converted to types on parser finalization
-    class _TypeRef(object):
+    class TypeRef(object):
         __slots__ = ('fileName', 'fileLine', 'typeName', 'isArray', 'isDict')
 
         def __init__(self, fileName, fileLine, typeName, isArray, isDict):
@@ -218,7 +218,7 @@ class SpecParser(object):
                         self._error("Redefinition of action '" + defId + "'")
 
                     # Create the new action
-                    self._curAction = Action(defId, doc = self._curDoc)
+                    self._curAction = ActionModel(defId, doc = self._curDoc)
                     self._curType = None
                     self._curDoc = []
                     self.actions[self._curAction.name] = self._curAction
@@ -286,17 +286,17 @@ class SpecParser(object):
                     self._error("Redefinition of member '" + memId + "'")
 
                 # Create the struct member
-                memTypeRef = self._TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
+                memTypeRef = self.TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
                 member = self._curType.addMember(memId, self._getTypeInst(memTypeRef) or memTypeRef, doc = self._curDoc)
                 self._curDoc = []
-                if isinstance(member.typeInst, self._TypeRef):
+                if isinstance(member.typeInst, self.TypeRef):
                     self._typeRefs.append(member)
 
                 # Get the member type for setting attributes (only for built-in types!)
                 if isinstance(member.typeInst, TypeArray) or isinstance(member.typeInst, TypeDict):
                     memTypeInst = member.typeInst.typeInst
                 elif not isinstance(member.typeInst, TypeStruct) and not isinstance(member.typeInst, TypeEnum) and \
-                        not isinstance(member.typeInst, self._TypeRef):
+                        not isinstance(member.typeInst, self.TypeRef):
                     memTypeInst = member.typeInst
                 else:
                     memTypeInst = None

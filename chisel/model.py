@@ -430,6 +430,7 @@ class TypeDatetime(object):
 
     # GMT tzinfo class for parseISO8601Datetime (from Python docs)
     class TZUTC(tzinfo): # pragma: no cover
+        __slots__ = ()
 
         def utcoffset(self, dt):
             return timedelta(0)
@@ -442,6 +443,7 @@ class TypeDatetime(object):
 
     # Local time zone tzinfo class (from Python docs)
     class TZLocal(tzinfo): # pragma: no cover
+        __slots__ = ()
 
         def utcoffset(self, dt):
             if self._isdst(dt):

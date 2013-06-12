@@ -31,7 +31,6 @@ import xml.sax.saxutils as saxutils
 class DocAction(Action):
 
     def __init__(self, docCssUri = None):
-
         self.docCssUri = docCssUri
         Action.__init__(self, self.action, response = self.actionResponse,
                         spec = '''\
@@ -73,18 +72,13 @@ class Element(object):
         self.children = []
 
     def addChild(self, name, isInline = None, **attrs):
-
         if isInline is None:
             isInline = self.isInline
         child = Element(name, isInline = isInline, **attrs)
         self.children.append(child)
         return child
 
-    def serialize(self, out, indent = '  '):
-
-        self._serialize(out, indent, 0, True)
-
-    def _serialize(self, out, indent, indentIndex, isRoot):
+    def serialize(self, out, indent = '  ', indentIndex = 0, isRoot = True):
 
         indentCur = indent * indentIndex
 
@@ -114,7 +108,7 @@ class Element(object):
         # Children elements
         childPrevInline = self.isInline
         for child in self.children:
-            child._serialize(out, indent, indentIndex + 1, False)
+            child.serialize(out, indent, indentIndex + 1, False)
             childPrevInline = child.isInline
 
         # Element close
@@ -255,13 +249,9 @@ def _addStyle(parent, docCssUri = None):
 
     # External CSS URL provided?
     if docCssUri is not None:
-
-        # External style
         parent.addChild('link', isClosed = False, _type = 'text/css', rel = 'stylesheet', href = docCssUri)
-
     else:
-
-        # Default style
+        # Built-in style
         parent.addChild('style', _type = 'text/css') \
             .addChild('''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
@@ -385,7 +375,6 @@ ul.chsl-constraint-list {
 
 # User type href helper
 def _userTypeHref(typeInst):
-
     return typeInst.typeName
 
 # Type name HTML helper
@@ -446,7 +435,6 @@ def _addTypeAttr(parent, typeInst):
 
 # Add text DOM elements
 def _addText(parent, texts):
-
     div = None
     for text in texts:
         if div is None:
@@ -495,11 +483,8 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
 
     # Empty struct?
     if not typeInst.members:
-
         _addText(parent, (emptyMessage,))
-
     else:
-
         # Table header
         table = parent.addChild('table')
         tr = table.addChild('tr')
@@ -537,11 +522,8 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
 
     # Empty struct?
     if not typeInst.values:
-
         _addText(parent, (emptyMessage,))
-
     else:
-
         # Table header
         table = parent.addChild('table')
         tr = table.addChild('tr')

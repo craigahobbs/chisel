@@ -48,6 +48,7 @@ class _ActionErrorInternal(Exception):
 
 # Action callback decorator
 class Action(Request):
+    __slots__ = ('model', 'response')
 
     JSONP = 'jsonp'
 

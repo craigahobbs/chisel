@@ -30,6 +30,7 @@ PY32 = (sys.version_info >= (3, 2))
 if PY32: # pragma: no cover
     import html as _html
     class cgi(object):
+        __slots__ = ()
         escape = _html.escape
 else:
     import cgi
@@ -67,11 +68,14 @@ if PY3: # pragma: no cover
     import urllib.error as _urllib_error
     import urllib.parse as _urllib_parse
     class urllib(object):
+        __slots__ = ()
         quote = _urllib_parse.quote
         unquote = _urllib_parse.unquote
     class urllib2(object):
+        __slots__ = ()
         URLError = _urllib_error.URLError
     class urlparse(object):
+        __slots__ = ()
         urljoin = _urllib_parse.urljoin
 else:
     import urllib

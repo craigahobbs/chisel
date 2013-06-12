@@ -51,7 +51,7 @@ action myActionDefault
         self.assertEqual(myActionDefault.app, self.app)
         self.assertEqual(myActionDefault.name, 'myActionDefault')
         self.assertEqual(myActionDefault.urls, ('/myActionDefault',))
-        self.assertTrue(isinstance(myActionDefault.model, chisel.spec.Action))
+        self.assertTrue(isinstance(myActionDefault.model, chisel.spec.ActionModel))
         self.assertEqual(myActionDefault.model.name, 'myActionDefault')
         self.assertEqual(myActionDefault.response, None)
 
@@ -84,7 +84,7 @@ action myActionName
         self.assertEqual(myAction.app, self.app)
         self.assertEqual(myAction.name, 'myActionName')
         self.assertEqual(myAction.urls, ('/myActionName',))
-        self.assertTrue(isinstance(myAction.model, chisel.spec.Action))
+        self.assertTrue(isinstance(myAction.model, chisel.spec.ActionModel))
         self.assertEqual(myAction.model.name, 'myActionName')
         self.assertEqual(myAction.response, None)
 
@@ -143,7 +143,7 @@ action theAction
         self.assertEqual(myAction.app, self.app)
         self.assertEqual(myAction.name, 'theAction')
         self.assertEqual(myAction.urls, ('/theAction',))
-        self.assertTrue(isinstance(myAction.model, chisel.spec.Action))
+        self.assertTrue(isinstance(myAction.model, chisel.spec.ActionModel))
         self.assertEqual(myAction.model.name, 'theAction')
         self.assertEqual(myAction.response, None)
 
@@ -160,7 +160,7 @@ action theAction
         self.assertEqual(myActionDefault.app, self.app)
         self.assertEqual(myActionDefault.name, 'myActionDefault')
         self.assertEqual(myActionDefault.urls, ('/foo',))
-        self.assertTrue(isinstance(myActionDefault.model, chisel.spec.Action))
+        self.assertTrue(isinstance(myActionDefault.model, chisel.spec.ActionModel))
         self.assertEqual(myActionDefault.model.name, 'myActionDefault')
         self.assertEqual(myActionDefault.response, myResponse)
 

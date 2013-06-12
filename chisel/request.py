@@ -25,6 +25,7 @@ from .compat import func_name
 
 # Request WSGI application decorator
 class Request(object):
+    __slots__ = ('app', 'fn', 'name', 'urls', 'doc')
 
     def __init__(self, _fn = None, name = None, urls = None, doc = None):
         self.app = None
