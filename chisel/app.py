@@ -203,11 +203,11 @@ class Application(object):
         self.start_response(status, _headers)
         return content
 
-    # Will serializeJSON serialize using JSONP (by default)?
+    # Will responseJSON serialize using JSONP (by default)?
     def isJSONP(self):
         return self.environ.get(self.ENVIRON_JSONP) is not None
 
-    # Set the current request's JSONP function for use in serializeJSON (by default)
+    # Set the current request's JSONP function for use in responseJSON (by default)
     def setJSONP(self, jsonpFunction):
         self.environ[self.ENVIRON_JSONP] = jsonpFunction
 
