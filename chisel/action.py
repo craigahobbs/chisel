@@ -51,7 +51,6 @@ class _ActionErrorInternal(Exception):
 class Action(Request):
 
     JSONP = 'jsonp'
-    ENVIRON_JSONP = 'chisel.action.jsonp'
 
     def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None):
 
@@ -92,7 +91,6 @@ class Action(Request):
             return self.app.response('405 Method Not Allowed', 'text/plain', 'Method Not Allowed')
 
         # Handle the action
-        jsonpFunction = None
         try:
             # Get the input dict
             if isGet:
@@ -126,19 +124,19 @@ class Action(Request):
                 except Exception as e:
                     raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(e))
 
+            # JSONP?
+            if isGet and self.JSONP in request:
+                self.app.setJSONP(str(request[self.JSONP]))
+                del request[self.JSONP]
+
             # Add url arguments
             urlArgs = environ.get(self.app.ENVIRON_URL_ARGS)
             if urlArgs:
                 validateMode = VALIDATE_QUERY_STRING
                 for urlArg, urlValue in iteritems(urlArgs):
-                    if urlArg in request:
+                    if urlArg in request or urlArg == self.JSONP:
                         raise _ActionErrorInternal('InvalidInput', "Duplicate member URL argument '%s'" % (urlArg,))
                     request[urlArg] = urlValue
-
-            # JSONP?
-            if isGet and self.JSONP in request:
-                jsonpFunction = environ[self.ENVIRON_JSONP] = str(request[self.JSONP])
-                del request[self.JSONP]
 
             # Validate the request
             try:
@@ -195,13 +193,10 @@ class Action(Request):
             jsonContent = self.app.serializeJSON(response)
 
         # Determine the HTTP status
-        if 'error' in response  and jsonpFunction is None:
+        if 'error' in response and not self.app.isJSONP():
             status = '500 Internal Server Error'
         else:
             status = '200 OK'
 
         # Send the response
-        if jsonpFunction:
-            return self.app.response(status, 'application/json', [jsonpFunction, '(', jsonContent, ');'])
-        else:
-            return self.app.response(status, 'application/json', [jsonContent])
+        return self.app.response(status, 'application/json', [jsonContent])

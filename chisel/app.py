@@ -41,6 +41,7 @@ class Application(object):
 
     ENVIRON_APP = 'chisel.app'
     ENVIRON_URL_ARGS = 'chisel.urlArgs'
+    ENVIRON_JSONP = 'chisel.action.jsonp'
 
     ThreadState = namedtuple('ThreadState', ('environ', 'start_response', 'log'))
 
@@ -201,11 +202,24 @@ class Application(object):
         self.start_response(status, _headers)
         return content
 
+    # Will serializeJSON serialize using JSONP (by default)?
+    def isJSONP(self):
+        return self.environ.get(self.ENVIRON_JSONP) is not None
+
+    # Set the current request's JSONP function for use in serializeJSON (by default)
+    def setJSONP(self, jsonpFunction):
+        self.environ[self.ENVIRON_JSONP] = jsonpFunction
+
     # Serialize an object to JSON
-    def serializeJSON(self, o):
-        return json.dumps(o, sort_keys = True,
-                          indent = 2 if self.prettyOutput else None,
-                          separators = (', ', ': ') if self.prettyOutput else (',', ':'))
+    def serializeJSON(self, o, allowJSONP = True):
+        jsonContent = json.dumps(o, sort_keys = True,
+                                 indent = 2 if self.prettyOutput else None,
+                                 separators = (', ', ': ') if self.prettyOutput else (',', ':'))
+        jsonpFunction = self.environ.get(self.ENVIRON_JSONP) if allowJSONP else None
+        if jsonpFunction:
+            return ''.join((jsonpFunction, '(', jsonContent, ');'))
+        else:
+            return jsonContent
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = '.chsl', finalize = True):

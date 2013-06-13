@@ -89,7 +89,7 @@ class Struct(object):
         return len(container)
 
     class _ContainerIter(object):
-        __slots__ = ('_it', 'next')
+        __slots__ = ('_it')
 
         def __init__(self, container):
             self._it = iter(container)
