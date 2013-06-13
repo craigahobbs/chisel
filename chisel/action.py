@@ -114,7 +114,7 @@ class Action(Request):
                 try:
                     requestContent = environ['wsgi.input'].read(contentLength)
                 except:
-                    self.app.log.warn("I/O error reading input for action '%s'", self.name)
+                    self.app.log.warning("I/O error reading input for action '%s'", self.name)
                     raise _ActionErrorInternal('IOError', 'Error reading request content')
 
                 # De-serialize the JSON request
@@ -185,18 +185,4 @@ class Action(Request):
                 response['member'] = e.member
 
         # Serialize the response as JSON
-        try:
-            jsonContent = self.app.serializeJSON(response)
-        except Exception as e:
-            self.app.log.error("Unexpected error serializing JSON for action '%s': %s", self.name, traceback.format_exc())
-            response = { 'error': 'InvalidOutput' }
-            jsonContent = self.app.serializeJSON(response)
-
-        # Determine the HTTP status
-        if 'error' in response and not self.app.isJSONP():
-            status = '500 Internal Server Error'
-        else:
-            status = '200 OK'
-
-        # Send the response
-        return self.app.response(status, 'application/json', [jsonContent])
+        return self.app.responseJSON(response, isError = 'error' in response)

@@ -505,25 +505,27 @@ action myAction
     # Test action JSON serialization error handling
     def test_action_error_json(self):
 
-        class MyBadFloat(float):
-            def __new__(cls, value):
-                return float.__new__(cls, value)
-            def __repr__(self):
-                raise Exception('FAIL')
+        class MyClass(object):
+            def __init__(self, value):
+                self.value = value
 
-        @chisel.action(spec = '''\
+        def myActionResponse(app, req, response):
+            response['a'] = MyClass(response['a'])
+            return app.responseJSON(response)
+
+        @chisel.action(response = myActionResponse, spec = '''\
 action myAction
   output
     float a
 ''')
         def myAction(app, req):
-            return {'a': MyBadFloat(1)}
+            return {'a': 1}
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(response, '{"error":"InvalidOutput"}')
+        self.assertTrue(('Content-Type', 'text/plain') in headers)
+        self.assertEqual(response, 'Unexpected Error')
 
     # Test action error response with custom response
     def test_action_error_custom_response(self):

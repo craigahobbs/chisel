@@ -34,6 +34,7 @@ import os
 import re
 import sys
 import threading
+import traceback
 
 
 # Top-level WSGI application class
@@ -212,14 +213,24 @@ class Application(object):
 
     # Serialize an object to JSON
     def serializeJSON(self, o, allowJSONP = True):
-        jsonContent = json.dumps(o, sort_keys = True,
-                                 indent = 2 if self.prettyOutput else None,
-                                 separators = (', ', ': ') if self.prettyOutput else (',', ':'))
-        jsonpFunction = self.environ.get(self.ENVIRON_JSONP) if allowJSONP else None
-        if jsonpFunction:
-            return ''.join((jsonpFunction, '(', jsonContent, ');'))
-        else:
-            return jsonContent
+        return json.dumps(o, sort_keys = True,
+                          indent = 2 if self.prettyOutput else None,
+                          separators = (', ', ': ') if self.prettyOutput else (',', ':'))
+
+    # Send a JSON response
+    def responseJSON(self, response, status = None, isError = False, headers = None):
+        try:
+            if not status:
+                status = '200 OK' if not isError or self.isJSONP() else '500 Internal Server Error'
+            content = self.serializeJSON(response)
+            jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
+            if jsonpFunction:
+                content = [jsonpFunction, '(', content, ');']
+        except Exception as e:
+            self.log.error("Unexpected error serializing JSON: %r, %s", response, traceback.format_exc())
+            return self.response('500 Internal Server Error', 'text/plain', 'Unexpected Error', headers = headers)
+
+        return self.response(status, 'application/json', content)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = '.chsl', finalize = True):
