@@ -150,7 +150,8 @@ action myAction2
         self.assertTrue('The action has no output parameters.' in html)
         self.assertTrue('<h2 id="myAction1_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' in html)
-        self.assertTrue('<h2>User Types</h2>' in html)
+        self.assertTrue('<h2>Struct Types</h2>' in html)
+        self.assertTrue('<h2>Enum Types</h2>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the myAction2's HTML
@@ -163,7 +164,6 @@ action myAction2
         self.assertTrue('The action has no output parameters.' not in html)
         self.assertTrue('<h2 id="myAction2_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' not in html)
-        self.assertTrue('<h2>User Types</h2>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the first myAction1's HTML (custom CSS)
@@ -176,7 +176,8 @@ action myAction2
         self.assertTrue('The action has no output parameters.' in html)
         self.assertTrue('<h2 id="myAction1_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' in html)
-        self.assertTrue('<h2>User Types</h2>' in html)
+        self.assertTrue('<h2>Struct Types</h2>' in html)
+        self.assertTrue('<h2>Enum Types</h2>' in html)
         self.assertTrue('<link href="/mystyle.css" rel="stylesheet" type="text/css">' in html)
 
     # Test doc generation element class

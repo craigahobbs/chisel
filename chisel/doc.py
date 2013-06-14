@@ -49,7 +49,7 @@ action doc
     def actionResponse(self, app, request, response):
 
         if request.name is None:
-            requests = sorted(itervalues(app.requests), key = lambda x: x.name)
+            requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
             return app.response('200 OK', 'text/html',
                                 createIndexHtml(app.environ, requests, self.docCssUri))
         elif request.name in app.requests:
@@ -213,15 +213,16 @@ def createRequestHtml(environ, request, docCssUri = None):
             noteResponseP.addChild('The action has a non-default response. See documentation for details.', isText = True)
 
         # Find all user types referenced by the action
-        userTypes = {}
+        structTypes = {}
+        enumTypes = {}
         def findUserTypes(structType):
             for member in structType.members:
                 baseType = member.typeInst.typeInst if hasattr(member.typeInst, 'typeInst') else member.typeInst
-                if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
-                    if baseType.typeName not in userTypes:
-                        userTypes[baseType.typeName] = baseType
-                        if isinstance(baseType, TypeStruct):
-                            findUserTypes(baseType)
+                if isinstance(baseType, TypeStruct) and baseType.typeName not in structTypes:
+                    structTypes[baseType.typeName] = baseType
+                    findUserTypes(baseType)
+                elif isinstance(baseType, TypeEnum) and baseType.typeName not in enumTypes:
+                    enumTypes[baseType.typeName] = baseType
         findUserTypes(request.model.inputType)
         findUserTypes(request.model.outputType)
 
@@ -231,14 +232,16 @@ def createRequestHtml(environ, request, docCssUri = None):
         _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
         # User types
-        if userTypes:
+        if structTypes:
             body.addChild('h2') \
-                .addChild('User Types', isText = True, isInline = True)
-            for userType in sorted(itervalues(userTypes), key = lambda x: x.typeName):
-                if isinstance(userType, TypeStruct):
-                    _structSection(body, userType)
-                elif isinstance(userType, TypeEnum):
-                    _enumSection(body, userType)
+                .addChild('Struct Types', isText = True, isInline = True)
+            for structType in sorted(itervalues(structTypes), key = lambda x: x.typeName.lower()):
+                _structSection(body, structType)
+        if enumTypes:
+            body.addChild('h2') \
+                .addChild('Enum Types', isText = True, isInline = True)
+            for enumType in sorted(itervalues(enumTypes), key = lambda x: x.typeName.lower()):
+                _enumSection(body, enumType)
 
     # Serialize
     out = StringIO()
