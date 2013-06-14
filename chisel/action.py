@@ -100,6 +100,7 @@ class Action(Request):
                 try:
                     request = decodeQueryString(environ.get('QUERY_STRING', ''))
                 except Exception as e:
+                    self.app.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
                     raise _ActionErrorInternal('InvalidInput', str(e))
 
             else:
@@ -108,6 +109,7 @@ class Action(Request):
                 try:
                     contentLength = int(environ['CONTENT_LENGTH'])
                 except:
+                    self.app.log.warning("Invalid content length for action '%s': %s", self.name, environ.get('CONTENT_LENGTH', ''))
                     return self.app.response('411 Length Required', 'text/plain', 'Length Required')
 
                 # Read the request content
@@ -122,6 +124,7 @@ class Action(Request):
                 try:
                     request = json.loads(requestContent)
                 except Exception as e:
+                    self.app.log.warning("Error decoding JSON content for action '%s': %s", self.name, requestContent)
                     raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(e))
 
             # JSONP?
@@ -135,13 +138,15 @@ class Action(Request):
                 validateMode = VALIDATE_QUERY_STRING
                 for urlArg, urlValue in iteritems(urlArgs):
                     if urlArg in request or urlArg == self.JSONP:
-                        raise _ActionErrorInternal('InvalidInput', "Duplicate member URL argument '%s'" % (urlArg,))
+                        self.app.log.warning("Duplicate URL argument member '%s' for action '%s'", urlArg, self.name)
+                        raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (urlArg,))
                     request[urlArg] = urlValue
 
             # Validate the request
             try:
                 request = self.model.inputType.validate(request, validateMode)
             except ValidationError as e:
+                self.app.log.warning("Invalid input for action '%s': %s", self.name, str(e))
                 raise _ActionErrorInternal('InvalidInput', str(e), e.member)
 
             # Call the action callback

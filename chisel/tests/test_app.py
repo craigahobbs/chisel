@@ -134,6 +134,6 @@ class TestAppApplication(unittest.TestCase):
 
         # Request action matched by regex - duplicate member error
         status, headers, response = self.app.request('GET', '/myAction3/123', queryString = 'myArg=321')
-        self.assertEqual(response, '{"error":"InvalidInput","message":"Duplicate member URL argument \'myArg\'"}')
+        self.assertEqual(response, '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
