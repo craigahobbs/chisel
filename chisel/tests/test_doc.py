@@ -22,7 +22,7 @@
 
 import chisel
 from chisel.compat import HTMLParser, StringIO
-from chisel.doc import DocAction, Element, createIndexHtml, createRequestHtml
+from chisel.doc import Element
 
 import unittest
 

@@ -226,7 +226,7 @@ class Application(object):
             jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
             if jsonpFunction:
                 content = [jsonpFunction, '(', content, ');']
-        except Exception as e:
+        except Exception:
             self.log.error('Unexpected error serializing JSON: %r, %s', response, traceback.format_exc())
             return self.response('500 Internal Server Error', 'text/plain', 'Unexpected Error', headers = headers)
 
