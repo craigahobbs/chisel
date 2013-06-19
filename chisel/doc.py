@@ -41,12 +41,12 @@ action doc
     [optional] string name
 ''')
 
-    def action(self, app, request):
+    def action(self, app, req):
         return {}
 
-    def actionResponse(self, app, request, response):
+    def actionResponse(self, app, req, response):
 
-        requestName = request.get('name')
+        requestName = req.get('name')
         if requestName is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
             return app.response('200 OK', 'text/html',
