@@ -30,8 +30,7 @@ import xml.sax.saxutils as saxutils
 # Doc action callback
 class DocAction(Action):
 
-    def __init__(self, docCssUri = None):
-        self.docCssUri = docCssUri
+    def __init__(self):
         Action.__init__(self, self.action, response = self.actionResponse,
                         spec = '''\
 # Generate a documentation HTML for the requests implemented by the application.
@@ -47,13 +46,14 @@ action doc
 
     def actionResponse(self, app, request, response):
 
-        if request.name is None:
+        requestName = request.get('name')
+        if requestName is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
             return app.response('200 OK', 'text/html',
-                                createIndexHtml(app.environ, requests, self.docCssUri))
-        elif request.name in app.requests:
+                                createIndexHtml(app.environ, requests))
+        elif requestName in app.requests:
             return app.response('200 OK', 'text/html',
-                                createRequestHtml(app.environ, app.requests[request.name], self.docCssUri))
+                                createRequestHtml(app.environ, app.requests[requestName]))
         else:
             return app.response('500 Internal Server Error', 'text/plain', 'Unknown Action')
 
@@ -121,7 +121,7 @@ class Element(object):
 
 
 # Generate the top-level action documentation index
-def createIndexHtml(environ, requests, docCssUri = None):
+def createIndexHtml(environ, requests):
 
     docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
@@ -130,7 +130,7 @@ def createIndexHtml(environ, requests, docCssUri = None):
     head = root.addChild('head')
     head.addChild('meta', isClosed = False, charset = 'UTF-8')
     head.addChild('title').addChild('Actions', isText = True, isInline = True)
-    _addStyle(head, docCssUri)
+    _addStyle(head)
     body = root.addChild('body', _class = 'chsl-index-body')
 
     # Index page title
@@ -165,7 +165,7 @@ def createIndexHtml(environ, requests, docCssUri = None):
 
 
 # Generate the documentation for a request
-def createRequestHtml(environ, request, docCssUri = None):
+def createRequestHtml(environ, request):
 
     docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
     isAction = isinstance(request, Action)
@@ -175,7 +175,7 @@ def createRequestHtml(environ, request, docCssUri = None):
     head = root.addChild('head')
     head.addChild('meta', isClosed = False, charset = 'UTF-8')
     head.addChild('title').addChild(request.name, isText = True, isInline = True)
-    _addStyle(head, docCssUri)
+    _addStyle(head)
     body = root.addChild('body', _class = 'chsl-request-body')
     header = body.addChild('div', _class = 'chsl-header');
     header.addChild('a', href = docRootUri) \
@@ -245,15 +245,11 @@ def createRequestHtml(environ, request, docCssUri = None):
 
 
 # Add style DOM helper
-def _addStyle(parent, docCssUri = None):
+def _addStyle(parent):
 
-    # External CSS URL provided?
-    if docCssUri is not None:
-        parent.addChild('link', isClosed = False, _type = 'text/css', rel = 'stylesheet', href = docCssUri)
-    else:
-        # Built-in style
-        parent.addChild('style', _type = 'text/css') \
-            .addChild('''\
+    # Built-in style
+    parent.addChild('style', _type = 'text/css') \
+        .addChild('''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
     padding: 0;

@@ -20,9 +20,9 @@
 # SOFTWARE.
 #
 
-from chisel import Action
+import chisel
 from chisel.compat import HTMLParser, StringIO
-from chisel.doc import createIndexHtml, createRequestHtml, Element
+from chisel.doc import DocAction, Element, createIndexHtml, createRequestHtml
 
 import unittest
 
@@ -56,7 +56,7 @@ class HTMLValidator(HTMLParser):
 # Documentation generation tests
 class TestDoc(unittest.TestCase):
 
-    _spec = '''
+    _spec = '''\
 enum MyEnum
     Value1
     Value2
@@ -111,37 +111,45 @@ action myAction2
         'SERVER_PORT': '8080'
     }
 
-    # Test documentation index HTML generation
-    def test_doc_createIndexHtml(self):
+    def setUp(self):
 
-        # Create the action models
-        actions = (
-            Action(name = 'myAction1', spec = self._spec),
-            Action(name = 'myAction2', spec = self._spec)
-            )
+        # Application object
+        self.logStream = StringIO()
+        self.app = chisel.Application(logStream = self.logStream)
+        self.app.loadSpecString(self._spec)
+        self.app.addRequest(chisel.Action(lambda app, req: {}, name = 'myAction1'))
+        self.app.addRequest(chisel.Action(lambda app, req: {}, name = 'myAction2'))
+        self.app.addDocRequest()
+
+    # Test documentation index HTML generation
+    def test_doc_DocAction_index(self):
 
         # Validate the HTML
-        html = createIndexHtml(self._environ, actions)
+        status, headers, html = self.app.request('GET', '/doc', environ = self._environ)
+        self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        self.assertTrue('<li><a href="/?name=myAction1">myAction1</a></li>' in html)
-        self.assertTrue('<li><a href="/?name=myAction2">myAction2</a></li>' in html)
+        self.assertTrue('<h1>localhost:8080</h1>' in html)
+        self.assertTrue('<li><a href="/doc?name=doc">doc</a></li>' in html)
+        self.assertTrue('<li><a href="/doc?name=myAction1">myAction1</a></li>' in html)
+        self.assertTrue('<li><a href="/doc?name=myAction2">myAction2</a></li>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
-        html = createIndexHtml(self._environ2, actions, docCssUri = '/mystyle.css')
+        status, headers, html = self.app.request('GET', '/doc', environ = self._environ2)
+        self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        self.assertTrue('<li><a href="/?name=myAction1">myAction1</a></li>' in html)
-        self.assertTrue('<li><a href="/?name=myAction2">myAction2</a></li>' in html)
-        self.assertTrue('<link href="/mystyle.css" rel="stylesheet" type="text/css">' in html)
+        self.assertTrue('<h1>localhost:8080</h1>' in html)
+        self.assertTrue('<li><a href="/doc?name=doc">doc</a></li>' in html)
+        self.assertTrue('<li><a href="/doc?name=myAction1">myAction1</a></li>' in html)
+        self.assertTrue('<li><a href="/doc?name=myAction2">myAction2</a></li>' in html)
 
     # Test action model HTML generation
-    def test_doc_createRequestHtml(self):
-
-        myAction1 = Action(name = 'myAction1', spec = self._spec)
-        myAction2 = Action(name = 'myAction2', spec = self._spec)
+    def test_doc_DocAction_request(self):
 
         # Validate the first myAction1's HTML
-        html = createRequestHtml(self._environ, myAction1)
+        environ = dict(self._environ)
+        environ['QUERY_STRING'] = 'name=myAction1'
+        status, headers, html = self.app.request('GET', '/doc', environ = environ)
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -155,7 +163,9 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the myAction2's HTML
-        html = createRequestHtml(self._environ2, myAction2)
+        environ = dict(self._environ2)
+        environ['QUERY_STRING'] = 'name=myAction2'
+        status, headers, html = self.app.request('GET', '/doc', environ = environ)
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction2</h1>' in html)
         self.assertTrue('<h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -165,20 +175,6 @@ action myAction2
         self.assertTrue('<h2 id="myAction2_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' not in html)
         self.assertTrue('<style type="text/css">' in html)
-
-        # Validate the first myAction1's HTML (custom CSS)
-        html = createRequestHtml(self._environ, myAction1, docCssUri = '/mystyle.css')
-        HTMLValidator.validate(html)
-        self.assertTrue('<h1>myAction1</h1>' in html)
-        self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
-        self.assertTrue('The action has no input parameters.' not in html)
-        self.assertTrue('<h2 id="myAction1_Output"><a class="linktarget">Output Parameters</a></h2>' in html)
-        self.assertTrue('The action has no output parameters.' in html)
-        self.assertTrue('<h2 id="myAction1_Error"><a class="linktarget">Error Codes</a></h2>' in html)
-        self.assertTrue('The action returns no custom error codes.' in html)
-        self.assertTrue('<h2>Struct Types</h2>' in html)
-        self.assertTrue('<h2>Enum Types</h2>' in html)
-        self.assertTrue('<link href="/mystyle.css" rel="stylesheet" type="text/css">' in html)
 
     # Test doc generation element class
     def test_doc_element(self):
