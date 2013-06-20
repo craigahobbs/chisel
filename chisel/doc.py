@@ -94,13 +94,9 @@ class Element(object):
             return
 
         # Element open
-        out.write('<')
-        out.write(self.name)
+        out.write('<' + self.name)
         for attrKey, attrValue in sorted(iteritems(self.attrs), key = lambda x: x[0].lstrip('_')):
-            out.write(' ')
-            out.write(attrKey.lstrip('_'))
-            out.write('=')
-            out.write(saxutils.quoteattr(attrValue))
+            out.write(' ' + attrKey.lstrip('_') + '=' + saxutils.quoteattr(attrValue))
         out.write('>')
         if not self.isClosed and not self.children:
             return
@@ -113,11 +109,8 @@ class Element(object):
 
         # Element close
         if not childPrevInline:
-            out.write('\n')
-            out.write(indentCur)
-        out.write('</')
-        out.write(self.name)
-        out.write('>')
+            out.write('\n' + indentCur)
+        out.write('</' + self.name + '>')
 
 
 # Generate the top-level action documentation index
