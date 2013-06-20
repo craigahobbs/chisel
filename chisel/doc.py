@@ -436,19 +436,16 @@ def _addDocText(parent, doc):
 
     # Group paragraphs
     paragraphs = []
-    if not isinstance(doc, (list, tuple)):
-        doc = (line.strip() for line in doc.splitlines())
-    if doc:
-        lines = []
-        for line in doc:
-            if line:
-                lines.append(line)
-            else:
-                if lines:
-                    paragraphs.append(lines)
-                    lines = []
-        if lines:
-            paragraphs.append(lines)
+    lines = []
+    for line in doc if isinstance(doc, (list, tuple)) else (line.strip() for line in doc.splitlines()):
+        if line:
+            lines.append(line)
+        else:
+            if lines:
+                paragraphs.append(lines)
+                lines = []
+    if lines:
+        paragraphs.append(lines)
 
     # Add the text DOM elements
     _addText(parent, ('\n'.join(lines) for lines in paragraphs))
