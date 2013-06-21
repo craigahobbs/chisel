@@ -48,11 +48,12 @@ class _ActionErrorInternal(Exception):
 
 # Action callback decorator
 class Action(Request):
-    __slots__ = ('model', 'response')
+    __slots__ = ('model', 'response', 'strictValidation')
 
     JSONP = 'jsonp'
 
-    def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None):
+    def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None,
+                 strictValidation = True):
 
         # Spec provided?
         self.model = None
@@ -71,6 +72,7 @@ class Action(Request):
             name = self.model.name
 
         self.response = response
+        self.strictValidation = strictValidation
         Request.__init__(self, _fn = _fn, name = name, urls = urls)
 
     def onload(self, app):
@@ -120,7 +122,7 @@ class Action(Request):
                     raise _ActionErrorInternal('IOError', 'Error reading request content')
 
                 # De-serialize the JSON request
-                validateMode = VALIDATE_JSON_INPUT
+                validateMode = VALIDATE_JSON_INPUT if self.strictValidation else VALIDATE_QUERY_STRING
                 try:
                     request = json.loads(requestContent)
                 except Exception as e:
@@ -171,7 +173,7 @@ class Action(Request):
                     responseTypeInst = self.model.outputType
                 response = responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
             except ValidationError as e:
-                self.app.log.error("Invalid output returned from action '%s': %r", self.name, response)
+                self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
                 raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
 
             # Custom response serialization? Don't render error responses...
