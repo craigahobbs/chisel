@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_
+from .compat import basestring_, iteritems, long_
 
 from datetime import datetime, timedelta, tzinfo
 from decimal import Decimal
@@ -61,9 +61,18 @@ class ValidationError(Exception):
         self.member = member
 
     @classmethod
+    def _flattenMembers(cls, members):
+        for member2 in members:
+            if isinstance(member2, (list, tuple)):
+                for member3 in cls._flattenMembers(member2):
+                    yield member3
+            else:
+                yield member2
+
+    @classmethod
     def memberSyntax(cls, members):
         if members:
-            return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']')) for x in members).lstrip('.')
+            return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']')) for x in cls._flattenMembers(members)).lstrip('.')
         return None
 
     @classmethod
@@ -78,7 +87,7 @@ class ValidationError(Exception):
 
 # Struct type
 class TypeStruct(object):
-    __slots__ = ('typeName', 'members', 'doc')
+    __slots__ = ('typeName', '_members', '_membersDict', 'doc')
 
     class Member(object):
         __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
@@ -91,13 +100,19 @@ class TypeStruct(object):
 
     def __init__(self, typeName = 'struct', doc = None):
         self.typeName = typeName
-        self.members = []
+        self._members = []
+        self._membersDict = {}
         self.doc = [] if doc is None else doc
 
     def addMember(self, name, typeInst, isOptional = False, doc = None):
         member = self.Member(name, typeInst, isOptional, doc)
-        self.members.append(member)
+        self._members.append(member)
+        self._membersDict[name] = member
         return member
+
+    @property
+    def members(self):
+        return self._members
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -112,25 +127,21 @@ class TypeStruct(object):
         # Result a copy?
         valueCopy = None if mode == VALIDATE_DEFAULT else {}
 
-        # Validate members
-        memberNames = set()
-        for member in self.members:
-            memberNames.add(member.name)
-
-            # Is the required member not present?
-            if member.name not in valueX:
-                if not member.isOptional:
-                    raise ValidationError("Required member '" + ValidationError.memberSyntax(_member + (member.name,)) + "' missing")
-            else:
-                # Validate the member value
-                memberValue = member.typeInst.validate(valueX[member.name], mode, _member + (member.name,))
+        # Validate all member values
+        try:
+            membersDict = self._membersDict
+            for memberName, memberValue in iteritems(valueX):
+                memberValueX = membersDict[memberName].typeInst.validate(memberValue, mode, (_member, memberName))
                 if valueCopy is not None:
-                    valueCopy[member.name] = memberValue
+                    valueCopy[memberName] = memberValueX
+        except KeyError as e:
+            raise ValidationError("Unknown member '" + ValidationError.memberSyntax((_member, memberName)) + "'")
 
-        # Check for invalid members
-        for valueKey in valueX:
-            if valueKey not in memberNames:
-                raise ValidationError("Unknown member '" + ValidationError.memberSyntax(_member + (valueKey,)) + "'")
+        # Any missing required members?
+        if len(self._members) != len(valueX):
+            for member in self._members:
+                if not member.isOptional and member.name not in valueX:
+                    raise ValidationError("Required member '" + ValidationError.memberSyntax((_member, member.name)) + "' missing")
 
         return value if valueCopy is None else valueCopy
 
@@ -157,10 +168,13 @@ class TypeArray(object):
         valueCopy = None if mode == VALIDATE_DEFAULT else []
 
         # Validate the list contents
-        for ixArrayValue, arrayValue in enumerate(valueX):
-            arrayValue = self.typeInst.validate(arrayValue, mode, _member + (ixArrayValue,))
+        typeInst = self.typeInst
+        ixArrayValue = 0
+        for arrayValue in valueX:
+            arrayValue = typeInst.validate(arrayValue, mode, (_member, ixArrayValue))
             if valueCopy is not None:
                 valueCopy.append(arrayValue)
+            ixArrayValue += 1
 
         return value if valueCopy is None else valueCopy
 
@@ -187,16 +201,17 @@ class TypeDict(object):
         valueCopy = None if mode == VALIDATE_DEFAULT else {}
 
         # Validate the dict key/value pairs
-        for key in valueX:
+        typeInst = self.typeInst
+        for dictKey, dictValue in iteritems(valueX):
 
             # Dict keys must be strings
-            if not isinstance(key, basestring_):
-                raise ValidationError.memberError(TypeString(), key, _member + (key,))
+            if not isinstance(dictKey, basestring_):
+                raise ValidationError.memberError(TypeString(), dictKey, (_member, dictKey))
 
             # Validate the value
-            dictValue = self.typeInst.validate(valueX[key], mode, _member + (key,))
+            dictValueX = typeInst.validate(dictValue, mode, (_member, dictKey))
             if valueCopy is not None:
-                valueCopy[key] = dictValue
+                valueCopy[dictKey] = dictValueX
 
         return value if valueCopy is None else valueCopy
 
