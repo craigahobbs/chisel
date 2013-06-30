@@ -106,7 +106,7 @@ class ValidationError(Exception):
     @classmethod
     def _flattenMembers(cls, members):
         for member2 in members:
-            if isinstance(member2, (list, tuple)):
+            if isinstance(member2, tuple):
                 for member3 in cls._flattenMembers(member2):
                     yield member3
             else:
@@ -200,7 +200,7 @@ class TypeArray(object):
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
         # Validate and translate the value
-        if isinstance(value, (list, tuple)):
+        if isinstance(value, list) or isinstance(value, tuple):
             valueX = value
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = []
@@ -336,7 +336,7 @@ class TypeInt(object):
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
         # Validate and translate the value
-        if isinstance(value, (int, long_)) and not isinstance(value, bool):
+        if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             valueX = value
         elif isinstance(value, float):
             valueX = int(value)
@@ -379,7 +379,7 @@ class TypeFloat(object):
         # Validate and translate the value
         if isinstance(value, float):
             valueX = value
-        elif isinstance(value, (int, long_)) and not isinstance(value, bool):
+        elif (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             valueX = float(value)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
@@ -444,7 +444,7 @@ class TypeUuid(object):
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonUUID):
             return value
-        elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
             try:
                 return UUID(value)
             except:
@@ -475,7 +475,7 @@ class TypeDatetime(object):
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
             return value
-        elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
             try:
                 return parseISO8601Datetime(value)
             except:
