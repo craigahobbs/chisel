@@ -185,6 +185,28 @@ action myAction
                                    ('Content-Length', '8')])
         self.assertEqual(response, '{"c":15}')
 
+    # Test successful action get
+    def test_action_success_get_no_validate_output(self):
+
+        @chisel.action(spec = '''\
+action myAction
+  input
+    int a
+    int b
+  output
+    int c
+''')
+        def myAction(app, req):
+            return { 'c': req['a'] + req['b'] }
+        self.app.addRequest(myAction)
+        self.app.validateOutput = False
+
+        status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(headers, [('Content-Type', 'application/json'),
+                                   ('Content-Length', '8')])
+        self.assertEqual(response, '{"c":15}')
+
     # Test successful action get with JSONP
     def test_action_success_get_jsonp(self):
 

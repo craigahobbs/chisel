@@ -50,6 +50,7 @@ class Application(object):
 
         self.logLevel = logging.WARNING
         self.prettyOutput = False
+        self.validateOutput = True
         self.alwaysReload = False
         self.__logStream = logStream
         self.__threadStates = {}
@@ -140,6 +141,14 @@ class Application(object):
     @prettyOutput.setter
     def prettyOutput(self, value):
         self.__prettyOutput = value
+
+    # Validate output
+    @property
+    def validateOutput(self):
+        return self.__validateOutput
+    @validateOutput.setter
+    def validateOutput(self, value):
+        self.__validateOutput = value
 
     # Re-init specs and modules each request
     @property

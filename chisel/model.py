@@ -23,27 +23,66 @@
 from .compat import basestring_, iteritems, long_
 
 from datetime import datetime, timedelta, tzinfo
-from decimal import Decimal
 import time
 import re
 from uuid import UUID
 
 
+# JSON encoding for datetime objects
+class JsonDatetime(float):
+    __slots__ = ('value', 'json')
+
+    def __new__(cls, value):
+        return float.__new__(cls, 0)
+
+    def __init__(self, value):
+        if value.tzinfo is None:
+            self.value = datetime(value.year, value.month, value.day, value.hour,
+                                  value.minute, value.second, value.microsecond, TZLocal())
+        else:
+            self.value = value
+        self.json = '"' + self.value.isoformat() + '"'
+
+    def __repr__(self):
+        return self.json
+
+    def __str__(self):
+        return self.json
+
+
 # Floating point number with precision for JSON encoding
 class JsonFloat(float):
-    __slots__ = ('_formatString',)
+    __slots__ = ('json',)
 
     def __new__(cls, value, prec):
         return float.__new__(cls, value)
 
     def __init__(self, value, prec):
-        self._formatString = '.' + str(prec) + 'f'
+        self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
 
     def __repr__(self):
-        return format(self, self._formatString).rstrip('0').rstrip('.')
+        return self.json
 
     def __str__(self):
-        return self.__repr__()
+        return self.json
+
+
+# JSON encoding for UUID objects
+class JsonUUID(float):
+    __slots__ = ('value', 'json')
+
+    def __new__(cls, value):
+        return float.__new__(cls, 0)
+
+    def __init__(self, value):
+        self.value = value
+        self.json = '"' + str(value) + '"'
+
+    def __repr__(self):
+        return self.json
+
+    def __str__(self):
+        return self.json
 
 
 # Validation mode
@@ -51,6 +90,10 @@ VALIDATE_DEFAULT = 0
 VALIDATE_QUERY_STRING = 1
 VALIDATE_JSON_INPUT = 2
 VALIDATE_JSON_OUTPUT = 3
+
+
+# Immutable validation modes
+IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_JSON_OUTPUT)
 
 
 # Type validation exception
@@ -125,7 +168,7 @@ class TypeStruct(object):
             raise ValidationError.memberError(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode == VALIDATE_DEFAULT else {}
+        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate all member values
         try:
@@ -134,7 +177,7 @@ class TypeStruct(object):
                 memberValueX = membersDict[memberName].typeInst.validate(memberValue, mode, (_member, memberName))
                 if valueCopy is not None:
                     valueCopy[memberName] = memberValueX
-        except KeyError as e:
+        except KeyError:
             raise ValidationError("Unknown member '" + ValidationError.memberSyntax((_member, memberName)) + "'")
 
         # Any missing required members?
@@ -165,7 +208,7 @@ class TypeArray(object):
             raise ValidationError.memberError(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode == VALIDATE_DEFAULT else []
+        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else []
 
         # Validate the list contents
         typeInst = self.typeInst
@@ -198,7 +241,7 @@ class TypeDict(object):
             raise ValidationError.memberError(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode == VALIDATE_DEFAULT else {}
+        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate the dict key/value pairs
         typeInst = self.typeInst
@@ -295,7 +338,7 @@ class TypeInt(object):
         # Validate and translate the value
         if isinstance(value, (int, long_)) and not isinstance(value, bool):
             valueX = value
-        elif isinstance(value, (float, Decimal)):
+        elif isinstance(value, float):
             valueX = int(value)
             if valueX != value:
                 raise ValidationError.memberError(self, value, _member)
@@ -317,7 +360,7 @@ class TypeInt(object):
         if self.constraint_gte is not None and not valueX >= self.constraint_gte:
             raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
 
-        return value if mode == VALIDATE_DEFAULT else valueX
+        return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
 
 # Float type
@@ -336,7 +379,7 @@ class TypeFloat(object):
         # Validate and translate the value
         if isinstance(value, float):
             valueX = value
-        elif isinstance(value, (int, long_, Decimal)) and not isinstance(value, bool):
+        elif isinstance(value, (int, long_)) and not isinstance(value, bool):
             valueX = float(value)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
@@ -356,7 +399,7 @@ class TypeFloat(object):
         if self.constraint_gte is not None and not valueX >= self.constraint_gte:
             raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
 
-        return value if mode == VALIDATE_DEFAULT else valueX
+        return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
 
 # Bool type
@@ -396,20 +439,18 @@ class TypeUuid(object):
 
         # Validate and translate the value
         if isinstance(value, UUID):
-            valueX = value
+            if mode == VALIDATE_JSON_OUTPUT:
+                raise ValidationError.memberError(self, value, _member, constraintSyntax = 'JsonUUID object required')
+            return value
+        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonUUID):
+            return value
         elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
             try:
-                valueX = UUID(value)
+                return UUID(value)
             except:
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
-
-        # Convert to string for JSON output
-        if mode == VALIDATE_JSON_OUTPUT:
-            return str(valueX)
-
-        return value if mode == VALIDATE_DEFAULT else valueX
 
 
 # Datetime type
@@ -423,100 +464,101 @@ class TypeDatetime(object):
 
         # Validate and translate the value
         if isinstance(value, datetime):
-            valueX = value
+            if mode == VALIDATE_JSON_OUTPUT:
+                raise ValidationError.memberError(self, value, _member, constraintSyntax = 'JsonDatetime object required')
+
+            # Set a time zone, if necessary
+            if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
+                return datetime(value.year, value.month, value.day, value.hour,
+                                value.minute, value.second, value.microsecond, TZLocal())
+
+            return value
+        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
+            return value
         elif mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT) and isinstance(value, basestring_):
             try:
-                valueX = self.parseISO8601Datetime(value)
+                return parseISO8601Datetime(value)
             except:
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Set a time zone
-        if mode != VALIDATE_DEFAULT and valueX.tzinfo is None:
-            valueX = datetime(valueX.year, valueX.month, valueX.day, valueX.hour,
-                              valueX.minute, valueX.second, valueX.microsecond, TypeDatetime.TZLocal())
 
-        # Convert to string for JSON output
-        if mode == VALIDATE_JSON_OUTPUT:
-            return valueX.isoformat()
+# GMT tzinfo class for parseISO8601Datetime (from Python docs)
+class TZUTC(tzinfo): # pragma: no cover
+    __slots__ = ()
 
-        return value if mode == VALIDATE_DEFAULT else valueX
+    def utcoffset(self, dt):
+        return timedelta(0)
 
-    # GMT tzinfo class for parseISO8601Datetime (from Python docs)
-    class TZUTC(tzinfo): # pragma: no cover
-        __slots__ = ()
+    def dst(self, dt):
+        return timedelta(0)
 
-        def utcoffset(self, dt):
+    def tzname(self, dt):
+        return 'UTC'
+
+
+# Local time zone tzinfo class (from Python docs)
+class TZLocal(tzinfo): # pragma: no cover
+    __slots__ = ()
+
+    def utcoffset(self, dt):
+        if self._isdst(dt):
+            return self._dstOffset()
+        else:
+            return self._stdOffset()
+
+    def dst(self, dt):
+        if self._isdst(dt):
+            return self._dstOffset() - self._stdOffset()
+        else:
             return timedelta(0)
 
-        def dst(self, dt):
-            return timedelta(0)
+    def tzname(self, dt):
+        return time.tzname[self._isdst(dt)]
 
-        def tzname(self, dt):
-            return 'UTC'
-
-    # Local time zone tzinfo class (from Python docs)
-    class TZLocal(tzinfo): # pragma: no cover
-        __slots__ = ()
-
-        def utcoffset(self, dt):
-            if self._isdst(dt):
-                return self._dstOffset()
-            else:
-                return self._stdOffset()
-
-        def dst(self, dt):
-            if self._isdst(dt):
-                return self._dstOffset() - self._stdOffset()
-            else:
-                return timedelta(0)
-
-        def tzname(self, dt):
-            return time.tzname[self._isdst(dt)]
-
-        @classmethod
-        def _stdOffset(cls):
-            return timedelta(seconds = -time.timezone)
-
-        @classmethod
-        def _dstOffset(cls):
-            if time.daylight:
-                return timedelta(seconds = -time.altzone)
-            else:
-                return cls._stdOffset()
-
-        @classmethod
-        def _isdst(cls, dt):
-            tt = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0)
-            stamp = time.mktime(tt)
-            tt = time.localtime(stamp)
-            return tt.tm_isdst > 0
-
-    # ISO 8601 regex
-    reISO8601 = re.compile('^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})' +
-                           '(T(?P<hour>\d{2}):(?P<min>\d{2}?):(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?' +
-                           '(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
-
-    # Static helper function to parse ISO 8601 date/time
     @classmethod
-    def parseISO8601Datetime(cls, s):
+    def _stdOffset(cls):
+        return timedelta(seconds = -time.timezone)
 
-        # Match ISO 8601?
-        m = cls.reISO8601.search(s)
-        if not m:
-            raise ValueError('Expected ISO 8601 date/time')
+    @classmethod
+    def _dstOffset(cls):
+        if time.daylight:
+            return timedelta(seconds = -time.altzone)
+        else:
+            return cls._stdOffset()
 
-        # Extract ISO 8601 components
-        year = int(m.group('year'))
-        month = int(m.group('month'))
-        day = int(m.group('day'))
-        hour = int(m.group('hour')) if m.group('hour') else 0
-        minute = int(m.group('min')) if m.group('min') else 0
-        sec = int(m.group('sec')) if m.group('sec') else 0
-        microsec = int(float('.' + m.group('fracsec')) * 1000000) if m.group('fracsec') else 0
-        offhour = int(m.group('offsign') + m.group('offhour')) if m.group('offhour') else 0
-        offmin = int(m.group('offsign') + m.group('offmin')) if m.group('offmin') else 0
+    @classmethod
+    def _isdst(cls, dt):
+        tt = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0)
+        stamp = time.mktime(tt)
+        tt = time.localtime(stamp)
+        return tt.tm_isdst > 0
 
-        return (datetime(year, month, day, hour, minute, sec, microsec, cls.TZUTC()) -
-                timedelta(hours = offhour, minutes = offmin))
+
+# ISO 8601 regex
+_reISO8601 = re.compile('^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})' +
+                       '(T(?P<hour>\d{2}):(?P<min>\d{2}?):(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?' +
+                       '(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+
+# Static helper function to parse ISO 8601 date/time
+def parseISO8601Datetime(s):
+
+    # Match ISO 8601?
+    m = _reISO8601.search(s)
+    if not m:
+        raise ValueError('Expected ISO 8601 date/time')
+
+    # Extract ISO 8601 components
+    year = int(m.group('year'))
+    month = int(m.group('month'))
+    day = int(m.group('day'))
+    hour = int(m.group('hour')) if m.group('hour') else 0
+    minute = int(m.group('min')) if m.group('min') else 0
+    sec = int(m.group('sec')) if m.group('sec') else 0
+    microsec = int(float('.' + m.group('fracsec')) * 1000000) if m.group('fracsec') else 0
+    offhour = int(m.group('offsign') + m.group('offhour')) if m.group('offhour') else 0
+    offmin = int(m.group('offsign') + m.group('offmin')) if m.group('offmin') else 0
+
+    return (datetime(year, month, day, hour, minute, sec, microsec, TZUTC()) -
+            timedelta(hours = offhour, minutes = offmin))

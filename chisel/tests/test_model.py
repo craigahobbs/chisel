@@ -21,78 +21,116 @@
 #
 
 from chisel.compat import long_, unicode_
-from chisel.model import JsonFloat, ValidationError, \
+from chisel.model import JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
-    TypeUuid, TypeDatetime
+    TypeUuid, TypeDatetime, TZUTC, TZLocal, IMMUTABLE_VALIDATION_MODES
 
 from datetime import datetime
-from decimal import Decimal
 import unittest
 from uuid import UUID
 
-
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)
+
+
+# JsonDatetime unit tests
+class TestModelJsonDatetime(unittest.TestCase):
+
+    # Datetime with timezone
+    def test_model_jsonDatetime(self):
+
+        value = datetime(2013, 6, 30, 17, 19, 0, tzinfo = TZUTC())
+        o = JsonDatetime(value)
+        self.assertTrue(isinstance(o, float))
+        self.assertTrue(o.value is value)
+        self.assertTrue(o.value.tzinfo is not None)
+        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
+        self.assertEqual(str(o), '"2013-06-30T17:19:00+00:00"')
+
+    # Datetime without timezone
+    def test_model_jsonDatetime_no_timezone(self):
+
+        value = datetime(2013, 6, 30, 17, 19, 0)
+        o = JsonDatetime(value)
+        oExpected = JsonDatetime(datetime(2013, 6, 30, 17, 19, 0, tzinfo = TZLocal()))
+        self.assertTrue(isinstance(o, float))
+        self.assertTrue(isinstance(o.value, datetime))
+        self.assertTrue(o.value.tzinfo is not None)
+        self.assertEqual(repr(o), repr(oExpected))
+        self.assertEqual(str(o), repr(oExpected))
 
 
 # JsonFloat unit tests
 class TestModelJsonFloat(unittest.TestCase):
 
     # Basic two decimal places float repr
-    def test_model_jsonFloat_basic(self):
+    def test_model_jsonFloat(self):
 
-        f = JsonFloat(2.25, 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2.25')
-        self.assertEqual(str(f), '2.25')
+        o = JsonFloat(2.25, 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2.25')
+        self.assertEqual(str(o), '2.25')
 
     # Two decimal places float repr round up
     def test_model_jsonFloat_round_up(self):
 
-        f = JsonFloat(2.256, 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2.26')
-        self.assertEqual(str(f), '2.26')
+        o = JsonFloat(2.256, 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2.26')
+        self.assertEqual(str(o), '2.26')
 
     # Two decimal places float repr round down
     def test_model_jsonFloat_round_down(self):
 
-        f = JsonFloat(2.254, 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2.25')
-        self.assertEqual(str(f), '2.25')
+        o = JsonFloat(2.254, 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2.25')
+        self.assertEqual(str(o), '2.25')
 
     # Two decimal places float repr - ugly in Python 2.6
     def test_model_jsonFloat_ugly(self):
 
-        f = JsonFloat(2.03, 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2.03')
-        self.assertEqual(str(f), '2.03')
+        o = JsonFloat(2.03, 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2.03')
+        self.assertEqual(str(o), '2.03')
 
     # Two decimal places float repr with end-zero trimming
     def test_model_jsonFloat_zero_trim(self):
 
-        f = JsonFloat(2.5, 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2.5')
-        self.assertEqual(str(f), '2.5')
+        o = JsonFloat(2.5, 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2.5')
+        self.assertEqual(str(o), '2.5')
 
     # Two decimal places float repr with end-point trimming
     def test_model_jsonFloat_point_trim(self):
 
-        f = JsonFloat(2., 2)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2')
-        self.assertEqual(str(f), '2')
+        o = JsonFloat(2., 2)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2')
+        self.assertEqual(str(o), '2')
 
     # Zero decimal places
     def test_model_jsonFloat_zero_prec(self):
 
-        f = JsonFloat(2.25, 0)
-        self.assertTrue(isinstance(f, float))
-        self.assertEqual(repr(f), '2')
-        self.assertEqual(str(f), '2')
+        o = JsonFloat(2.25, 0)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(repr(o), '2')
+        self.assertEqual(str(o), '2')
+
+
+# JsonUUID unit tests
+class TestModelJsonUUID(unittest.TestCase):
+
+    def test_model_jsonUUID(self):
+
+        value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
+        o = JsonUUID(value)
+        self.assertTrue(isinstance(o, float))
+        self.assertTrue(o.value is value)
+        self.assertEqual(repr(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
+        self.assertEqual(str(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
 
 
 # ValidationError unit tests
@@ -172,7 +210,7 @@ class TestModelStructValidation(unittest.TestCase):
         o = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -189,7 +227,7 @@ class TestModelStructValidation(unittest.TestCase):
         o = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -206,7 +244,7 @@ class TestModelStructValidation(unittest.TestCase):
         o = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -224,7 +262,7 @@ class TestModelStructValidation(unittest.TestCase):
         o = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
                 self.assertTrue(o['a'] is o2['a'])
             else:
@@ -265,17 +303,6 @@ class TestModelStructValidation(unittest.TestCase):
         o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
         self.assertTrue(o is not o2)
         self.assertEqual(o2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
-
-    # JSON output validation mode - transformed member
-    def test_model_struct_validation_json_output_transformed_member(self):
-
-        t = TypeStruct()
-        t.addMember('a', TypeUuid())
-
-        o = {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')}
-        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': '184eab31-4307-416c-aac4-3b92b2358677'})
 
     # All validation modes - error - invalid value
     def test_model_struct_validation_error_invalid_value(self):
@@ -388,7 +415,7 @@ class TestModelArrayValidation(unittest.TestCase):
         o = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -403,7 +430,7 @@ class TestModelArrayValidation(unittest.TestCase):
         o = [[1, 2, 3], [4, 5, 6]]
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -439,16 +466,6 @@ class TestModelArrayValidation(unittest.TestCase):
         o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
         self.assertTrue(o is not o2)
         self.assertEqual(o2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
-
-    # JSON output validation mode - transformed member
-    def test_model_array_validation_json_output_transformed_member(self):
-
-        t = TypeArray(TypeUuid())
-
-        o = [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')]
-        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, ['39e23a29-2bea-4402-a4d2-bb3dc057d17a'])
 
     # All validation modes - error - invalid value
     def test_model_array_validation_error_invalid_value(self):
@@ -511,7 +528,7 @@ class TestModelDictValidation(unittest.TestCase):
         o = {'a': 7, 'b': 8}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -526,7 +543,7 @@ class TestModelDictValidation(unittest.TestCase):
         o = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -562,16 +579,6 @@ class TestModelDictValidation(unittest.TestCase):
         o2 = t.validate(o, mode = VALIDATE_JSON_INPUT)
         self.assertTrue(o is not o2)
         self.assertEqual(o2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
-
-    # JSON output validation mode - transformed member
-    def test_model_dict_validation_json_output_transformed_member(self):
-
-        t = TypeDict(TypeUuid())
-
-        o = {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')}
-        o2 = t.validate(o, mode = VALIDATE_JSON_OUTPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': '72d33c44-7d30-4f15-903c-56dcc6decd75'})
 
     # All validation modes - error - invalid value
     def test_model_dict_validation_error_invalid_value(self):
@@ -833,22 +840,7 @@ class TestModelIntValidation(unittest.TestCase):
         o = 7.
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, (int, long_)))
-                self.assertEqual(o2, 7)
-
-    # All validation modes - Decimal
-    def test_model_int_validate_decimal(self):
-
-        t = TypeInt()
-
-        o = Decimal('7')
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -890,20 +882,6 @@ class TestModelIntValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value 7.5 (type 'float'), expected type 'int'")
-            else:
-                self.fail()
-
-    # All validation modes - error - not-integer Decimal
-    def test_model_int_validate_error_decimal(self):
-
-        t = TypeInt()
-
-        o = Decimal('7.5')
-        for mode in ALL_VALIDATION_MODES:
-            try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value Decimal('7.5') (type 'Decimal'), expected type 'int'")
             else:
                 self.fail()
 
@@ -1030,7 +1008,7 @@ class TestModelFloatValidation(unittest.TestCase):
         o = 7
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
@@ -1045,27 +1023,12 @@ class TestModelFloatValidation(unittest.TestCase):
         o = long_(7)
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
+            if mode in IMMUTABLE_VALIDATION_MODES:
                 self.assertTrue(o is o2)
             else:
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, float))
                 self.assertEqual(o2, 7.)
-
-    # All validation modes - Decimal
-    def test_model_float_validate_decimal(self):
-
-        t = TypeFloat()
-
-        o = Decimal('7.5')
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_DEFAULT:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, float))
-                self.assertEqual(o2, 7.5)
 
     # Query string validation mode - string
     def test_model_float_query_string(self):
@@ -1238,31 +1201,61 @@ class TestModelUuidValidation(unittest.TestCase):
 
         self.assertEqual(t.typeName, 'uuid')
 
-    # All validation modes - success
+    # All validation modes - UUID object
     def test_model_uuid_validate(self):
 
         t = TypeUuid()
 
         o = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_JSON_OUTPUT:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o2, 'aed91c7b-dcfd-49b3-a483-dbc9ea2031a3')
-            else:
+            if mode != VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
                 self.assertTrue(o is o2)
+            else:
+                try:
+                    o2 = t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value UUID('aed91c7b-dcfd-49b3-a483-dbc9ea2031a3') (type 'UUID'), expected type 'uuid' [JsonUUID object required]")
+                else:
+                    pass
 
-    # Query string and JSON input validation modes - string
+    # All validation modes - JsonUUID object
+    def test_model_uuid_validate_JsonUUID(self):
+
+        t = TypeUuid()
+
+        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        for mode in ALL_VALIDATION_MODES:
+            if mode == VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is o2)
+            else:
+                try:
+                    o2 = t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'uuid'")
+                else:
+                    pass
+
+    # All validation modes - UUID string
     def test_model_uuid_validate_string(self):
 
         t = TypeUuid()
 
         o = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
-        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is not o2)
-            self.assertTrue(isinstance(o2, UUID))
-            self.assertEqual(o2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, UUID))
+                self.assertEqual(o2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+            else:
+                try:
+                    o2 = t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3' (type 'str'), expected type 'uuid'")
+                else:
+                    pass
 
     # All validation modes - error - invalid value
     def test_model_uuid_validate_error(self):
@@ -1289,72 +1282,124 @@ class TestModelDatetimeValidation(unittest.TestCase):
 
         self.assertEqual(t.typeName, 'datetime')
 
-    # All validation modes - success
+    # All validation modes - datetime object
     def test_model_datetime_validate(self):
 
         t = TypeDatetime()
 
-        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZUTC())
+        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC())
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_JSON_OUTPUT:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o2, '2013-05-26T11:01:00+00:00')
-            else:
+            if mode != VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
                 self.assertTrue(o is o2)
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertTrue(str(e).startswith("Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model.TZUTC object at "))
+                    self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
+                else:
+                    self.fail()
 
-    # All validation modes - no timezone
+    # All validation modes - JSONDatetime object
+    def test_model_datetime_JSONDatetime(self):
+
+        t = TypeDatetime()
+
+        o = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC()))
+        for mode in ALL_VALIDATION_MODES:
+            if mode == VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is o2)
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01:00+00:00\" (type 'JsonDatetime'), expected type 'datetime'")
+                else:
+                    self.fail()
+
+    # All validation modes - datetime object with no timezone
     def test_model_datetime_validate_no_timezone(self):
 
         t = TypeDatetime()
 
         o = datetime(2013, 5, 26, 11, 1, 0)
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode == VALIDATE_JSON_OUTPUT:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZLocal()).isoformat())
-            elif mode != VALIDATE_DEFAULT:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZLocal()))
-            else:
+            if mode == VALIDATE_DEFAULT:
+                o2 = t.validate(o, mode)
                 self.assertTrue(o is o2)
+            elif mode not in IMMUTABLE_VALIDATION_MODES:
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZLocal()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value datetime.datetime(2013, 5, 26, 11, 1) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]")
+                else:
+                    self.fail()
 
-    # Query string and JSON input validation modes - string
+    # All validation modes - ISO datetime string
     def test_model_datetime_validate_query_string(self):
 
         t = TypeDatetime()
 
         o = '2013-05-26T11:01:00+08:00'
-        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is not o2)
-            self.assertTrue(isinstance(o2, datetime))
-            self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo = TypeDatetime.TZUTC()))
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, datetime))
+                self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo = TZUTC()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00+08:00' (type 'str'), expected type 'datetime'")
+                else:
+                    self.fail()
 
-    # Query string and JSON input validation modes - string - zulu
+    # All validation modes - ISO datetime string - zulu
     def test_model_datetime_validate_query_string_zulu(self):
 
         t = TypeDatetime()
 
         o = '2013-05-26T11:01:00Z'
-        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is not o2)
-            self.assertTrue(isinstance(o2, datetime))
-            self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TypeDatetime.TZUTC()))
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, datetime))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00Z' (type 'str'), expected type 'datetime'")
+                else:
+                    self.fail()
 
-    # Query string and JSON input validation modes - string - fraction second
+    # All validation modes - ISO datetime string - fraction second
     def test_model_datetime_validate_query_string_fracsec(self):
 
         t = TypeDatetime()
 
         o = '2013-05-26T11:01:00.1234Z'
-        for mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is not o2)
-            self.assertTrue(isinstance(o2, datetime))
-            self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo = TypeDatetime.TZUTC()))
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, datetime))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo = TZUTC()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00.1234Z' (type 'str'), expected type 'datetime'")
+                else:
+                    self.fail()
 
     # All validation modes - error - invalid value
     def test_model_datetime_validate_error(self):

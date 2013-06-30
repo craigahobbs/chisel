@@ -164,17 +164,18 @@ class Action(Request):
 
             # Validate the response
             isErrorResponse = (hasattr(response, '__contains__') and 'error' in response)
-            try:
+            if self.app.validateOutput:
                 if isErrorResponse:
                     responseTypeInst = TypeStruct()
                     responseTypeInst.addMember('error', self.model.errorType)
                     responseTypeInst.addMember('message', TypeString(), isOptional = True)
                 else:
                     responseTypeInst = self.model.outputType
-                response = responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
-            except ValidationError as e:
-                self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
-                raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
+                try:
+                    responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
+                except ValidationError as e:
+                    self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
+                    raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
 
             # Custom response serialization? Don't render error responses...
             if self.response is not None and not isErrorResponse:
