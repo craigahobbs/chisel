@@ -24,18 +24,20 @@ from .compat import basestring_, long_, PY3, urllib, xrange_
 
 
 # Helper to quote strings
-def quote(s, encoding = 'utf-8'):
-    if PY3: # pragma: no cover
+if PY3: # pragma: no cover
+    def quote(s, encoding = 'utf-8'):
         return urllib.quote(s if isinstance(s, str) else str(s), encoding = encoding)
-    else:
+else:
+    def quote(s, encoding = 'utf-8'):
         return urllib.quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
 
 
 # Helper to unquote a URL key or value
-def unquote(s, encoding = 'utf-8'):
-    if PY3: # pragma: no cover
+if PY3: # pragma: no cover
+    def unquote(s, encoding = 'utf-8'):
         return urllib.unquote(s, encoding = encoding)
-    else:
+else:
+    def unquote(s, encoding = 'utf-8'):
         return urllib.unquote(s).decode(encoding)
 
 
@@ -53,7 +55,7 @@ def encodeQueryString(o, encoding = 'utf-8'):
                     iterateItems(o[member], parent + (quote(member, encoding),))
             elif not topLevel:
                 keysValues.append((parent, ''))
-        elif isinstance(o, (list, tuple)):
+        elif isinstance(o, list) or isinstance(o, tuple):
             if o:
                 for ix in xrange_(0, len(o)):
                     iterateItems(o[ix], parent + (quote(ix, encoding),))
@@ -100,7 +102,7 @@ def decodeQueryString(queryString, encoding = 'utf-8'):
         for key in keys:
 
             # Array key?
-            if isinstance(key, (int, long_)):
+            if isinstance(key, int) or isinstance(key, long_):
 
                 # Create this key's container, if necessary
                 o = oParent[keyParent]
