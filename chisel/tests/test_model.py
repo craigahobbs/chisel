@@ -885,6 +885,20 @@ class TestModelIntValidation(unittest.TestCase):
             else:
                 self.fail()
 
+    # All validation modes - error - fake JSON float
+    def test_model_int_validate_error_fake_float(self):
+
+        t = TypeInt()
+
+        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'int'")
+            else:
+                self.fail()
+
     # All validation modes - error - bool
     def test_model_int_validate_error_bool(self):
 
@@ -1065,6 +1079,20 @@ class TestModelFloatValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value True (type 'bool'), expected type 'float'")
+            else:
+                self.fail()
+
+    # All validation modes - error - fake JSON float
+    def test_model_float_validate_error_bool(self):
+
+        t = TypeFloat()
+
+        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'float'")
             else:
                 self.fail()
 

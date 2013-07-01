@@ -85,12 +85,15 @@ class JsonUUID(float):
         return self.json
 
 
+# Fake JSON float types
+FAKE_FLOAT_TYPES = (JsonDatetime, JsonUUID)
+
+
 # Validation mode
 VALIDATE_DEFAULT = 0
 VALIDATE_QUERY_STRING = 1
 VALIDATE_JSON_INPUT = 2
 VALIDATE_JSON_OUTPUT = 3
-
 
 # Immutable validation modes
 IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_JSON_OUTPUT)
@@ -338,7 +341,7 @@ class TypeInt(object):
         # Validate and translate the value
         if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             valueX = value
-        elif isinstance(value, float):
+        elif isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
             valueX = int(value)
             if valueX != value:
                 raise ValidationError.memberError(self, value, _member)
@@ -377,7 +380,7 @@ class TypeFloat(object):
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
         # Validate and translate the value
-        if isinstance(value, float):
+        if isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
             valueX = value
         elif (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             valueX = float(value)
