@@ -95,6 +95,7 @@ class TestAppApplication(unittest.TestCase):
 
         # POST
         logStream = StringIO()
+        self.app.logFormat = '%(message)s'
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
         self.assertEqual(response, '{"result":63}')
         self.assertEqual(status, '200 OK')

@@ -61,6 +61,7 @@ class Application(object):
     def __init__(self, logStream = sys.stderr):
 
         self.logLevel = logging.WARNING
+        self.logFormat = '%(pathname)s:%(lineno)s: %(levelname)s [%(process)s / %(thread)s] %(message)s'
         self.prettyOutput = False
         self.validateOutput = True
         self.alwaysReload = False
@@ -142,7 +143,9 @@ class Application(object):
         logger = logging.getLoggerClass()('')
         logger.setLevel(self.logLevel)
         if logStream:
-            logger.addHandler(logging.StreamHandler(logStream))
+            handler = logging.StreamHandler(logStream)
+            handler.setFormatter(logging.Formatter(self.logFormat))
+            logger.addHandler(handler)
         return logger
 
     # Logging level
@@ -152,6 +155,14 @@ class Application(object):
     @logLevel.setter
     def logLevel(self, value):
         self.__logLevel = value
+
+    # Logging format
+    @property
+    def logFormat(self):
+        return self.__logFormat
+    @logFormat.setter
+    def logFormat(self, value):
+        self.__logFormat = value
 
     # Pretty output
     @property
