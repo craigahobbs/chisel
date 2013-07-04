@@ -26,8 +26,6 @@ from .request import Request
 from .spec import SpecParser
 from .url import decodeQueryString
 
-import traceback
-
 
 # Action error response exception
 class ActionError(Exception):
@@ -159,7 +157,7 @@ class Action(Request):
                 if e.message is not None:
                     response['message'] = e.message
             except Exception as e:
-                self.app.log.error("Unexpected error in action '%s': %s", self.name, traceback.format_exc())
+                self.app.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal('UnexpectedError')
 
             # Validate the response
@@ -182,7 +180,7 @@ class Action(Request):
                 try:
                     return self.response(self.app, request, response)
                 except Exception as e:
-                    self.app.log.error("Unexpected error in response callback for action '%s': %s", self.name, traceback.format_exc())
+                    self.app.log.exception("Unexpected error in response callback for action '%s'", self.name)
                     raise _ActionErrorInternal('UnexpectedError')
 
         except _ActionErrorInternal as e:

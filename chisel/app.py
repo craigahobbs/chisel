@@ -34,7 +34,6 @@ import os
 import re
 import sys
 import threading
-import traceback
 
 
 # Redirecting logging handler
@@ -266,7 +265,7 @@ class Application(object):
             if jsonpFunction:
                 content = [jsonpFunction, '(', content, ');']
         except Exception:
-            self.log.error('Unexpected error serializing JSON: %r, %s', response, traceback.format_exc())
+            self.log.exception('Unexpected error serializing JSON: %r', response)
             return self.response('500 Internal Server Error', 'text/plain', 'Unexpected Error', headers = headers)
 
         return self.response(status, 'application/json', content)
