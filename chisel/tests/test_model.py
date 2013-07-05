@@ -1324,7 +1324,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertTrue(str(e).startswith("Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model.TZUTC object at "))
+                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model.TZUTC object at '))
                     self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
                 else:
                     self.fail()
