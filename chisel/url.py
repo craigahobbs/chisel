@@ -20,7 +20,11 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_, PY3, urllib, xrange_
+from .compat import basestring_, json, long_, PY3, urllib, xrange_
+from .model import JsonDatetime, JsonUUID
+
+from datetime import datetime
+from uuid import UUID
 
 
 # Helper to quote strings
@@ -62,7 +66,15 @@ def encodeQueryString(o, encoding = 'utf-8'):
             elif not topLevel:
                 keysValues.append((parent, ''))
         elif o is not None:
-            keysValues.append((parent, quote(o, encoding)))
+            if isinstance(o, datetime):
+                ostr = json.dumps(JsonDatetime(o)).strip('"')
+            elif isinstance(o, UUID):
+                ostr = json.dumps(JsonUUID(o)).strip('"')
+            elif isinstance(o, bool):
+                ostr = json.dumps(o)
+            else:
+                ostr = o
+            keysValues.append((parent, quote(ostr, encoding)))
 
     iterateItems(o, (), topLevel = True)
 

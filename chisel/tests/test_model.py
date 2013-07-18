@@ -1083,7 +1083,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - fake JSON float
-    def test_model_float_validate_error_bool(self):
+    def test_model_float_validate_error_fake_float(self):
 
         t = TypeFloat()
 

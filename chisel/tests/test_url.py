@@ -20,10 +20,12 @@
 # SOFTWARE.
 #
 
-from chisel import decodeQueryString, encodeQueryString
+from chisel import decodeQueryString, encodeQueryString, TZUTC
 from chisel.compat import unichr_, unicode_
 
+from datetime import datetime
 import unittest
+from uuid import UUID
 
 
 # Tests for URL utilities
@@ -233,4 +235,25 @@ class TestUrl(unittest.TestCase):
         # Unicode keys and values
         o = { unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd'] }
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
+        self.assertEqual(encodeQueryString(o), s)
+
+    # Test bool query string encoding
+    def test_url_encodeQueryString_bool(self):
+
+        o = { 'a': True }
+        s = 'a=true'
+        self.assertEqual(encodeQueryString(o), s)
+
+    # Test datetime query string encoding
+    def test_url_encodeQueryString_datetime(self):
+
+        o = { 'a': datetime(2013, 7, 18, 12, 31, tzinfo = TZUTC()) }
+        s = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
+        self.assertEqual(encodeQueryString(o), s)
+
+    # Test uuid query string encoding
+    def test_url_encodeQueryString_uuid(self):
+
+        o = { 'a': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e') }
+        s = 'a=7da81f83-a656-42f1-aeb3-ab207809fb0e'
         self.assertEqual(encodeQueryString(o), s)
