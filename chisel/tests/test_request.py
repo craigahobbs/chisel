@@ -21,7 +21,7 @@
 #
 
 import chisel
-from chisel.compat import StringIO
+from chisel.compat import StringIO, wsgistr_new
 
 import unittest
 
@@ -85,3 +85,18 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'foo')
         self.assertEqual(myRequest.urls, ('/bar', '/thud'))
+
+    # Request headers
+    def test_request_headers(self):
+
+        @chisel.request(name = 'foo')
+        def myRequest(environ, start_response):
+            app = environ[chisel.Application.ENVIRON_APP]
+            app.addHeader('OtherHeader', 'Other Value')
+            start_response('200 OK', (('MyHeader', 'MyValue'),))
+            return [wsgistr_new('OK')]
+        self.app.addRequest(myRequest)
+        status, headers, response = self.app.request('GET', '/foo')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(headers,  [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
+        self.assertEqual(response, 'OK')

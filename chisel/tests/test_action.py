@@ -249,6 +249,25 @@ action myAction
                                    ('Content-Length', '8')])
         self.assertEqual(response, '{"c":15}')
 
+    # Test successful action get with headers
+    def test_action_success_headers(self):
+
+        @chisel.action(spec = '''\
+action myAction
+''')
+        def myAction(app, req):
+            app.addHeader('MyHeader', 'MyValue')
+            return {}
+        self.app.addRequest(myAction)
+
+        errors = StringIO()
+        status, headers, response = self.app.request('GET', '/myAction', environ = {'wsgi.errors': errors})
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(headers, [('Content-Type', 'application/json'),
+                                   ('Content-Length', '2'),
+                                   ('MyHeader', 'MyValue')])
+        self.assertEqual(response, '{}')
+
     # Test successful action with custom response
     def test_action_success_custom_response(self):
 

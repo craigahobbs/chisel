@@ -29,6 +29,7 @@ from .url import unquote
 
 from collections import namedtuple
 import imp
+import itertools
 import logging
 import os
 import re
@@ -52,8 +53,9 @@ class ApplicationLogHandler(logging.Handler):
 class Application(object):
 
     ENVIRON_APP = 'chisel.app'
+    ENVIRON_JSONP = 'chisel.jsonp'
+    ENVIRON_HEADERS = 'chisel.headers'
     ENVIRON_URL_ARGS = 'chisel.urlArgs'
-    ENVIRON_JSONP = 'chisel.action.jsonp'
 
     ThreadState = namedtuple('ThreadState', ('environ', 'start_response', 'log'))
 
@@ -120,9 +122,16 @@ class Application(object):
         # Set the app environment item
         environ[self.ENVIRON_APP] = self
 
+        # Wrap start_response
+        def _start_response(status, headers):
+            _headers = self.getHeaders()
+            if _headers:
+                headers = list(itertools.chain(headers, _headers)) if headers else _headers
+            return start_response(status, headers)
+
         # Add the thread state
         threadKey = threading.current_thread().ident
-        threadState = self.ThreadState(environ, start_response, self.__createLogger(environ['wsgi.errors']))
+        threadState = self.ThreadState(environ, _start_response, self.__createLogger(environ['wsgi.errors']))
         self.__threadStates[threadKey] = threadState
 
         # Handle the request - re-initialize if necessary
@@ -130,9 +139,9 @@ class Application(object):
             if self.alwaysReload:
                 with self.__initLock:
                     self.__init()
-                    return self.call(environ, start_response)
+                    return self.call(environ, _start_response)
             else:
-                return self.call(environ, start_response)
+                return self.call(environ, _start_response)
         finally:
             # Remove the thread state
             del self.__threadStates[threadKey]
@@ -269,6 +278,17 @@ class Application(object):
             return self.response('500 Internal Server Error', 'text/plain', 'Unexpected Error', headers = headers)
 
         return self.response(status, 'application/json', content)
+
+    # Add a request header
+    def addHeader(self, key, value):
+        headers = self.environ.get(self.ENVIRON_HEADERS)
+        if headers is None:
+            headers = self.environ[self.ENVIRON_HEADERS] = []
+        headers.append((key, value))
+
+    # Get the request's headers
+    def getHeaders(self):
+        return self.environ.get(self.ENVIRON_HEADERS)
 
     # Recursively load all specs in a directory
     def loadSpecs(self, specPath, specExt = '.chsl', finalize = True):

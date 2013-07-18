@@ -53,7 +53,8 @@ class Request(object):
             self._setDefaults()
             return self
         else:
-            return self.call(*args)
+            environ, start_response = args
+            return self.call(environ, start_response)
 
     def onload(self, app):
         self.app = app
