@@ -37,18 +37,6 @@ import sys
 import threading
 
 
-# Redirecting logging handler
-class ApplicationLogHandler(logging.Handler):
-    __slots__ = ('app',)
-
-    def __init__(self, app):
-        self.app = app
-        logging.Handler.__init__(self)
-
-    def handle(self, record):
-        return self.app.log.handle(record)
-
-
 # Top-level WSGI application class
 class Application(object):
 
@@ -69,9 +57,6 @@ class Application(object):
         self.__logStream = logStream
         self.__threadStates = {}
         self.__initLock = threading.Lock()
-
-        # Add a default log handler
-        logging.getLogger().addHandler(ApplicationLogHandler(self))
 
         self.__init()
 
