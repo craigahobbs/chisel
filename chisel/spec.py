@@ -52,7 +52,7 @@ class SpecParser(object):
     # Parser regex
     _rePartId = '([A-Za-z]\w*)'
     _rePartAttrGroup = '((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>-?\d+(\.\d+)?)|' + \
-        'len\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))'
+        '(?P<ltype>a?len)\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))'
     _reAttrGroup = re.compile(_rePartAttrGroup)
     _rePartAttr = re.sub('\\(\\?P<[^>]+>', '(', _rePartAttrGroup)
     _reFindAttrs = re.compile(_rePartAttr + '(?:\s*,\s*|\s*\Z)')
@@ -292,21 +292,16 @@ class SpecParser(object):
                 if isinstance(member.typeInst, self.TypeRef):
                     self._typeRefs.append(member)
 
-                # Get the member type for setting attributes (only for built-in types!)
-                if isinstance(member.typeInst, TypeArray) or isinstance(member.typeInst, TypeDict):
-                    memTypeInst = member.typeInst.typeInst
-                elif not isinstance(member.typeInst, TypeStruct) and not isinstance(member.typeInst, TypeEnum) and \
-                        not isinstance(member.typeInst, self.TypeRef):
-                    memTypeInst = member.typeInst
-                else:
-                    memTypeInst = None
-
                 # Apply member attributes - type attributes only apply to built-in types
                 for memAttr in memAttrs:
                     mAttr = self._reAttrGroup.match(memAttr[0])
                     if mAttr.group('optional'):
                         member.isOptional = True
                     elif mAttr.group('op'):
+                        memTypeInst = member.typeInst
+                        if isinstance(memTypeInst, TypeArray) or isinstance(memTypeInst, TypeDict):
+                            memTypeInst = memTypeInst.typeInst
+
                         if mAttr.group('op') == '<' and hasattr(memTypeInst, 'constraint_lt'):
                             memTypeInst.constraint_lt = float(mAttr.group('opnum'))
                         elif mAttr.group('op') == '<=' and hasattr(memTypeInst, 'constraint_lte'):
@@ -318,6 +313,10 @@ class SpecParser(object):
                         else:
                             self._error("Invalid attribute '" + memAttr[0] + "'")
                     elif mAttr.group('lop'):
+                        memTypeInst = member.typeInst
+                        if mAttr.group('ltype') != 'alen' and (isinstance(memTypeInst, TypeArray) or isinstance(memTypeInst, TypeDict)):
+                            memTypeInst = memTypeInst.typeInst
+
                         if mAttr.group('lop') == '<' and hasattr(memTypeInst, 'constraint_len_lt'):
                             memTypeInst.constraint_len_lt = int(mAttr.group('lopnum'))
                         elif mAttr.group('lop') == '<=' and hasattr(memTypeInst, 'constraint_len_lte'):

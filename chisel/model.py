@@ -200,11 +200,15 @@ class TypeStruct(object):
 
 # Array type
 class TypeArray(object):
-    __slots__ = ('typeName', 'typeInst')
+    __slots__ = ('typeName', 'typeInst', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte')
 
     def __init__(self, typeInst, typeName = 'array'):
         self.typeName = typeName
         self.typeInst = typeInst
+        self.constraint_len_lt = None
+        self.constraint_len_lte = None
+        self.constraint_len_gt = None
+        self.constraint_len_gte = None
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -215,6 +219,16 @@ class TypeArray(object):
             valueX = []
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Check length constraints
+        if self.constraint_len_lt is not None and not len(valueX) < self.constraint_len_lt:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
+        if self.constraint_len_lte is not None and not len(valueX) <= self.constraint_len_lte:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
+        if self.constraint_len_gt is not None and not len(valueX) > self.constraint_len_gt:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
+        if self.constraint_len_gte is not None and not len(valueX) >= self.constraint_len_gte:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else []
@@ -233,11 +247,15 @@ class TypeArray(object):
 
 # Dict type
 class TypeDict(object):
-    __slots__ = ('typeName', 'typeInst')
+    __slots__ = ('typeName', 'typeInst', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte')
 
     def __init__(self, typeInst, typeName = 'dict'):
         self.typeName = typeName
         self.typeInst = typeInst
+        self.constraint_len_lt = None
+        self.constraint_len_lte = None
+        self.constraint_len_gt = None
+        self.constraint_len_gte = None
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -248,6 +266,16 @@ class TypeDict(object):
             valueX = {}
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Check length constraints
+        if self.constraint_len_lt is not None and not len(valueX) < self.constraint_len_lt:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
+        if self.constraint_len_lte is not None and not len(valueX) <= self.constraint_len_lte:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
+        if self.constraint_len_gt is not None and not len(valueX) > self.constraint_len_gt:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
+        if self.constraint_len_gte is not None and not len(valueX) >= self.constraint_len_gte:
+            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
@@ -318,7 +346,7 @@ class TypeString(object):
         if not isinstance(value, basestring_):
             raise ValidationError.memberError(self, value, _member)
 
-        # Check string constraints - lengths computed in unicode
+        # Check length constraints - lengths computed in unicode
         if self.constraint_len_lt is not None and not len(value) < self.constraint_len_lt:
             raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
         if self.constraint_len_lte is not None and not len(value) <= self.constraint_len_lte:

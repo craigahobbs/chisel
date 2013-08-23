@@ -499,6 +499,10 @@ class TestModelArrayValidation(unittest.TestCase):
         t = TypeArray(TypeInt())
         self.assertEqual(t.typeName, 'array')
         self.assertTrue(isinstance(t.typeInst, TypeInt))
+        self.assertEqual(t.constraint_len_lt, None)
+        self.assertEqual(t.constraint_len_lte, None)
+        self.assertEqual(t.constraint_len_gt, None)
+        self.assertEqual(t.constraint_len_gte, None)
 
     # All validation modes - success
     def test_model_array_validation(self):
@@ -602,6 +606,98 @@ class TestModelArrayValidation(unittest.TestCase):
             else:
                 self.fail()
 
+    # All validation modes - constraint_len_lt
+    def test_model_array_validate_constraint_len_lt(self):
+
+        t = TypeArray(TypeInt())
+        t.constraint_len_lt = 5
+
+        o = [1, 2, 3, 4]
+        oError = [1, 2, 3, 4, 5]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5] (type 'list'), expected type 'array' [len < 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_lte
+    def test_model_array_validate_constraint_len_lte(self):
+
+        t = TypeArray(TypeInt())
+        t.constraint_len_lte = 5.0
+
+        o = [1, 2, 3, 4, 5]
+        oError = [1, 2, 3, 4, 5, 6]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5, 6] (type 'list'), expected type 'array' [len <= 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gt
+    def test_model_array_validate_constraint_len_gt(self):
+
+        t = TypeArray(TypeInt())
+        t.constraint_len_gt = 5
+
+        o = [1, 2, 3, 4, 5, 6]
+        oError = [1, 2, 3, 4, 5]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5] (type 'list'), expected type 'array' [len > 5]")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gte
+    def test_model_array_validate_constraint_len_gte(self):
+
+        t = TypeArray(TypeInt())
+        t.constraint_len_gte = 5
+
+        o = [1, 2, 3, 4, 5]
+        oError = [1, 2, 3, 4]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4] (type 'list'), expected type 'array' [len >= 5]")
+            else:
+                self.fail()
+
 
 # TypeDict validation tests
 class TestModelDictValidation(unittest.TestCase):
@@ -612,6 +708,10 @@ class TestModelDictValidation(unittest.TestCase):
         t = TypeDict(TypeInt())
         self.assertEqual(t.typeName, 'dict')
         self.assertTrue(isinstance(t.typeInst, TypeInt))
+        self.assertEqual(t.constraint_len_lt, None)
+        self.assertEqual(t.constraint_len_lte, None)
+        self.assertEqual(t.constraint_len_gt, None)
+        self.assertEqual(t.constraint_len_gte, None)
 
     # All validation modes - success
     def test_model_dict_validation(self):
@@ -726,6 +826,102 @@ class TestModelDictValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_lt
+    def test_model_dict_validate_constraint_len_lt(self):
+
+        t = TypeDict(TypeInt())
+        t.constraint_len_lt = 2
+
+        o = {'a': 1}
+        oError = {'a': 1, 'b': 2}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertTrue(str(e).startswith('Invalid value {'))
+                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len < 2]"))
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_lte
+    def test_model_dict_validate_constraint_len_lte(self):
+
+        t = TypeDict(TypeInt())
+        t.constraint_len_lte = 2.0
+
+        o = {'a': 1, 'b': 2}
+        oError = {'a': 1, 'b': 2, 'c': 3}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertTrue(str(e).startswith('Invalid value {'))
+                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len <= 2]"))
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gt
+    def test_model_dict_validate_constraint_len_gt(self):
+
+        t = TypeDict(TypeInt())
+        t.constraint_len_gt = 2
+
+        o = {'a': 1, 'b': 2, 'c': 3}
+        oError = {'a': 1, 'b': 2}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertTrue(str(e).startswith('Invalid value {'))
+                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len > 2]"))
+            else:
+                self.fail()
+
+    # All validation modes - constraint_len_gte
+    def test_model_dict_validate_constraint_len_gte(self):
+
+        t = TypeDict(TypeInt())
+        t.constraint_len_gte = 2
+
+        o = {'a': 1, 'b': 2}
+        oError = {'a': 1}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertEqual(o, o2)
+
+            try:
+                t.validate(oError, mode)
+            except ValidationError as e:
+                self.assertTrue(str(e).startswith('Invalid value {'))
+                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len >= 2]"))
             else:
                 self.fail()
 
