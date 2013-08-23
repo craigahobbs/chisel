@@ -59,7 +59,7 @@ class SpecParser(object):
     _rePartAttrs = '(\\[\s*(?P<attrs>' + _rePartAttr + '(\s*,\s*' + _rePartAttr + ')*)\s*\\])'
     _reLineCont = re.compile('\\\s*$')
     _reComment = re.compile('^\s*(#-.*|#(?P<doc>.*))?$')
-    _reDefinition = re.compile('^(?P<type>action|struct|enum)\s+(?P<id>' + _rePartId + ')\s*$')
+    _reDefinition = re.compile('^(?P<type>action|struct|union|enum)\s+(?P<id>' + _rePartId + ')\s*$')
     _reSection = re.compile('^\s+(?P<type>input|output|errors)\s*$')
     _reMember = re.compile('^\s+(' + _rePartAttrs + '\s+)?(?P<type>' + _rePartId +
                            ')((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>' + _rePartId + ')\s*$')
@@ -224,7 +224,7 @@ class SpecParser(object):
                     self.actions[self._curAction.name] = self._curAction
 
                 # Struct definition
-                elif defType == 'struct':
+                elif defType == 'struct' or defType == 'union':
 
                     # Type already defined?
                     if defId in self._types or defId in self.types:
@@ -232,7 +232,7 @@ class SpecParser(object):
 
                     # Create the new struct type
                     self._curAction = None
-                    self._curType = TypeStruct(typeName = defId, doc = self._curDoc)
+                    self._curType = TypeStruct(typeName = defId, isUnion = (defType == 'union'), doc = self._curDoc)
                     self._curDoc = []
                     self.types[self._curType.typeName] = self._curType
 

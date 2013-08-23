@@ -133,7 +133,7 @@ class ValidationError(Exception):
 
 # Struct type
 class TypeStruct(object):
-    __slots__ = ('typeName', '_members', '_membersDict', 'doc')
+    __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
 
     class Member(object):
         __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
@@ -144,14 +144,15 @@ class TypeStruct(object):
             self.isOptional = isOptional
             self.doc = [] if doc is None else doc
 
-    def __init__(self, typeName = 'struct', doc = None):
-        self.typeName = typeName
+    def __init__(self, typeName = None, isUnion = False, doc = None):
+        self.typeName = typeName if typeName else ('union' if isUnion else 'struct')
+        self.isUnion = isUnion
         self._members = []
         self._membersDict = {}
         self.doc = [] if doc is None else doc
 
     def addMember(self, name, typeInst, isOptional = False, doc = None):
-        member = self.Member(name, typeInst, isOptional, doc)
+        member = self.Member(name, typeInst, isOptional or self.isUnion, doc)
         self._members.append(member)
         self._membersDict[name] = member
         return member
@@ -169,6 +170,11 @@ class TypeStruct(object):
             valueX = {}
         else:
             raise ValidationError.memberError(self, value, _member)
+
+        # Valid union?
+        if self.isUnion:
+            if len(valueX) != 1:
+                raise ValidationError.memberError(self, value, _member)
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}

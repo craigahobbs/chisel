@@ -190,6 +190,7 @@ class TestModelStructValidation(unittest.TestCase):
 
         t = TypeStruct()
         self.assertEqual(t.typeName, 'struct')
+        self.assertEqual(t.isUnion, False)
         self.assertEqual(t.members, [])
         self.assertEqual(t.doc, [])
 
@@ -198,6 +199,22 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(t.members[0].name, 'a')
         self.assertTrue(isinstance(t.members[0].typeInst, TypeStruct))
         self.assertEqual(t.members[0].isOptional, False)
+        self.assertEqual(t.members[0].doc, [])
+
+    # Test union type construction
+    def test_model_struct_init_union(self):
+
+        t = TypeStruct(isUnion = True)
+        self.assertEqual(t.typeName, 'union')
+        self.assertEqual(t.isUnion, True)
+        self.assertEqual(t.members, [])
+        self.assertEqual(t.doc, [])
+
+        t.addMember('a', TypeStruct())
+        self.assertEqual(len(t.members), 1)
+        self.assertEqual(t.members[0].name, 'a')
+        self.assertTrue(isinstance(t.members[0].typeInst, TypeStruct))
+        self.assertEqual(t.members[0].isOptional, True)
         self.assertEqual(t.members[0].doc, [])
 
     # All validation modes - success
@@ -216,6 +233,33 @@ class TestModelStructValidation(unittest.TestCase):
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, dict))
             self.assertEqual(o2, {'a': 7, 'b': 'abc'})
+
+    # All validation modes - union success
+    def test_model_struct_validation_union(self):
+
+        t = TypeStruct(isUnion = True)
+        t.addMember('a', TypeInt())
+        t.addMember('b', TypeString())
+
+        o = {'a': 7}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {'a': 7})
+
+        o = {'b': 'abc'}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {'b': 'abc'})
 
     # All validation modes - optional member present
     def test_model_struct_validation_optional_present(self):
@@ -393,6 +437,55 @@ class TestModelStructValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Required member 'a' missing")
+            else:
+                self.fail()
+
+    # All validation modes - error - union with more than one member
+    def test_model_struct_validation_error_union_multiple_members(self):
+
+        t = TypeStruct(isUnion = True)
+        t.addMember('a', TypeInt())
+        t.addMember('bb', TypeString())
+
+        o = {'a': 1, 'bb': 'abcd'}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertTrue(str(e).startswith('Invalid value {'))
+                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'union'"))
+            else:
+                self.fail()
+
+    # All validation modes - error - empty union
+    def test_model_struct_validation_error_union_zero_members(self):
+
+        t = TypeStruct(isUnion = True)
+        t.addMember('a', TypeInt())
+        t.addMember('b', TypeString())
+
+        o = {}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value {} (type 'dict'), expected type 'union'")
+            else:
+                self.fail()
+
+    # All validation modes - error - union unknown member
+    def test_model_struct_validation_error_union_unknown_member(self):
+
+        t = TypeStruct(isUnion = True)
+        t.addMember('a', TypeInt())
+        t.addMember('b', TypeString())
+
+        o = {'c': 7}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Unknown member 'c'")
             else:
                 self.fail()
 
