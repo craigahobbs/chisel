@@ -86,13 +86,19 @@ struct MyStruct
     MyEnum[] member8
     MyStruct{} member9
 
+# An unused struct
+# My Union
+union MyUnion
+    int a
+    string b
+
 action myAction1
     input
         MyStruct struct
 
 action myAction2
     output
-        MyEnum enum
+        MyUnion union
     errors
         MyError1
         MyError2
@@ -159,7 +165,10 @@ action myAction2
         self.assertTrue('<h2 id="myAction1_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' in html)
         self.assertTrue('<h2>Struct Types</h2>' in html)
+        self.assertTrue('<h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>' in html)
+        self.assertTrue('<h3 id="MyUnion"><a class="linktarget">union MyUnion</a></h3>' not in html)
         self.assertTrue('<h2>Enum Types</h2>' in html)
+        self.assertTrue('<h3 id="MyEnum"><a class="linktarget">enum MyEnum</a></h3>' in html)
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the myAction2's HTML
@@ -174,6 +183,11 @@ action myAction2
         self.assertTrue('The action has no output parameters.' not in html)
         self.assertTrue('<h2 id="myAction2_Error"><a class="linktarget">Error Codes</a></h2>' in html)
         self.assertTrue('The action returns no custom error codes.' not in html)
+        self.assertTrue('<h2>Struct Types</h2>' in html)
+        self.assertTrue('<h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>' not in html)
+        self.assertTrue('<h3 id="MyUnion"><a class="linktarget">union MyUnion</a></h3>' in html)
+        self.assertTrue('<h2>Enum Types</h2>' not in html)
+        self.assertTrue('<h3 id="MyEnum"><a class="linktarget">enum MyEnum</a></h3>' not in html)
         self.assertTrue('<style type="text/css">' in html)
 
     # Test doc generation element class

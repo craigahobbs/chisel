@@ -457,7 +457,7 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
     if titleTag is None:
         titleTag = 'h3'
     if title is None:
-        title = 'struct ' + typeInst.typeName
+        title = ('union ' if typeInst.isUnion else 'struct ') + typeInst.typeName
     if emptyMessage is None:
         emptyMessage = 'The struct is empty.'
 
