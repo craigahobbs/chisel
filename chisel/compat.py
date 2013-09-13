@@ -44,15 +44,6 @@ else: # pragma: no cover
     except:
         import json
 
-# pickle
-if PY3: # pragma: no cover
-    import pickle
-else:
-    try:
-        import cPickle as pickle
-    except: # pragma: no cover
-        import pickle
-
 # StringIO
 if PY3: # pragma: no cover
     from io import StringIO
@@ -62,25 +53,15 @@ else:
     except: # pragma: no cover
         from StringIO import StringIO
 
-# urllib, urllib2, urlparse
+# urllib, urlparse
 if PY3: # pragma: no cover
-    import urllib as _urllib
-    import urllib.error as _urllib_error
     import urllib.parse as _urllib_parse
     class urllib(object):
         __slots__ = ()
         quote = _urllib_parse.quote
         unquote = _urllib_parse.unquote
-    class urllib2(object):
-        __slots__ = ()
-        URLError = _urllib_error.URLError
-    class urlparse(object):
-        __slots__ = ()
-        urljoin = _urllib_parse.urljoin
 else:
     import urllib
-    import urllib2
-    import urlparse
 
 # HTMLParser
 if PY3: # pragma: no cover

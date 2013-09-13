@@ -33,22 +33,10 @@ class TestAppApplication(unittest.TestCase):
 
     def setUp(self):
 
-        self.resourceData = {
-            'open': [],
-            'close': []
-            }
-        def resourceTypeOpen(resourceString):
-            self.resourceData['open'].append(resourceString)
-            return len(self.resourceData['open'])
-        def resourceTypeClose(resource):
-            self.resourceData['close'].append(resource)
-
         class MyApplication(Application):
             def init(self):
                 self.loadSpecs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-                self.addResource('testResource', resourceTypeOpen, resourceTypeClose, 'Hello')
-                self.addResource('myresource', lambda resourceString: 9, lambda resource: None, 'mystring')
                 self.logLevel = logging.INFO
                 Application.init(self)
 
@@ -76,8 +64,6 @@ class TestAppApplication(unittest.TestCase):
         responseParts = self.app(environ, startResponse)
         self.assertEqual(responseParts, [wsgistr_new('{}')])
         self.assertEqual(startResponseData['status'], ['200 OK'])
-        self.assertEqual(self.resourceData['open'], ['Hello'])
-        self.assertEqual(self.resourceData['close'], [1])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
@@ -85,8 +71,6 @@ class TestAppApplication(unittest.TestCase):
         responseParts = self.app(environ, startResponse)
         self.assertEqual(responseParts, [wsgistr_new('{}')])
         self.assertEqual(startResponseData['status'], ['200 OK', '200 OK'])
-        self.assertEqual(self.resourceData['open'], ['Hello', 'Hello'])
-        self.assertEqual(self.resourceData['close'], [1, 2])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
@@ -97,14 +81,14 @@ class TestAppApplication(unittest.TestCase):
         logStream = StringIO()
         self.app.logFormat = '%(message)s'
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
-        self.assertEqual(response, '{"result":63}')
+        self.assertEqual(response, '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(logStream.getvalue(), 'In myAction2\n')
 
         # GET
         status, headers, response = self.app.request('GET', '/myAction2', queryString = 'value=8')
-        self.assertEqual(response, '{"result":72}')
+        self.assertEqual(response, '{"result":16}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 

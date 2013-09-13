@@ -23,7 +23,6 @@
 from .compat import iteritems, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
 from .request import Request
-from .resource.collection import ResourceCollection
 from .spec import SpecParser
 from .url import unquote
 
@@ -66,7 +65,6 @@ class Application(object):
         self.__requests = {}
         self.__requestUrls = {}
         self.__requestUrlRegex = []
-        self.__resources = ResourceCollection()
         self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
         self.init()
 
@@ -190,11 +188,6 @@ class Application(object):
     @property
     def requests(self):
         return self.__requests
-
-    # Resources collection
-    @property
-    def resources(self):
-        return self.__resources
 
     # WSGI request environ
     @property
@@ -365,10 +358,6 @@ class Application(object):
                         if isinstance(request, Request):
                             self.addRequest(request)
 
-    # Add a resource
-    def addResource(self, resourceName, resourceOpen, resourceClose, resourceString):
-        self.__resources.add(resourceName, resourceOpen, resourceClose, resourceString)
-
     # Make an HTTP request on this application
     def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None):
 
@@ -403,8 +392,8 @@ class Application(object):
                 responseString)
 
     # Run as stand-alone server
-    @classmethod
-    def serve(cls, application):
+    @staticmethod
+    def serve(application):
 
         import optparse
         import wsgiref.util
