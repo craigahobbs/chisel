@@ -1718,6 +1718,46 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 else:
                     self.fail()
 
+    # All validation modes - ISO datetime string - no seconds
+    def test_model_datetime_validate_query_string_no_seconds(self):
+
+        t = TypeDatetime()
+
+        o = '2013-05-26T11:01Z'
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, datetime))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo = TZUTC()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
+                else:
+                    self.fail()
+
+    # All validation modes - ISO datetime string - no minutes
+    def test_model_datetime_validate_query_string_no_minutes(self):
+
+        t = TypeDatetime()
+
+        o = '2013-05-26T11Z'
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, datetime))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo = TZUTC()))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
+                else:
+                    self.fail()
+
     # All validation modes - error - invalid value
     def test_model_datetime_validate_error(self):
 
