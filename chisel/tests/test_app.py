@@ -21,7 +21,7 @@
 #
 
 from chisel import Application
-from chisel.compat import StringIO, wsgistr_new
+from chisel.compat import PY3, StringIO
 
 import logging
 import os
@@ -74,7 +74,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(responseParts, [bytes('{}', 'utf-8') if PY3 else '{}'])
         self.assertEqual(startResponseData['status'], ['200 OK'])
         self.assertEqual(self.resourceData['open'], ['Hello'])
         self.assertEqual(self.resourceData['close'], [1])
@@ -83,7 +83,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Call the application again (skips reloading)
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(responseParts, [bytes('{}', 'utf-8') if PY3 else '{}'])
         self.assertEqual(startResponseData['status'], ['200 OK', '200 OK'])
         self.assertEqual(self.resourceData['open'], ['Hello', 'Hello'])
         self.assertEqual(self.resourceData['close'], [1, 2])
