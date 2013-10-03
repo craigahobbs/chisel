@@ -21,7 +21,7 @@
 #
 
 import chisel
-from chisel.compat import PY3, StringIO
+from chisel.compat import StringIO, wsgistr_new
 
 import unittest
 
@@ -94,7 +94,7 @@ class TestRequest(unittest.TestCase):
             app = environ[chisel.Application.ENVIRON_APP]
             app.addHeader('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
-            return [bytes('OK', 'utf-8') if PY3 else 'OK']
+            return [wsgistr_new('OK')]
         self.app.addRequest(myRequest)
         status, headers, response = self.app.request('GET', '/foo')
         self.assertEqual(status, '200 OK')

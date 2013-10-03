@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, json, PY3, StringIO
+from .compat import iteritems, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
 from .doc import DocAction
 from .request import Request
 from .resource.collection import ResourceCollection
@@ -218,15 +218,12 @@ class Application(object):
         return threadState.log
 
     # Send an HTTP response
-    def response(self, status, contentType, content, headers = None, contentEncoding = 'utf-8'):
+    def response(self, status, contentType, content, headers = None):
 
         # Ensure proper WSGI response data type
         if not isinstance(content, (list, tuple)):
             content = [content]
-        if PY3:
-            content = [(s.encode(contentEncoding) if not isinstance(s, bytes) else s) for s in content]
-        else:
-            content = [s.encode(contentEncoding) for s in content]
+        content = [(wsgistr_new(s) if not isinstance(s, wsgistr_) else s) for s in content]
 
         # Build the headers array
         _headers = list(headers or [])
@@ -373,7 +370,7 @@ class Application(object):
         self.__resources.add(resourceName, resourceOpen, resourceClose, resourceString)
 
     # Make an HTTP request on this application
-    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None, responseEncoding = 'utf-8'):
+    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None):
 
         # WSGI environment - used passed-in environ if its complete
         _environ = dict(environ) if environ else {}
@@ -399,12 +396,7 @@ class Application(object):
             responseParts = self.call(_environ, startResponse)
         else:
             responseParts = self(_environ, startResponse)
-
-        # Join the response parts
-        if PY3:
-            responseString = bytes().join(responseParts).decode(responseEncoding)
-        else:
-            responseString = str().join(responseParts).decode(responseEncoding)
+        responseString = wsgistr_str(wsgistr_new('').join(responseParts))
 
         return (startResponseArgs['status'],
                 startResponseArgs['responseHeaders'],
