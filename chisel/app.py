@@ -334,7 +334,7 @@ class Application(object):
         self.addRequest(DocAction())
 
     # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt = '.py'):
+    def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -351,7 +351,7 @@ class Application(object):
 
                     # Load the module
                     module = None
-                    moduleParts = []
+                    moduleParts = list(moduleNamePartsPrefix)
                     for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
                         moduleParts.append(modulePart)
                         moduleFp, modulePath, moduleDesc = \
