@@ -402,15 +402,7 @@ class Application(object):
 
         return (startResponseArgs['status'],
                 startResponseArgs['responseHeaders'],
-                response)
-
-    # Helper function to decode WSGI response text
-    @staticmethod
-    def decodeResponse(response, encoding = 'utf-8'):
-        if PY3:
-            return bytes().join(response).decode(encoding)
-        else:
-            return str().join(response) # encoding usused
+                b''.join(response))
 
     # Run as stand-alone server
     @classmethod

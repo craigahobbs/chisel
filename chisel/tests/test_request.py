@@ -97,7 +97,6 @@ class TestRequest(unittest.TestCase):
             return ['OK'.encode('utf-8')]
         self.app.addRequest(myRequest)
         status, headers, response = self.app.request('GET', '/foo')
-        responseText = self.app.decodeResponse(response)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers,  [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
-        self.assertEqual(responseText, 'OK')
+        self.assertEqual(response.decode('utf-8'), 'OK')

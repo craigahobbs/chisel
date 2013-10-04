@@ -132,7 +132,7 @@ action myAction2
 
         # Validate the HTML
         status, headers, response = self.app.request('GET', '/doc', environ = self._environ)
-        html = self.app.decodeResponse(response)
+        html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>localhost:8080</h1>' in html)
@@ -143,7 +143,7 @@ action myAction2
 
         # Validate the HTML (custom CSS)
         status, headers, response = self.app.request('GET', '/doc', environ = self._environ2)
-        html = self.app.decodeResponse(response)
+        html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>localhost:8080</h1>' in html)
@@ -158,7 +158,7 @@ action myAction2
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=myAction1'
         status, headers, response = self.app.request('GET', '/doc', environ = environ)
-        html = self.app.decodeResponse(response)
+        html = response.decode('utf-8')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -181,7 +181,7 @@ action myAction2
         environ = dict(self._environ2)
         environ['QUERY_STRING'] = 'name=myAction2'
         status, headers, response = self.app.request('GET', '/doc', environ = environ)
-        html = self.app.decodeResponse(response)
+        html = response.decode('utf-8')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction2</h1>' in html)
         self.assertTrue('<h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>' in html)

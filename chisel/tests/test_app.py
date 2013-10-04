@@ -97,51 +97,44 @@ class TestAppApplication(unittest.TestCase):
         logStream = StringIO()
         self.app.logFormat = '%(message)s'
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"result":63}')
+        self.assertEqual(response.decode('utf-8'), '{"result":63}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(logStream.getvalue(), 'In myAction2\n')
 
         # GET
         status, headers, response = self.app.request('GET', '/myAction2', queryString = 'value=8')
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"result":72}')
+        self.assertEqual(response.decode('utf-8'), '{"result":72}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # HTTP error
         status, headers, response = self.app.request('GET', '/unknownAction')
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, 'Not Found')
+        self.assertEqual(response.decode('utf-8'), 'Not Found')
         self.assertEqual(status, '404 Not Found')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 9}',
                                                      environ = { 'MYENVIRON': '10' })
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"result":90}')
+        self.assertEqual(response.decode('utf-8'), '{"result":90}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex
         status, headers, response = self.app.request('GET', '/myAction3/123')
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"myArg":"123"}')
+        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
         status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = '{}')
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"myArg":"123"}')
+        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
         status, headers, response = self.app.request('GET', '/myAction3/123', queryString = 'myArg=321')
-        responseText = self.app.decodeResponse(response)
-        self.assertEqual(responseText, '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
