@@ -372,8 +372,16 @@ class Application(object):
     def addResource(self, resourceName, resourceOpen, resourceClose, resourceString):
         self.__resources.add(resourceName, resourceOpen, resourceClose, resourceString)
 
+    # Null stream object for supressing logs in request
+    class NullStream(object):
+        __slots__ = ()
+        @staticmethod
+        def write(s):
+            pass
+    __nullStream = NullStream()
+
     # Make an HTTP request on this application
-    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None):
+    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None, suppressLogging = True):
 
         # WSGI environment - used passed-in environ if its complete
         _environ = dict(environ) if environ else {}
@@ -387,8 +395,6 @@ class Application(object):
             _environ['wsgi.input'] = StringIO(wsgiInput if wsgiInput else '')
             if 'CONTENT_LENGTH' not in _environ:
                 _environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
-        if 'wsgi.errors' not in _environ:
-            _environ['wsgi.errors'] = StringIO()
 
         # Make the request
         startResponseArgs = {}
@@ -398,6 +404,8 @@ class Application(object):
         if self.environ:
             response = self.call(_environ, startResponse)
         else:
+            if 'wsgi.errors' not in _environ:
+                _environ['wsgi.errors'] = self.__nullStream if suppressLogging else self.__logStream
             response = self(_environ, startResponse)
 
         return (startResponseArgs['status'],
