@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, json, StringIO, wsgistr_, wsgistr_new, wsgistr_str
+from .compat import iteritems, json, PY3, StringIO
 from .doc import DocAction
 from .request import Request
 from .resource.collection import ResourceCollection
@@ -99,7 +99,7 @@ class Application(object):
         if request is not None:
             return request(environ, start_response)
         else:
-            return self.response('404 Not Found', 'text/plain', 'Not Found')
+            return self.responseText('404 Not Found', 'Not Found')
 
     # WSGI entry point
     def __call__(self, environ, start_response):
@@ -220,11 +220,6 @@ class Application(object):
     # Send an HTTP response
     def response(self, status, contentType, content, headers = None):
 
-        # Ensure proper WSGI response data type
-        if not isinstance(content, (list, tuple)):
-            content = [content]
-        content = [(wsgistr_new(s) if not isinstance(s, wsgistr_) else s) for s in content]
-
         # Build the headers array
         _headers = list(headers or [])
         if not any(header[0] == 'Content-Type' for header in _headers):
@@ -234,6 +229,10 @@ class Application(object):
         # Return the response
         self.start_response(status, _headers)
         return content
+
+    # Send a plain-text response
+    def responseText(self, status, text, headers = None, contentType = 'text/plain', encoding = 'utf-8'):
+        return self.response(status, contentType, [text.encode(encoding)], headers = headers)
 
     # Will responseJSON serialize using JSONP (by default)?
     def isJSONP(self):
@@ -258,11 +257,15 @@ class Application(object):
             jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
             if jsonpFunction:
                 content = [jsonpFunction, '(', content, ');']
+            else:
+                content = [content]
+            if PY3:
+                content = [s.encode('utf-8') for s in content]
         except Exception:
             self.log.exception('Unexpected error serializing JSON: %r', response)
-            return self.response('500 Internal Server Error', 'text/plain', 'Unexpected Error', headers = headers)
+            return self.responseText('500 Internal Server Error', 'Unexpected Error')
 
-        return self.response(status, 'application/json', content)
+        return self.response(status, 'application/json', content, headers = headers)
 
     # Add a request header
     def addHeader(self, key, value):
@@ -393,14 +396,21 @@ class Application(object):
             startResponseArgs['status'] = status
             startResponseArgs['responseHeaders'] = responseHeaders
         if self.environ:
-            responseParts = self.call(_environ, startResponse)
+            response = self.call(_environ, startResponse)
         else:
-            responseParts = self(_environ, startResponse)
-        responseString = wsgistr_str(wsgistr_new('').join(responseParts))
+            response = self(_environ, startResponse)
 
         return (startResponseArgs['status'],
                 startResponseArgs['responseHeaders'],
-                responseString)
+                response)
+
+    # Helper function to decode WSGI response text
+    @staticmethod
+    def decodeResponse(response, encoding = 'utf-8'):
+        if PY3:
+            return bytes().join(response).decode(encoding)
+        else:
+            return str().join(response) # encoding usused
 
     # Run as stand-alone server
     @classmethod

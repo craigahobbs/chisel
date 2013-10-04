@@ -21,7 +21,7 @@
 #
 
 import chisel
-from chisel.compat import StringIO, wsgistr_new
+from chisel.compat import StringIO
 
 import unittest
 
@@ -94,9 +94,10 @@ class TestRequest(unittest.TestCase):
             app = environ[chisel.Application.ENVIRON_APP]
             app.addHeader('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
-            return [wsgistr_new('OK')]
+            return ['OK'.encode('utf-8')]
         self.app.addRequest(myRequest)
         status, headers, response = self.app.request('GET', '/foo')
+        responseText = self.app.decodeResponse(response)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers,  [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
-        self.assertEqual(response, 'OK')
+        self.assertEqual(responseText, 'OK')

@@ -49,13 +49,11 @@ action doc
         requestName = req.get('name')
         if requestName is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
-            return app.response('200 OK', 'text/html',
-                                createIndexHtml(app.environ, requests))
+            return app.responseText('200 OK', createIndexHtml(app.environ, requests), contentType = 'text/html')
         elif requestName in app.requests:
-            return app.response('200 OK', 'text/html',
-                                createRequestHtml(app.environ, app.requests[requestName]))
+            return app.responseText('200 OK', createRequestHtml(app.environ, app.requests[requestName]), contentType = 'text/html')
         else:
-            return app.response('500 Internal Server Error', 'text/plain', 'Unknown Action')
+            return app.responseText('500 Internal Server Error', 'Unknown Action')
 
 
 # HTML DOM helper class
