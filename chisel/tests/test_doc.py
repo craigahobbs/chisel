@@ -131,7 +131,8 @@ action myAction2
     def test_doc_DocAction_index(self):
 
         # Validate the HTML
-        status, headers, html = self.app.request('GET', '/doc', environ = self._environ)
+        status, headers, response = self.app.request('GET', '/doc', environ = self._environ)
+        html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>localhost:8080</h1>' in html)
@@ -141,7 +142,8 @@ action myAction2
         self.assertTrue('<style type="text/css">' in html)
 
         # Validate the HTML (custom CSS)
-        status, headers, html = self.app.request('GET', '/doc', environ = self._environ2)
+        status, headers, response = self.app.request('GET', '/doc', environ = self._environ2)
+        html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>localhost:8080</h1>' in html)
@@ -155,7 +157,8 @@ action myAction2
         # Validate the first myAction1's HTML
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=myAction1'
-        status, headers, html = self.app.request('GET', '/doc', environ = environ)
+        status, headers, response = self.app.request('GET', '/doc', environ = environ)
+        html = response.decode('utf-8')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction1</h1>' in html)
         self.assertTrue('<h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>' in html)
@@ -166,6 +169,9 @@ action myAction2
         self.assertTrue('The action returns no custom error codes.' in html)
         self.assertTrue('<h2>Struct Types</h2>' in html)
         self.assertTrue('<h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>' in html)
+        self.assertTrue('<li><span class="chsl-emphasis">value</span> &gt; 5</li>' in html)
+        self.assertTrue('<li><span class="chsl-emphasis">value</span> &lt; 6.5</li>' in html)
+        self.assertTrue('<li><span class="chsl-emphasis">len</span> &gt; 0</li>' in html)
         self.assertTrue('<h3 id="MyUnion"><a class="linktarget">union MyUnion</a></h3>' not in html)
         self.assertTrue('<h2>Enum Types</h2>' in html)
         self.assertTrue('<h3 id="MyEnum"><a class="linktarget">enum MyEnum</a></h3>' in html)
@@ -174,7 +180,8 @@ action myAction2
         # Validate the myAction2's HTML
         environ = dict(self._environ2)
         environ['QUERY_STRING'] = 'name=myAction2'
-        status, headers, html = self.app.request('GET', '/doc', environ = environ)
+        status, headers, response = self.app.request('GET', '/doc', environ = environ)
+        html = response.decode('utf-8')
         HTMLValidator.validate(html)
         self.assertTrue('<h1>myAction2</h1>' in html)
         self.assertTrue('<h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>' in html)

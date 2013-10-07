@@ -21,7 +21,7 @@
 #
 
 from chisel import Application
-from chisel.compat import StringIO, wsgistr_new
+from chisel.compat import StringIO
 
 import logging
 import os
@@ -62,14 +62,14 @@ class TestAppApplication(unittest.TestCase):
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(responseParts, ['{}'.encode('utf-8')])
         self.assertEqual(startResponseData['status'], ['200 OK'])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
         # Call the application again (skips reloading)
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, [wsgistr_new('{}')])
+        self.assertEqual(responseParts, ['{}'.encode('utf-8')])
         self.assertEqual(startResponseData['status'], ['200 OK', '200 OK'])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
@@ -81,44 +81,44 @@ class TestAppApplication(unittest.TestCase):
         logStream = StringIO()
         self.app.logFormat = '%(message)s'
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
-        self.assertEqual(response, '{"result":14}')
+        self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(logStream.getvalue(), 'In myAction2\n')
 
         # GET
         status, headers, response = self.app.request('GET', '/myAction2', queryString = 'value=8')
-        self.assertEqual(response, '{"result":16}')
+        self.assertEqual(response.decode('utf-8'), '{"result":16}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # HTTP error
         status, headers, response = self.app.request('GET', '/unknownAction')
-        self.assertEqual(response, 'Not Found')
+        self.assertEqual(response.decode('utf-8'), 'Not Found')
         self.assertEqual(status, '404 Not Found')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 9}',
                                                      environ = { 'MYENVIRON': '10' })
-        self.assertEqual(response, '{"result":90}')
+        self.assertEqual(response.decode('utf-8'), '{"result":90}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex
         status, headers, response = self.app.request('GET', '/myAction3/123')
-        self.assertEqual(response, '{"myArg":"123"}')
+        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
         status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = '{}')
-        self.assertEqual(response, '{"myArg":"123"}')
+        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
         status, headers, response = self.app.request('GET', '/myAction3/123', queryString = 'myArg=321')
-        self.assertEqual(response, '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)

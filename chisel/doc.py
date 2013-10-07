@@ -49,13 +49,11 @@ action doc
         requestName = req.get('name')
         if requestName is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
-            return app.response('200 OK', 'text/html',
-                                createIndexHtml(app.environ, requests))
+            return app.responseText('200 OK', createIndexHtml(app.environ, requests), contentType = 'text/html')
         elif requestName in app.requests:
-            return app.response('200 OK', 'text/html',
-                                createRequestHtml(app.environ, app.requests[requestName]))
+            return app.responseText('200 OK', createRequestHtml(app.environ, app.requests[requestName]), contentType = 'text/html')
         else:
-            return app.response('500 Internal Server Error', 'text/plain', 'Unknown Action')
+            return app.responseText('500 Internal Server Error', 'Unknown Action')
 
 
 # HTML DOM helper class
@@ -389,38 +387,38 @@ def _addTypeName(parent, typeInst):
     if typeExtra:
         parent.addChild(typeExtra, isText = True, isInline = True)
 
+# Constraint DOM helper
+def _constraintDom(ul, lhs, op, rhs):
+    li = ul.addChild('li')
+    li.addChild('span', isInline = True, _class = 'chsl-emphasis').addChild(lhs, isText = True)
+    if op is not None and rhs is not None:
+        li.addChild(' ' + op + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), isText = True, isInline = True)
+
 # Type attributes HTML helper
 def _addTypeAttr(parent, typeInst):
-
-    # Constraint DOM helper
-    def constraintDom(ul, lhs, op, rhs):
-        li = ul.addChild('li')
-        li.addChild('span', isInline = True, _class = 'chsl-emphasis').addChild(lhs, isText = True)
-        if op is not None and rhs is not None:
-            li.addChild(' ' + op + ' ' + repr(rhs).rstrip('0').rstrip('.'), isText = True, isInline = True)
 
     # Add constraint DOM elements
     ul = parent.addChild('ul', _class = 'chsl-constraint-list')
     if hasattr(typeInst, 'constraint_gt') and typeInst.constraint_gt is not None:
-        constraintDom(ul, 'value', '>', typeInst.constraint_gt)
+        _constraintDom(ul, 'value', '>', typeInst.constraint_gt)
     if hasattr(typeInst, 'constraint_gte') and typeInst.constraint_gte is not None:
-        constraintDom(ul, 'value', '>=', typeInst.constraint_gte)
+        _constraintDom(ul, 'value', '>=', typeInst.constraint_gte)
     if hasattr(typeInst, 'constraint_lt') and typeInst.constraint_lt is not None:
-        constraintDom(ul, 'value', '<', typeInst.constraint_lt)
+        _constraintDom(ul, 'value', '<', typeInst.constraint_lt)
     if hasattr(typeInst, 'constraint_lte') and typeInst.constraint_lte is not None:
-        constraintDom(ul, 'value', '<=', typeInst.constraint_lte)
+        _constraintDom(ul, 'value', '<=', typeInst.constraint_lte)
     if hasattr(typeInst, 'constraint_len_gt') and typeInst.constraint_len_gt is not None:
-        constraintDom(ul, 'len', '>', typeInst.constraint_len_gt)
+        _constraintDom(ul, 'len', '>', typeInst.constraint_len_gt)
     if hasattr(typeInst, 'constraint_len_gte') and typeInst.constraint_len_gte is not None:
-        constraintDom(ul, 'len', '>=', typeInst.constraint_len_gte)
+        _constraintDom(ul, 'len', '>=', typeInst.constraint_len_gte)
     if hasattr(typeInst, 'constraint_len_lt') and typeInst.constraint_len_lt is not None:
-        constraintDom(ul, 'len', '<', typeInst.constraint_len_lt)
+        _constraintDom(ul, 'len', '<', typeInst.constraint_len_lt)
     if hasattr(typeInst, 'constraint_len_lte') and typeInst.constraint_len_lte is not None:
-        constraintDom(ul, 'len', '<=', typeInst.constraint_len_lte)
+        _constraintDom(ul, 'len', '<=', typeInst.constraint_len_lte)
 
     # No constraints?
     if not ul.children:
-        constraintDom(ul, 'None', None, None)
+        _constraintDom(ul, 'None', None, None)
 
 # Add text DOM elements
 def _addText(parent, texts):
