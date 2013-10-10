@@ -592,10 +592,13 @@ struct MyStruct
     [>= 1.5, < 10 ] float f2
     [len > 5, len < 101] string s1
     [ len >= 5, len <= 100 ] string s2
+    [ len == 2 ] string s3
     [> 5] int[] ai1
     [alen < 10, len < 5] string[] as1
+    [alen == 3, len == 2] string[] as2
     [< 15] int{} di1
     [alen > 10, len > 5] string{} ds1
+    [alen == 3, len == 2] string{} ds2
 ''', fileName = 'foo')
         s = parser.types['MyStruct']
 
@@ -614,10 +617,13 @@ struct MyStruct
                                  ('f2', TypeFloat, False),
                                  ('s1', TypeString, False),
                                  ('s2', TypeString, False),
+                                 ('s3', TypeString, False),
                                  ('ai1', TypeArray, False),
                                  ('as1', TypeArray, False),
+                                 ('as2', TypeArray, False),
                                  ('di1', TypeDict, False),
                                  ('ds1', TypeDict, False),
+                                 ('ds2', TypeDict, False),
                                  ))
 
         # Check i1 constraints
@@ -668,6 +674,7 @@ struct MyStruct
         self.assertEqual(s1.constraint_len_lte, None)
         self.assertEqual(s1.constraint_len_gt, 5)
         self.assertEqual(s1.constraint_len_gte, None)
+        self.assertEqual(s1.constraint_len_eq, None)
 
         # Check s2 constraints
         s2 = s.members[7].typeInst
@@ -675,44 +682,85 @@ struct MyStruct
         self.assertEqual(s2.constraint_len_lte, 100)
         self.assertEqual(s2.constraint_len_gt, None)
         self.assertEqual(s2.constraint_len_gte, 5)
+        self.assertEqual(s2.constraint_len_eq, None)
+
+        # Check s3 constraints
+        s3 = s.members[8].typeInst
+        self.assertEqual(s3.constraint_len_lt, None)
+        self.assertEqual(s3.constraint_len_lte, None)
+        self.assertEqual(s3.constraint_len_gt, None)
+        self.assertEqual(s3.constraint_len_gte, None)
+        self.assertEqual(s3.constraint_len_eq, 2)
 
         # Check ai1 constraints
-        ai1 = s.members[8].typeInst.typeInst
+        ai1 = s.members[9].typeInst.typeInst
         self.assertEqual(ai1.constraint_lt, None)
         self.assertEqual(ai1.constraint_lte, None)
         self.assertEqual(ai1.constraint_gt, 5)
         self.assertEqual(ai1.constraint_gte, None)
 
         # Check as1 constraints
-        ct = s.members[9].typeInst
+        ct = s.members[10].typeInst
         t = ct.typeInst
         self.assertEqual(ct.constraint_len_lt, 10)
         self.assertEqual(ct.constraint_len_lte, None)
         self.assertEqual(ct.constraint_len_gt, None)
         self.assertEqual(ct.constraint_len_gte, None)
+        self.assertEqual(ct.constraint_len_eq, None)
         self.assertEqual(t.constraint_len_lt, 5)
         self.assertEqual(t.constraint_len_lte, None)
         self.assertEqual(t.constraint_len_gt, None)
         self.assertEqual(t.constraint_len_gte, None)
+        self.assertEqual(t.constraint_len_eq, None)
+
+        # Check as2 constraints
+        ct = s.members[11].typeInst
+        t = ct.typeInst
+        self.assertEqual(ct.constraint_len_lt, None)
+        self.assertEqual(ct.constraint_len_lte, None)
+        self.assertEqual(ct.constraint_len_gt, None)
+        self.assertEqual(ct.constraint_len_gte, None)
+        self.assertEqual(ct.constraint_len_eq, 3)
+        self.assertEqual(t.constraint_len_lt, None)
+        self.assertEqual(t.constraint_len_lte, None)
+        self.assertEqual(t.constraint_len_gt, None)
+        self.assertEqual(t.constraint_len_gte, None)
+        self.assertEqual(t.constraint_len_eq, 2)
 
         # Check di1 constraints
-        di1 = s.members[10].typeInst.typeInst
+        di1 = s.members[12].typeInst.typeInst
         self.assertEqual(di1.constraint_lt, 15)
         self.assertEqual(di1.constraint_lte, None)
         self.assertEqual(di1.constraint_gt, None)
         self.assertEqual(di1.constraint_gte, None)
 
-        # Check as1 constraints
-        ct = s.members[11].typeInst
+        # Check ds1 constraints
+        ct = s.members[13].typeInst
         t = ct.typeInst
         self.assertEqual(ct.constraint_len_lt, None)
         self.assertEqual(ct.constraint_len_lte, None)
         self.assertEqual(ct.constraint_len_gt, 10)
         self.assertEqual(ct.constraint_len_gte, None)
+        self.assertEqual(ct.constraint_len_eq, None)
         self.assertEqual(t.constraint_len_lt, None)
         self.assertEqual(t.constraint_len_lte, None)
         self.assertEqual(t.constraint_len_gt, 5)
         self.assertEqual(t.constraint_len_gte, None)
+        self.assertEqual(t.constraint_len_eq, None)
+
+        # Check ds2 constraints
+        ct = s.members[14].typeInst
+        t = ct.typeInst
+        self.assertEqual(ct.constraint_len_lt, None)
+        self.assertEqual(ct.constraint_len_lte, None)
+        self.assertEqual(ct.constraint_len_gt, None)
+        self.assertEqual(ct.constraint_len_gte, None)
+        self.assertEqual(ct.constraint_len_eq, 3)
+        self.assertEqual(t.constraint_len_lt, None)
+        self.assertEqual(t.constraint_len_lte, None)
+        self.assertEqual(t.constraint_len_gt, None)
+        self.assertEqual(t.constraint_len_gte, None)
+        self.assertEqual(t.constraint_len_eq, 2)
 
     # Test invalid member attribute usage
     def test_spec_error_attributes(self):

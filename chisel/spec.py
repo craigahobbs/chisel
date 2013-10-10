@@ -52,7 +52,7 @@ class SpecParser(object):
     # Parser regex
     _rePartId = '([A-Za-z]\w*)'
     _rePartAttrGroup = '((?P<optional>optional)|(?P<op><=|<|>|>=)\s*(?P<opnum>-?\d+(\.\d+)?)|' + \
-        '(?P<ltype>a?len)\s*(?P<lop><=|<|>|>=)\s*(?P<lopnum>\d+))'
+        '(?P<ltype>a?len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
     _reAttrGroup = re.compile(_rePartAttrGroup)
     _rePartAttr = re.sub('\\(\\?P<[^>]+>', '(', _rePartAttrGroup)
     _reFindAttrs = re.compile(_rePartAttr + '(?:\s*,\s*|\s*\Z)')
@@ -325,6 +325,8 @@ class SpecParser(object):
                             memTypeInst.constraint_len_gt = int(mAttr.group('lopnum'))
                         elif mAttr.group('lop') == '>=' and hasattr(memTypeInst, 'constraint_len_gte'):
                             memTypeInst.constraint_len_gte = int(mAttr.group('lopnum'))
+                        elif mAttr.group('lop') == '==' and hasattr(memTypeInst, 'constraint_len_eq'):
+                            memTypeInst.constraint_len_eq = int(mAttr.group('lopnum'))
                         else:
                             self._error("Invalid attribute '" + memAttr[0] + "'")
 
