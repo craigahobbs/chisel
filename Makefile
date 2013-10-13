@@ -69,7 +69,7 @@ superclean: clean
 # pyflakes
 .PHONY: pyflakes
 pyflakes: superclean
-	python -m pyflakes $$(find . -name '*.py')
+	python -m pyflakes $$(find . -name '*.py' ! -path './$(PACKAGE_NAME)/__init__.py' ! -path './$(PACKAGE_NAME)/compat.py')
 
 # Macro to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE
