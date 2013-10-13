@@ -26,6 +26,40 @@ PY27 = (sys.version_info >= (2, 7))
 PY3 = (sys.version_info >= (3, 0))
 PY32 = (sys.version_info >= (3, 2))
 
+# types
+if PY3: # pragma: no cover
+    basestring_ = str
+    long_ = int
+    unichr_ = chr
+    unicode_ = str
+    xrange_ = range
+else:
+    basestring_ = basestring
+    long_ = long
+    unichr_ = unichr
+    unicode_ = unicode
+    xrange_ = xrange
+
+# dict
+if PY3: # pragma: no cover
+    def iteritems(d):
+        return d.items()
+    def itervalues(d):
+        return d.values()
+else:
+    def iteritems(d):
+        return d.iteritems()
+    def itervalues(d):
+        return d.itervalues()
+
+# function
+if PY3: # pragma: no cover
+    def func_name(f):
+        return f.__name__
+else:
+    def func_name(f):
+        return f.func_name
+
 # cgi
 if PY32: # pragma: no cover
     import html as _html
@@ -68,37 +102,3 @@ if PY3: # pragma: no cover
     from html.parser import HTMLParser
 else:
     from HTMLParser import HTMLParser
-
-# types
-if PY3: # pragma: no cover
-    basestring_ = str
-    long_ = int
-    unichr_ = chr
-    unicode_ = str
-    xrange_ = range
-else:
-    basestring_ = basestring
-    long_ = long
-    unichr_ = unichr
-    unicode_ = unicode
-    xrange_ = xrange
-
-# dict
-if PY3: # pragma: no cover
-    def iteritems(d):
-        return d.items()
-    def itervalues(d):
-        return d.values()
-else:
-    def iteritems(d):
-        return d.iteritems()
-    def itervalues(d):
-        return d.itervalues()
-
-# function
-if PY3: # pragma: no cover
-    def func_name(f):
-        return f.__name__
-else:
-    def func_name(f):
-        return f.func_name

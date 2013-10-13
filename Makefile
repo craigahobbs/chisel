@@ -39,7 +39,7 @@ PYTHON_VERSIONS = \
 # Help
 .PHONY: help
 help:
-	@echo "usage: make [test|cover|check|clean|superclean]"
+	@echo "usage: make [test|cover|check|clean|superclean|pyflakes]"
 
 # Run unit tests
 .PHONY: test
@@ -65,6 +65,11 @@ clean:
 .PHONY: superclean
 superclean: clean
 	-rm -rf $(ENV)
+
+# pyflakes
+.PHONY: pyflakes
+pyflakes: superclean
+	python -m pyflakes $$(find . -name '*.py')
 
 # Macro to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE
