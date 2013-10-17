@@ -347,13 +347,17 @@ class Application(object):
                     moduleParts = list(moduleNamePartsPrefix)
                     for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
                         moduleParts.append(modulePart)
-                        moduleFp, modulePath, moduleDesc = \
-                            imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
-                        try:
-                            module = imp.load_module('.'.join(moduleParts), moduleFp, modulePath, moduleDesc)
-                        finally:
-                            if moduleFp:
-                                moduleFp.close()
+                        moduleName = '.'.join(moduleParts)
+                        if self.alwaysReload or moduleName not in sys.modules:
+                            moduleFp, modulePath, moduleDesc = \
+                                imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
+                            try:
+                                module = imp.load_module(moduleName, moduleFp, modulePath, moduleDesc)
+                            finally:
+                                if moduleFp:
+                                    moduleFp.close()
+                        else:
+                            module = sys.modules[moduleName]
 
                     # Add the module's requests
                     for moduleAttr in dir(module):
