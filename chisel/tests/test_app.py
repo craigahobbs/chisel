@@ -122,3 +122,24 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
+
+    # Test nested requests
+    def test_nested_requests(self):
+
+        def request1(environ, start_response):
+            app = environ[Application.ENVIRON_APP]
+            return app.responseText('200 OK', '7')
+
+        def request2(environ, start_response):
+            app = environ[Application.ENVIRON_APP]
+            status, headers, response = app.request('GET', '/request1')
+            return app.responseText('200 OK', str(5 + int(response)))
+
+        app = Application()
+        app.addRequest(request1)
+        app.addRequest(request2)
+
+        status, headers, response = app.request('GET', '/request2')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'12')
+        self.assertTrue(app.environ is None) # Make sure thread state was deleted

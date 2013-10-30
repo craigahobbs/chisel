@@ -55,7 +55,7 @@ class Application(object):
         self.alwaysReload = False
         self.__logStream = logStream
         self.__threadStates = {}
-        self.__initLock = threading.Lock()
+        self.__callLock = threading.Lock()
 
         self.__init()
 
@@ -65,7 +65,6 @@ class Application(object):
         self.__requests = {}
         self.__requestUrls = {}
         self.__requestUrlRegex = []
-        self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
         self.init()
 
     # Overridable initialization function
@@ -73,9 +72,6 @@ class Application(object):
 
         # Set the default logger level
         logging.getLogger().setLevel(self.logLevel)
-
-        # Re-create default logger - application may have changed log level in its init
-        self.__threadStateDefault = self.ThreadState(None, None, self.__createLogger(self.__logStream))
 
     # Overridable WSGI entry point
     def call(self, environ, start_response):
@@ -99,11 +95,15 @@ class Application(object):
         else:
             return self.responseText('404 Not Found', 'Not Found')
 
-    # WSGI entry point
-    def __call__(self, environ, start_response):
+    # Inner WSGI entry point
+    def __call(self, environ, start_response):
 
         # Set the app environment item
         environ[self.ENVIRON_APP] = self
+
+        # Reload?
+        if self.alwaysReload and not self.environ:
+            self.__init()
 
         # Wrap start_response
         def _start_response(status, headers):
@@ -112,22 +112,47 @@ class Application(object):
                 headers = list(itertools.chain(headers, _headers)) if headers else _headers
             return start_response(status, headers)
 
-        # Add the thread state
-        threadKey = threading.current_thread().ident
-        threadState = self.ThreadState(environ, _start_response, self.__createLogger(environ['wsgi.errors']))
-        self.__threadStates[threadKey] = threadState
-
-        # Handle the request - re-initialize if necessary
+        # Call the overridable WSGI entry point
+        self.__pushThreadState(environ, _start_response)
         try:
-            if self.alwaysReload:
-                with self.__initLock:
-                    self.__init()
-                    return self.call(environ, _start_response)
-            else:
-                return self.call(environ, _start_response)
+            return self.call(environ, _start_response)
         finally:
-            # Remove the thread state
+            self.__popThreadState()
+
+    # WSGI entry point
+    def __call__(self, environ, start_response):
+
+        # Lock when always reloading
+        if self.alwaysReload and not self.environ:
+            with self.__callLock:
+                return self.__call(environ, start_response)
+        else:
+            return self.__call(environ, start_response)
+
+    # Push a thread state
+    def __pushThreadState(self, environ, start_response):
+        threadKey = threading.current_thread().ident
+        threadState = self.ThreadState(environ, start_response, self.__createLogger(environ['wsgi.errors']))
+        if threadKey in self.__threadStates:
+            self.__threadStates[threadKey].append(threadState)
+        else:
+            self.__threadStates[threadKey] = [threadState]
+
+    # Pop a thread state
+    def __popThreadState(self):
+        threadKey = threading.current_thread().ident
+        threadStateStack = self.__threadStates[threadKey]
+        threadStateStack.pop()
+        if len(threadStateStack) == 0:
             del self.__threadStates[threadKey]
+
+    # Get the active thread state
+    def __topThreadState(self):
+        threadKey = threading.current_thread().ident
+        threadStateStack = self.__threadStates.get(threadKey)
+        if threadStateStack is not None and len(threadStateStack) > 0:
+            return self.__threadStates[threadKey][-1]
+        return None
 
     # Create a request logger
     def __createLogger(self, logStream):
@@ -192,23 +217,20 @@ class Application(object):
     # WSGI request environ
     @property
     def environ(self):
-        threadKey = threading.current_thread().ident
-        threadState = self.__threadStates.get(threadKey, self.__threadStateDefault)
-        return threadState.environ
+        threadState = self.__topThreadState()
+        return threadState.environ if threadState else None
 
     # WSGI request start_response
     @property
     def start_response(self):
-        threadKey = threading.current_thread().ident
-        threadState = self.__threadStates.get(threadKey, self.__threadStateDefault)
-        return threadState.start_response
+        threadState = self.__topThreadState()
+        return threadState.start_response if threadState else None
 
     # Logger object
     @property
     def log(self):
-        threadKey = threading.current_thread().ident
-        threadState = self.__threadStates.get(threadKey, self.__threadStateDefault)
-        return threadState.log
+        threadState = self.__topThreadState()
+        return threadState.log if threadState else self.__createLogger(self.__logStream)
 
     # Send an HTTP response
     def response(self, status, contentType, content, headers = None):
@@ -386,18 +408,20 @@ class Application(object):
             _environ['wsgi.input'] = StringIO(wsgiInput if wsgiInput else '')
             if 'CONTENT_LENGTH' not in _environ:
                 _environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
+        if 'wsgi.errors' not in _environ:
+            environOuter = self.environ
+            _environ['wsgi.errors'] = (self.__nullStream if suppressLogging else
+                                       environOuter.get('wsgi.errors', self.__logStream) if environOuter else
+                                       self.__logStream)
 
-        # Make the request
+        # Capture the response status and headers
         startResponseArgs = {}
         def startResponse(status, responseHeaders):
             startResponseArgs['status'] = status
             startResponseArgs['responseHeaders'] = responseHeaders
-        if self.environ:
-            response = self.call(_environ, startResponse)
-        else:
-            if 'wsgi.errors' not in _environ:
-                _environ['wsgi.errors'] = self.__nullStream if suppressLogging else self.__logStream
-            response = self(_environ, startResponse)
+
+        # Make the request
+        response = self(_environ, startResponse)
 
         return (startResponseArgs['status'],
                 startResponseArgs['responseHeaders'],
