@@ -142,7 +142,13 @@ class Application(object):
     def __popThreadState(self):
         threadKey = threading.current_thread().ident
         threadStateStack = self.__threadStates[threadKey]
-        threadStateStack.pop()
+        threadState = threadStateStack.pop()
+
+        # Close all log handlers to avoid memory leaks
+        for handler in threadState.log.handlers:
+            handler.flush()
+            handler.close()
+
         if len(threadStateStack) == 0:
             del self.__threadStates[threadKey]
 
