@@ -65,6 +65,7 @@ class Application(object):
         self.__requests = {}
         self.__requestUrls = {}
         self.__requestUrlRegex = []
+        self.__defaultLogger = self.__createLogger(self.__logStream)
         self.init()
 
     # Overridable initialization function
@@ -72,6 +73,10 @@ class Application(object):
 
         # Set the default logger level
         logging.getLogger().setLevel(self.logLevel)
+
+        # Re-create default logger - application may have changed log level in its init
+        self.__cleanupLogger(self.__defaultLogger)
+        self.__defaultLogger = self.__createLogger(self.__logStream)
 
     # Overridable WSGI entry point
     def call(self, environ, start_response):
@@ -143,14 +148,9 @@ class Application(object):
         threadKey = threading.current_thread().ident
         threadStateStack = self.__threadStates[threadKey]
         threadState = threadStateStack.pop()
-
-        # Close all log handlers to avoid memory leaks
-        for handler in threadState.log.handlers:
-            handler.flush()
-            handler.close()
-
         if len(threadStateStack) == 0:
             del self.__threadStates[threadKey]
+        self.__cleanupLogger(threadState.log)
 
     # Get the active thread state
     def __topThreadState(self):
@@ -169,6 +169,12 @@ class Application(object):
             handler.setFormatter(logging.Formatter(self.logFormat))
             logger.addHandler(handler)
         return logger
+
+    # Cleanup a logger to avoid memory leaks
+    def __cleanupLogger(self, logger):
+        for handler in logger.handlers:
+            handler.flush()
+            handler.close()
 
     # Logging level
     @property
@@ -236,7 +242,7 @@ class Application(object):
     @property
     def log(self):
         threadState = self.__topThreadState()
-        return threadState.log if threadState else self.__createLogger(self.__logStream)
+        return threadState.log if threadState else self.__defaultLogger
 
     # Send an HTTP response
     def response(self, status, contentType, content, headers = None):
