@@ -49,7 +49,7 @@ class Application(object):
     def __init__(self, logStream = sys.stderr):
 
         self.logLevel = logging.WARNING
-        self.logFormat = '%(pathname)s:%(lineno)s: %(levelname)s [%(process)s / %(thread)s] %(message)s'
+        self.logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
         self.prettyOutput = False
         self.validateOutput = True
         self.alwaysReload = False
