@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from chisel.compat import long_, unicode_
+from chisel.compat import long_, PY3
 from chisel.model import JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
@@ -1051,7 +1051,7 @@ class TestModelStringValidation(unittest.TestCase):
 
         t = TypeString()
 
-        o = unicode_('abc')
+        o = str('abc') if PY3 else unicode('abc')
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
             self.assertTrue(o is o2)

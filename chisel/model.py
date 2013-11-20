@@ -353,7 +353,7 @@ class TypeString(object):
         if not isinstance(value, basestring_):
             raise ValidationError.memberError(self, value, _member)
 
-        # Check length constraints - lengths computed in unicode
+        # Check length constraints
         if self.constraint_len_lt is not None and not len(value) < self.constraint_len_lt:
             raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
         if self.constraint_len_lte is not None and not len(value) <= self.constraint_len_lte:

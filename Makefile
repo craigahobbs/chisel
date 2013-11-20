@@ -41,13 +41,18 @@ PYTHON_VERSIONS = \
 help:
 	@echo "usage: make [test|cover|check|clean|superclean|pyflakes]"
 
+# pyflakes
+.PHONY: pyflakes
+pyflakes:
+	pyflakes ./$(PACKAGE_NAME)
+
 # Run unit tests
 .PHONY: test
-test: test_$(firstword $(PYTHON_VERSIONS))
+test: pyflakes test_$(firstword $(PYTHON_VERSIONS))
 
 # Pre-checkin check
 .PHONY: check
-check: clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
+check: pyflakes clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 
 # Clean
 .PHONY: clean
@@ -65,11 +70,6 @@ clean:
 .PHONY: superclean
 superclean: clean
 	-rm -rf $(ENV)
-
-# pyflakes
-.PHONY: pyflakes
-pyflakes: superclean
-	pyflakes $$(find . -name '*.py' ! -path './$(PACKAGE_NAME)/__init__.py' ! -path './$(PACKAGE_NAME)/compat.py')
 
 # Macro to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE

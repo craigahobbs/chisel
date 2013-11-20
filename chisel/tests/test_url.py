@@ -21,7 +21,7 @@
 #
 
 from chisel import decodeQueryString, encodeQueryString, TZUTC
-from chisel.compat import unichr_, unicode_
+from chisel.compat import PY3
 
 from datetime import datetime
 import unittest
@@ -79,6 +79,8 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(decodeQueryString(s), o)
 
         # Decode unicode string
+        unicode_ = str if PY3 else unicode
+        unichr_ = chr if PY3 else unichr
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
         o = { unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd'] }
         self.assertEqual(decodeQueryString(s), o)
@@ -233,6 +235,8 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encodeQueryString(o), s)
 
         # Unicode keys and values
+        unicode_ = str if PY3 else unicode
+        unichr_ = chr if PY3 else unichr
         o = { unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd'] }
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
         self.assertEqual(encodeQueryString(o), s)

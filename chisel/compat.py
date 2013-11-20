@@ -22,22 +22,18 @@
 
 import sys
 
-PY27 = (sys.version_info >= (2, 7))
 PY3 = (sys.version_info >= (3, 0))
-PY32 = (sys.version_info >= (3, 2))
+_PY27 = (sys.version_info >= (2, 7))
+_PY32 = (sys.version_info >= (3, 2))
 
 # types
 if PY3: # pragma: no cover
     basestring_ = str
     long_ = int
-    unichr_ = chr
-    unicode_ = str
     xrange_ = range
 else:
     basestring_ = basestring
     long_ = long
-    unichr_ = unichr
-    unicode_ = unicode
     xrange_ = xrange
 
 # dict
@@ -61,31 +57,35 @@ else:
         return f.func_name
 
 # cgi
-if PY32: # pragma: no cover
+if _PY32: # pragma: no cover
     import html as _html
     class cgi(object):
         __slots__ = ()
         escape = _html.escape
 else:
-    import cgi
+    import cgi as _cgi
+    cgi = _cgi
 
 # json
-if PY27:
-    import json
+if _PY27:
+    import json as _json
 else: # pragma: no cover
     try:
-        import simplejson as json
+        import simplejson as _json
     except:
-        import json
+        import json as _json
+json = _json
 
 # StringIO
 if PY3: # pragma: no cover
-    from io import StringIO
+    import io as _io
+    StringIO = _io.StringIO
 else:
     try:
-        from cStringIO import StringIO
+        import cStringIO as _StringIO
     except: # pragma: no cover
-        from StringIO import StringIO
+        import StringIO as _StringIO
+    StringIO = _StringIO.StringIO
 
 # urllib, urlparse
 if PY3: # pragma: no cover
@@ -95,10 +95,13 @@ if PY3: # pragma: no cover
         quote = _urllib_parse.quote
         unquote = _urllib_parse.unquote
 else:
-    import urllib
+    import urllib as _urllib
+    urllib = _urllib
 
 # HTMLParser
 if PY3: # pragma: no cover
-    from html.parser import HTMLParser
+    import html.parser as _html_parser
+    HTMLParser = _html_parser.HTMLParser
 else:
-    from HTMLParser import HTMLParser
+    import HTMLParser as _HTMLParser
+    HTMLParser = _HTMLParser.HTMLParser
