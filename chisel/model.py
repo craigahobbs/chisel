@@ -32,7 +32,7 @@ from uuid import UUID
 class JsonDatetime(float):
     __slots__ = ('value', 'json')
 
-    _reIsoZeros = re.compile('(T\d{2}(:(?!00)\d{2})*)((:00)*)[+-]00:00$')
+    _reIsoZeros = re.compile('(T\d{2}(:(?!00)\d{2})*)((:00)*)')
 
     def __new__(cls, value):
         return float.__new__(cls, 0)
@@ -41,7 +41,7 @@ class JsonDatetime(float):
         if value.tzinfo is None:
             value = value.replace(tzinfo = tzlocal)
         self.value = value.astimezone(tzutc)
-        self.json = '"' + self._reIsoZeros.sub('\\1Z', self.value.isoformat()) + '"'
+        self.json = '"' + self._reIsoZeros.sub('\\1', self.value.isoformat())[:-6] + 'Z"'
 
     def __repr__(self):
         return self.json
