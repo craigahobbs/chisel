@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from chisel import decodeQueryString, encodeQueryString, TZUTC
+from chisel import decodeQueryString, encodeQueryString, tzutc
 from chisel.compat import PY3
 
 from datetime import datetime
@@ -251,8 +251,8 @@ class TestUrl(unittest.TestCase):
     # Test datetime query string encoding
     def test_url_encodeQueryString_datetime(self):
 
-        o = { 'a': datetime(2013, 7, 18, 12, 31, tzinfo = TZUTC()) }
-        s = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
+        o = { 'a': datetime(2013, 7, 18, 12, 31, tzinfo = tzutc) }
+        s = 'a=2013-07-18T12%3A31Z'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test uuid query string encoding

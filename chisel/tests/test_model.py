@@ -24,7 +24,7 @@ from chisel.compat import long_, PY3
 from chisel.model import JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
-    TypeUuid, TypeDatetime, TZUTC, TZLocal, IMMUTABLE_VALIDATION_MODES
+    TypeUuid, TypeDatetime, tzutc, tzlocal, IMMUTABLE_VALIDATION_MODES
 
 from datetime import datetime
 import unittest
@@ -39,20 +39,20 @@ class TestModelJsonDatetime(unittest.TestCase):
     # Datetime with timezone
     def test_model_jsonDatetime(self):
 
-        value = datetime(2013, 6, 30, 17, 19, 0, tzinfo = TZUTC())
+        value = datetime(2013, 6, 30, 17, 19, 0, tzinfo = tzutc)
         o = JsonDatetime(value)
         self.assertTrue(isinstance(o, float))
-        self.assertTrue(o.value is value)
+        self.assertEqual(o.value, value)
         self.assertTrue(o.value.tzinfo is not None)
-        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
-        self.assertEqual(str(o), '"2013-06-30T17:19:00+00:00"')
+        self.assertEqual(repr(o), '"2013-06-30T17:19Z"')
+        self.assertEqual(str(o), '"2013-06-30T17:19Z"')
 
     # Datetime without timezone
     def test_model_jsonDatetime_no_timezone(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0)
         o = JsonDatetime(value)
-        oExpected = JsonDatetime(datetime(2013, 6, 30, 17, 19, 0, tzinfo = TZLocal()))
+        oExpected = JsonDatetime(datetime(2013, 6, 30, 17, 19, 0, tzinfo = tzlocal))
         self.assertTrue(isinstance(o, float))
         self.assertTrue(isinstance(o.value, datetime))
         self.assertTrue(o.value.tzinfo is not None)
@@ -1673,7 +1673,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
 
         t = TypeDatetime()
 
-        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC())
+        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo = tzutc)
         for mode in ALL_VALIDATION_MODES:
             if mode != VALIDATE_JSON_OUTPUT:
                 o2 = t.validate(o, mode)
@@ -1682,7 +1682,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model.TZUTC object at '))
+                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model._TZUTC object at '))
                     self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
                 else:
                     self.fail()
@@ -1692,7 +1692,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
 
         t = TypeDatetime()
 
-        o = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC()))
+        o = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo = tzutc))
         for mode in ALL_VALIDATION_MODES:
             if mode == VALIDATE_JSON_OUTPUT:
                 o2 = t.validate(o, mode)
@@ -1701,7 +1701,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01:00+00:00\" (type 'JsonDatetime'), expected type 'datetime'")
+                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01Z\" (type 'JsonDatetime'), expected type 'datetime'")
                 else:
                     self.fail()
 
@@ -1718,7 +1718,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
             elif mode not in IMMUTABLE_VALIDATION_MODES:
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZLocal()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = tzlocal))
             else:
                 try:
                     t.validate(o, mode)
@@ -1738,7 +1738,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo = TZUTC()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo = tzutc))
             else:
                 try:
                     t.validate(o, mode)
@@ -1758,7 +1758,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = TZUTC()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo = tzutc))
             else:
                 try:
                     t.validate(o, mode)
@@ -1778,7 +1778,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo = TZUTC()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo = tzutc))
             else:
                 try:
                     t.validate(o, mode)
@@ -1798,7 +1798,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo = TZUTC()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo = tzutc))
             else:
                 try:
                     t.validate(o, mode)
@@ -1818,7 +1818,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 o2 = t.validate(o, mode)
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo = TZUTC()))
+                self.assertEqual(o2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo = tzutc))
             else:
                 try:
                     t.validate(o, mode)

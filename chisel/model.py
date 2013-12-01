@@ -32,16 +32,16 @@ from uuid import UUID
 class JsonDatetime(float):
     __slots__ = ('value', 'json')
 
+    _reIsoZeros = re.compile('(T\d{2}(:(?!00)\d{2})*)((:00)*)[+-]00:00$')
+
     def __new__(cls, value):
         return float.__new__(cls, 0)
 
     def __init__(self, value):
         if value.tzinfo is None:
-            self.value = datetime(value.year, value.month, value.day, value.hour,
-                                  value.minute, value.second, value.microsecond, TZLocal())
-        else:
-            self.value = value
-        self.json = '"' + self.value.isoformat() + '"'
+            value = value.replace(tzinfo = tzlocal)
+        self.value = value.astimezone(tzutc)
+        self.json = '"' + self._reIsoZeros.sub('\\1Z', self.value.isoformat()) + '"'
 
     def __repr__(self):
         return self.json
@@ -515,8 +515,7 @@ class TypeDatetime(object):
 
             # Set a time zone, if necessary
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
-                return datetime(value.year, value.month, value.day, value.hour,
-                                value.minute, value.second, value.microsecond, TZLocal())
+                return value.replace(tzinfo = tzlocal)
 
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
@@ -531,21 +530,25 @@ class TypeDatetime(object):
 
 
 # GMT tzinfo class for parseISO8601Datetime (from Python docs)
-class TZUTC(tzinfo): # pragma: no cover
+_timedelta_zero = timedelta(0)
+
+class _TZUTC(tzinfo): # pragma: no cover
     __slots__ = ()
 
     def utcoffset(self, dt):
-        return timedelta(0)
+        return _timedelta_zero
 
     def dst(self, dt):
-        return timedelta(0)
+        return _timedelta_zero
 
     def tzname(self, dt):
         return 'UTC'
 
+tzutc = _TZUTC()
+
 
 # Local time zone tzinfo class (from Python docs)
-class TZLocal(tzinfo): # pragma: no cover
+class _TZLocal(tzinfo): # pragma: no cover
     __slots__ = ()
 
     def utcoffset(self, dt):
@@ -558,7 +561,7 @@ class TZLocal(tzinfo): # pragma: no cover
         if self._isdst(dt):
             return self._dstOffset() - self._stdOffset()
         else:
-            return timedelta(0)
+            return _timedelta_zero
 
     def tzname(self, dt):
         return time.tzname[self._isdst(dt)]
@@ -581,6 +584,8 @@ class TZLocal(tzinfo): # pragma: no cover
         tt = time.localtime(stamp)
         return tt.tm_isdst > 0
 
+tzlocal = _TZLocal()
+
 
 # ISO 8601 regex
 _reISO8601 = re.compile('^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})' +
@@ -599,12 +604,12 @@ def parseISO8601Datetime(s):
     year = int(m.group('year'))
     month = int(m.group('month'))
     day = int(m.group('day'))
-    hour = int(m.group('hour')) if m.group('hour') else 0
+    hour = int(m.group('hour'))
     minute = int(m.group('min')) if m.group('min') else 0
     sec = int(m.group('sec')) if m.group('sec') else 0
     microsec = int(float('.' + m.group('fracsec')) * 1000000) if m.group('fracsec') else 0
     offhour = int(m.group('offsign') + m.group('offhour')) if m.group('offhour') else 0
     offmin = int(m.group('offsign') + m.group('offmin')) if m.group('offmin') else 0
 
-    return (datetime(year, month, day, hour, minute, sec, microsec, TZUTC()) -
+    return (datetime(year, month, day, hour, minute, sec, microsec, tzutc) -
             timedelta(hours = offhour, minutes = offmin))
