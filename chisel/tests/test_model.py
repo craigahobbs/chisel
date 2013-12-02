@@ -44,8 +44,8 @@ class TestModelJsonDatetime(unittest.TestCase):
         self.assertTrue(isinstance(o, float))
         self.assertEqual(o.value, value)
         self.assertTrue(o.value.tzinfo is not None)
-        self.assertEqual(repr(o), '"2013-06-30T17:19Z"')
-        self.assertEqual(str(o), '"2013-06-30T17:19Z"')
+        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
+        self.assertEqual(str(o), '"2013-06-30T17:19:00+00:00"')
 
     # Datetime without timezone
     def test_model_jsonDatetime_no_timezone(self):
@@ -1701,7 +1701,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01Z\" (type 'JsonDatetime'), expected type 'datetime'")
+                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01:00+00:00\" (type 'JsonDatetime'), expected type 'datetime'")
                 else:
                     self.fail()
 
@@ -1752,7 +1752,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
 
         t = TypeDatetime()
 
-        o = '2013-05-26T11:01:00Z'
+        o = '2013-05-26T11:01:00+00:00'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
                 o2 = t.validate(o, mode)
@@ -1763,7 +1763,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00Z' (type 'str'), expected type 'datetime'")
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
@@ -1772,7 +1772,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
 
         t = TypeDatetime()
 
-        o = '2013-05-26T11:01:00.1234Z'
+        o = '2013-05-26T11:01:00.1234+00:00'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
                 o2 = t.validate(o, mode)
@@ -1783,7 +1783,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00.1234Z' (type 'str'), expected type 'datetime'")
+                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 

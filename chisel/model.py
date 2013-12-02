@@ -32,28 +32,14 @@ from uuid import UUID
 class JsonDatetime(float):
     __slots__ = ('value', 'json')
 
-    _reTimeZeros = re.compile('(T\d{2}(:(?!00)\d{2})*)((:00)*)')
-    _reTzZulu = re.compile('[+-]00:00$')
-    _reTzZeros = re.compile(':00$')
-
     def __new__(cls, value):
         return float.__new__(cls, 0)
 
     def __init__(self, value):
         if value.tzinfo is None:
-            self.value = value.replace(tzinfo = tzlocal)
-        else:
-            self.value = value
-
-        # Format as ISO 8601 and trim-down as much as possible
-        iso = self._reTimeZeros.sub('\\1', self.value.isoformat())
-        isoZulu = self._reTzZulu.sub('Z', iso)
-        if isoZulu is not iso:
-            iso = isoZulu
-        else:
-            iso = self._reTzZeros.sub('', iso)
-
-        self.json = '"' + iso + '"'
+            value = value.replace(tzinfo = tzlocal)
+        self.value = value
+        self.json = '"' + value.isoformat() + '"'
 
     def __repr__(self):
         return self.json

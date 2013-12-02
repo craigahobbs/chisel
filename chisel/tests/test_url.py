@@ -252,7 +252,7 @@ class TestUrl(unittest.TestCase):
     def test_url_encodeQueryString_datetime(self):
 
         o = { 'a': datetime(2013, 7, 18, 12, 31, tzinfo = tzutc) }
-        s = 'a=2013-07-18T12%3A31Z'
+        s = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test uuid query string encoding
