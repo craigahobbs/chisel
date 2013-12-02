@@ -602,7 +602,7 @@ def parseISO8601Datetime(s):
     year = int(m.group('year'))
     month = int(m.group('month'))
     day = int(m.group('day'))
-    hour = int(m.group('hour'))
+    hour = int(m.group('hour')) if m.group('hour') else 0
     minute = int(m.group('min')) if m.group('min') else 0
     sec = int(m.group('sec')) if m.group('sec') else 0
     microsec = int(float('.' + m.group('fracsec')) * 1000000) if m.group('fracsec') else 0
