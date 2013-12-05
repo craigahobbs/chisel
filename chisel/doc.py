@@ -469,6 +469,9 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
     if not typeInst.members:
         _addText(parent, (emptyMessage,))
     else:
+        # Has description header?
+        hasDescription = any(member.doc for member in typeInst.members)
+
         # Table header
         table = parent.addChild('table')
         tr = table.addChild('tr')
@@ -476,7 +479,8 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
         tr.addChild('th').addChild('Type', isText = True, isInline = True)
         tr.addChild('th').addChild('Optional', isText = True, isInline = True)
         tr.addChild('th').addChild('Constraints', isText = True, isInline = True)
-        tr.addChild('th').addChild('Description', isText = True, isInline = True)
+        if hasDescription:
+            tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Struct member rows
         for member in typeInst.members:
@@ -485,7 +489,8 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
             _addTypeName(tr.addChild('td'), member.typeInst)
             tr.addChild('td').addChild('yes' if member.isOptional else 'no', isText = True, isInline = True)
             _addTypeAttr(tr.addChild('td'), member.typeInst)
-            _addDocText(tr.addChild('td'), member.doc)
+            if hasDescription:
+                _addDocText(tr.addChild('td'), member.doc)
 
 # Enum section helper
 def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
@@ -504,18 +509,23 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
         .addChild(title, isText = True)
     _addDocText(parent, typeInst.doc)
 
-    # Empty struct?
+    # Empty enum?
     if not typeInst.values:
         _addText(parent, (emptyMessage,))
     else:
+        # Has description header?
+        hasDescription = any(value.doc for value in typeInst.values)
+
         # Table header
         table = parent.addChild('table')
         tr = table.addChild('tr')
         tr.addChild('th').addChild('Value', isText = True, isInline = True)
-        tr.addChild('th').addChild('Description', isText = True, isInline = True)
+        if hasDescription:
+            tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Enum value rows
         for value in typeInst.values:
             tr = table.addChild('tr')
             tr.addChild('td').addChild(value.value, isText = True, isInline = True)
-            _addDocText(tr.addChild('td'), value.doc)
+            if hasDescription:
+                _addDocText(tr.addChild('td'), value.doc)
