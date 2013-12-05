@@ -57,7 +57,9 @@ class HTMLValidator(HTMLParser):
 class TestDoc(unittest.TestCase):
 
     _spec = '''\
+# My enum
 enum MyEnum
+    # A value
     Value1
     Value2
 
