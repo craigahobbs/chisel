@@ -192,10 +192,10 @@ class SpecParser(object):
 
             # Match line syntax
             mComment = self._reComment.search(line)
-            mDefinition = self._reDefinition.search(line)
-            mSection = self._reSection.search(line)
-            mMember = self._reMember.search(line)
-            mValue = self._reValue.search(line)
+            mDefinition = self._reDefinition.search(line) if not mComment else None
+            mSection = self._reSection.search(line) if not mDefinition else None
+            mMember = self._reMember.search(line) if not mSection else None
+            mValue = self._reValue.search(line) if not mMember else None
 
             # Comment?
             if mComment:
