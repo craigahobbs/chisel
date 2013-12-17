@@ -94,7 +94,6 @@ class SpecParser(object):
 
     # Parse a specification from an input stream
     def parseStream(self, specStream, fileName = '', finalize = True):
-        assert not self.errors
 
         # Set the parser state
         self._parseStream = specStream
