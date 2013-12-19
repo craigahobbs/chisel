@@ -489,9 +489,9 @@ action myAction
         self.app.addRequest(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
-        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Invalid value None (type \'NoneType\'), expected type \'myAction_Output\'"}')
+        self.assertEqual(response.decode('utf-8'), '{}')
 
     # Test action with invalid array output
     def test_action_error_array_output(self):

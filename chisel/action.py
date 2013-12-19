@@ -152,6 +152,8 @@ class Action(Request):
             # Call the action callback
             try:
                 response = self.fn(self.app, request)
+                if response is None:
+                    response = {}
             except ActionError as e:
                 response = { 'error': e.error }
                 if e.message is not None:
