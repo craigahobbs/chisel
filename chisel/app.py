@@ -48,15 +48,16 @@ class Application(object):
 
     def __init__(self, logStream = sys.stderr):
 
+        self.__defaultLogger = None
         self.logLevel = logging.WARNING
         self.logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
         self.prettyOutput = False
         self.validateOutput = True
         self.alwaysReload = False
         self.__logStream = logStream
+        self.__defaultLogger = self.__createLogger(logStream)
         self.__threadStates = {}
         self.__callLock = threading.Lock()
-
         self.__init()
 
     def __init(self):
@@ -65,18 +66,11 @@ class Application(object):
         self.__requests = {}
         self.__requestUrls = {}
         self.__requestUrlRegex = []
-        self.__defaultLogger = self.__createLogger(self.__logStream)
         self.init()
 
     # Overridable initialization function
     def init(self):
-
-        # Set the default logger level
-        logging.getLogger().setLevel(self.logLevel)
-
-        # Re-create default logger - application may have changed log level in its init
-        self.__cleanupLogger(self.__defaultLogger)
-        self.__defaultLogger = self.__createLogger(self.__logStream)
+        pass
 
     # Overridable WSGI entry point
     def call(self, environ, start_response):
@@ -183,6 +177,8 @@ class Application(object):
     @logLevel.setter
     def logLevel(self, value):
         self.__logLevel = value
+        if self.__defaultLogger:
+            self.__defaultLogger.setLevel(self.logLevel)
 
     # Logging format
     @property
@@ -191,6 +187,9 @@ class Application(object):
     @logFormat.setter
     def logFormat(self, value):
         self.__logFormat = value
+        if self.__defaultLogger:
+            for handler in self.__defaultLogger.handlers:
+                handler.setFormatter(logging.Formatter(self.logFormat))
 
     # Pretty output
     @property
