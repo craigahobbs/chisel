@@ -359,8 +359,9 @@ class Application(object):
     def addDocRequest(self):
         self.addRequest(DocAction())
 
-    # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
+    # Generator to recursively load all modules
+    @staticmethod
+    def loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = (), alwaysReload = False):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -380,8 +381,10 @@ class Application(object):
                     moduleParts = list(moduleNamePartsPrefix)
                     for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
                         moduleParts.append(modulePart)
+                        if any(len(moduleParts) >= len(x) and tuple(itertools.islice(moduleParts, len(x))) == tuple(x) for x in moduleNamePartsIgnore):
+                            continue
                         moduleName = '.'.join(moduleParts)
-                        if self.alwaysReload or moduleName not in sys.modules:
+                        if alwaysReload or moduleName not in sys.modules:
                             moduleFp, modulePath, moduleDesc = \
                                 imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
                             try:
@@ -391,12 +394,17 @@ class Application(object):
                                     moduleFp.close()
                         else:
                             module = sys.modules[moduleName]
+                        yield module
 
-                    # Add the module's requests
-                    for moduleAttr in dir(module):
-                        request = getattr(module, moduleAttr)
-                        if isinstance(request, Request):
-                            self.addRequest(request)
+    # Recursively load all requests in a directory
+    def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
+
+        for module in self.loadModules(moduleDir, alwaysReload = self.alwaysReload, moduleExt = moduleExt,
+                                       moduleNamePartsPrefix = moduleNamePartsPrefix):
+            for moduleAttr in dir(module):
+                request = getattr(module, moduleAttr)
+                if isinstance(request, Request):
+                    self.addRequest(request)
 
     # Null stream object for supressing logs in request
     class NullStream(object):
