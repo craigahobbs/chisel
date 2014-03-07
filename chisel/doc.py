@@ -186,7 +186,7 @@ def createRequestHtml(environ, request):
         noteUrlP.addChild('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', isText = True)
         ulUrls = noteUrl.addChild('ul')
         for url in request.urls:
-            ulUrls.addChild('li') \
+            ulUrls.addChild('li').addChild('a', isInline = True, href = url) \
                 .addChild(url, isText = True, isInline = True)
 
     if isAction:
