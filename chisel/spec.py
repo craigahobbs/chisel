@@ -63,7 +63,7 @@ class SpecParser(object):
     _reSection = re.compile('^\s+(?P<type>input|output|errors)\s*$')
     _reMember = re.compile('^\s+(' + _rePartAttrs + '\s+)?(?P<type>' + _rePartId +
                            ')((?P<isArray>\\[\\])|(?P<isDict>{}))?\s+(?P<id>' + _rePartId + ')\s*$')
-    _reValue = re.compile('^\s+(?P<id>' + _rePartId + ')\s*$')
+    _reValue = re.compile('^\s+"?(?P<id>(?<!")' + _rePartId + '(?!")|(?<=").*?(?="))"?\s*$')
 
     # Types
     _types = {

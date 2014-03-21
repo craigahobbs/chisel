@@ -78,6 +78,7 @@ class TestSpecParseSpec(unittest.TestCase):
 enum MyEnum
     Foo
     Bar
+    "Foo and Bar"
 
 # This is the struct
 struct MyStruct
@@ -116,6 +117,7 @@ action MyAction
     errors
         Error1
         Error2
+        "Error 3"
 
 # The second action
 action MyAction2
@@ -141,7 +143,8 @@ action MyAction4
         # Check enum types
         self.assertEnumByName(parser, 'MyEnum',
                               ('Foo',
-                               'Bar'))
+                               'Bar',
+                               'Foo and Bar'))
 
         # Check struct types
         self.assertStructByName(parser, 'MyStruct',
@@ -171,7 +174,8 @@ action MyAction4
                            ('b', TypeString, True)),
                           (('c', TypeBool, False),),
                           ('Error1',
-                           'Error2'))
+                           'Error2',
+                           'Error 3'))
         self.assertAction(parser, 'MyAction2',
                           (('foo', parser.types['MyStruct'], False),
                            ('bar', TypeArray, False)),
@@ -541,6 +545,8 @@ int cde
         try:
             parser.parseString('''\
 enum MyEnum
+    "abc
+    abc"
 Value1
 
 struct MyStruct
@@ -554,13 +560,15 @@ action MyAction
         except SpecParserError as e:
             self.assertEqual(str(e), '''\
 :2: error: Syntax error
-:6: error: Enumeration value outside of enum scope
-:10: error: Enumeration value outside of enum scope''')
+:3: error: Syntax error
+:4: error: Syntax error
+:8: error: Enumeration value outside of enum scope
+:12: error: Enumeration value outside of enum scope''')
         else:
             self.fail()
 
         # Check counts
-        self.assertEqual(len(parser.errors), 3)
+        self.assertEqual(len(parser.errors), 5)
         self.assertEqual(len(parser.types), 2)
         self.assertEqual(len(parser.actions), 1)
 
@@ -574,8 +582,10 @@ action MyAction
         # Check errors
         self.assertEqual(parser.errors,
                          [':2: error: Syntax error',
-                          ':6: error: Enumeration value outside of enum scope',
-                          ':10: error: Enumeration value outside of enum scope'])
+                          ':3: error: Syntax error',
+                          ':4: error: Syntax error',
+                          ':8: error: Enumeration value outside of enum scope',
+                          ':12: error: Enumeration value outside of enum scope'])
 
     # Test valid attribute usage
     def test_spec_attributes(self):
