@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, json, long_, PY3, urllib, xrange_
+from .compat import basestring_, long_, PY3, urllib, xrange_
 from .model import JsonDatetime, JsonUUID
 
 from datetime import datetime
@@ -67,11 +67,11 @@ def encodeQueryString(o, encoding = 'utf-8'):
                 keysValues.append((parent, ''))
         elif o is not None:
             if isinstance(o, datetime):
-                ostr = json.dumps(JsonDatetime(o)).strip('"')
+                ostr = str(JsonDatetime(o)).strip('"')
             elif isinstance(o, UUID):
-                ostr = json.dumps(JsonUUID(o)).strip('"')
+                ostr = str(JsonUUID(o)).strip('"')
             elif isinstance(o, bool):
-                ostr = json.dumps(o)
+                ostr = 'true' if o else 'false'
             else:
                 ostr = o
             keysValues.append((parent, quote(ostr, encoding)))

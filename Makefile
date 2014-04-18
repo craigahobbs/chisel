@@ -27,24 +27,20 @@ PACKAGE_TESTS = $(PACKAGE_NAME)/tests
 # Local directories
 ENV = .env
 COVER = .cover
+PYFLAKES = .pyflakes
 
 # Python version support
 PYTHON_VERSIONS = \
     2.7 \
     2.6 \
-    3.1 \
     3.2 \
-    3.3
+    3.3 \
+    3.4
 
 # Help
 .PHONY: help
 help:
-	@echo "usage: make [test|cover|check|clean|superclean|pyflakes]"
-
-# pyflakes
-.PHONY: pyflakes
-pyflakes:
-	pyflakes ./$(PACKAGE_NAME)
+	@echo "usage: make [test|cover|pyflakes|check|clean|superclean|pyflakes]"
 
 # Run unit tests
 .PHONY: test
@@ -81,19 +77,24 @@ $(ENV)/$(strip $(1)):
 $(1): $(ENV)/$(strip $(1))
 	$(4)
 endef
-ENV_ACTIVATE = . $$</bin/activate
 
 # Generate test rules
 define TEST_COMMANDS
-	$(ENV_ACTIVATE); python setup.py test
+	. $$</bin/activate; python setup.py test
 endef
 $(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , $(TEST_COMMANDS))))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	$(ENV_ACTIVATE); nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) \
+	. $$</bin/activate; nosetests -w $(PACKAGE_TESTS) --with-coverage --cover-package=$(PACKAGE_NAME) \
 		--cover-erase --cover-html --cover-html-dir=$(abspath $(COVER))
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
 $(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), nose coverage, $(COVER_COMMANDS)))
+
+# Generate pyflakes rule
+define PYFLAKES_COMMANDS
+	. $$</bin/activate; pyflakes ./$(PACKAGE_NAME)
+endef
+$(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes, $(PYFLAKES_COMMANDS)))
