@@ -426,7 +426,7 @@ def _addTypeAttr(parent, member):
 
     # No constraints?
     if not ul.children:
-        _attributeDom(ul, 'None', None, None)
+        _attributeDom(ul, 'none', None, None)
 
 # Add text DOM elements
 def _addText(parent, texts):
