@@ -39,6 +39,9 @@ action doc
     # Generate documentation for the specified request name; generate the
     # documentation index if the request name is not specified.
     [optional] string name
+
+    # Remove navigation links.
+    [optional] bool nonav
 ''')
 
     def action(self, app, req):
@@ -51,7 +54,7 @@ action doc
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
             return app.responseText('200 OK', createIndexHtml(app.environ, requests), contentType = 'text/html')
         elif requestName in app.requests:
-            return app.responseText('200 OK', createRequestHtml(app.environ, app.requests[requestName]), contentType = 'text/html')
+            return app.responseText('200 OK', createRequestHtml(app.environ, app.requests[requestName], req.get('nonav')), contentType = 'text/html')
         else:
             return app.responseText('500 Internal Server Error', 'Unknown Action')
 
@@ -156,7 +159,7 @@ def createIndexHtml(environ, requests):
 
 
 # Generate the documentation for a request
-def createRequestHtml(environ, request):
+def createRequestHtml(environ, request, nonav = False):
 
     docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
     isAction = isinstance(request, Action)
@@ -168,9 +171,10 @@ def createRequestHtml(environ, request):
     head.addChild('title').addChild(request.name, isText = True, isInline = True)
     _addStyle(head)
     body = root.addChild('body', _class = 'chsl-request-body')
-    header = body.addChild('div', _class = 'chsl-header');
-    header.addChild('a', href = docRootUri) \
-        .addChild('Back to documentation index', isText = True, isInline = True)
+    if not nonav:
+        header = body.addChild('div', _class = 'chsl-header');
+        header.addChild('a', href = docRootUri) \
+            .addChild('Back to documentation index', isText = True, isInline = True)
 
     # Request title
     body.addChild('h1') \
@@ -179,10 +183,10 @@ def createRequestHtml(environ, request):
 
     # Note for request URLs
     notes = body.addChild('div', _class = 'chsl-notes')
-    noteUrl = notes.addChild('div', _class = 'chsl-note')
-    noteUrlP = noteUrl.addChild('p')
-    noteUrlP.addChild('b').addChild('Note: ', isText = True, isInline = True)
     if request.urls:
+        noteUrl = notes.addChild('div', _class = 'chsl-note')
+        noteUrlP = noteUrl.addChild('p')
+        noteUrlP.addChild('b').addChild('Note: ', isText = True, isInline = True)
         noteUrlP.addChild('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', isText = True)
         ulUrls = noteUrl.addChild('ul')
         for url in request.urls:
