@@ -359,6 +359,7 @@ div.chsl-note li {
 }
 ul.chsl-constraint-list {
     list-style: none;
+    white-space: nowrap;
 }
 .chsl-emphasis {
     font-style:italic;
@@ -391,38 +392,41 @@ def _addTypeName(parent, typeInst):
     if typeExtra:
         parent.addChild(typeExtra, isText = True, isInline = True)
 
-# Constraint DOM helper
-def _constraintDom(ul, lhs, op, rhs):
+# Attribute DOM helper
+def _attributeDom(ul, lhs, op, rhs):
     li = ul.addChild('li')
     li.addChild('span', isInline = True, _class = 'chsl-emphasis').addChild(lhs, isText = True)
     if op is not None and rhs is not None:
         li.addChild(' ' + op + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), isText = True, isInline = True)
 
 # Type attributes HTML helper
-def _addTypeAttr(parent, typeInst):
+def _addTypeAttr(parent, member):
+    typeInst = member.typeInst
 
-    # Add constraint DOM elements
+    # Add attribute DOM elements
     ul = parent.addChild('ul', _class = 'chsl-constraint-list')
+    if member.isOptional:
+        _attributeDom(ul, 'optional', None, None)
     if hasattr(typeInst, 'constraint_gt') and typeInst.constraint_gt is not None:
-        _constraintDom(ul, 'value', '>', typeInst.constraint_gt)
+        _attributeDom(ul, 'value', '>', typeInst.constraint_gt)
     if hasattr(typeInst, 'constraint_gte') and typeInst.constraint_gte is not None:
-        _constraintDom(ul, 'value', '>=', typeInst.constraint_gte)
+        _attributeDom(ul, 'value', '>=', typeInst.constraint_gte)
     if hasattr(typeInst, 'constraint_lt') and typeInst.constraint_lt is not None:
-        _constraintDom(ul, 'value', '<', typeInst.constraint_lt)
+        _attributeDom(ul, 'value', '<', typeInst.constraint_lt)
     if hasattr(typeInst, 'constraint_lte') and typeInst.constraint_lte is not None:
-        _constraintDom(ul, 'value', '<=', typeInst.constraint_lte)
+        _attributeDom(ul, 'value', '<=', typeInst.constraint_lte)
     if hasattr(typeInst, 'constraint_len_gt') and typeInst.constraint_len_gt is not None:
-        _constraintDom(ul, 'len', '>', typeInst.constraint_len_gt)
+        _attributeDom(ul, 'len', '>', typeInst.constraint_len_gt)
     if hasattr(typeInst, 'constraint_len_gte') and typeInst.constraint_len_gte is not None:
-        _constraintDom(ul, 'len', '>=', typeInst.constraint_len_gte)
+        _attributeDom(ul, 'len', '>=', typeInst.constraint_len_gte)
     if hasattr(typeInst, 'constraint_len_lt') and typeInst.constraint_len_lt is not None:
-        _constraintDom(ul, 'len', '<', typeInst.constraint_len_lt)
+        _attributeDom(ul, 'len', '<', typeInst.constraint_len_lt)
     if hasattr(typeInst, 'constraint_len_lte') and typeInst.constraint_len_lte is not None:
-        _constraintDom(ul, 'len', '<=', typeInst.constraint_len_lte)
+        _attributeDom(ul, 'len', '<=', typeInst.constraint_len_lte)
 
     # No constraints?
     if not ul.children:
-        _constraintDom(ul, 'None', None, None)
+        _attributeDom(ul, 'None', None, None)
 
 # Add text DOM elements
 def _addText(parent, texts):
@@ -481,8 +485,7 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
         tr = table.addChild('tr')
         tr.addChild('th').addChild('Name', isText = True, isInline = True)
         tr.addChild('th').addChild('Type', isText = True, isInline = True)
-        tr.addChild('th').addChild('Optional', isText = True, isInline = True)
-        tr.addChild('th').addChild('Constraints', isText = True, isInline = True)
+        tr.addChild('th').addChild('Attributes', isText = True, isInline = True)
         if hasDescription:
             tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
@@ -491,8 +494,7 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
             tr = table.addChild('tr')
             tr.addChild('td').addChild(member.name, isText = True, isInline = True)
             _addTypeName(tr.addChild('td'), member.typeInst)
-            tr.addChild('td').addChild('yes' if member.isOptional else 'no', isText = True, isInline = True)
-            _addTypeAttr(tr.addChild('td'), member.typeInst)
+            _addTypeAttr(tr.addChild('td'), member)
             if hasDescription:
                 _addDocText(tr.addChild('td'), member.doc)
 
