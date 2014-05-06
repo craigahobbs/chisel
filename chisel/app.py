@@ -36,6 +36,13 @@ import sys
 import threading
 
 
+# Null stream object for supressing logs in request
+class NullStream(object):
+    def write(self, s):
+        pass
+NULL_STREAM = NullStream()
+
+
 # Top-level WSGI application class
 class Application(object):
 
@@ -406,12 +413,6 @@ class Application(object):
                 if isinstance(request, Request):
                     self.addRequest(request)
 
-    # Null stream object for supressing logs in request
-    class NullStream(object):
-        def write(self, s):
-            pass
-    __nullStream = NullStream()
-
     # Make an HTTP request on this application
     def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None, suppressLogging = True):
 
@@ -429,7 +430,7 @@ class Application(object):
                 _environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
         if 'wsgi.errors' not in _environ:
             environOuter = self.environ
-            _environ['wsgi.errors'] = (self.__nullStream if suppressLogging else
+            _environ['wsgi.errors'] = (NULL_STREAM if suppressLogging else
                                        environOuter.get('wsgi.errors', self.__logStream) if environOuter else
                                        self.__logStream)
 

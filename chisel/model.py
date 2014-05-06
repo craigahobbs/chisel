@@ -99,6 +99,7 @@ IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_JSON_OUTPUT)
 
 # Type validation exception
 class ValidationError(Exception):
+    __slots__ = ('member',)
 
     def __init__(self, msg, member = None):
         Exception.__init__(self, msg)
@@ -130,17 +131,18 @@ class ValidationError(Exception):
 
 
 # Struct type
+class StructMember(object):
+    __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
+
+    def __init__(self, name, typeInst, isOptional = False, doc = None):
+        self.name = name
+        self.typeInst = typeInst
+        self.isOptional = isOptional
+        self.doc = [] if doc is None else doc
+
+
 class TypeStruct(object):
     __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
-
-    class Member(object):
-        __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
-
-        def __init__(self, name, typeInst, isOptional = False, doc = None):
-            self.name = name
-            self.typeInst = typeInst
-            self.isOptional = isOptional
-            self.doc = [] if doc is None else doc
 
     def __init__(self, typeName = None, isUnion = False, doc = None):
         self.typeName = typeName if typeName else ('union' if isUnion else 'struct')
@@ -150,7 +152,7 @@ class TypeStruct(object):
         self.doc = [] if doc is None else doc
 
     def addMember(self, name, typeInst, isOptional = False, doc = None):
-        member = self.Member(name, typeInst, isOptional or self.isUnion, doc)
+        member = StructMember(name, typeInst, isOptional or self.isUnion, doc)
         self._members.append(member)
         self._membersDict[name] = member
         return member
@@ -301,18 +303,19 @@ class TypeDict(object):
 
 
 # Enumeration type
+class EnumValue(object):
+    __slots__ = ('value', 'doc')
+
+    def __init__(self, valueString, doc = None):
+        self.value = valueString
+        self.doc = [] if doc is None else doc
+
+    def __eq__(self, other):
+        return self.value == other
+
+
 class TypeEnum(object):
     __slots__ = ('typeName', 'values', 'doc')
-
-    class Value(object):
-        __slots__ = ('value', 'doc')
-
-        def __init__(self, valueString, doc = None):
-            self.value = valueString
-            self.doc = [] if doc is None else doc
-
-        def __eq__(self, other):
-            return self.value == other
 
     def __init__(self, typeName = 'enum', doc = None):
         self.typeName = typeName
@@ -320,7 +323,7 @@ class TypeEnum(object):
         self.doc = [] if doc is None else doc
 
     def addValue(self, valueString, doc = None):
-        value = self.Value(valueString, doc)
+        value = EnumValue(valueString, doc)
         self.values.append(value)
         return value
 

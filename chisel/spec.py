@@ -46,6 +46,18 @@ class SpecParserError(Exception):
         self.errors = errors
 
 
+# Type id reference - converted to types on parser finalization
+class TypeRef(object):
+    __slots__ = ('fileName', 'fileLine', 'typeName', 'isArray', 'isDict')
+
+    def __init__(self, fileName, fileLine, typeName, isArray, isDict):
+        self.fileName = fileName
+        self.fileLine = fileLine
+        self.typeName = typeName
+        self.isArray = isArray
+        self.isDict = isDict
+
+
 # Specification language parser class
 class SpecParser(object):
 
@@ -142,17 +154,6 @@ class SpecParser(object):
             if not isLineCont:
                 break
         return ' '.join(lines) if lines else None
-
-    # Type id reference - converted to types on parser finalization
-    class TypeRef(object):
-        __slots__ = ('fileName', 'fileLine', 'typeName', 'isArray', 'isDict')
-
-        def __init__(self, fileName, fileLine, typeName, isArray, isDict):
-            self.fileName = fileName
-            self.fileLine = fileLine
-            self.typeName = typeName
-            self.isArray = isArray
-            self.isDict = isDict
 
     # Get a type instance for a type ref
     def _getTypeInst(self, typeRef):
@@ -285,10 +286,10 @@ class SpecParser(object):
                     self._error("Redefinition of member '" + memId + "'")
 
                 # Create the struct member
-                memTypeRef = self.TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
+                memTypeRef = TypeRef(self._parseFileName, self._parseLine, memTypeName, memIsArray, memIsDict)
                 member = self._curType.addMember(memId, self._getTypeInst(memTypeRef) or memTypeRef, doc = self._curDoc)
                 self._curDoc = []
-                if isinstance(member.typeInst, self.TypeRef):
+                if isinstance(member.typeInst, TypeRef):
                     self._typeRefs.append(member)
 
                 # Apply member attributes - type attributes only apply to built-in types
