@@ -1,8 +1,8 @@
 *~
 *.pyc
+*.egg-info
 .env/
 .cover/
 .coverage
 build/
 dist/
-*.egg-info

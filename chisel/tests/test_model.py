@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ from chisel.model import JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
     TypeUuid, TypeDatetime, tzutc, tzlocal, IMMUTABLE_VALIDATION_MODES
+import chisel.model
 
 from datetime import datetime
 import unittest
@@ -33,7 +34,6 @@ from uuid import UUID
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)
 
 
-# JsonDatetime unit tests
 class TestModelJsonDatetime(unittest.TestCase):
 
     # Datetime with timezone
@@ -60,7 +60,6 @@ class TestModelJsonDatetime(unittest.TestCase):
         self.assertEqual(str(o), repr(oExpected))
 
 
-# JsonFloat unit tests
 class TestModelJsonFloat(unittest.TestCase):
 
     # Basic two decimal places float repr
@@ -120,7 +119,6 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(str(o), '2')
 
 
-# JsonUUID unit tests
 class TestModelJsonUUID(unittest.TestCase):
 
     def test_model_jsonUUID(self):
@@ -133,7 +131,6 @@ class TestModelJsonUUID(unittest.TestCase):
         self.assertEqual(str(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
 
 
-# ValidationError unit tests
 class TestModelValidationError(unittest.TestCase):
 
     def test_model_memberSyntax_dict_single(self):
@@ -182,7 +179,109 @@ class TestModelValidationError(unittest.TestCase):
         self.assertEqual(e.member, 'a')
 
 
-# TypeStruct validation tests
+class TestStructMemberAttributes(unittest.TestCase):
+
+    def test_model_StructMemberAttributes_validate_eq(self):
+        attr = chisel.model.StructMemberAttributes(eq = 5)
+        attr.validate(5)
+        try:
+            attr.validate(4)
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 4 (type 'int') [== 5]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_lt(self):
+        attr = chisel.model.StructMemberAttributes(lt = 5)
+        attr.validate(4)
+        try:
+            attr.validate(5)
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 5 (type 'int') [< 5]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_lte(self):
+        attr = chisel.model.StructMemberAttributes(lte = 5)
+        attr.validate(5)
+        try:
+            attr.validate(6)
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 6 (type 'int') [<= 5]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_gt(self):
+        attr = chisel.model.StructMemberAttributes(gt = 5)
+        attr.validate(6)
+        try:
+            attr.validate(5)
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 5 (type 'int') [> 5]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_gte(self):
+        attr = chisel.model.StructMemberAttributes(gte = 5)
+        attr.validate(5)
+        try:
+            attr.validate(4)
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 4 (type 'int') [>= 5]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_len_eq(self):
+        attr = chisel.model.StructMemberAttributes(len_eq = 3)
+        attr.validate('abc')
+        try:
+            attr.validate('ab')
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 'ab' (type 'str') [len == 3]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_len_lt(self):
+        attr = chisel.model.StructMemberAttributes(len_lt = 3)
+        attr.validate('ab')
+        try:
+            attr.validate('abc')
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 'abc' (type 'str') [len < 3]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_len_lte(self):
+        attr = chisel.model.StructMemberAttributes(len_lte = 3)
+        attr.validate('abc')
+        try:
+            attr.validate('abcd')
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 'abcd' (type 'str') [len <= 3]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_len_gt(self):
+        attr = chisel.model.StructMemberAttributes(len_gt = 3)
+        attr.validate('abcd')
+        try:
+            attr.validate('abc')
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 'abc' (type 'str') [len > 3]")
+        else:
+            self.fail()
+
+    def test_model_StructMemberAttributes_validate_len_gte(self):
+        attr = chisel.model.StructMemberAttributes(len_gte = 3)
+        attr.validate('abc')
+        try:
+            attr.validate('ab')
+        except chisel.model.ValidationError as e:
+            self.assertEqual(str(e), "Invalid value 'ab' (type 'str') [len >= 3]")
+        else:
+            self.fail()
+
+
 class TestModelStructValidation(unittest.TestCase):
 
     # Test struct type construction
@@ -197,7 +296,7 @@ class TestModelStructValidation(unittest.TestCase):
         t.addMember('a', TypeStruct())
         self.assertEqual(len(t.members), 1)
         self.assertEqual(t.members[0].name, 'a')
-        self.assertTrue(isinstance(t.members[0].typeInst, TypeStruct))
+        self.assertTrue(isinstance(t.members[0].type, TypeStruct))
         self.assertEqual(t.members[0].isOptional, False)
         self.assertEqual(t.members[0].doc, [])
 
@@ -213,7 +312,7 @@ class TestModelStructValidation(unittest.TestCase):
         t.addMember('a', TypeStruct())
         self.assertEqual(len(t.members), 1)
         self.assertEqual(t.members[0].name, 'a')
-        self.assertTrue(isinstance(t.members[0].typeInst, TypeStruct))
+        self.assertTrue(isinstance(t.members[0].type, TypeStruct))
         self.assertEqual(t.members[0].isOptional, True)
         self.assertEqual(t.members[0].doc, [])
 
@@ -490,7 +589,6 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
 
-# TypeArray validation tests
 class TestModelArrayValidation(unittest.TestCase):
 
     # Test array type construction
@@ -498,12 +596,8 @@ class TestModelArrayValidation(unittest.TestCase):
 
         t = TypeArray(TypeInt())
         self.assertEqual(t.typeName, 'array')
-        self.assertTrue(isinstance(t.typeInst, TypeInt))
-        self.assertEqual(t.constraint_len_lt, None)
-        self.assertEqual(t.constraint_len_lte, None)
-        self.assertEqual(t.constraint_len_gt, None)
-        self.assertEqual(t.constraint_len_gte, None)
-        self.assertEqual(t.constraint_len_eq, None)
+        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertEqual(t.attr, None)
 
     # All validation modes - success
     def test_model_array_validation(self):
@@ -607,123 +701,7 @@ class TestModelArrayValidation(unittest.TestCase):
             else:
                 self.fail()
 
-    # All validation modes - constraint_len_lt
-    def test_model_array_validate_constraint_len_lt(self):
 
-        t = TypeArray(TypeInt())
-        t.constraint_len_lt = 5
-
-        o = [1, 2, 3, 4]
-        oError = [1, 2, 3, 4, 5]
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5] (type 'list'), expected type 'array' [len < 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_lte
-    def test_model_array_validate_constraint_len_lte(self):
-
-        t = TypeArray(TypeInt())
-        t.constraint_len_lte = 5.0
-
-        o = [1, 2, 3, 4, 5]
-        oError = [1, 2, 3, 4, 5, 6]
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5, 6] (type 'list'), expected type 'array' [len <= 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gt
-    def test_model_array_validate_constraint_len_gt(self):
-
-        t = TypeArray(TypeInt())
-        t.constraint_len_gt = 5
-
-        o = [1, 2, 3, 4, 5, 6]
-        oError = [1, 2, 3, 4, 5]
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4, 5] (type 'list'), expected type 'array' [len > 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gte
-    def test_model_array_validate_constraint_len_gte(self):
-
-        t = TypeArray(TypeInt())
-        t.constraint_len_gte = 5
-
-        o = [1, 2, 3, 4, 5]
-        oError = [1, 2, 3, 4]
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4] (type 'list'), expected type 'array' [len >= 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_eq
-    def test_model_array_validate_constraint_len_eq(self):
-
-        t = TypeArray(TypeInt())
-        t.constraint_len_eq = 5
-
-        o = [1, 2, 3, 4, 5]
-        oError = [1, 2, 3, 4]
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value [1, 2, 3, 4] (type 'list'), expected type 'array' [len == 5]")
-            else:
-                self.fail()
-
-
-# TypeDict validation tests
 class TestModelDictValidation(unittest.TestCase):
 
     # Test dict type construction
@@ -731,12 +709,7 @@ class TestModelDictValidation(unittest.TestCase):
 
         t = TypeDict(TypeInt())
         self.assertEqual(t.typeName, 'dict')
-        self.assertTrue(isinstance(t.typeInst, TypeInt))
-        self.assertEqual(t.constraint_len_lt, None)
-        self.assertEqual(t.constraint_len_lte, None)
-        self.assertEqual(t.constraint_len_gt, None)
-        self.assertEqual(t.constraint_len_gte, None)
-        self.assertEqual(t.constraint_len_eq, None)
+        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
 
     # All validation modes - success
     def test_model_dict_validation(self):
@@ -854,128 +827,7 @@ class TestModelDictValidation(unittest.TestCase):
             else:
                 self.fail()
 
-    # All validation modes - constraint_len_lt
-    def test_model_dict_validate_constraint_len_lt(self):
 
-        t = TypeDict(TypeInt())
-        t.constraint_len_lt = 2
-
-        o = {'a': 1}
-        oError = {'a': 1, 'b': 2}
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len < 2]"))
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_lte
-    def test_model_dict_validate_constraint_len_lte(self):
-
-        t = TypeDict(TypeInt())
-        t.constraint_len_lte = 2.0
-
-        o = {'a': 1, 'b': 2}
-        oError = {'a': 1, 'b': 2, 'c': 3}
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len <= 2]"))
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gt
-    def test_model_dict_validate_constraint_len_gt(self):
-
-        t = TypeDict(TypeInt())
-        t.constraint_len_gt = 2
-
-        o = {'a': 1, 'b': 2, 'c': 3}
-        oError = {'a': 1, 'b': 2}
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len > 2]"))
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gte
-    def test_model_dict_validate_constraint_len_gte(self):
-
-        t = TypeDict(TypeInt())
-        t.constraint_len_gte = 2
-
-        o = {'a': 1, 'b': 2}
-        oError = {'a': 1}
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len >= 2]"))
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_eq
-    def test_model_dict_validate_constraint_len_eq(self):
-
-        t = TypeDict(TypeInt())
-        t.constraint_len_eq = 2
-
-        o = {'a': 1, 'b': 2}
-        oError = {'a': 1}
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-            else:
-                self.assertTrue(o is not o2)
-                self.assertEqual(o, o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'dict' [len == 2]"))
-            else:
-                self.fail()
-
-
-# TypeEnum validation tests
 class TestModelEnumValidation(unittest.TestCase):
 
     # Test enum type construction
@@ -1021,7 +873,6 @@ class TestModelEnumValidation(unittest.TestCase):
                 self.fail()
 
 
-# TypeString validation tests
 class TestModelStringValidation(unittest.TestCase):
 
     # Test string type construction
@@ -1030,11 +881,6 @@ class TestModelStringValidation(unittest.TestCase):
         t = TypeString()
 
         self.assertEqual(t.typeName, 'string')
-        self.assertEqual(t.constraint_len_lt, None)
-        self.assertEqual(t.constraint_len_lte, None)
-        self.assertEqual(t.constraint_len_gt, None)
-        self.assertEqual(t.constraint_len_gte, None)
-        self.assertEqual(t.constraint_len_eq, None)
 
     # All validation modes - success
     def test_model_string_validate(self):
@@ -1070,103 +916,7 @@ class TestModelStringValidation(unittest.TestCase):
             else:
                 self.fail()
 
-    # All validation modes - constraint_len_lt
-    def test_model_string_validate_constraint_len_lt(self):
 
-        t = TypeString()
-        t.constraint_len_lt = 5
-
-        o = 'abcd'
-        oError = 'abcde'
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abcde' (type 'str'), expected type 'string' [len < 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_lte
-    def test_model_string_validate_constraint_len_lte(self):
-
-        t = TypeString()
-        t.constraint_len_lte = 5.0
-
-        o = 'abcde'
-        oError = 'abcdef'
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abcdef' (type 'str'), expected type 'string' [len <= 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gt
-    def test_model_string_validate_constraint_len_gt(self):
-
-        t = TypeString()
-        t.constraint_len_gt = 5
-
-        o = 'abcdef'
-        oError = 'abcde'
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abcde' (type 'str'), expected type 'string' [len > 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_gte
-    def test_model_string_validate_constraint_len_gte(self):
-
-        t = TypeString()
-        t.constraint_len_gte = 5
-
-        o = 'abcde'
-        oError = 'abcd'
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abcd' (type 'str'), expected type 'string' [len >= 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_len_eq
-    def test_model_string_validate_constraint_len_eq(self):
-
-        t = TypeString()
-        t.constraint_len_eq = 5
-
-        o = 'abcde'
-        oError = 'abcd'
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abcd' (type 'str'), expected type 'string' [len == 5]")
-            else:
-                self.fail()
-
-
-# TypeInt validation tests
 class TestModelIntValidation(unittest.TestCase):
 
     # Test int type construction
@@ -1175,10 +925,6 @@ class TestModelIntValidation(unittest.TestCase):
         t = TypeInt()
 
         self.assertEqual(t.typeName, 'int')
-        self.assertEqual(t.constraint_lt, None)
-        self.assertEqual(t.constraint_lte, None)
-        self.assertEqual(t.constraint_gt, None)
-        self.assertEqual(t.constraint_gte, None)
 
     # All validation modes - success
     def test_model_int_validate(self):
@@ -1271,84 +1017,7 @@ class TestModelIntValidation(unittest.TestCase):
             else:
                 self.fail()
 
-    # All validation modes - constraint_lt
-    def test_model_int_validate_constraint_lt(self):
 
-        t = TypeInt()
-        t.constraint_lt = 5
-
-        o = 4
-        oError = 5
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5 (type 'int'), expected type 'int' [< 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_lte
-    def test_model_int_validate_constraint_lte(self):
-
-        t = TypeInt()
-        t.constraint_lte = 5
-
-        o = 5
-        oError = 6
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 6 (type 'int'), expected type 'int' [<= 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_gt
-    def test_model_int_validate_constraint_gt(self):
-
-        t = TypeInt()
-        t.constraint_gt = 5
-
-        o = 6
-        oError = 5
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5 (type 'int'), expected type 'int' [> 5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_gte
-    def test_model_int_validate_constraint_gte(self):
-
-        t = TypeInt()
-        t.constraint_gte = 5
-
-        o = 5
-        oError = 4
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 4 (type 'int'), expected type 'int' [>= 5]")
-            else:
-                self.fail()
-
-
-# TypeFloat validation tests
 class TestModelFloatValidation(unittest.TestCase):
 
     # Test float type construction
@@ -1357,10 +1026,6 @@ class TestModelFloatValidation(unittest.TestCase):
         t = TypeFloat()
 
         self.assertEqual(t.typeName, 'float')
-        self.assertEqual(t.constraint_lt, None)
-        self.assertEqual(t.constraint_lte, None)
-        self.assertEqual(t.constraint_gt, None)
-        self.assertEqual(t.constraint_gte, None)
 
     # All validation modes - success
     def test_model_float_validate(self):
@@ -1454,84 +1119,7 @@ class TestModelFloatValidation(unittest.TestCase):
             else:
                 self.fail()
 
-    # All validation modes - constraint_lt
-    def test_model_float_validate_constraint_lt(self):
 
-        t = TypeFloat()
-        t.constraint_lt = 5.5
-
-        o = 5.375
-        oError = 5.5
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5.5 (type 'float'), expected type 'float' [< 5.5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_lte
-    def test_model_float_validate_constraint_lte(self):
-
-        t = TypeFloat()
-        t.constraint_lte = 5.5
-
-        o = 5.5
-        oError = 5.625
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5.625 (type 'float'), expected type 'float' [<= 5.5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_gt
-    def test_model_float_validate_constraint_gt(self):
-
-        t = TypeFloat()
-        t.constraint_gt = 5.5
-
-        o = 5.625
-        oError = 5.5
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5.5 (type 'float'), expected type 'float' [> 5.5]")
-            else:
-                self.fail()
-
-    # All validation modes - constraint_gte
-    def test_model_float_validate_constraint_gte(self):
-
-        t = TypeFloat()
-        t.constraint_gte = 5.5
-
-        o = 5.5
-        oError = 5.375
-        for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
-
-            try:
-                t.validate(oError, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 5.375 (type 'float'), expected type 'float' [>= 5.5]")
-            else:
-                self.fail()
-
-
-# TypeBool validation tests
 class TestModelBoolValidation(unittest.TestCase):
 
     # Test bool type construction
@@ -1577,7 +1165,6 @@ class TestModelBoolValidation(unittest.TestCase):
                 self.fail()
 
 
-# TypeUuid validation tests
 class TestModelUuidValidation(unittest.TestCase):
 
     # Test uuid type construction
@@ -1658,7 +1245,6 @@ class TestModelUuidValidation(unittest.TestCase):
                 self.fail()
 
 
-# TypeDatetime validation tests
 class TestModelDatetimeValidation(unittest.TestCase):
 
     # Test datetime type construction

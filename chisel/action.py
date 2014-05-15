@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,8 +62,7 @@ class Action(Request):
                 self.model = specParser.actions[name]
             else:
                 assert len(specParser.actions) == 1, 'Action spec must contain exactly one action definition'
-                for self.model in itervalues(specParser.actions):
-                    break
+                self.model = next(itervalues(specParser.actions))
 
         # Use the action model name, if available
         if name is None and self.model is not None:
@@ -166,13 +165,13 @@ class Action(Request):
             isErrorResponse = (hasattr(response, '__contains__') and 'error' in response)
             if self.app.validateOutput:
                 if isErrorResponse:
-                    responseTypeInst = TypeStruct()
-                    responseTypeInst.addMember('error', self.model.errorType)
-                    responseTypeInst.addMember('message', TypeString(), isOptional = True)
+                    responseType = TypeStruct()
+                    responseType.addMember('error', self.model.errorType)
+                    responseType.addMember('message', TypeString(), isOptional = True)
                 else:
-                    responseTypeInst = self.model.outputType
+                    responseType = self.model.outputType
                 try:
-                    responseTypeInst.validate(response, mode = VALIDATE_JSON_OUTPUT)
+                    responseType.validate(response, mode = VALIDATE_JSON_OUTPUT)
                 except ValidationError as e:
                     self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
                     raise _ActionErrorInternal('InvalidOutput', str(e), e.member)

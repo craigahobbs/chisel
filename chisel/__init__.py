@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ from . import model as _model
 JsonDatetime = _model.JsonDatetime
 JsonFloat = _model.JsonFloat
 JsonUUID = _model.JsonUUID
+AttributeValidationError = _model.ValidationError
 ValidationError = _model.ValidationError
 tzutc = _model.tzutc
 tzlocal = _model.tzlocal

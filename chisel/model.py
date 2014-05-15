@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -97,6 +97,15 @@ VALIDATE_JSON_OUTPUT = 3
 IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_JSON_OUTPUT)
 
 
+# Type attribute exception
+class AttributeValidationError(Exception):
+    __slots__ = ('attr',)
+
+    def __init__(self, attr):
+        Exception.__init__(self, "Invalid attribute '" + attr + "'")
+        self.attr = attr
+
+
 # Type validation exception
 class ValidationError(Exception):
     __slots__ = ('member',)
@@ -117,30 +126,99 @@ class ValidationError(Exception):
     @classmethod
     def memberSyntax(cls, members):
         if members:
-            return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']')) for x in cls._flattenMembers(members)).lstrip('.')
+            return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']'))
+                           for x in cls._flattenMembers(members)).lstrip('.')
         return None
 
     @classmethod
-    def memberError(cls, typeInst, value, members, constraintSyntax = None):
+    def memberError(cls, type, value, members, constraintSyntax = None):
         memberSyntax = cls.memberSyntax(members)
         msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
               ((" for member '" + memberSyntax + "'") if memberSyntax else '') + \
-              ", expected type '" + typeInst.typeName + "'" + \
+              ((", expected type '" + type.typeName + "'") if type else '') + \
               ((' [' + constraintSyntax + ']') if constraintSyntax else '')
         return ValidationError(msg, member = memberSyntax)
 
 
-# Struct type
-class StructMember(object):
-    __slots__ = ('name', 'typeInst', 'isOptional', 'doc')
+# Struct member attributes
+class StructMemberAttributes(object):
+    __slots__ = ('eq', 'lt', 'lte', 'gt', 'gte',
+                 'len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte')
 
-    def __init__(self, name, typeInst, isOptional = False, doc = None):
+    def __init__(self, eq = None, lt = None, lte = None, gt = None, gte = None,
+                 len_eq = None, len_lt = None, len_lte = None, len_gt = None, len_gte = None):
+
+        self.eq = eq
+        self.lt = lt
+        self.lte = lte
+        self.gt = gt
+        self.gte = gte
+        self.len_eq = len_eq
+        self.len_lt = len_lt
+        self.len_lte = len_lte
+        self.len_gt = len_gt
+        self.len_gte = len_gte
+
+    def validate(self, value, _member = ()):
+        if self.lt is not None and not value < self.lt:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.lt, 6)))
+        if self.lte is not None and not value <= self.lte:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.lte, 6)))
+        if self.gt is not None and not value > self.gt:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.gt, 6)))
+        if self.gte is not None and not value >= self.gte:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.gte, 6)))
+        if self.eq is not None and not value == self.eq:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = '== ' + repr(JsonFloat(self.eq, 6)))
+        if self.len_lt is not None and not len(value) < self.len_lt:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.len_lt, 6)))
+        if self.len_lte is not None and not len(value) <= self.len_lte:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.len_lte, 6)))
+        if self.len_gt is not None and not len(value) > self.len_gt:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.len_gt, 6)))
+        if self.len_gte is not None and not len(value) >= self.len_gte:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.len_gte, 6)))
+        if self.len_eq is not None and not len(value) == self.len_eq:
+            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len == ' + repr(JsonFloat(self.len_eq, 6)))
+
+    def validateAttr(self, allowValue = False, allowLength = False):
+        if not allowValue:
+            if self.lt is not None:
+                raise AttributeValidationError('< ' + repr(JsonFloat(self.lt, 6)))
+            if self.lte is not None:
+                raise AttributeValidationError('<= ' + repr(JsonFloat(self.lte, 6)))
+            if self.gt is not None:
+                raise AttributeValidationError('> ' + repr(JsonFloat(self.gt, 6)))
+            if self.gte is not None:
+                raise AttributeValidationError('>= ' + repr(JsonFloat(self.gte, 6)))
+            if self.eq is not None:
+                raise AttributeValidationError('== ' + repr(JsonFloat(self.eq, 6)))
+        if not allowLength:
+            if self.len_lt is not None:
+                raise AttributeValidationError('len < ' + repr(JsonFloat(self.len_lt, 6)))
+            if self.len_lte is not None:
+                raise AttributeValidationError('len <= ' + repr(JsonFloat(self.len_lte, 6)))
+            if self.len_gt is not None:
+                raise AttributeValidationError('len > ' + repr(JsonFloat(self.len_gt, 6)))
+            if self.len_gte is not None:
+                raise AttributeValidationError('len >= ' + repr(JsonFloat(self.len_gte, 6)))
+            if self.len_eq is not None:
+                raise AttributeValidationError('len == ' + repr(JsonFloat(self.len_eq, 6)))
+
+
+# Struct member
+class StructMember(object):
+    __slots__ = ('name', 'type', 'isOptional', 'attr', 'doc')
+
+    def __init__(self, name, type, isOptional = False, attr = None, doc = None):
         self.name = name
-        self.typeInst = typeInst
+        self.type = type
         self.isOptional = isOptional
+        self.attr = attr
         self.doc = [] if doc is None else doc
 
 
+# Struct type
 class TypeStruct(object):
     __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
 
@@ -151,8 +229,8 @@ class TypeStruct(object):
         self._membersDict = {}
         self.doc = [] if doc is None else doc
 
-    def addMember(self, name, typeInst, isOptional = False, doc = None):
-        member = StructMember(name, typeInst, isOptional or self.isUnion, doc)
+    def addMember(self, name, type, isOptional = False, attr = None, doc = None):
+        member = StructMember(name, type, isOptional or self.isUnion, attr, doc)
         self._members.append(member)
         self._membersDict[name] = member
         return member
@@ -160,6 +238,9 @@ class TypeStruct(object):
     @property
     def members(self):
         return self._members
+
+    def validateAttr(self, attr):
+        attr.validateAttr()
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -180,19 +261,22 @@ class TypeStruct(object):
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate all member values
-        try:
-            membersDict = self._membersDict
-            for memberName, memberValue in iteritems(valueX):
-                memberValueX = membersDict[memberName].typeInst.validate(memberValue, mode, (_member, memberName))
-                if valueCopy is not None:
-                    valueCopy[memberName] = memberValueX
-        except KeyError:
-            raise ValidationError("Unknown member '" + ValidationError.memberSyntax((_member, memberName)) + "'")
+        membersDict = self._membersDict
+        for memberName, memberValue in iteritems(valueX):
+            memberPath = (_member, memberName)
+            member = membersDict.get(memberName)
+            if member is None:
+                raise ValidationError("Unknown member '" + ValidationError.memberSyntax((_member, memberName)) + "'")
+            memberValueX = membersDict[memberName].type.validate(memberValue, mode, memberPath)
+            if member.attr is not None:
+                member.attr.validate(memberValueX, memberPath)
+            if valueCopy is not None:
+                valueCopy[memberName] = memberValueX
 
         # Any missing required members?
         if len(self._members) != len(valueX):
             for member in self._members:
-                if not member.isOptional and member.name not in valueX:
+                if not self.isUnion and not member.isOptional and member.name not in valueX:
                     raise ValidationError("Required member '" + ValidationError.memberSyntax((_member, member.name)) + "' missing")
 
         return value if valueCopy is None else valueCopy
@@ -200,16 +284,16 @@ class TypeStruct(object):
 
 # Array type
 class TypeArray(object):
-    __slots__ = ('typeName', 'typeInst', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte', 'constraint_len_eq')
+    __slots__ = ('type', 'attr')
 
-    def __init__(self, typeInst, typeName = 'array'):
-        self.typeName = typeName
-        self.typeInst = typeInst
-        self.constraint_len_lt = None
-        self.constraint_len_lte = None
-        self.constraint_len_gt = None
-        self.constraint_len_gte = None
-        self.constraint_len_eq = None
+    typeName = 'array'
+
+    def __init__(self, type, attr = None):
+        self.type = type
+        self.attr = attr
+
+    def validateAttr(self, attr):
+        attr.validateAttr(allowLength = True)
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -221,28 +305,18 @@ class TypeArray(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check length constraints
-        if self.constraint_len_lt is not None and not len(valueX) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
-        if self.constraint_len_lte is not None and not len(valueX) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
-        if self.constraint_len_gt is not None and not len(valueX) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
-        if self.constraint_len_gte is not None and not len(valueX) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
-        if self.constraint_len_eq is not None and not len(valueX) == self.constraint_len_eq:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len == ' + repr(JsonFloat(self.constraint_len_eq, 6)))
-
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else []
 
         # Validate the list contents
-        typeInst = self.typeInst
         ixArrayValue = 0
         for arrayValue in valueX:
-            arrayValue = typeInst.validate(arrayValue, mode, (_member, ixArrayValue))
+            memberPath = (_member, ixArrayValue)
+            arrayValueX = self.type.validate(arrayValue, mode, memberPath)
+            if self.attr is not None:
+                self.attr.validate(arrayValueX, memberPath)
             if valueCopy is not None:
-                valueCopy.append(arrayValue)
+                valueCopy.append(arrayValueX)
             ixArrayValue += 1
 
         return value if valueCopy is None else valueCopy
@@ -250,16 +324,16 @@ class TypeArray(object):
 
 # Dict type
 class TypeDict(object):
-    __slots__ = ('typeName', 'typeInst', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte', 'constraint_len_eq')
+    __slots__ = ('type', 'attr')
 
-    def __init__(self, typeInst, typeName = 'dict'):
-        self.typeName = typeName
-        self.typeInst = typeInst
-        self.constraint_len_lt = None
-        self.constraint_len_lte = None
-        self.constraint_len_gt = None
-        self.constraint_len_gte = None
-        self.constraint_len_eq = None
+    typeName = 'dict'
+
+    def __init__(self, type, attr = None):
+        self.type = type
+        self.attr = attr
+
+    def validateAttr(self, attr):
+        attr.validateAttr(allowLength = True)
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -271,31 +345,21 @@ class TypeDict(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check length constraints
-        if self.constraint_len_lt is not None and not len(valueX) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
-        if self.constraint_len_lte is not None and not len(valueX) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
-        if self.constraint_len_gt is not None and not len(valueX) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
-        if self.constraint_len_gte is not None and not len(valueX) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
-        if self.constraint_len_eq is not None and not len(valueX) == self.constraint_len_eq:
-            raise ValidationError.memberError(self, valueX, _member, constraintSyntax = 'len == ' + repr(JsonFloat(self.constraint_len_eq, 6)))
-
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate the dict key/value pairs
-        typeInst = self.typeInst
         for dictKey, dictValue in iteritems(valueX):
+            memberPath = (_member, dictKey)
 
             # Dict keys must be strings
             if not isinstance(dictKey, basestring_):
-                raise ValidationError.memberError(TypeString(), dictKey, (_member, dictKey))
+                raise ValidationError.memberError(TypeString(), dictKey, memberPath)
 
             # Validate the value
-            dictValueX = typeInst.validate(dictValue, mode, (_member, dictKey))
+            dictValueX = self.type.validate(dictValue, mode, memberPath)
+            if self.attr is not None:
+                self.attr.validate(dictValueX, memberPath)
             if valueCopy is not None:
                 valueCopy[dictKey] = dictValueX
 
@@ -327,6 +391,9 @@ class TypeEnum(object):
         self.values.append(value)
         return value
 
+    def validateAttr(self, attr):
+        attr.validateAttr()
+
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
         # Validate the value
@@ -337,16 +404,13 @@ class TypeEnum(object):
 
 
 # String type
-class TypeString(object):
-    __slots__ = ('typeName', 'constraint_len_lt', 'constraint_len_lte', 'constraint_len_gt', 'constraint_len_gte', 'constraint_len_eq')
+class _TypeString(object):
+    __slots__ = ()
 
-    def __init__(self, typeName = 'string'):
-        self.typeName = typeName
-        self.constraint_len_lt = None
-        self.constraint_len_lte = None
-        self.constraint_len_gt = None
-        self.constraint_len_gte = None
-        self.constraint_len_eq = None
+    typeName = 'string'
+
+    def validateAttr(self, attr):
+        attr.validateAttr(allowLength = True)
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -354,31 +418,21 @@ class TypeString(object):
         if not isinstance(value, basestring_):
             raise ValidationError.memberError(self, value, _member)
 
-        # Check length constraints
-        if self.constraint_len_lt is not None and not len(value) < self.constraint_len_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.constraint_len_lt, 6)))
-        if self.constraint_len_lte is not None and not len(value) <= self.constraint_len_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.constraint_len_lte, 6)))
-        if self.constraint_len_gt is not None and not len(value) > self.constraint_len_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.constraint_len_gt, 6)))
-        if self.constraint_len_gte is not None and not len(value) >= self.constraint_len_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.constraint_len_gte, 6)))
-        if self.constraint_len_eq is not None and not len(value) == self.constraint_len_eq:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = 'len == ' + repr(JsonFloat(self.constraint_len_eq, 6)))
-
         return value
+
+_TYPE_STRING = _TypeString()
+def TypeString():
+    return _TYPE_STRING
 
 
 # Int type
-class TypeInt(object):
-    __slots__ = ('typeName', 'constraint_lt', 'constraint_lte', 'constraint_gt', 'constraint_gte')
+class _TypeInt(object):
+    __slots__ = ()
 
-    def __init__(self, typeName = 'int'):
-        self.typeName = typeName
-        self.constraint_lt = None
-        self.constraint_lte = None
-        self.constraint_gt = None
-        self.constraint_gte = None
+    typeName = 'int'
+
+    def validateAttr(self, attr):
+        attr.validateAttr(allowValue = True)
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -397,29 +451,21 @@ class TypeInt(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check constraints
-        if self.constraint_lt is not None and not valueX < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.constraint_lt, 6)))
-        if self.constraint_lte is not None and not valueX <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.constraint_lte, 6)))
-        if self.constraint_gt is not None and not valueX > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.constraint_gt, 6)))
-        if self.constraint_gte is not None and not valueX >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
-
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
+
+_TYPE_INT = _TypeInt()
+def TypeInt():
+    return _TYPE_INT
 
 
 # Float type
-class TypeFloat(object):
-    __slots__ = ('typeName', 'constraint_lt', 'constraint_lte', 'constraint_gt', 'constraint_gte')
+class _TypeFloat(object):
+    __slots__ = ()
 
-    def __init__(self, typeName = 'float'):
-        self.typeName = typeName
-        self.constraint_lt = None
-        self.constraint_lte = None
-        self.constraint_gt = None
-        self.constraint_gte = None
+    typeName = 'float'
+
+    def validateAttr(self, attr):
+        attr.validateAttr(allowValue = True)
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -436,30 +482,26 @@ class TypeFloat(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-        # Check constraints
-        if self.constraint_lt is not None and not valueX < self.constraint_lt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.constraint_lt, 6)))
-        if self.constraint_lte is not None and not valueX <= self.constraint_lte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.constraint_lte, 6)))
-        if self.constraint_gt is not None and not valueX > self.constraint_gt:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.constraint_gt, 6)))
-        if self.constraint_gte is not None and not valueX >= self.constraint_gte:
-            raise ValidationError.memberError(self, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.constraint_gte, 6)))
-
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
+
+_TYPE_FLOAT = _TypeFloat()
+def TypeFloat():
+    return _TYPE_FLOAT
 
 
 # Bool type
-class TypeBool(object):
-    __slots__ = ('typeName',)
+class _TypeBool(object):
+    __slots__ = ()
+
+    typeName = 'bool'
 
     VALUES = {
         'true' : True,
         'false': False
     }
 
-    def __init__(self, typeName = 'bool'):
-        self.typeName = typeName
+    def validateAttr(self, attr):
+        attr.validateAttr()
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -474,13 +516,19 @@ class TypeBool(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
+_TYPE_BOOL = _TypeBool()
+def TypeBool():
+    return _TYPE_BOOL
+
 
 # Uuid type
-class TypeUuid(object):
-    __slots__ = ('typeName',)
+class _TypeUuid(object):
+    __slots__ = ()
 
-    def __init__(self, typeName = 'uuid'):
-        self.typeName = typeName
+    typeName = 'uuid'
+
+    def validateAttr(self, attr):
+        attr.validateAttr()
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -499,13 +547,19 @@ class TypeUuid(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
+_TYPE_UUID = _TypeUuid()
+def TypeUuid():
+    return _TYPE_UUID
+
 
 # Datetime type
-class TypeDatetime(object):
-    __slots__ = ('typeName',)
+class _TypeDatetime(object):
+    __slots__ = ()
 
-    def __init__(self, typeName = 'datetime'):
-        self.typeName = typeName
+    typeName = 'datetime'
+
+    def validateAttr(self, attr):
+        attr.validateAttr()
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
 
@@ -528,6 +582,10 @@ class TypeDatetime(object):
                 raise ValidationError.memberError(self, value, _member)
         else:
             raise ValidationError.memberError(self, value, _member)
+
+_TYPE_DATETIME = _TypeDatetime()
+def TypeDatetime():
+    return _TYPE_DATETIME
 
 
 # GMT tzinfo class for parseISO8601Datetime (from Python docs)
@@ -589,9 +647,9 @@ tzlocal = _TZLocal()
 
 
 # ISO 8601 regex
-_reISO8601 = re.compile('^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})' +
-                       '(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?' +
-                       '(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+_reISO8601 = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+                        r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
+                        r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
 
 # Static helper function to parse ISO 8601 date/time
 def parseISO8601Datetime(s):

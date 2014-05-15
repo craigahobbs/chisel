@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 from .action import Action
 from .compat import cgi, iteritems, itervalues, StringIO, urllib
-from .model import TypeStruct, TypeEnum, TypeArray, TypeDict
+from .model import JsonFloat, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 import xml.sax.saxutils as saxutils
 
@@ -38,10 +38,10 @@ action doc
   input
     # Generate documentation for the specified request name; generate the
     # documentation index if the request name is not specified.
-    [optional] string name
+    optional string name
 
     # Remove navigation links.
-    [optional] bool nonav
+    optional bool nonav
 ''')
 
     def action(self, app, req):
@@ -206,7 +206,7 @@ def createRequestHtml(environ, request, nonav = False):
         enumTypes = {}
         def findUserTypes(structType):
             for member in structType.members:
-                baseType = member.typeInst.typeInst if hasattr(member.typeInst, 'typeInst') else member.typeInst
+                baseType = member.type.type if hasattr(member.type, 'type') else member.type
                 if isinstance(baseType, TypeStruct) and baseType.typeName not in structTypes:
                     structTypes[baseType.typeName] = baseType
                     findUserTypes(baseType)
@@ -368,31 +368,56 @@ ul.chsl-constraint-list {
 }''', isText = True, isTextEscaped = False)
 
 # User type href helper
-def _userTypeHref(typeInst):
-    return typeInst.typeName
+def _userTypeHref(type):
+    return type.typeName
 
 # Type name HTML helper
-def _addTypeName(parent, typeInst):
+def _addTypeName(parent, type):
 
     # Compute the type string
-    if isinstance(typeInst, TypeArray):
-        baseTypeInst = typeInst.typeInst
+    if isinstance(type, TypeArray):
+        baseType = type.type
         typeExtra = '[]'
-    elif isinstance(typeInst, TypeDict):
-        baseTypeInst = typeInst.typeInst
+    elif isinstance(type, TypeDict):
+        baseType = type.type
         typeExtra = '{}'
     else:
-        baseTypeInst = typeInst
+        baseType = type
         typeExtra = None
 
     # Generate the type string DOM
-    if isinstance(baseTypeInst, TypeStruct) or isinstance(baseTypeInst, TypeEnum):
-        parent.addChild('a', isInline = True, href = '#' + _userTypeHref(baseTypeInst)) \
-            .addChild(baseTypeInst.typeName, isText = True)
+    if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
+        parent.addChild('a', isInline = True, href = '#' + _userTypeHref(baseType)) \
+            .addChild(baseType.typeName, isText = True)
     else:
-        parent.addChild(baseTypeInst.typeName, isText = True, isInline = True)
+        parent.addChild(baseType.typeName, isText = True, isInline = True)
     if typeExtra:
         parent.addChild(typeExtra, isText = True, isInline = True)
+
+# Get attribute list - [(lhs, op, rhs), ...]
+def _attributeList(attr, isElem = False):
+    if attr is None:
+        return
+    if attr.gt is not None:
+        yield ('elem' if isElem else 'value', '>', str(JsonFloat(attr.gt, 6)))
+    if attr.gte is not None:
+        yield ('elem' if isElem else 'value', '>=', str(JsonFloat(attr.gte, 6)))
+    if attr.lt is not None:
+        yield ('elem' if isElem else 'value', '<', str(JsonFloat(attr.lt, 6)))
+    if attr.lte is not None:
+        yield ('elem' if isElem else 'value', '<=', str(JsonFloat(attr.lte, 6)))
+    if attr.eq is not None:
+        yield ('elem' if isElem else 'value', '<=', str(JsonFloat(attr.eq, 6)))
+    if attr.len_gt is not None:
+        yield ('len(elem)' if isElem else 'len', '>', str(JsonFloat(attr.len_gt, 6)))
+    if attr.len_gte is not None:
+        yield ('len(elem)' if isElem else 'len', '>=', str(JsonFloat(attr.len_gte, 6)))
+    if attr.len_lt is not None:
+        yield ('len(elem)' if isElem else 'len', '<', str(JsonFloat(attr.len_lt, 6)))
+    if attr.len_lte is not None:
+        yield ('len(elem)' if isElem else 'len', '<=', str(JsonFloat(attr.len_lte, 6)))
+    if attr.len_eq is not None:
+        yield ('len(elem)' if isElem else 'len', '<=', str(JsonFloat(attr.len_eq, 6)))
 
 # Attribute DOM helper
 def _attributeDom(ul, lhs, op, rhs):
@@ -403,28 +428,16 @@ def _attributeDom(ul, lhs, op, rhs):
 
 # Type attributes HTML helper
 def _addTypeAttr(parent, member):
-    typeInst = member.typeInst
 
     # Add attribute DOM elements
     ul = parent.addChild('ul', _class = 'chsl-constraint-list')
     if member.isOptional:
         _attributeDom(ul, 'optional', None, None)
-    if hasattr(typeInst, 'constraint_gt') and typeInst.constraint_gt is not None:
-        _attributeDom(ul, 'value', '>', typeInst.constraint_gt)
-    if hasattr(typeInst, 'constraint_gte') and typeInst.constraint_gte is not None:
-        _attributeDom(ul, 'value', '>=', typeInst.constraint_gte)
-    if hasattr(typeInst, 'constraint_lt') and typeInst.constraint_lt is not None:
-        _attributeDom(ul, 'value', '<', typeInst.constraint_lt)
-    if hasattr(typeInst, 'constraint_lte') and typeInst.constraint_lte is not None:
-        _attributeDom(ul, 'value', '<=', typeInst.constraint_lte)
-    if hasattr(typeInst, 'constraint_len_gt') and typeInst.constraint_len_gt is not None:
-        _attributeDom(ul, 'len', '>', typeInst.constraint_len_gt)
-    if hasattr(typeInst, 'constraint_len_gte') and typeInst.constraint_len_gte is not None:
-        _attributeDom(ul, 'len', '>=', typeInst.constraint_len_gte)
-    if hasattr(typeInst, 'constraint_len_lt') and typeInst.constraint_len_lt is not None:
-        _attributeDom(ul, 'len', '<', typeInst.constraint_len_lt)
-    if hasattr(typeInst, 'constraint_len_lte') and typeInst.constraint_len_lte is not None:
-        _attributeDom(ul, 'len', '<=', typeInst.constraint_len_lte)
+    for lhs, op, rhs in _attributeList(member.attr):
+        _attributeDom(ul, lhs, op, rhs)
+    if hasattr(member.type, 'type'):
+        for lhs, op, rhs in _attributeList(member.type.attr, isElem = True):
+            _attributeDom(ul, lhs, op, rhs)
 
     # No constraints?
     if not ul.children:
@@ -459,28 +472,28 @@ def _addDocText(parent, doc):
     _addText(parent, ('\n'.join(lines) for lines in paragraphs))
 
 # Struct section helper
-def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
+def _structSection(parent, type, titleTag = None, title = None, emptyMessage = None):
 
     # Defaults
     if titleTag is None:
         titleTag = 'h3'
     if title is None:
-        title = ('union ' if typeInst.isUnion else 'struct ') + typeInst.typeName
+        title = ('union ' if type.isUnion else 'struct ') + type.typeName
     if emptyMessage is None:
         emptyMessage = 'The struct is empty.'
 
     # Section title
-    parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
+    parent.addChild(titleTag, _id = _userTypeHref(type)) \
         .addChild('a', isInline = True, _class = 'linktarget') \
         .addChild(title, isText = True)
-    _addDocText(parent, typeInst.doc)
+    _addDocText(parent, type.doc)
 
     # Empty struct?
-    if not typeInst.members:
+    if not type.members:
         _addText(parent, (emptyMessage,))
     else:
         # Has description header?
-        hasDescription = any(member.doc for member in typeInst.members)
+        hasDescription = any(member.doc for member in type.members)
 
         # Table header
         table = parent.addChild('table')
@@ -492,37 +505,37 @@ def _structSection(parent, typeInst, titleTag = None, title = None, emptyMessage
             tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Struct member rows
-        for member in typeInst.members:
+        for member in type.members:
             tr = table.addChild('tr')
             tr.addChild('td').addChild(member.name, isText = True, isInline = True)
-            _addTypeName(tr.addChild('td'), member.typeInst)
+            _addTypeName(tr.addChild('td'), member.type)
             _addTypeAttr(tr.addChild('td'), member)
             if hasDescription:
                 _addDocText(tr.addChild('td'), member.doc)
 
 # Enum section helper
-def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage = None):
+def _enumSection(parent, type, titleTag = None, title = None, emptyMessage = None):
 
     # Defaults
     if titleTag is None:
         titleTag = 'h3'
     if title is None:
-        title = 'enum ' + typeInst.typeName
+        title = 'enum ' + type.typeName
     if emptyMessage is None:
         emptyMessage = 'The enum is empty.'
 
     # Section title
-    parent.addChild(titleTag, _id = _userTypeHref(typeInst)) \
+    parent.addChild(titleTag, _id = _userTypeHref(type)) \
         .addChild('a', isInline = True, _class = 'linktarget') \
         .addChild(title, isText = True)
-    _addDocText(parent, typeInst.doc)
+    _addDocText(parent, type.doc)
 
     # Empty enum?
-    if not typeInst.values:
+    if not type.values:
         _addText(parent, (emptyMessage,))
     else:
         # Has description header?
-        hasDescription = any(value.doc for value in typeInst.values)
+        hasDescription = any(value.doc for value in type.values)
 
         # Table header
         table = parent.addChild('table')
@@ -532,7 +545,7 @@ def _enumSection(parent, typeInst, titleTag = None, title = None, emptyMessage =
             tr.addChild('th').addChild('Description', isText = True, isInline = True)
 
         # Enum value rows
-        for value in typeInst.values:
+        for value in type.values:
             tr = table.addChild('tr')
             tr.addChild('td').addChild(value.value, isText = True, isInline = True)
             if hasDescription:

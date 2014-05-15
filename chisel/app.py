@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2013 Craig Hobbs
+# Copyright (C) 2012-2014 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ class Application(object):
         environ[self.ENVIRON_APP] = self
 
         # Reload?
-        if self.alwaysReload and not self.environ:
+        if self.alwaysReload and self.environ is None:
             self.__init()
 
         # Wrap start_response
@@ -129,7 +129,7 @@ class Application(object):
     def __call__(self, environ, start_response):
 
         # Lock when always reloading
-        if self.alwaysReload and not self.environ:
+        if self.alwaysReload and self.environ is None:
             with self.__callLock:
                 return self.__call(environ, start_response)
         else:
@@ -165,7 +165,7 @@ class Application(object):
     def __createLogger(self, logStream):
         logger = logging.getLoggerClass()('')
         logger.setLevel(self.logLevel)
-        if logStream:
+        if logStream is not None:
             handler = logging.StreamHandler(logStream)
             handler.setFormatter(logging.Formatter(self.logFormat))
             logger.addHandler(handler)
@@ -285,7 +285,7 @@ class Application(object):
     # Send a JSON response
     def responseJSON(self, response, status = None, isError = False, headers = None):
         try:
-            if not status:
+            if status is None:
                 status = '200 OK' if not isError or self.isJSONP() else '500 Internal Server Error'
             content = self.serializeJSON(response)
             jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
@@ -293,7 +293,7 @@ class Application(object):
                 content = [jsonpFunction, '(', content, ');']
             else:
                 content = [content]
-            if PY3:
+            if PY3: # pragma: no cover
                 content = [s.encode('utf-8') for s in content]
         except Exception:
             self.log.exception('Unexpected error serializing JSON: %r', response)
