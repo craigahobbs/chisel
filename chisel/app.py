@@ -252,6 +252,7 @@ class Application(object):
 
     # Send an HTTP response
     def response(self, status, contentType, content, headers = None):
+        assert isinstance(content, list)
 
         # Build the headers array
         _headers = list(headers or [])

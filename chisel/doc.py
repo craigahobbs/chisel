@@ -195,7 +195,7 @@ def createRequestHtml(environ, request, nonav = False):
 
     if isAction:
         # Note for custom response callback
-        if isAction and request.response is not None:
+        if request.response is not None:
             noteResponse = notes.addChild('div', _class = 'chsl-note')
             noteResponseP = noteResponse.addChild('p')
             noteResponseP.addChild('b').addChild('Note: ', isText = True, isInline = True)
@@ -213,12 +213,14 @@ def createRequestHtml(environ, request, nonav = False):
                 elif isinstance(baseType, TypeEnum) and baseType.typeName not in enumTypes:
                     enumTypes[baseType.typeName] = baseType
         findUserTypes(request.model.inputType)
-        findUserTypes(request.model.outputType)
+        if request.response is None:
+            findUserTypes(request.model.outputType)
 
         # Request input and output structs
         _structSection(body, request.model.inputType, 'h2', 'Input Parameters', 'The action has no input parameters.')
-        _structSection(body, request.model.outputType, 'h2', 'Output Parameters', 'The action has no output parameters.')
-        _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
+        if request.response is None:
+            _structSection(body, request.model.outputType, 'h2', 'Output Parameters', 'The action has no output parameters.')
+            _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
         # User types
         if structTypes:
