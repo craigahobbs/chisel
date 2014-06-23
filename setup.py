@@ -24,7 +24,7 @@ from setuptools import setup
 
 setup(
     name = 'chisel',
-    version = '0.6.17',
+    version = '0.7.0',
     author = 'Craig Hobbs',
     author_email = 'craigahobbs@gmail.com',
     description = ('JSON web APIs made dirt simple'),
