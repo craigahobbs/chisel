@@ -50,12 +50,12 @@ class _ActionErrorInternal(Exception):
 
 # Action callback decorator
 class Action(Request):
-    __slots__ = ('model', 'response', 'strictValidation')
+    __slots__ = ('model', 'response', 'strictValidation', 'enableCors')
 
     JSONP = 'jsonp'
 
     def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None,
-                 strictValidation = True):
+                 strictValidation = True, enableCors = True):
 
         # Spec provided?
         self.model = None
@@ -74,6 +74,7 @@ class Action(Request):
 
         self.response = response
         self.strictValidation = strictValidation
+        self.enableCors = enableCors
         Request.__init__(self, _fn = _fn, name = name, urls = urls)
 
     def onload(self, app):
@@ -92,6 +93,10 @@ class Action(Request):
         isGet = (environ['REQUEST_METHOD'] == 'GET')
         if not isGet and environ['REQUEST_METHOD'] != 'POST':
             return self.app.responseText('405 Method Not Allowed', 'Method Not Allowed')
+
+        # Add simple CORS header
+        if self.enableCors:
+            self.app.addHeader('Access-Control-Allow-Origin', '*')
 
         # Handle the action
         try:
