@@ -29,6 +29,8 @@ from .url import decodeQueryString
 
 # Action error response exception
 class ActionError(Exception):
+    __slots__ = ('error', 'message')
+
     def __init__(self, error, message = None):
         Exception.__init__(self, error)
         self.error = error
@@ -37,6 +39,8 @@ class ActionError(Exception):
 
 # Internal action error response exception
 class _ActionErrorInternal(Exception):
+    __slots__ = ('error', 'message', 'member')
+
     def __init__(self, error, message = None, member = None):
         Exception.__init__(self, error)
         self.error = error

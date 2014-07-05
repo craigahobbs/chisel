@@ -40,6 +40,8 @@ class ActionModel(object):
 
 # Spec parser exception
 class SpecParserError(Exception):
+    __slots__ = ('errors',)
+
     def __init__(self, errors):
         Exception.__init__(self, '\n'.join(errors))
         self.errors = errors

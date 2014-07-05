@@ -29,6 +29,7 @@ import xml.sax.saxutils as saxutils
 
 # Doc action callback
 class DocAction(Action):
+    __slots__ = ()
 
     def __init__(self):
         Action.__init__(self, self.action, response = self.actionResponse,

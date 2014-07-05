@@ -38,13 +38,33 @@ import threading
 
 # Null stream object for supressing logs in request
 class NullStream(object):
+    __slots__ = ()
+
     def write(self, s):
         pass
+
 NULL_STREAM = NullStream()
 
 
 # Top-level WSGI application class
 class Application(object):
+
+    __slots__ = (
+        '__defaultLogger',
+        '__logLevel',
+        '__logFormat',
+        '__prettyOutput',
+        '__validateOutput',
+        '__alwaysReload',
+        '__logStream',
+        '__defaultLogger',
+        '__threadStates',
+        '__callLock',
+        '__specParser',
+        '__requests',
+        '__requestUrls',
+        '__requestUrlRegex',
+        )
 
     ENVIRON_APP = 'chisel.app'
     ENVIRON_JSONP = 'chisel.jsonp'
