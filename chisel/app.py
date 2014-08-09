@@ -373,7 +373,7 @@ class Application(object):
 
             # URL with arguments?
             if self.__reUrlArg.search(url):
-                urlRegex = self.__reUrlArgEsc.sub('/(?P<\\1>[^/]+)', re.escape(url))
+                urlRegex = '^' + self.__reUrlArgEsc.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
                 self.__requestUrlRegex.append((re.compile(urlRegex), request))
             else:
                 if url in self.__requestUrls:
