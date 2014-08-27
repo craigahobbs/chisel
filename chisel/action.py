@@ -50,11 +50,11 @@ class _ActionErrorInternal(Exception):
 
 # Action callback decorator
 class Action(Request):
-    __slots__ = ('model', 'response', 'strictValidation')
+    __slots__ = ('model', 'wsgiResponse', 'strictValidation')
 
     JSONP = 'jsonp'
 
-    def __init__(self, _fn = None, name = None, urls = None, spec = None, response = None,
+    def __init__(self, _fn = None, name = None, urls = None, spec = None, wsgiResponse = False,
                  strictValidation = True):
 
         # Spec provided?
@@ -72,7 +72,7 @@ class Action(Request):
         if name is None and self.model is not None:
             name = self.model.name
 
-        self.response = response
+        self.wsgiResponse = wsgiResponse
         self.strictValidation = strictValidation
         Request.__init__(self, _fn = _fn, name = name, urls = urls)
 
@@ -155,7 +155,9 @@ class Action(Request):
             # Call the action callback
             try:
                 response = self.fn(self.app, request)
-                if response is None:
+                if self.wsgiResponse:
+                    return response
+                elif response is None:
                     response = {}
             except ActionError as e:
                 response = { 'error': e.error }
@@ -179,14 +181,6 @@ class Action(Request):
                 except ValidationError as e:
                     self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
                     raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
-
-            # Custom response serialization? Don't render error responses...
-            if self.response is not None and not isErrorResponse:
-                try:
-                    return self.response(self.app, request, response)
-                except Exception as e:
-                    self.app.log.exception("Unexpected error in response callback for action '%s'", self.name)
-                    raise _ActionErrorInternal('UnexpectedError')
 
         except _ActionErrorInternal as e:
             response = { 'error': e.error }

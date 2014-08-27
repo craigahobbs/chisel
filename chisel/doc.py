@@ -32,7 +32,7 @@ class DocAction(Action):
     __slots__ = ()
 
     def __init__(self):
-        Action.__init__(self, self.action, response = self.actionResponse,
+        Action.__init__(self, self.__action, wsgiResponse = True,
                         spec = '''\
 # Generate a documentation HTML for the requests implemented by the application.
 action doc
@@ -45,11 +45,7 @@ action doc
     optional bool nonav
 ''')
 
-    def action(self, app, req):
-        return {}
-
-    def actionResponse(self, app, req, response):
-
+    def __action(self, app, req):
         requestName = req.get('name')
         if requestName is None:
             requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
@@ -196,7 +192,7 @@ def createRequestHtml(environ, request, nonav = False):
 
     if isAction:
         # Note for custom response callback
-        if request.response is not None:
+        if request.wsgiResponse:
             noteResponse = notes.addChild('div', _class = 'chsl-note')
             noteResponseP = noteResponse.addChild('p')
             noteResponseP.addChild('b').addChild('Note: ', isText = True, isInline = True)
@@ -214,12 +210,12 @@ def createRequestHtml(environ, request, nonav = False):
                 elif isinstance(baseType, TypeEnum) and baseType.typeName not in enumTypes:
                     enumTypes[baseType.typeName] = baseType
         findUserTypes(request.model.inputType)
-        if request.response is None:
+        if not request.wsgiResponse:
             findUserTypes(request.model.outputType)
 
         # Request input and output structs
         _structSection(body, request.model.inputType, 'h2', 'Input Parameters', 'The action has no input parameters.')
-        if request.response is None:
+        if not request.wsgiResponse:
             _structSection(body, request.model.outputType, 'h2', 'Output Parameters', 'The action has no output parameters.')
             _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
