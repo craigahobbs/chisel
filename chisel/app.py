@@ -117,7 +117,11 @@ class Application(object):
 
         # Handle the request
         if request is not None:
-            return request(environ, start_response)
+            try:
+                return request(environ, start_response)
+            except:
+                self.log.exception('Exception raised by WSGI request')
+                return self.responseText('500 Internal Server Error', 'Unexpected Error')
         else:
             return self.responseText('404 Not Found', 'Not Found')
 
@@ -304,20 +308,16 @@ class Application(object):
 
     # Send a JSON response
     def responseJSON(self, response, status = None, isError = False, headers = None):
-        try:
-            if status is None:
-                status = '200 OK' if not isError or self.isJSONP() else '500 Internal Server Error'
-            content = self.serializeJSON(response)
-            jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
-            if jsonpFunction:
-                content = [jsonpFunction, '(', content, ');']
-            else:
-                content = [content]
-            if PY3: # pragma: no cover
-                content = [s.encode('utf-8') for s in content]
-        except Exception:
-            self.log.exception('Unexpected error serializing JSON: %r', response)
-            return self.responseText('500 Internal Server Error', 'Unexpected Error')
+        if status is None:
+            status = '200 OK' if not isError or self.isJSONP() else '500 Internal Server Error'
+        content = self.serializeJSON(response)
+        jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
+        if jsonpFunction:
+            content = [jsonpFunction, '(', content, ');']
+        else:
+            content = [content]
+        if PY3: # pragma: no cover
+            content = [s.encode('utf-8') for s in content]
 
         return self.response(status, 'application/json', content, headers = headers)
 

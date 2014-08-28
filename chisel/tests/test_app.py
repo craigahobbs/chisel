@@ -124,7 +124,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
     # Test nested requests
-    def test_nested_requests(self):
+    def test_app_nested_requests(self):
 
         def request1(environ, start_response):
             app = environ[Application.ENVIRON_APP]
@@ -143,3 +143,16 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
         self.assertTrue(app.environ is None) # Make sure thread state was deleted
+
+    def test_app_request_exception(self):
+
+        def request1(environ, start_response):
+            raise Exception('')
+
+        app = Application()
+        app.addRequest(request1)
+
+        status, headers, response = app.request('GET', '/request1')
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertTrue(('Content-Type', 'text/plain') in headers)
+        self.assertEqual(response, b'Unexpected Error')
