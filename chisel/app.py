@@ -120,7 +120,7 @@ class Application(object):
             try:
                 return request(environ, start_response)
             except:
-                self.log.exception('Exception raised by WSGI request')
+                self.log.exception('Exception raised by WSGI request "%s"', request.name)
                 return self.responseText('500 Internal Server Error', 'Unexpected Error')
         else:
             return self.responseText('404 Not Found', 'Not Found')
