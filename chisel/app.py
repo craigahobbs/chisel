@@ -55,11 +55,9 @@ class Application(object):
         '__logFormat',
         '__prettyOutput',
         '__validateOutput',
-        '__alwaysReload',
         '__logStream',
         '__defaultLogger',
         '__threadStates',
-        '__callLock',
         '__specParser',
         '__requests',
         '__requestUrls',
@@ -80,15 +78,9 @@ class Application(object):
         self.logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
         self.prettyOutput = False
         self.validateOutput = True
-        self.alwaysReload = False
         self.__logStream = logStream
         self.__defaultLogger = self.__createLogger(logStream)
         self.__threadStates = {}
-        self.__callLock = threading.Lock()
-        self.__init()
-
-    def __init(self):
-
         self.__specParser = SpecParser()
         self.__requests = {}
         self.__requestUrls = {}
@@ -125,15 +117,11 @@ class Application(object):
         else:
             return self.responseText('404 Not Found', 'Not Found')
 
-    # Inner WSGI entry point
-    def __call(self, environ, start_response):
+    # WSGI entry point
+    def __call__(self, environ, start_response):
 
         # Set the app environment item
         environ[self.ENVIRON_APP] = self
-
-        # Reload?
-        if self.alwaysReload and self.environ is None:
-            self.__init()
 
         # Wrap start_response
         def _start_response(status, headers):
@@ -148,16 +136,6 @@ class Application(object):
             return self.call(environ, _start_response)
         finally:
             self.__popThreadState()
-
-    # WSGI entry point
-    def __call__(self, environ, start_response):
-
-        # Lock when always reloading
-        if self.alwaysReload and self.environ is None:
-            with self.__callLock:
-                return self.__call(environ, start_response)
-        else:
-            return self.__call(environ, start_response)
 
     # Push a thread state
     def __pushThreadState(self, environ, start_response):
@@ -237,14 +215,6 @@ class Application(object):
     @validateOutput.setter
     def validateOutput(self, value):
         self.__validateOutput = value
-
-    # Re-init specs and modules each request
-    @property
-    def alwaysReload(self):
-        return self.__alwaysReload
-    @alwaysReload.setter
-    def alwaysReload(self, value):
-        self.__alwaysReload = value
 
     # Spec parser
     @property
@@ -389,7 +359,7 @@ class Application(object):
 
     # Generator to recursively load all modules
     @staticmethod
-    def loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = (), alwaysReload = False):
+    def loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = ()):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -412,7 +382,7 @@ class Application(object):
                         if any(len(moduleParts) >= len(x) and tuple(itertools.islice(moduleParts, len(x))) == tuple(x) for x in moduleNamePartsIgnore):
                             continue
                         moduleName = '.'.join(moduleParts)
-                        if alwaysReload or moduleName not in sys.modules:
+                        if moduleName not in sys.modules:
                             moduleFp, modulePath, moduleDesc = \
                                 imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
                             try:
@@ -427,8 +397,7 @@ class Application(object):
     # Recursively load all requests in a directory
     def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
 
-        for module in self.loadModules(moduleDir, alwaysReload = self.alwaysReload, moduleExt = moduleExt,
-                                       moduleNamePartsPrefix = moduleNamePartsPrefix):
+        for module in self.loadModules(moduleDir, moduleExt = moduleExt, moduleNamePartsPrefix = moduleNamePartsPrefix):
             for moduleAttr in dir(module):
                 request = getattr(module, moduleAttr)
                 if isinstance(request, Request):
