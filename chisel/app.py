@@ -436,27 +436,3 @@ class Application(object):
         return (startResponseArgs['status'],
                 startResponseArgs['responseHeaders'],
                 b''.join(response))
-
-    # Run as stand-alone server
-    @staticmethod
-    def serve(application):
-
-        import optparse
-        import wsgiref.util
-        import wsgiref.simple_server
-
-        # Command line options
-        optParser = optparse.OptionParser()
-        optParser.add_option('-p', dest = 'port', type = 'int', default = 8080,
-                             help = 'Server port (default is 8080)')
-        (opts, args) = optParser.parse_args()
-
-        # Stand-alone server WSGI entry point
-        def application_simple_server(environ, start_response):
-            wsgiref.util.setup_testing_defaults(environ)
-            return application(environ, start_response)
-
-        # Start the stand-alone server
-        print('Serving on port %d...' % (opts.port,))
-        httpd = wsgiref.simple_server.make_server('', opts.port, application_simple_server)
-        httpd.serve_forever()
