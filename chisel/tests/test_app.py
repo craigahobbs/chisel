@@ -34,11 +34,11 @@ class TestAppApplication(unittest.TestCase):
     def setUp(self):
 
         class MyApplication(Application):
-            def init(self):
+            def __init__(self):
+                Application.__init__(self)
                 self.loadSpecs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.logLevel = logging.INFO
-                Application.init(self)
 
         self.app = MyApplication()
 
