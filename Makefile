@@ -58,6 +58,7 @@ clean:
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
 		build \
 		dist \
+		*.egg \
 		*.egg-info \
 		.coverage \
 		$(COVER)
@@ -76,7 +77,7 @@ setup:
 		python-pip \
 		python-virtualenv \
 		$(foreach P, $(PYTHON_VERSIONS),$(if $(shell which python$P),,python$P))
-	pip install -U pip virtualenv
+	sudo pip install -U pip virtualenv
 
 # Macro to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE
@@ -98,7 +99,7 @@ $(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , $(TE
 # Generate coverage rule
 define COVER_COMMANDS
 	. $$</bin/activate && \
-		coverage run --branch --source chisel setup.py test && \
+		coverage run --branch --source $(PACKAGE_NAME) setup.py test && \
 		coverage html -d $(COVER) && \
 		coverage report
 	@echo
