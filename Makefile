@@ -58,7 +58,6 @@ clean:
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
 		build \
 		dist \
-		*.egg \
 		*.egg-info \
 		.coverage \
 		$(COVER)
@@ -66,7 +65,9 @@ clean:
 # Superclean
 .PHONY: superclean
 superclean: clean
-	-rm -rf $(ENV)
+	-rm -rf \
+		*.egg \
+		$(ENV)
 
 # Setup
 .PHONY: setup
