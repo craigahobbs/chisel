@@ -354,7 +354,7 @@ class Application(object):
 
     # Generator to recursively load all modules
     @staticmethod
-    def __loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = ()):
+    def loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = ()):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -392,7 +392,7 @@ class Application(object):
     # Recursively load all requests in a directory
     def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
 
-        for module in self.__loadModules(moduleDir, moduleExt = moduleExt, moduleNamePartsPrefix = moduleNamePartsPrefix):
+        for module in self.loadModules(moduleDir, moduleExt = moduleExt, moduleNamePartsPrefix = moduleNamePartsPrefix):
             for moduleAttr in dir(module):
                 request = getattr(module, moduleAttr)
                 if isinstance(request, Request):
