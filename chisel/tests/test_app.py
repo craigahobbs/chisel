@@ -42,8 +42,8 @@ class TestAppApplication(unittest.TestCase):
 
         self.app = MyApplication()
 
-    # Test default application functionality
-    def test_app_default(self):
+
+    def test_app_call(self):
 
         # Test WSGI environment
         environ = {
@@ -54,27 +54,87 @@ class TestAppApplication(unittest.TestCase):
             }
         startResponseData = {
             'status': [],
-            'responseHeaders': []
+            'headers': []
             }
-        def startResponse(status, responseHeaders):
+        def startResponse(status, headers):
             startResponseData['status'].append(status)
-            startResponseData['responseHeaders'].append(responseHeaders)
+            startResponseData['headers'].append(headers)
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, ['{}'.encode('utf-8')])
         self.assertEqual(startResponseData['status'], ['200 OK'])
+        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'application/json'), ('Content-Length', '2')]])
+        self.assertEqual(list(responseParts), ['{}'.encode('utf-8')])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
-        # Call the application again (skips reloading)
+
+    def test_app_call_generator(self):
+
+        # Test WSGI environment
+        environ = {
+            'SCRIPT_FILENAME': os.path.join(__file__),
+            'REQUEST_METHOD': 'GET',
+            'PATH_INFO': '/generatorResponse',
+            'wsgi.errors': StringIO()
+            }
+        startResponseData = {
+            'status': [],
+            'headers': []
+            }
+        def startResponse(status, headers):
+            startResponseData['status'].append(status)
+            startResponseData['headers'].append(headers)
+
+        # Request that returns a generator
+        def generatorResponse(environ, startResponse):
+            def response():
+                yield 'Hello'.encode('utf-8')
+                yield 'World'.encode('utf-8')
+            ctx = environ[Application.ENVIRON_APP]
+            return ctx.response('200 OK', 'text/plain', response())
+
+        self.app.addRequest(generatorResponse)
+
+        # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
-        self.assertEqual(responseParts, ['{}'.encode('utf-8')])
-        self.assertEqual(startResponseData['status'], ['200 OK', '200 OK'])
-        self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
-        self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
+        self.assertEqual(startResponseData['status'], ['200 OK'])
+        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain')]])
+        self.assertEqual(list(responseParts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
-    # Test callAction method
+
+    def test_app_call_stringResponse(self):
+
+        # Test WSGI environment
+        environ = {
+            'SCRIPT_FILENAME': os.path.join(__file__),
+            'REQUEST_METHOD': 'GET',
+            'PATH_INFO': '/stringResponse',
+            'wsgi.errors': StringIO()
+            }
+        startResponseData = {
+            'status': [],
+            'headers': []
+            }
+        def startResponse(status, headers):
+            startResponseData['status'].append(status)
+            startResponseData['headers'].append(headers)
+
+        # Request that returns a generator
+        def stringResponse(environ, startResponse):
+            ctx = environ[Application.ENVIRON_APP]
+            return ctx.response('200 OK', 'text/plain', 'Hello World')
+
+        self.app.addRequest(stringResponse)
+
+        # Successfully create and call the application
+        responseParts = self.app(environ, startResponse)
+        self.assertEqual(startResponseData['status'], ['500 Internal Server Error'])
+        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain'), ('Content-Length', '16')]])
+        self.assertEqual(list(responseParts), ['Unexpected Error'.encode('utf-8')])
+        self.assertTrue('Response of type str, unicode, or bytes received' in environ['wsgi.errors'].getvalue())
+
+
     def test_app_request(self):
 
         # POST
@@ -123,7 +183,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
-    # Test nested requests
+
     def test_app_nested_requests(self):
 
         def request1(environ, start_response):
@@ -143,6 +203,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
         self.assertTrue(app.environ is None) # Make sure thread state was deleted
+
 
     def test_app_request_exception(self):
 

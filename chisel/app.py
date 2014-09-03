@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, json, PY3, StringIO
+from .compat import basestring_, iteritems, json, PY3, StringIO
 from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
@@ -241,13 +241,15 @@ class Application(object):
 
     # Send an HTTP response
     def response(self, status, contentType, content, headers = None):
-        assert isinstance(content, list)
+        assert not isinstance(content, basestring_) and not isinstance(content, bytes), \
+            'Response of type str, unicode, or bytes received'
 
         # Build the headers array
-        _headers = list(headers or [])
+        _headers = [] if headers is None else list(headers)
         if not any(header[0] == 'Content-Type' for header in _headers):
             _headers.append(('Content-Type', contentType))
-        _headers.append(('Content-Length', str(sum(len(s) for s in content))))
+        if hasattr(content, '__len__'):
+            _headers.append(('Content-Length', str(sum(len(s) for s in content))))
 
         # Return the response
         self.start_response(status, _headers)
