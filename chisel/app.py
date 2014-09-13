@@ -164,7 +164,8 @@ class Application(object):
         logger.setLevel(self.logLevel)
         if logStream is not None:
             handler = logging.StreamHandler(logStream)
-            handler.setFormatter(logging.Formatter(self.logFormat))
+            formatter = logging.Formatter(self.logFormat) if not hasattr(self.logFormat, '__call__') else self.logFormat(self)
+            handler.setFormatter(formatter)
             logger.addHandler(handler)
         return logger
 

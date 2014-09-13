@@ -184,6 +184,36 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
 
+    def test_app_logFormat_callable(self):
+
+        def myWsgi(environ, start_response):
+            ctx = environ[Application.ENVIRON_APP]
+            ctx.log.warning('Hello log')
+            start_response('200 OK', [('Content-Type', 'text/plain')])
+            return ['Hello'.encode('utf-8')]
+
+        class MyFormatter(object):
+            def __init__(self, app):
+                assert isinstance(app, Application)
+            def format(self, record):
+                return record.getMessage()
+            def formatTime(self, record, datefmt = None):
+                return record.getMessage()
+            def formatException(self, exc_info):
+                return 'Bad'
+
+        app = Application()
+        app.addRequest(myWsgi)
+        app.logFormat = MyFormatter
+
+        logStream = StringIO()
+        status, headers, response = app.request('GET', '/myWsgi', environ = {'wsgi.errors': logStream})
+        self.assertEqual(response, 'Hello'.encode('utf-8'))
+        self.assertEqual(status, '200 OK')
+        self.assertTrue(('Content-Type', 'text/plain') in headers)
+        self.assertEqual(logStream.getvalue(), 'Hello log\n')
+
+
     def test_app_nested_requests(self):
 
         def request1(environ, start_response):
