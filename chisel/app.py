@@ -50,13 +50,12 @@ NULL_STREAM = NullStream()
 class Application(object):
 
     __slots__ = (
-        '__defaultLogger',
+        '__logStream',
         '__logLevel',
         '__logFormat',
-        '__prettyOutput',
-        '__validateOutput',
-        '__logStream',
         '__defaultLogger',
+        'prettyOutput',
+        'validateOutput',
         '__threadStates',
         '__specParser',
         '__requests',
@@ -73,13 +72,12 @@ class Application(object):
 
     def __init__(self, logStream = sys.stderr):
 
-        self.__defaultLogger = None
-        self.logLevel = logging.WARNING
-        self.logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
+        self.__logStream = logStream
+        self.__logLevel = logging.WARNING
+        self.__logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
+        self.__defaultLogger = self.__createLogger(logStream)
         self.prettyOutput = False
         self.validateOutput = True
-        self.__logStream = logStream
-        self.__defaultLogger = self.__createLogger(logStream)
         self.__threadStates = {}
         self.__specParser = SpecParser()
         self.__requests = {}
@@ -164,8 +162,7 @@ class Application(object):
         logger.setLevel(self.logLevel)
         if logStream is not None:
             handler = logging.StreamHandler(logStream)
-            formatter = logging.Formatter(self.logFormat) if not hasattr(self.logFormat, '__call__') else self.logFormat(self)
-            handler.setFormatter(formatter)
+            handler.setFormatter(self.__logFormatter())
             logger.addHandler(handler)
         return logger
 
@@ -189,28 +186,14 @@ class Application(object):
     @property
     def logFormat(self):
         return self.__logFormat
+    def __logFormatter(self):
+        return logging.Formatter(self.logFormat) if not hasattr(self.logFormat, '__call__') else self.logFormat(self)
     @logFormat.setter
     def logFormat(self, value):
         self.__logFormat = value
         if self.__defaultLogger:
             for handler in self.__defaultLogger.handlers:
-                handler.setFormatter(logging.Formatter(self.logFormat))
-
-    # Pretty output
-    @property
-    def prettyOutput(self):
-        return self.__prettyOutput
-    @prettyOutput.setter
-    def prettyOutput(self, value):
-        self.__prettyOutput = value
-
-    # Validate output
-    @property
-    def validateOutput(self):
-        return self.__validateOutput
-    @validateOutput.setter
-    def validateOutput(self, value):
-        self.__validateOutput = value
+                handler.setFormatter(self.__logFormatter())
 
     # Spec parser
     @property
