@@ -187,7 +187,7 @@ class Application(object):
     def logFormat(self):
         return self.__logFormat
     def __logFormatter(self):
-        return logging.Formatter(self.logFormat) if not hasattr(self.logFormat, '__call__') else self.logFormat(self)
+        return logging.Formatter(self.__logFormat) if not hasattr(self.__logFormat, '__call__') else self.__logFormat(self)
     @logFormat.setter
     def logFormat(self, value):
         self.__logFormat = value
