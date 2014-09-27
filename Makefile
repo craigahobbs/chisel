@@ -22,12 +22,10 @@
 #
 
 PACKAGE_NAME = chisel
-PACKAGE_TESTS = $(PACKAGE_NAME)/tests
 
 # Local directories
 ENV = .env
 COVER = .cover
-PYFLAKES = .pyflakes
 
 # Python version support
 PYTHON_VERSIONS = \
