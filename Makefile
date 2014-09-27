@@ -87,7 +87,7 @@ $(call $(4), $(1))
 endef
 
 # Function to generate an environment rule's python interpreter
-PYTHON = $(ENV)/$(strip $(1))/bin/python -s -E
+PYTHON = $(ENV)/$(strip $(1))/bin/python -E
 
 # Generate test rules
 define TEST_COMMANDS
