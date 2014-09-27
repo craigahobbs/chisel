@@ -80,36 +80,41 @@ setup:
 		$(foreach P, $(PYTHON_VERSIONS),$(if $(shell which python$P),,python$P))
 	sudo pip install -U pip virtualenv
 
-# Macro to generate virtualenv rules - env_name, python_version, packages, commands
+# Function to generate virtualenv rules - env_name, python_version, packages, commands
 define ENV_RULE
-$(ENV)/$(strip $(1)):
-	virtualenv -p python$(strip $(2)) $$@
-	$(if $(strip $(3)), . $$@/bin/activate && pip install $(3))
+BUILD_$(strip $(1)) := $(ENV)/$(strip $(1)).build
 
-.PHONY: $(1)
-$(1): $(ENV)/$(strip $(1))
-	$(4)
+$$(BUILD_$(strip $(1))):
+	virtualenv -p python$(strip $(2)) $(ENV)/$(strip $(1))
+	$(if $(strip $(3)),$(call PYTHON, $(1)) -m pip install $(strip $(3)))
+	touch $$@
+
+.PHONY: $(strip $(1))
+$(strip $(1)): $$(BUILD_$(strip $(1)))
+$(call $(4), $(1))
 endef
+
+# Function to generate an environment rule's python interpreter
+PYTHON = $(ENV)/$(strip $(1))/bin/python -s -E
 
 # Generate test rules
 define TEST_COMMANDS
-	. $$</bin/activate && python setup.py test
+	$(call PYTHON, $(1)) setup.py test
 endef
-$(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , $(TEST_COMMANDS))))
+$(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , TEST_COMMANDS)))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	. $$</bin/activate && \
-		coverage run --branch --source $(PACKAGE_NAME) setup.py test && \
-		coverage html -d $(COVER) && \
-		coverage report
+	$(call PYTHON, $(1)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
+	$(call PYTHON, $(1)) -m coverage html -d $(COVER)
+	$(call PYTHON, $(1)) -m coverage report
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), coverage, $(COVER_COMMANDS)))
+$(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), coverage, COVER_COMMANDS))
 
 # Generate pyflakes rule
 define PYFLAKES_COMMANDS
-	. $$</bin/activate && pyflakes ./$(PACKAGE_NAME)
+	$(call PYTHON, $(1)) -m pyflakes ./$(PACKAGE_NAME)
 endef
-$(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes, $(PYFLAKES_COMMANDS)))
+$(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes, PYFLAKES_COMMANDS))
