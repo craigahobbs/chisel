@@ -23,10 +23,6 @@
 
 PACKAGE_NAME = chisel
 
-# Local directories
-ENV = .env
-COVER = .cover
-
 # Python version support
 PYTHON_VERSIONS = \
     2.7 \
@@ -34,6 +30,10 @@ PYTHON_VERSIONS = \
     3.2 \
     3.3 \
     3.4
+
+# Local directories
+ENV = .env
+COVER = .cover
 
 # Help
 .PHONY: help
@@ -107,6 +107,6 @@ $(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), coverage, COVER_
 
 # Generate pyflakes rule
 define PYFLAKES_COMMANDS
-	$(call PYTHON, $(1)) -m pyflakes ./$(PACKAGE_NAME)
+	$(call PYTHON, $(1)) -m pyflakes $(PACKAGE_NAME)
 endef
 $(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes, PYFLAKES_COMMANDS))
