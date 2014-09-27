@@ -38,7 +38,7 @@ PYTHON_VERSIONS = \
 # Help
 .PHONY: help
 help:
-	@echo "usage: make [test|pyflakes|cover|check|clean|superclean]"
+	@echo "usage: make [test|pyflakes|cover|check|clean]"
 
 # Run unit tests
 .PHONY: test
@@ -46,26 +46,20 @@ test: pyflakes test_$(firstword $(PYTHON_VERSIONS))
 
 # Pre-checkin check
 .PHONY: check
-check: pyflakes clean $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
+check: pyflakes $(foreach V, $(PYTHON_VERSIONS), test_$(V)) cover
 
 # Clean
 .PHONY: clean
 clean:
 	-rm -rf \
+		$(ENV) \
+		$(COVER) \
+		.coverage \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
-		build \
 		dist \
 		*.egg-info \
-		.coverage \
-		$(COVER)
-
-# Superclean
-.PHONY: superclean
-superclean: clean
-	-rm -rf \
-		*.egg \
-		$(ENV)
+		*.egg
 
 # Setup
 .PHONY: setup
