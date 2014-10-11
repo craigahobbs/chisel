@@ -22,6 +22,8 @@
 
 from setuptools import setup
 
+tests_require = []
+
 setup(
     name = 'chisel',
     version = '0.8.6',
@@ -35,12 +37,15 @@ setup(
         'Environment :: Web Environment',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4'
     ],
     packages = ['chisel'],
-    test_suite='chisel.tests'
+    test_suite='chisel.tests',
+    tests_require = tests_require,
+    extras_require = {
+        'tests': tests_require,
+    },
 )

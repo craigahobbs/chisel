@@ -26,7 +26,6 @@ PACKAGE_NAME = chisel
 # Python version support
 PYTHON_VERSIONS = \
     2.7 \
-    2.6 \
     3.2 \
     3.3 \
     3.4
@@ -78,7 +77,7 @@ BUILD_$(strip $(1)) := $(ENV)/$(strip $(1)).build
 
 $$(BUILD_$(strip $(1))):
 	virtualenv -p python$(strip $(2)) $(ENV)/$(strip $(1))
-	$(if $(strip $(3)),$(call PYTHON, $(1)) -m pip install $(strip $(3)))
+	$(if $(strip $(3)),$(call ENV_PYTHON, $(1)) -m pip install $(strip $(3)))
 	touch $$@
 
 .PHONY: $(strip $(1))
@@ -87,19 +86,21 @@ $(call $(4), $(1))
 endef
 
 # Function to generate an environment rule's python interpreter
-PYTHON = $(ENV)/$(strip $(1))/bin/python -E
+ENV_PYTHON = $(ENV)/$(strip $(1))/bin/python -E
 
 # Generate test rules
 define TEST_COMMANDS
-	$(call PYTHON, $(1)) setup.py test
+	$(call ENV_PYTHON, $(1)) -m pip install -q -e . -e .[tests]
+	$(call ENV_PYTHON, $(1)) setup.py test
 endef
 $(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , TEST_COMMANDS)))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	$(call PYTHON, $(1)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
-	$(call PYTHON, $(1)) -m coverage html -d $(COVER)
-	$(call PYTHON, $(1)) -m coverage report
+	$(call ENV_PYTHON, $(1)) -m pip install -e . -e .[tests]
+	$(call ENV_PYTHON, $(1)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
+	$(call ENV_PYTHON, $(1)) -m coverage html -d $(COVER)
+	$(call ENV_PYTHON, $(1)) -m coverage report
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
@@ -107,6 +108,6 @@ $(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), coverage, COVER_
 
 # Generate pyflakes rule
 define PYFLAKES_COMMANDS
-	$(call PYTHON, $(1)) -m pyflakes $(PACKAGE_NAME)
+	$(call ENV_PYTHON, $(1)) -m pyflakes $(PACKAGE_NAME)
 endef
 $(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes, PYFLAKES_COMMANDS))
