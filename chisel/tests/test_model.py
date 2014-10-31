@@ -394,6 +394,37 @@ class TestModelStructValidation(unittest.TestCase):
                 self.assertTrue(isinstance(o2, dict))
             self.assertEqual(o2, {'a': 7})
 
+    # All validation modes - member with attributes - valid
+    def test_model_struct_validation_member_attributes_valid(self):
+
+        t = TypeStruct()
+        t.addMember('a', TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = {'a': 4}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {'a': 4})
+
+    # All validation modes - member with attributes - invalid
+    def test_model_struct_validation_member_attributes_invalid(self):
+
+        t = TypeStruct()
+        t.addMember('a', TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = {'a': 7}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member 'a' [< 5]")
+            else:
+                self.fail()
+
     # All validation modes - nested structure
     def test_model_struct_validation_nested(self):
 
@@ -614,6 +645,35 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.assertTrue(isinstance(o2, list))
             self.assertEqual(o2, [1, 2, 3])
 
+    # All validation modes - value attributes - success
+    def test_model_array_validation_attributes(self):
+
+        t = TypeArray(TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = [1, 2, 3]
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, list))
+            self.assertEqual(o2, [1, 2, 3])
+
+    # All validation modes - value attributes - invalid value
+    def test_model_array_validation_attributes_invalid(self):
+
+        t = TypeArray(TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = [1, 7, 3]
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member '[1]' [< 5]")
+            else:
+                self.fail()
+
     # All validation modes - nested
     def test_model_array_validation_nested(self):
 
@@ -725,6 +785,64 @@ class TestModelDictValidation(unittest.TestCase):
                 self.assertTrue(o is not o2)
                 self.assertTrue(isinstance(o2, dict))
             self.assertEqual(o2, {'a': 7, 'b': 8})
+
+    # All validation modes - value attributes - success
+    def test_model_dict_validation_value_attributes(self):
+
+        t = TypeDict(TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = {'a': 1, 'b': 2}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {'a': 1, 'b': 2})
+
+    # All validation modes - value attributes - invalid value
+    def test_model_dict_validation_value_attributes_invalid(self):
+
+        t = TypeDict(TypeInt(), attr = chisel.model.StructMemberAttributes(lt = 5))
+
+        o = {'a': 1, 'b': 7}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member 'b' [< 5]")
+            else:
+                self.fail()
+
+    # All validation modes - key attributes - success
+    def test_model_dict_validation_key_attributes(self):
+
+        t = TypeDict(TypeInt(), keyAttr = chisel.model.StructMemberAttributes(len_lt = 5))
+
+        o = {'a': 1, 'b': 2}
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(o is o2)
+            else:
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, dict))
+            self.assertEqual(o2, {'a': 1, 'b': 2})
+
+    # All validation modes - key attributes - invalid key
+    def test_model_dict_validation_key_attributes_invalid(self):
+
+        t = TypeDict(TypeInt(), keyAttr = chisel.model.StructMemberAttributes(len_lt = 2))
+
+        o = {'a': 1, 'bc': 2}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'bc' (type 'str') for member 'bc' [len < 2]")
+            else:
+                self.fail()
 
     # All validation modes - nested
     def test_model_dict_validation_nested(self):

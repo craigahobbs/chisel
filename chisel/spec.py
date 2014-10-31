@@ -49,14 +49,15 @@ class SpecParserError(Exception):
 
 # Type id reference - converted to types on parser finalization
 class TypeRef(object):
-    __slots__ = ('fileName', 'fileLine', 'parent', 'name', 'attr')
+    __slots__ = ('fileName', 'fileLine', 'parent', 'name', 'attr', 'parentAttr')
 
-    def __init__(self, fileName, fileLine, name, parent, attr):
+    def __init__(self, fileName, fileLine, name, parent, attr, parentAttr = 'type'):
         self.fileName = fileName
         self.fileLine = fileLine
         self.parent = parent
         self.name = name
         self.attr = attr
+        self.parentAttr = parentAttr
 
 
 # Specification language parser class
@@ -87,12 +88,20 @@ class SpecParser(object):
     _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')\s*$')
     _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)\s*$')
     _RE_MEMBER = re.compile(r'^\s+((?P<optional>optional)\s+)?'
-                            r'(\[\s*(?P<attrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\]\s+)?'
+                            r'('
                             r'(?P<type>' + _RE_PART_ID + r')'
-                            r'(\s*\[\s*(?P<array>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*\]'
-                            r'|\s*{\s*(?P<dict>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*})?'
+                            r'(\s*\(\s*(?P<attrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
+                            r'(\s*\[\s*(?P<array>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*\])?'
+                            r'|'
+                            r'((?P<dictKeyType>' + _RE_PART_ID + r')'
+                            r'(\s*\(\s*(?P<dictKeyAttrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
+                            r'\s*:\s*)?'
+                            r'(?P<dictValueType>' + _RE_PART_ID + r')'
+                            r'(\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
+                            r'{\s*(?P<dict>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*}'
+                            r')'
                             r'\s+(?P<id>' + _RE_PART_ID + r')\s*$')
-    _reValue = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
+    _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 
     # Types
     _TYPES = {
@@ -142,9 +151,8 @@ class SpecParser(object):
         for typeRef in self._typeRefs:
             type = self._getType(typeRef.name)
             if type is not None:
-                typeRef.parent.type = type
-                if typeRef.attr is not None:
-                    self._validateAttr(type, typeRef.attr, fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+                setattr(typeRef.parent, typeRef.parentAttr, type)
+                self._validateAttr(type, typeRef.attr, fileName = typeRef.fileName, fileLine = typeRef.fileLine)
             else:
                 self._error("Unknown member type '" + typeRef.name + "'", fileName = typeRef.fileName, fileLine = typeRef.fileLine)
         self._typeRefs = []
@@ -182,7 +190,8 @@ class SpecParser(object):
     # Validate a type's attributes
     def _validateAttr(self, type, attr, fileName = None, fileLine = None):
         try:
-            type.validateAttr(attr)
+            if attr is not None:
+                type.validateAttr(attr)
         except model.AttributeValidationError as e:
             self._error("Invalid attribute '" + e.attr + "'", fileName = fileName, fileLine = fileLine)
 
@@ -242,7 +251,7 @@ class SpecParser(object):
             mDefinition = self._RE_DEFINITION.search(line) if mComment is None else None
             mSection = self._RE_SECTION.search(line) if mDefinition is None else None
             mMember = self._RE_MEMBER.search(line) if mSection is None else None
-            mValue = self._reValue.search(line) if mMember is None else None
+            mValue = self._RE_VALUE.search(line) if mMember is None else None
 
             # Comment?
             if mComment:
@@ -318,7 +327,6 @@ class SpecParser(object):
             elif mMember:
 
                 isOptional = mMember.group('optional') is not None
-                sTypeName = mMember.group('type')
                 sArrayAttr = mMember.group('array')
                 sDictAttr = mMember.group('dict')
                 sMemberName = mMember.group('id')
@@ -332,44 +340,59 @@ class SpecParser(object):
                 if any(m.name == sMemberName for m in self._curType.members):
                     self._error("Redefinition of member '" + sMemberName + "'")
 
-                # Get the member base type
-                memType = self._getType(sTypeName)
-                memAttr = self._parseAttr(mMember.group('attrs'))
+                # Create the member
                 if sArrayAttr is not None:
-                    memType = model.TypeArray(memType, attr = memAttr)
-                    memAttr = self._parseAttr(sArrayAttr)
+                    sValueType = mMember.group('type')
+                    valueType = self._getType(sValueType)
+                    valueAttr = self._parseAttr(mMember.group('attrs'))
+                    arrayAttr = self._parseAttr(sArrayAttr)
+                    arrayType = model.TypeArray(valueType, attr = valueAttr)
+
+                    if valueType is not None:
+                        self._validateAttr(valueType, valueAttr)
+                    else:
+                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, arrayType, valueAttr))
+
+                    self._validateAttr(arrayType, arrayAttr)
+
+                    self._curType.addMember(sMemberName, arrayType, isOptional, arrayAttr, doc = self._curDoc)
+
                 elif sDictAttr is not None:
-                    memType = model.TypeDict(memType, attr = memAttr)
-                    memAttr = self._parseAttr(sDictAttr)
+                    sKeyType = mMember.group('dictKeyType')
+                    keyType = self._getType(sKeyType) if sKeyType is not None else None
+                    keyAttr = self._parseAttr(mMember.group('dictKeyAttrs'))
+                    sValueType = mMember.group('dictValueType')
+                    valueType = self._getType(sValueType)
+                    valueAttr = self._parseAttr(mMember.group('dictValueAttrs'))
+                    dictAttr = self._parseAttr(sDictAttr)
+                    dictType = model.TypeDict(valueType, attr = valueAttr, keyType = keyType, keyAttr = keyAttr)
 
-                # Create the struct member
-                member = self._curType.addMember(sMemberName, memType, isOptional, memAttr, doc = self._curDoc)
-                self._curDoc = []
+                    if keyType is not None:
+                        self._validateAttr(keyType, keyAttr)
+                    elif sKeyType is not None:
+                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sKeyType, dictType, keyAttr, parentAttr = 'keyType'))
 
-                # Validate attributes
-                if sArrayAttr is not None or sDictAttr is not None:
+                    if valueType is not None:
+                        self._validateAttr(valueType, valueAttr)
+                    else:
+                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, dictType, valueAttr))
 
-                    # Validate collection type attributes
-                    if memAttr is not None:
-                        self._validateAttr(memType, memAttr)
+                    self._validateAttr(dictType, dictAttr)
 
-                    # Add a typeref if collection base type is unknown
-                    if memType.type is None:
-                        typeRef = TypeRef(self._parseFileName, self._parseFileLine, sTypeName, memType, memType.attr)
-                        self._typeRefs.append(typeRef)
-                    elif memType.attr is not None:
-                        # Validate collection base type attributes
-                        self._validateAttr(memType.type, memType.attr)
+                    self._curType.addMember(sMemberName, dictType, isOptional, dictAttr, doc = self._curDoc)
 
                 else:
+                    sMemType = mMember.group('type')
+                    memType = self._getType(sMemType)
+                    memAttr = self._parseAttr(mMember.group('attrs'))
+                    member = self._curType.addMember(sMemberName, memType, isOptional, memAttr, doc = self._curDoc)
 
-                    # Add a typeref if type is unknown
-                    if memType is None:
-                        typeRef = TypeRef(self._parseFileName, self._parseFileLine, sTypeName, member, memAttr)
-                        self._typeRefs.append(typeRef)
-                    elif memAttr is not None:
-                        # Validate the type attributes
+                    if memType is not None:
                         self._validateAttr(memType, memAttr)
+                    else:
+                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sMemType, member, memAttr))
+
+                self._curDoc = []
 
             # Enum value?
             elif mValue:

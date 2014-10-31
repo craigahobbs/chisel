@@ -106,6 +106,7 @@ struct MyStruct2
     optional float{} g
     optional datetime h
     optional uuid i
+    optional MyEnum : MyStruct{} j
 
 # This is a union
 union MyUnion
@@ -164,7 +165,8 @@ action MyAction4
                                  ('f', chisel.model.TypeArray, True),
                                  ('g', chisel.model.TypeDict, True),
                                  ('h', chisel.model._TypeDatetime, True),
-                                 ('i', chisel.model._TypeUuid, True)))
+                                 ('i', chisel.model._TypeUuid, True),
+                                 ('j', chisel.model.TypeDict, True)))
         self.assertStructByName(parser, 'MyUnion',
                                 (('a', chisel.model._TypeInt, True),
                                  ('b', chisel.model._TypeString, True)))
@@ -172,6 +174,8 @@ action MyAction4
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[5].type.type, chisel.model.TypeStruct))
         self.assertEqual(parser.types['MyStruct2'].members[5].type.type.typeName, 'MyStruct')
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[6].type.type, chisel.model._TypeFloat))
+        self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.type, chisel.model.TypeStruct))
+        self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.keyType, chisel.model.TypeEnum))
 
         # Check actions
         self.assertAction(parser, 'MyAction',
@@ -334,13 +338,34 @@ struct MyStruct2
         self.assertStructByName(parser, 'MyStruct2', ())
 
 
-    def test_spec_typeref_array_type_attr(self):
+    def test_spec_typeref_dict_attr(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+struct MyStruct
+    MyEnum : MyStruct2{len > 0} a
+enum MyEnum
+struct MyStruct2
+''')
+
+        self.assertStructByName(parser, 'MyStruct',
+                                (('a', chisel.model.TypeDict, False),))
+        self.assertTrue(parser.types['MyStruct'].members[0].type.type is parser.types['MyStruct2'])
+        self.assertTrue(parser.types['MyStruct'].members[0].type.attr is None)
+        self.assertTrue(parser.types['MyStruct'].members[0].type.keyType is parser.types['MyEnum'])
+        self.assertTrue(parser.types['MyStruct'].members[0].type.keyAttr is None)
+        self.assertTrue(parser.types['MyStruct'].members[0].attr is not None)
+
+        self.assertStructByName(parser, 'MyStruct2', ())
+
+
+    def test_spec_typeref_invalid_attr(self):
 
         parser = SpecParser()
         try:
             parser.parseString('''\
 struct MyStruct
-    [len > 0] MyStruct2 a
+    MyStruct2(len > 0) a
 struct MyStruct2
 ''')
         except SpecParserError as e:
@@ -643,22 +668,23 @@ action MyAction
         parser = SpecParser()
         parser.parseString('''\
 struct MyStruct
-    optional [> 1,<= 10.5] int i1
-    optional [>= 1, < 10 ] int i2
-    [ > 0, <= 10] int i3
-    [> -4, < -1.4] int i4
-    [== 5] int i5
-    [ > 1, <= 10.5] float f1
-    [>= 1.5, < 10 ] float f2
-    [len > 5, len < 101] string s1
-    [ len >= 5, len <= 100 ] string s2
-    [ len == 2 ] string s3
-    [> 5] int[] ai1
-    [len < 5] string[len < 10] as1
-    [len == 2] string[len == 3] as2
-    [< 15] int{} di1
-    [len > 5] string{len > 10} ds1
-    [len == 2] string{len == 3} ds2
+    optional int(> 1,<= 10.5) i1
+    optional int (>= 1, < 10 ) i2
+    int( > 0, <= 10) i3
+    int(> -4, < -1.4) i4
+    int(== 5) i5
+    float( > 1, <= 10.5) f1
+    float(>= 1.5, < 10 ) f2
+    string(len > 5, len < 101) s1
+    string( len >= 5, len <= 100 ) s2
+    string( len == 2 ) s3
+    int(> 5)[] ai1
+    string(len < 5)[len < 10] as1
+    string(len == 2)[len == 3] as2
+    int(< 15){} di1
+    string(len > 5){len > 10} ds1
+    string(len == 2){len == 3} ds2
+    string(len == 1) : string(len == 2){len == 3} ds3
 ''', fileName = 'foo')
         s = parser.types['MyStruct']
 
@@ -685,6 +711,7 @@ struct MyStruct
                                  ('di1', chisel.model.TypeDict, False),
                                  ('ds1', chisel.model.TypeDict, False),
                                  ('ds2', chisel.model.TypeDict, False),
+                                 ('ds3', chisel.model.TypeDict, False),
                                  ))
 
         def attrTuple(attr = None, eq = None, lt = None, lte = None, gt = None, gte = None,
@@ -771,6 +798,12 @@ struct MyStruct
         self.assertEqual(attrTuple(ds2.attr), attrTuple(len_eq = 3))
         self.assertEqual(attrTuple(ds2.type.attr), attrTuple(len_eq = 2))
 
+        # Check ds3 constraints
+        ds3 = next(itm)
+        self.assertEqual(attrTuple(ds3.attr), attrTuple(len_eq = 3))
+        self.assertEqual(attrTuple(ds3.type.attr), attrTuple(len_eq = 2))
+        self.assertEqual(attrTuple(ds3.type.keyAttr), attrTuple(len_eq = 1))
+
         self.assertEqual(next(itm, None), None)
 
 
@@ -789,28 +822,28 @@ struct MyStruct
     def test_spec_error_attribute_eq(self):
         self._test_spec_error([":2: error: Invalid attribute '== 7'"], '''\
 struct MyStruct
-    [== 7] string s
+    string(== 7) s
 ''')
 
 
     def test_spec_error_attribute_lt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
 struct MyStruct
-    [< 7] string s
+    string(< 7) s
 ''')
 
 
     def test_spec_error_attribute_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '> 7'"], '''\
 struct MyStruct
-    [> 7] string s
+    string(> 7) s
 ''')
 
 
     def test_spec_error_attribute_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
 struct MyStruct
-    [< 7, > 7] string s
+    string(< 7, > 7) s
 ''')
 
 
@@ -822,36 +855,36 @@ enum MyEnum
     Bar
 
 struct MyStruct
-    [>=1] MyStruct a
-    [<=2] MyEnum b
+    MyStruct(>= 1) a
+    MyEnum(<= 2) b
 ''')
 
 
     def test_spec_error_attribute_len_eq(self):
         self._test_spec_error([":2: error: Invalid attribute 'len == 1'"], '''\
 struct MyStruct
-    [len == 1] int i
+    int(len == 1) i
 ''')
 
 
     def test_spec_error_attribute_len_lt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
 struct MyStruct
-    [len < 10] float f
+    float(len < 10) f
 ''')
 
 
     def test_spec_error_attribute_len_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len > 1'"], '''\
 struct MyStruct
-    [len > 1] int i
+    int(len > 1) i
 ''')
 
 
     def test_spec_error_attribute_len_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
 struct MyStruct
-    [len < 10, len > 10] float f
+    float(len < 10, len > 10) f
 ''')
 
 
@@ -859,15 +892,15 @@ struct MyStruct
         self._test_spec_error([":2: error: Invalid attribute 'len <= 10'",
                                ":3: error: Invalid attribute 'len >= 10'"], '''\
 struct MyStruct
-    [len <= 10] float f
-    [len >= 10] float f2
+    float(len <= 10) f
+    float(len >= 10) f2
 ''')
 
 
     def test_spec_error_attribute_invalid(self):
         self._test_spec_error([':2: error: Syntax error'], '''\
 struct MyStruct
-    [regex="abc"] string a
+    string(regex="abc") a
 ''')
 
 

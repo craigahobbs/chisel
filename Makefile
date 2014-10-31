@@ -91,7 +91,7 @@ ENV_PYTHON = $(ENV)/$(strip $(1))/bin/python -E
 # Generate test rules
 define TEST_COMMANDS
 	$(call ENV_PYTHON, $(1)) -m pip install -q -e . -e .[tests]
-	$(call ENV_PYTHON, $(1)) setup.py test
+	$(call ENV_PYTHON, $(1)) setup.py test $(if $(TEST),-s $(TEST))
 endef
 $(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , TEST_COMMANDS)))
 

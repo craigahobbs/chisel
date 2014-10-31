@@ -324,13 +324,15 @@ class TypeArray(object):
 
 # Dict type
 class TypeDict(object):
-    __slots__ = ('type', 'attr')
+    __slots__ = ('type', 'attr', 'keyType', 'keyAttr')
 
     typeName = 'dict'
 
-    def __init__(self, type, attr = None):
+    def __init__(self, type, attr = None, keyType = None, keyAttr = None):
         self.type = type
         self.attr = attr
+        self.keyType = keyType or TypeString()
+        self.keyAttr = keyAttr
 
     def validateAttr(self, attr):
         attr.validateAttr(allowLength = True)
@@ -352,16 +354,19 @@ class TypeDict(object):
         for dictKey, dictValue in iteritems(valueX):
             memberPath = (_member, dictKey)
 
-            # Dict keys must be strings
-            if not isinstance(dictKey, basestring_):
-                raise ValidationError.memberError(TypeString(), dictKey, memberPath)
+            # Validate the key
+            dictKeyX = self.keyType.validate(dictKey, mode, memberPath)
+            if self.keyAttr is not None:
+                self.keyAttr.validate(dictKeyX, memberPath)
 
             # Validate the value
             dictValueX = self.type.validate(dictValue, mode, memberPath)
             if self.attr is not None:
                 self.attr.validate(dictValueX, memberPath)
+
+            # Result a copy?
             if valueCopy is not None:
-                valueCopy[dictKey] = dictValueX
+                valueCopy[dictKeyX] = dictValueX
 
         return value if valueCopy is None else valueCopy
 

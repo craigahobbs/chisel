@@ -22,7 +22,7 @@
 
 from .action import Action
 from .compat import cgi, iteritems, itervalues, StringIO, urllib
-from .model import JsonFloat, TypeStruct, TypeEnum, TypeArray, TypeDict
+from .model import JsonFloat, TypeStruct, TypeEnum, TypeArray, TypeDict, _TypeString as TypeString
 
 import xml.sax.saxutils as saxutils
 
@@ -201,14 +201,17 @@ def createRequestHtml(environ, request, nonav = False):
         # Find all user types referenced by the action
         structTypes = {}
         enumTypes = {}
+        def addType(type):
+            if isinstance(type, TypeStruct) and type.typeName not in structTypes:
+                structTypes[type.typeName] = type
+                findUserTypes(type)
+            elif isinstance(type, TypeEnum) and type.typeName not in enumTypes:
+                enumTypes[type.typeName] = type
         def findUserTypes(structType):
             for member in structType.members:
-                baseType = member.type.type if hasattr(member.type, 'type') else member.type
-                if isinstance(baseType, TypeStruct) and baseType.typeName not in structTypes:
-                    structTypes[baseType.typeName] = baseType
-                    findUserTypes(baseType)
-                elif isinstance(baseType, TypeEnum) and baseType.typeName not in enumTypes:
-                    enumTypes[baseType.typeName] = baseType
+                addType(member.type.type if hasattr(member.type, 'type') else member.type)
+                if hasattr(member.type, 'keyType'):
+                    addType(member.type.keyType)
         findUserTypes(request.model.inputType)
         if not request.wsgiResponse:
             findUserTypes(request.model.outputType)
@@ -372,10 +375,13 @@ def _userTypeHref(type):
 def _addTypeName(parent, type):
 
     # Compute the type string
+    keyType = None
     if isinstance(type, TypeArray):
         baseType = type.type
         typeExtra = '[]'
     elif isinstance(type, TypeDict):
+        if not isinstance(type.keyType, TypeString):
+            keyType = type.keyType
         baseType = type.type
         typeExtra = '{}'
     else:
@@ -383,6 +389,13 @@ def _addTypeName(parent, type):
         typeExtra = None
 
     # Generate the type string DOM
+    if keyType is not None:
+        if isinstance(keyType, TypeStruct) or isinstance(keyType, TypeEnum):
+            parent.addChild('a', isInline = True, href = '#' + _userTypeHref(keyType)) \
+                  .addChild(keyType.typeName, isText = True)
+        else:
+            parent.addChild(keyType.typeName, isText = True, isInline = True)
+        parent.addChild(' : ', isText = True)
     if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
         parent.addChild('a', isInline = True, href = '#' + _userTypeHref(baseType)) \
             .addChild(baseType.typeName, isText = True)
@@ -392,29 +405,29 @@ def _addTypeName(parent, type):
         parent.addChild(typeExtra, isText = True, isInline = True)
 
 # Get attribute list - [(lhs, op, rhs), ...]
-def _attributeList(attr, isElem = False):
+def _attributeList(attr, valueName, lenName):
     if attr is None:
         return
     if attr.gt is not None:
-        yield ('elem' if isElem else 'value', '>', str(JsonFloat(attr.gt, 6)))
+        yield (valueName, '>', str(JsonFloat(attr.gt, 6)))
     if attr.gte is not None:
-        yield ('elem' if isElem else 'value', '>=', str(JsonFloat(attr.gte, 6)))
+        yield (valueName, '>=', str(JsonFloat(attr.gte, 6)))
     if attr.lt is not None:
-        yield ('elem' if isElem else 'value', '<', str(JsonFloat(attr.lt, 6)))
+        yield (valueName, '<', str(JsonFloat(attr.lt, 6)))
     if attr.lte is not None:
-        yield ('elem' if isElem else 'value', '<=', str(JsonFloat(attr.lte, 6)))
+        yield (valueName, '<=', str(JsonFloat(attr.lte, 6)))
     if attr.eq is not None:
-        yield ('elem' if isElem else 'value', '<=', str(JsonFloat(attr.eq, 6)))
+        yield (valueName, '<=', str(JsonFloat(attr.eq, 6)))
     if attr.len_gt is not None:
-        yield ('len(elem)' if isElem else 'len', '>', str(JsonFloat(attr.len_gt, 6)))
+        yield (lenName, '>', str(JsonFloat(attr.len_gt, 6)))
     if attr.len_gte is not None:
-        yield ('len(elem)' if isElem else 'len', '>=', str(JsonFloat(attr.len_gte, 6)))
+        yield (lenName, '>=', str(JsonFloat(attr.len_gte, 6)))
     if attr.len_lt is not None:
-        yield ('len(elem)' if isElem else 'len', '<', str(JsonFloat(attr.len_lt, 6)))
+        yield (lenName, '<', str(JsonFloat(attr.len_lt, 6)))
     if attr.len_lte is not None:
-        yield ('len(elem)' if isElem else 'len', '<=', str(JsonFloat(attr.len_lte, 6)))
+        yield (lenName, '<=', str(JsonFloat(attr.len_lte, 6)))
     if attr.len_eq is not None:
-        yield ('len(elem)' if isElem else 'len', '<=', str(JsonFloat(attr.len_eq, 6)))
+        yield (lenName, '<=', str(JsonFloat(attr.len_eq, 6)))
 
 # Attribute DOM helper
 def _attributeDom(ul, lhs, op, rhs):
@@ -430,10 +443,14 @@ def _addTypeAttr(parent, member):
     ul = parent.addChild('ul', _class = 'chsl-constraint-list')
     if member.isOptional:
         _attributeDom(ul, 'optional', None, None)
-    for lhs, op, rhs in _attributeList(member.attr):
+    typeName = 'array' if isinstance(member.type, TypeArray) else ('dict' if isinstance(member.type, TypeDict) else 'value')
+    for lhs, op, rhs in _attributeList(member.attr, typeName, 'len(' + typeName + ')'):
         _attributeDom(ul, lhs, op, rhs)
+    if hasattr(member.type, 'keyType'):
+        for lhs, op, rhs in _attributeList(member.type.keyAttr, 'key', 'len(key)'):
+            _attributeDom(ul, lhs, op, rhs)
     if hasattr(member.type, 'type'):
-        for lhs, op, rhs in _attributeList(member.type.attr, isElem = True):
+        for lhs, op, rhs in _attributeList(member.type.attr, 'elem', 'len(elem)'):
             _attributeDom(ul, lhs, op, rhs)
 
     # No constraints?
