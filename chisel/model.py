@@ -206,6 +206,23 @@ class StructMemberAttributes(object):
                 raise AttributeValidationError('len == ' + repr(JsonFloat(self.len_eq, 6)))
 
 
+# Typedef type (type plus attributes)
+class Typedef(object):
+    __slots__ = ('type', 'attr')
+
+    def __init__(self, type, attr):
+        self.type = type
+        self.attr = attr
+
+    def validateAttr(self, attr):
+        self.type.validateAttr(attr)
+
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+        result = self.type.validate(value, mode, _member)
+        self.attr.validate(result, _member)
+        return result
+
+
 # Struct member
 class StructMember(object):
     __slots__ = ('name', 'type', 'isOptional', 'attr', 'doc')
