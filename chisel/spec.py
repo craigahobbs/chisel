@@ -77,28 +77,28 @@ class SpecParser(object):
         )
 
     # Parser regex
-    _RE_PART_ID = r'([A-Za-z]\w*)'
-    _RE_PART_ATTR_GROUP = r'((?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(\.\d+)?)' \
+    _RE_PART_ID = r'(?:[A-Za-z]\w*)'
+    _RE_PART_ATTR_GROUP = r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
                           r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
-    _RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(', _RE_PART_ATTR_GROUP)
+    _RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', _RE_PART_ATTR_GROUP)
+    _RE_PART_ATTRS = r'(?:' + _RE_PART_ATTR + r'(?:\s*,\s*' + _RE_PART_ATTR + r')*)'
     _RE_ATTR_GROUP = re.compile(_RE_PART_ATTR_GROUP)
     _RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
     _RE_LINE_CONT = re.compile(r'\\s*$')
-    _RE_COMMENT = re.compile(r'^\s*(#-.*|#(?P<doc>.*))?$')
+    _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
     _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')\s*$')
     _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)\s*$')
-    _RE_MEMBER = re.compile(r'^\s+((?P<optional>optional)\s+)?'
-                            r'('
+    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?'
                             r'(?P<type>' + _RE_PART_ID + r')'
-                            r'(\s*\(\s*(?P<attrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
-                            r'(\s*\[\s*(?P<array>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*\])?'
+                            r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?'
+                            r'(?:'
+                            r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?'
                             r'|'
-                            r'((?P<dictKeyType>' + _RE_PART_ID + r')'
-                            r'(\s*\(\s*(?P<dictKeyAttrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
-                            r'\s*:\s*)?'
-                            r'(?P<dictValueType>' + _RE_PART_ID + r')'
-                            r'(\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)\s*\))?'
-                            r'{\s*(?P<dict>(' + _RE_PART_ATTR + r'(\s*,\s*' + _RE_PART_ATTR + r')*)?)\s*}'
+                            r'(?:'
+                            r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')'
+                            r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?'
+                            r')?'
+                            r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?'
                             r')'
                             r'\s+(?P<id>' + _RE_PART_ID + r')\s*$')
     _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
@@ -201,7 +201,7 @@ class SpecParser(object):
         attr = None
         if sAttrs is not None:
             for sAttr in cls._RE_FIND_ATTRS.findall(sAttrs):
-                mAttr = cls._RE_ATTR_GROUP.match(sAttr[0])
+                mAttr = cls._RE_ATTR_GROUP.match(sAttr)
                 attrOp = mAttr.group('op')
                 attrLop = mAttr.group('lop') if attrOp is None else None
 
@@ -358,12 +358,18 @@ class SpecParser(object):
                     self._curType.addMember(sMemberName, arrayType, isOptional, arrayAttr, doc = self._curDoc)
 
                 elif sDictAttr is not None:
-                    sKeyType = mMember.group('dictKeyType')
-                    keyType = self._getType(sKeyType) if sKeyType is not None else None
-                    keyAttr = self._parseAttr(mMember.group('dictKeyAttrs'))
                     sValueType = mMember.group('dictValueType')
-                    valueType = self._getType(sValueType)
-                    valueAttr = self._parseAttr(mMember.group('dictValueAttrs'))
+                    if sValueType is not None:
+                        valueType = self._getType(sValueType)
+                        valueAttr = self._parseAttr(mMember.group('dictValueAttrs'))
+                        sKeyType = mMember.group('type')
+                        keyType = self._getType(sKeyType)
+                        keyAttr = self._parseAttr(mMember.group('attrs'))
+                    else:
+                        sValueType = mMember.group('type')
+                        valueType = self._getType(sValueType)
+                        valueAttr = self._parseAttr(mMember.group('attrs'))
+                        sKeyType = keyType = keyAttr = None
                     dictAttr = self._parseAttr(sDictAttr)
                     dictType = model.TypeDict(valueType, attr = valueAttr, keyType = keyType, keyAttr = keyAttr)
 
