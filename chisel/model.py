@@ -208,11 +208,13 @@ class StructMemberAttributes(object):
 
 # Typedef type (type plus attributes)
 class Typedef(object):
-    __slots__ = ('type', 'attr')
+    __slots__ = ('typeName', 'type', 'attr', 'doc')
 
-    def __init__(self, type, attr):
+    def __init__(self, type, attr, typeName = None, doc = None):
+        self.typeName = 'typedef' if typeName is None else typeName
         self.type = type
         self.attr = attr
+        self.doc = [] if doc is None else doc
 
     def validateAttr(self, attr):
         self.type.validateAttr(attr)
@@ -240,7 +242,7 @@ class TypeStruct(object):
     __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
 
     def __init__(self, typeName = None, isUnion = False, doc = None):
-        self.typeName = typeName if typeName else ('union' if isUnion else 'struct')
+        self.typeName = ('union' if isUnion else 'struct') if typeName is None else typeName
         self.isUnion = isUnion
         self._members = []
         self._membersDict = {}

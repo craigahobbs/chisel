@@ -661,6 +661,21 @@ action MyAction
                           ':12: error: Enumeration value outside of enum scope'])
 
 
+    @staticmethod
+    def attrTuple(attr = None, eq = None, lt = None, lte = None, gt = None, gte = None,
+                  len_eq = None, len_lt = None, len_lte = None, len_gt = None, len_gte = None):
+        return (attr.eq if attr else eq,
+                attr.lt if attr else lt,
+                attr.lte if attr else lte,
+                attr.gt if attr else gt,
+                attr.gte if attr else gte,
+                attr.len_eq if attr else len_eq,
+                attr.len_lt if attr else len_lt,
+                attr.len_lte if attr else len_lte,
+                attr.len_gt if attr else len_gt,
+                attr.len_gte if attr else len_gte)
+
+
     # Test valid attribute usage
     def test_spec_attributes(self):
 
@@ -714,95 +729,82 @@ struct MyStruct
                                  ('ds3', chisel.model.TypeDict, False),
                                  ))
 
-        def attrTuple(attr = None, eq = None, lt = None, lte = None, gt = None, gte = None,
-                      len_eq = None, len_lt = None, len_lte = None, len_gt = None, len_gte = None):
-            return (attr.eq if attr else eq,
-                    attr.lt if attr else lt,
-                    attr.lte if attr else lte,
-                    attr.gt if attr else gt,
-                    attr.gte if attr else gte,
-                    attr.len_eq if attr else len_eq,
-                    attr.len_lt if attr else len_lt,
-                    attr.len_lte if attr else len_lte,
-                    attr.len_gt if attr else len_gt,
-                    attr.len_gte if attr else len_gte)
-
         # Check i1 constraints
         itm = iter(s.members)
         i1 = next(itm)
-        self.assertEqual(attrTuple(i1.attr), attrTuple(lte = 10.5, gt = 1))
+        self.assertEqual(self.attrTuple(i1.attr), self.attrTuple(lte = 10.5, gt = 1))
 
         # Check i2 constraints
         i2 = next(itm)
-        self.assertEqual(attrTuple(i2.attr), attrTuple(lt = 10, gte = 1))
+        self.assertEqual(self.attrTuple(i2.attr), self.attrTuple(lt = 10, gte = 1))
 
         # Check i3 constraints
         i3 = next(itm)
-        self.assertEqual(attrTuple(i3.attr), attrTuple(lte = 10, gt = 0))
+        self.assertEqual(self.attrTuple(i3.attr), self.attrTuple(lte = 10, gt = 0))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(attrTuple(i4.attr), attrTuple(lt = -1.4, gt = -4))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(lt = -1.4, gt = -4))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(attrTuple(i4.attr), attrTuple(eq = 5))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(eq = 5))
 
         # Check f1 constraints
         f1 = next(itm)
-        self.assertEqual(attrTuple(f1.attr), attrTuple(lte = 10.5, gt = 1))
+        self.assertEqual(self.attrTuple(f1.attr), self.attrTuple(lte = 10.5, gt = 1))
 
         # Check f2 constraints
         f2 = next(itm)
-        self.assertEqual(attrTuple(f2.attr), attrTuple(lt = 10, gte = 1.5))
+        self.assertEqual(self.attrTuple(f2.attr), self.attrTuple(lt = 10, gte = 1.5))
 
         # Check s1 constraints
         s1 = next(itm)
-        self.assertEqual(attrTuple(s1.attr), attrTuple(len_lt = 101, len_gt = 5))
+        self.assertEqual(self.attrTuple(s1.attr), self.attrTuple(len_lt = 101, len_gt = 5))
 
         # Check s2 constraints
         s2 = next(itm)
-        self.assertEqual(attrTuple(s2.attr), attrTuple(len_lte = 100, len_gte = 5))
+        self.assertEqual(self.attrTuple(s2.attr), self.attrTuple(len_lte = 100, len_gte = 5))
 
         # Check s3 constraints
         s3 = next(itm)
-        self.assertEqual(attrTuple(s3.attr), attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(s3.attr), self.attrTuple(len_eq = 2))
 
         # Check ai1 constraints
         ai1 = next(itm)
         self.assertEqual(ai1.attr, None)
-        self.assertEqual(attrTuple(ai1.type.attr), attrTuple(gt = 5))
+        self.assertEqual(self.attrTuple(ai1.type.attr), self.attrTuple(gt = 5))
 
         # Check as1 constraints
         as1 = next(itm)
-        self.assertEqual(attrTuple(as1.attr), attrTuple(len_lt = 10))
-        self.assertEqual(attrTuple(as1.type.attr), attrTuple(len_lt = 5))
+        self.assertEqual(self.attrTuple(as1.attr), self.attrTuple(len_lt = 10))
+        self.assertEqual(self.attrTuple(as1.type.attr), self.attrTuple(len_lt = 5))
 
         # Check as2 constraints
         as2 = next(itm)
-        self.assertEqual(attrTuple(as2.attr), attrTuple(len_eq = 3))
-        self.assertEqual(attrTuple(as2.type.attr), attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(as2.attr), self.attrTuple(len_eq = 3))
+        self.assertEqual(self.attrTuple(as2.type.attr), self.attrTuple(len_eq = 2))
 
         # Check di1 constraints
         di1 = next(itm)
         self.assertEqual(di1.attr, None)
-        self.assertEqual(attrTuple(di1.type.attr), attrTuple(lt = 15))
+        self.assertEqual(self.attrTuple(di1.type.attr), self.attrTuple(lt = 15))
 
         # Check ds1 constraints
         ds1 = next(itm)
-        self.assertEqual(attrTuple(ds1.attr), attrTuple(len_gt = 10))
-        self.assertEqual(attrTuple(ds1.type.attr), attrTuple(len_gt = 5))
+        self.assertEqual(self.attrTuple(ds1.attr), self.attrTuple(len_gt = 10))
+        self.assertEqual(self.attrTuple(ds1.type.attr), self.attrTuple(len_gt = 5))
 
         # Check ds2 constraints
         ds2 = next(itm)
-        self.assertEqual(attrTuple(ds2.attr), attrTuple(len_eq = 3))
-        self.assertEqual(attrTuple(ds2.type.attr), attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(ds2.attr), self.attrTuple(len_eq = 3))
+        self.assertEqual(self.attrTuple(ds2.type.attr), self.attrTuple(len_eq = 2))
 
         # Check ds3 constraints
         ds3 = next(itm)
-        self.assertEqual(attrTuple(ds3.attr), attrTuple(len_eq = 3))
-        self.assertEqual(attrTuple(ds3.type.attr), attrTuple(len_eq = 2))
-        self.assertEqual(attrTuple(ds3.type.keyAttr), attrTuple(len_eq = 1))
+        self.assertEqual(self.attrTuple(ds3.attr), self.attrTuple(len_eq = 3))
+        self.assertEqual(self.attrTuple(ds3.type.attr), self.attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(ds3.type.keyAttr), self.attrTuple(len_eq = 1))
 
         self.assertEqual(next(itm, None), None)
 
@@ -1020,3 +1022,28 @@ action MyAction
                          [])
         self.assertEqual(parser.actions['MyAction'].outputType.members[0].doc,
                          ['My output member'])
+
+
+    def test_spec_typedef(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+# My typedef
+typedef MyEnum : MyStruct{len > 0} MyTypedef
+
+enum MyEnum
+    A
+    B
+
+struct MyStruct
+    int a
+    optional int b
+''')
+
+        self.assertEqual(len(parser.types), 3)
+        typedef = parser.types['MyTypedef']
+        self.assertTrue(isinstance(typedef, chisel.model.Typedef))
+        self.assertTrue(isinstance(typedef.type, chisel.model.TypeDict))
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(len_gt = 0))
+        self.assertTrue(isinstance(typedef.type.keyType, chisel.model.TypeEnum))
+        self.assertTrue(isinstance(typedef.type.type, chisel.model.TypeStruct))

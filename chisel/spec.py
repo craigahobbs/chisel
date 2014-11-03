@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import StringIO
+from .compat import basestring_, StringIO
 from . import model
 
 import re
@@ -88,19 +88,20 @@ class SpecParser(object):
     _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
     _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')\s*$')
     _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)\s*$')
-    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?'
-                            r'(?P<type>' + _RE_PART_ID + r')'
-                            r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?'
-                            r'(?:'
-                            r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?'
-                            r'|'
-                            r'(?:'
-                            r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')'
-                            r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?'
-                            r')?'
-                            r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?'
-                            r')'
-                            r'\s+(?P<id>' + _RE_PART_ID + r')\s*$')
+    _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
+                       r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
+                       r'(?:' \
+                       r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?' \
+                       r'|' \
+                       r'(?:' \
+                       r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')' \
+                       r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?' \
+                       r')?' \
+                       r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?' \
+                       r')' \
+                       r'\s+(?P<id>' + _RE_PART_ID + r')'
+    _RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
+    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
     _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 
     # Types
@@ -232,8 +233,70 @@ class SpecParser(object):
                         attr.len_gte = attrValue
                     else: # ==
                         attr.len_eq = attrValue
-
         return attr
+
+    # Construct typedef parts
+    def _parseTypedef(self, mTypedef):
+        sArrayAttr = mTypedef.group('array')
+        sDictAttr = mTypedef.group('dict')
+        sId = mTypedef.group('id')
+
+        # Create the member
+        if sArrayAttr is not None:
+            sValueType = mTypedef.group('type')
+            valueType = self._getType(sValueType)
+            valueAttr = self._parseAttr(mTypedef.group('attrs'))
+            arrayAttr = self._parseAttr(sArrayAttr)
+            arrayType = model.TypeArray(valueType, attr = valueAttr)
+
+            if valueType is not None:
+                self._validateAttr(valueType, valueAttr)
+            else:
+                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, arrayType, valueAttr))
+
+            self._validateAttr(arrayType, arrayAttr)
+
+            return sId, arrayType, arrayAttr
+
+        elif sDictAttr is not None:
+            sValueType = mTypedef.group('dictValueType')
+            if sValueType is not None:
+                valueType = self._getType(sValueType)
+                valueAttr = self._parseAttr(mTypedef.group('dictValueAttrs'))
+                sKeyType = mTypedef.group('type')
+                keyType = self._getType(sKeyType)
+                keyAttr = self._parseAttr(mTypedef.group('attrs'))
+            else:
+                sValueType = mTypedef.group('type')
+                valueType = self._getType(sValueType)
+                valueAttr = self._parseAttr(mTypedef.group('attrs'))
+                sKeyType = keyType = keyAttr = None
+            dictAttr = self._parseAttr(sDictAttr)
+            dictType = model.TypeDict(valueType, attr = valueAttr, keyType = keyType, keyAttr = keyAttr)
+
+            if keyType is not None:
+                self._validateAttr(keyType, keyAttr)
+            elif sKeyType is not None:
+                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sKeyType, dictType, keyAttr, parentAttr = 'keyType'))
+
+            if valueType is not None:
+                self._validateAttr(valueType, valueAttr)
+            else:
+                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, dictType, valueAttr))
+
+            self._validateAttr(dictType, dictAttr)
+
+            return sId, dictType, dictAttr
+
+        else:
+            sMemType = mTypedef.group('type')
+            memType = self._getType(sMemType)
+            memAttr = self._parseAttr(mTypedef.group('attrs'))
+
+            if memType is not None:
+                self._validateAttr(memType, memAttr)
+
+            return sId, memType or sMemType, memAttr
 
     # Parse a specification from a stream
     def _parse(self):
@@ -250,19 +313,18 @@ class SpecParser(object):
             mComment = self._RE_COMMENT.search(line)
             mDefinition = self._RE_DEFINITION.search(line) if mComment is None else None
             mSection = self._RE_SECTION.search(line) if mDefinition is None else None
-            mMember = self._RE_MEMBER.search(line) if mSection is None else None
-            mValue = self._RE_VALUE.search(line) if mMember is None else None
+            mValue = self._RE_VALUE.search(line) if mSection is None else None
+            mMember = self._RE_MEMBER.search(line) if mValue is None else None
+            mTypedef = self._RE_TYPEDEF.search(line) if mMember is None else None
 
             # Comment?
             if mComment:
-
                 sDoc = mComment.group('doc')
                 if sDoc is not None:
                     self._curDoc.append(sDoc.strip())
 
             # Definition?
             elif mDefinition:
-
                 sDefType = mDefinition.group('type')
                 sDefId = mDefinition.group('id')
 
@@ -307,7 +369,6 @@ class SpecParser(object):
 
             # Section?
             elif mSection:
-
                 sSectType = mSection.group('type')
 
                 # Not in an action scope?
@@ -323,86 +384,8 @@ class SpecParser(object):
                 else: # sSectType == 'errors':
                     self._curType = self._curAction.errorType
 
-            # Struct member?
-            elif mMember:
-
-                isOptional = mMember.group('optional') is not None
-                sArrayAttr = mMember.group('array')
-                sDictAttr = mMember.group('dict')
-                sMemberName = mMember.group('id')
-
-                # Not in a struct scope?
-                if not isinstance(self._curType, model.TypeStruct):
-                    self._error('Member definition outside of struct scope')
-                    continue
-
-                # Member name already defined?
-                if any(m.name == sMemberName for m in self._curType.members):
-                    self._error("Redefinition of member '" + sMemberName + "'")
-
-                # Create the member
-                if sArrayAttr is not None:
-                    sValueType = mMember.group('type')
-                    valueType = self._getType(sValueType)
-                    valueAttr = self._parseAttr(mMember.group('attrs'))
-                    arrayAttr = self._parseAttr(sArrayAttr)
-                    arrayType = model.TypeArray(valueType, attr = valueAttr)
-
-                    if valueType is not None:
-                        self._validateAttr(valueType, valueAttr)
-                    else:
-                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, arrayType, valueAttr))
-
-                    self._validateAttr(arrayType, arrayAttr)
-
-                    self._curType.addMember(sMemberName, arrayType, isOptional, arrayAttr, doc = self._curDoc)
-
-                elif sDictAttr is not None:
-                    sValueType = mMember.group('dictValueType')
-                    if sValueType is not None:
-                        valueType = self._getType(sValueType)
-                        valueAttr = self._parseAttr(mMember.group('dictValueAttrs'))
-                        sKeyType = mMember.group('type')
-                        keyType = self._getType(sKeyType)
-                        keyAttr = self._parseAttr(mMember.group('attrs'))
-                    else:
-                        sValueType = mMember.group('type')
-                        valueType = self._getType(sValueType)
-                        valueAttr = self._parseAttr(mMember.group('attrs'))
-                        sKeyType = keyType = keyAttr = None
-                    dictAttr = self._parseAttr(sDictAttr)
-                    dictType = model.TypeDict(valueType, attr = valueAttr, keyType = keyType, keyAttr = keyAttr)
-
-                    if keyType is not None:
-                        self._validateAttr(keyType, keyAttr)
-                    elif sKeyType is not None:
-                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sKeyType, dictType, keyAttr, parentAttr = 'keyType'))
-
-                    if valueType is not None:
-                        self._validateAttr(valueType, valueAttr)
-                    else:
-                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, dictType, valueAttr))
-
-                    self._validateAttr(dictType, dictAttr)
-
-                    self._curType.addMember(sMemberName, dictType, isOptional, dictAttr, doc = self._curDoc)
-
-                else:
-                    sMemType = mMember.group('type')
-                    memType = self._getType(sMemType)
-                    memAttr = self._parseAttr(mMember.group('attrs'))
-                    member = self._curType.addMember(sMemberName, memType, isOptional, memAttr, doc = self._curDoc)
-
-                    if memType is not None:
-                        self._validateAttr(memType, memAttr)
-                    else:
-                        self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sMemType, member, memAttr))
-
-                self._curDoc = []
-
             # Enum value?
             elif mValue:
-
                 sEnumValue = mValue.group('id')
 
                 # Not in an enum scope?
@@ -416,6 +399,46 @@ class SpecParser(object):
 
                 # Add the enum value
                 self._curType.addValue(sEnumValue, doc = self._curDoc)
+                self._curDoc = []
+
+            # Struct member?
+            elif mMember:
+                isOptional = mMember.group('optional') is not None
+                sMemberName, memType, memAttr = self._parseTypedef(mMember)
+
+                # Not in a struct scope?
+                if not isinstance(self._curType, model.TypeStruct):
+                    self._error('Member definition outside of struct scope')
+                    continue
+
+                # Member name already defined?
+                if any(m.name == sMemberName for m in self._curType.members):
+                    self._error("Redefinition of member '" + sMemberName + "'")
+
+                # Create the member
+                member = self._curType.addMember(sMemberName, memType, isOptional, memAttr, doc = self._curDoc)
+                if isinstance(memType, basestring_):
+                    self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, memType, member, memAttr))
+
+                self._curDoc = []
+
+            # Typedef?
+            elif mTypedef:
+                sTypedefId, typedefType, typedefAttr = self._parseTypedef(mTypedef)
+
+                # Type already defined?
+                if sTypedefId in self._TYPES or sTypedefId in self.types:
+                    self._error("Redefinition of type '" + sTypedefId + "'")
+
+                # Create the typedef
+                typedef = model.Typedef(typedefType, typedefAttr, typeName = sTypedefId, doc = self._curDoc)
+                if isinstance(typedefType, basestring_):
+                    self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, typedefType, typedef, typedefAttr))
+                self.types[sTypedefId] = typedef
+
+                # Reset current action/type
+                self._curAction = None
+                self._curType = None
                 self._curDoc = []
 
             # Unrecognized line syntax
