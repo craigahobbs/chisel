@@ -431,7 +431,7 @@ class SpecParser(object):
                     self._error("Redefinition of type '" + sTypedefId + "'")
 
                 # Create the typedef
-                typedef = model.Typedef(typedefType, typedefAttr, typeName = sTypedefId, doc = self._curDoc)
+                typedef = model.Typedef(typedefType, attr = typedefAttr, typeName = sTypedefId, doc = self._curDoc)
                 if isinstance(typedefType, basestring_):
                     self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, typedefType, typedef, typedefAttr))
                 self.types[sTypedefId] = typedef

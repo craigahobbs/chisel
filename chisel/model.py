@@ -210,7 +210,7 @@ class StructMemberAttributes(object):
 class Typedef(object):
     __slots__ = ('typeName', 'type', 'attr', 'doc')
 
-    def __init__(self, type, attr, typeName = None, doc = None):
+    def __init__(self, type, attr = None, typeName = None, doc = None):
         self.typeName = 'typedef' if typeName is None else typeName
         self.type = type
         self.attr = attr
@@ -221,7 +221,8 @@ class Typedef(object):
 
     def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
         result = self.type.validate(value, mode, _member)
-        self.attr.validate(result, _member)
+        if self.attr is not None:
+            self.attr.validate(result, _member)
         return result
 
 

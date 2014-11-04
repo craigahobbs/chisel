@@ -282,6 +282,103 @@ class TestStructMemberAttributes(unittest.TestCase):
             self.fail()
 
 
+class TestModelTypedefValidation(unittest.TestCase):
+
+    # Test typedef type construction
+    def test_model_typedef_init(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gt = 5))
+        self.assertEqual(t.typeName, 'typedef')
+        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
+        self.assertEqual(t.doc, [])
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gt = 5), typeName = 'Foo', doc = ['A', 'B'])
+        self.assertEqual(t.typeName, 'Foo')
+        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
+        self.assertEqual(t.doc, ['A', 'B'])
+
+    # Test typedef attribute validation
+    def test_model_typedef_validateAttr(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gt = 5))
+
+        try:
+            t.validateAttr(chisel.model.StructMemberAttributes())
+        except:
+            self.fail()
+
+        try:
+            t.validateAttr(chisel.model.StructMemberAttributes(gt = 7))
+        except:
+            self.fail()
+
+        try:
+            t.validateAttr(chisel.model.StructMemberAttributes(len_gt = 7))
+            self.fail()
+        except chisel.model.AttributeValidationError as e:
+            self.assertEqual(str(e), "Invalid attribute 'len > 7'")
+
+    # All validation modes - success
+    def test_model_typedef_validate(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gte = 5))
+
+        o = 5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # All validation modes - success
+    def test_model_typedef_validate_no_attr(self):
+
+        t = chisel.model.Typedef(TypeInt())
+
+        o = 5
+        for mode in ALL_VALIDATION_MODES:
+            o2 = t.validate(o, mode)
+            self.assertTrue(o is o2)
+
+    # Query string validation mode - transformed value
+    def test_model_typedef_validate_transformed_value(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gte = 5))
+
+        o = '5'
+        o2 = t.validate(o, mode = VALIDATE_QUERY_STRING)
+        self.assertTrue(o is not o2)
+        self.assertEqual(o2, 5)
+
+    # Query string validation mode - transformed value
+    def test_model_typedef_validate_type_error(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gte = 5))
+
+        o = 'abc'
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
+            else:
+                self.fail()
+
+    # Query string validation mode - transformed value
+    def test_model_typedef_validate_attr_error(self):
+
+        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gte = 5))
+
+        o = 4
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 4 (type 'int') [>= 5]")
+            else:
+                self.fail()
+
+
 class TestModelStructValidation(unittest.TestCase):
 
     # Test struct type construction
