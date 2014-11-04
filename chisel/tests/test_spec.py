@@ -476,6 +476,41 @@ struct Foo
                          [":5: error: Redefinition of type 'Foo'"])
 
 
+    # Error - redefinition of typedef
+    def test_spec_error_typedef_redefinition(self):
+
+        # Parse spec string
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+struct Foo
+    int a
+
+typedef int(> 5) Foo
+''')
+        except SpecParserError as e:
+            self.assertEqual(str(e), ":4: error: Redefinition of type 'Foo'")
+        else:
+            self.fail()
+
+        # Check counts
+        self.assertEqual(len(parser.errors), 1)
+        self.assertEqual(len(parser.types), 1)
+        self.assertEqual(len(parser.actions), 0)
+
+        # Check types
+        typedef = parser.types['Foo']
+        self.assertTrue(isinstance(typedef, chisel.model.Typedef))
+        self.assertEqual(typedef.typeName, 'Foo')
+        self.assertEqual(typedef.doc, [])
+        self.assertTrue(isinstance(typedef.type, chisel.model._TypeInt))
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(gt = 5))
+
+        # Check errors
+        self.assertEqual(parser.errors,
+                         [":4: error: Redefinition of type 'Foo'"])
+
+
     # Error - redefinition of user type
     def test_spec_error_action_redefinition(self):
 
@@ -1028,22 +1063,38 @@ action MyAction
 
         parser = SpecParser()
         parser.parseString('''\
-# My typedef
-typedef MyEnum : MyStruct{len > 0} MyTypedef
+typedef MyEnum MyTypedef2
 
 enum MyEnum
     A
     B
+
+# My typedef
+typedef MyEnum : MyStruct{len > 0} MyTypedef
 
 struct MyStruct
     int a
     optional int b
 ''')
 
-        self.assertEqual(len(parser.types), 3)
+        self.assertEqual(len(parser.types), 4)
+
         typedef = parser.types['MyTypedef']
         self.assertTrue(isinstance(typedef, chisel.model.Typedef))
+        self.assertEqual(typedef.typeName, 'MyTypedef')
+        self.assertEqual(typedef.doc, ['My typedef'])
         self.assertTrue(isinstance(typedef.type, chisel.model.TypeDict))
         self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(len_gt = 0))
-        self.assertTrue(isinstance(typedef.type.keyType, chisel.model.TypeEnum))
-        self.assertTrue(isinstance(typedef.type.type, chisel.model.TypeStruct))
+        self.assertTrue(typedef.type.keyType is parser.types['MyEnum'])
+        self.assertEqual(typedef.type.keyType.doc, [])
+        self.assertEqual(len(typedef.type.keyType.values), 2)
+        self.assertTrue(typedef.type.type is parser.types['MyStruct'])
+        self.assertEqual(typedef.type.type.doc, [])
+        self.assertEqual(len(typedef.type.type.members), 2)
+
+        typedef2 = parser.types['MyTypedef2']
+        self.assertTrue(isinstance(typedef2, chisel.model.Typedef))
+        self.assertEqual(typedef2.typeName, 'MyTypedef2')
+        self.assertEqual(typedef2.doc, [])
+        self.assertTrue(typedef2.type is parser.types['MyEnum'])
+        self.assertEqual(typedef2.attr, None)
