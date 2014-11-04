@@ -26,6 +26,7 @@ PACKAGE_NAME = chisel
 # Python version support
 PYTHON_VERSIONS = \
     2.7 \
+    2.6 \
     3.2 \
     3.3 \
     3.4
@@ -87,17 +88,18 @@ endef
 
 # Function to generate an environment rule's python interpreter
 ENV_PYTHON = $(ENV)/$(strip $(1))/bin/python -E
+ENV_PIP = $(ENV)/$(strip $(1))/bin/pip
 
 # Generate test rules
 define TEST_COMMANDS
-	$(call ENV_PYTHON, $(1)) -m pip install -q -e . -e .[tests]
+	$(call ENV_PIP, $(1)) install -q -e . -e .[tests]
 	$(call ENV_PYTHON, $(1)) setup.py test $(if $(TEST),-s $(TEST))
 endef
 $(foreach V, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test_$(V), $(V), , TEST_COMMANDS)))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	$(call ENV_PYTHON, $(1)) -m pip install -e . -e .[tests]
+	$(call ENV_PIP, $(1)) install -e . -e .[tests]
 	$(call ENV_PYTHON, $(1)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
 	$(call ENV_PYTHON, $(1)) -m coverage html -d $(COVER)
 	$(call ENV_PYTHON, $(1)) -m coverage report
