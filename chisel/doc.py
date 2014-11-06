@@ -398,13 +398,13 @@ def _addTypeNameHelper(parent, type):
 def _addTypeName(parent, type):
     if isinstance(type, TypeArray):
         _addTypeNameHelper(parent, type.type)
-        parent.addChild('[]', isText = True, isInline = True)
+        parent.addChild('&nbsp;[]', isTextRaw = True, isInline = True)
     elif isinstance(type, TypeDict):
         if type.keyType is not None and not isinstance(type.keyType, TypeString):
             _addTypeNameHelper(parent, type.keyType)
             parent.addChild('&nbsp;:&nbsp;', isTextRaw = True, isInline = True)
         _addTypeNameHelper(parent, type.type)
-        parent.addChild('{}', isText = True, isInline = True)
+        parent.addChild('&nbsp;{}', isTextRaw = True, isInline = True)
     else:
         _addTypeNameHelper(parent, type)
 
@@ -421,7 +421,7 @@ def _attributeList(attr, valueName, lenName):
     if attr.lte is not None:
         yield (valueName, '<=', str(JsonFloat(attr.lte, 6)))
     if attr.eq is not None:
-        yield (valueName, '<=', str(JsonFloat(attr.eq, 6)))
+        yield (valueName, '==', str(JsonFloat(attr.eq, 6)))
     if attr.len_gt is not None:
         yield (lenName, '>', str(JsonFloat(attr.len_gt, 6)))
     if attr.len_gte is not None:
@@ -431,7 +431,7 @@ def _attributeList(attr, valueName, lenName):
     if attr.len_lte is not None:
         yield (lenName, '<=', str(JsonFloat(attr.len_lte, 6)))
     if attr.len_eq is not None:
-        yield (lenName, '<=', str(JsonFloat(attr.len_eq, 6)))
+        yield (lenName, '==', str(JsonFloat(attr.len_eq, 6)))
 
 # Attribute DOM helper
 def _attributeDom(ul, lhs, op, rhs):
@@ -441,20 +441,20 @@ def _attributeDom(ul, lhs, op, rhs):
         li.addChild(' ' + op + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), isText = True, isInline = True)
 
 # Type attributes HTML helper
-def _addTypeAttr(parent, member):
+def _addTypeAttr(parent, type, attr, isOptional):
 
     # Add attribute DOM elements
     ul = parent.addChild('ul', _class = 'chsl-constraint-list')
-    if member.isOptional:
+    if isOptional:
         _attributeDom(ul, 'optional', None, None)
-    typeName = 'array' if isinstance(member.type, TypeArray) else ('dict' if isinstance(member.type, TypeDict) else 'value')
-    for lhs, op, rhs in _attributeList(member.attr, typeName, 'len(' + typeName + ')'):
+    typeName = 'array' if isinstance(type, TypeArray) else ('dict' if isinstance(type, TypeDict) else 'value')
+    for lhs, op, rhs in _attributeList(attr, typeName, 'len(' + typeName + ')'):
         _attributeDom(ul, lhs, op, rhs)
-    if hasattr(member.type, 'keyType'):
-        for lhs, op, rhs in _attributeList(member.type.keyAttr, 'key', 'len(key)'):
+    if hasattr(type, 'keyType'):
+        for lhs, op, rhs in _attributeList(type.keyAttr, 'key', 'len(key)'):
             _attributeDom(ul, lhs, op, rhs)
-    if hasattr(member.type, 'type'):
-        for lhs, op, rhs in _attributeList(member.type.attr, 'elem', 'len(elem)'):
+    if hasattr(type, 'type'):
+        for lhs, op, rhs in _attributeList(type.attr, 'elem', 'len(elem)'):
             _attributeDom(ul, lhs, op, rhs)
 
     # No constraints?
@@ -498,7 +498,16 @@ def _typedefSection(parent, type):
         .addChild('typedef ' + type.typeName, isText = True)
     _addDocText(parent, type.doc)
 
-    #!!
+    # Table header
+    table = parent.addChild('table')
+    tr = table.addChild('tr')
+    tr.addChild('th').addChild('Type', isText = True, isInline = True)
+    tr.addChild('th').addChild('Attributes', isText = True, isInline = True)
+
+    # Typedef type/attr rows
+    tr = table.addChild('tr')
+    _addTypeName(tr.addChild('td'), type.type)
+    _addTypeAttr(tr.addChild('td'), type.type, type.attr, False)
 
 # Struct section helper
 def _structSection(parent, type, titleTag = None, title = None, emptyMessage = None):
@@ -538,7 +547,7 @@ def _structSection(parent, type, titleTag = None, title = None, emptyMessage = N
             tr = table.addChild('tr')
             tr.addChild('td').addChild(member.name, isText = True, isInline = True)
             _addTypeName(tr.addChild('td'), member.type)
-            _addTypeAttr(tr.addChild('td'), member)
+            _addTypeAttr(tr.addChild('td'), member.type, member.attr, member.isOptional)
             if hasDescription:
                 _addDocText(tr.addChild('td'), member.doc)
 

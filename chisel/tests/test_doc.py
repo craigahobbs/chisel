@@ -96,9 +96,13 @@ union MyUnion
     int a
     string b
 
+# A typedef
+typedef string(len == 2) : MyStruct {len > 0} MyTypedef
+
 action myAction1
     input
         MyStruct struct
+        MyTypedef typedef
 
 action myAction2
     output
@@ -449,6 +453,15 @@ The request is exposed at the following URL:
           </ul>
         </td>
       </tr>
+      <tr>
+        <td>typedef</td>
+        <td><a href="#MyTypedef">MyTypedef</a></td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">len(elem)</span> &gt; 0</li>
+          </ul>
+        </td>
+      </tr>
     </table>
     <h2 id="myAction1_Output"><a class="linktarget">Output Parameters</a></h2>
     <div class="chsl-text">
@@ -462,6 +475,28 @@ The action has no output parameters.
 The action returns no custom error codes.
       </p>
     </div>
+    <h2>Typedefs</h2>
+    <h3 id="MyTypedef"><a class="linktarget">typedef MyTypedef</a></h3>
+    <div class="chsl-text">
+      <p>
+A typedef
+      </p>
+    </div>
+    <table>
+      <tr>
+        <th>Type</th>
+        <th>Attributes</th>
+      </tr>
+      <tr>
+        <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
+            <li><span class="chsl-emphasis">len(key)</span> == 2</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
     <h2>Struct Types</h2>
     <h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>
     <div class="chsl-text">
@@ -573,7 +608,7 @@ My float member
       </tr>
       <tr>
         <td>member8</td>
-        <td><a href="#MyEnum">MyEnum</a>[]</td>
+        <td><a href="#MyEnum">MyEnum</a>&nbsp;[]</td>
         <td>
           <ul class="chsl-constraint-list">
             <li><span class="chsl-emphasis">len(array)</span> &gt; 0</li>
@@ -584,7 +619,7 @@ My float member
       </tr>
       <tr>
         <td>member9</td>
-        <td><a href="#MyStruct">MyStruct</a>{}</td>
+        <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
         <td>
           <ul class="chsl-constraint-list">
             <li><span class="chsl-emphasis">none</span></li>
@@ -595,7 +630,7 @@ My float member
       </tr>
       <tr>
         <td>member10</td>
-        <td><a href="#MyEnum">MyEnum</a>&nbsp;:&nbsp;<a href="#MyStruct">MyStruct</a>{}</td>
+        <td><a href="#MyEnum">MyEnum</a>&nbsp;:&nbsp;<a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
         <td>
           <ul class="chsl-constraint-list">
             <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
@@ -606,11 +641,11 @@ My float member
       </tr>
       <tr>
         <td>member11</td>
-        <td>int{}</td>
+        <td>int&nbsp;{}</td>
         <td>
           <ul class="chsl-constraint-list">
             <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
-            <li><span class="chsl-emphasis">len(key)</span> &lt;= 2</li>
+            <li><span class="chsl-emphasis">len(key)</span> == 2</li>
             <li><span class="chsl-emphasis">elem</span> &gt; 5</li>
           </ul>
         </td>
