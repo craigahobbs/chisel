@@ -139,7 +139,7 @@ action myAction2
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        self.assertEqual(html, '''\
+        htmlExpected = '''\
 <!doctype html><html>
   <head>
     <meta charset="UTF-8">
@@ -278,7 +278,8 @@ ul.chsl-constraint-list {
       </li>
     </ul>
   </body>
-</html>''')
+</html>'''
+        self.assertEqual(htmlExpected, html)
 
     # Test action model HTML generation
     def test_doc_DocAction_request(self):
@@ -289,7 +290,7 @@ ul.chsl-constraint-list {
         status, headers, response = self.app.request('GET', '/doc', environ = environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
-        self.assertEqual(html, '''\
+        htmlExpected = '''\
 <!doctype html><html>
   <head>
     <meta charset="UTF-8">
@@ -594,8 +595,7 @@ My float member
       </tr>
       <tr>
         <td>member10</td>
-        <td><a href="#MyEnum">MyEnum</a>
- : <a href="#MyStruct">MyStruct</a>{}</td>
+        <td><a href="#MyEnum">MyEnum</a>&nbsp;:&nbsp;<a href="#MyStruct">MyStruct</a>{}</td>
         <td>
           <ul class="chsl-constraint-list">
             <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
@@ -647,7 +647,8 @@ A value
       </tr>
     </table>
   </body>
-</html>''')
+</html>'''
+        self.assertEqual(htmlExpected, html)
 
         # Validate the myAction2's HTML
         environ = dict(self._environ2)
@@ -655,7 +656,7 @@ A value
         status, headers, response = self.app.request('GET', '/doc', environ = environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
-        self.assertEqual(html, '''\
+        htmlExpected = '''\
 <!doctype html><html>
   <head>
     <meta charset="UTF-8">
@@ -867,7 +868,8 @@ My Union
       </tr>
     </table>
   </body>
-</html>''')
+</html>'''
+        self.assertEqual(htmlExpected, html)
 
     # Test doc generation element class
     def test_doc_element(self):

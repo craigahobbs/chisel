@@ -22,7 +22,7 @@
 
 from .action import Action
 from .compat import cgi, iteritems, itervalues, StringIO, urllib
-from .model import JsonFloat, TypeStruct, TypeEnum, TypeArray, TypeDict, _TypeString as TypeString
+from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, _TypeString as TypeString
 
 import xml.sax.saxutils as saxutils
 
@@ -58,12 +58,12 @@ action doc
 
 # HTML DOM helper class
 class Element(object):
-    __slots__ = ('name', 'isText', 'isTextEscaped', 'isClosed', 'isInline', 'attrs', 'children')
+    __slots__ = ('name', 'isText', 'isTextRaw', 'isClosed', 'isInline', 'attrs', 'children')
 
-    def __init__(self, name, isText = False, isTextEscaped = True, isClosed = True, isInline = False, **attrs):
+    def __init__(self, name, isText = False, isTextRaw = False, isClosed = True, isInline = False, **attrs):
         self.name = name
         self.isText = isText
-        self.isTextEscaped = isTextEscaped
+        self.isTextRaw = isTextRaw
         self.isClosed = isClosed
         self.isInline = isInline
         self.attrs = attrs
@@ -83,12 +83,15 @@ class Element(object):
         # Initial newline and indent as necessary...
         if not self.isInline and not isRoot:
             out.write('\n')
-            if not self.isText:
+            if not self.isText and not self.isTextRaw:
                 out.write(indentCur)
 
         # Text element?
         if self.isText:
-            out.write(cgi.escape(self.name) if self.isTextEscaped else self.name)
+            out.write(cgi.escape(self.name))
+            return
+        elif self.isTextRaw:
+            out.write(self.name)
             return
 
         # Element open
@@ -199,22 +202,30 @@ def createRequestHtml(environ, request, nonav = False):
             noteResponseP.addChild('The action has a non-default response. See documentation for details.', isText = True)
 
         # Find all user types referenced by the action
+        typedefTypes = {}
         structTypes = {}
         enumTypes = {}
-        def addType(type):
+
+        def addType(type, membersOnly = False):
             if isinstance(type, TypeStruct) and type.typeName not in structTypes:
-                structTypes[type.typeName] = type
-                findUserTypes(type)
+                if not membersOnly:
+                    structTypes[type.typeName] = type
+                for member in type.members:
+                    addType(member.type)
             elif isinstance(type, TypeEnum) and type.typeName not in enumTypes:
                 enumTypes[type.typeName] = type
-        def findUserTypes(structType):
-            for member in structType.members:
-                addType(member.type.type if hasattr(member.type, 'type') else member.type)
-                if hasattr(member.type, 'keyType'):
-                    addType(member.type.keyType)
-        findUserTypes(request.model.inputType)
+            elif isinstance(type, Typedef) and type.typeName not in typedefTypes:
+                typedefTypes[type.typeName] = type
+                addType(type.type)
+            elif isinstance(type, TypeArray):
+                addType(type.type)
+            elif isinstance(type,TypeDict):
+                addType(type.type)
+                addType(type.keyType)
+
+        addType(request.model.inputType, membersOnly = True)
         if not request.wsgiResponse:
-            findUserTypes(request.model.outputType)
+            addType(request.model.outputType, membersOnly = True)
 
         # Request input and output structs
         _structSection(body, request.model.inputType, 'h2', 'Input Parameters', 'The action has no input parameters.')
@@ -223,6 +234,11 @@ def createRequestHtml(environ, request, nonav = False):
             _enumSection(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
         # User types
+        if typedefTypes:
+            body.addChild('h2') \
+                .addChild('Typedefs', isText = True, isInline = True)
+            for typedefType in sorted(itervalues(typedefTypes), key = lambda x: x.typeName.lower()):
+                _typedefSection(body, typedefType)
         if structTypes:
             body.addChild('h2') \
                 .addChild('Struct Types', isText = True, isInline = True)
@@ -365,44 +381,32 @@ ul.chsl-constraint-list {
 }
 .chsl-emphasis {
     font-style:italic;
-}''', isText = True, isTextEscaped = False)
+}''', isTextRaw = True)
 
 # User type href helper
 def _userTypeHref(type):
     return type.typeName
 
 # Type name HTML helper
+_userTypes = (Typedef, TypeStruct, TypeEnum)
+
+def _addTypeNameHelper(parent, type):
+    if isinstance(type, _userTypes):
+        parent = parent.addChild('a', isInline = True, href = '#' + _userTypeHref(type))
+    parent.addChild(type.typeName, isText = True, isInline = True)
+
 def _addTypeName(parent, type):
-
-    # Compute the type string
-    keyType = None
     if isinstance(type, TypeArray):
-        baseType = type.type
-        typeExtra = '[]'
+        _addTypeNameHelper(parent, type.type)
+        parent.addChild('[]', isText = True, isInline = True)
     elif isinstance(type, TypeDict):
-        if not isinstance(type.keyType, TypeString):
-            keyType = type.keyType
-        baseType = type.type
-        typeExtra = '{}'
+        if type.keyType is not None and not isinstance(type.keyType, TypeString):
+            _addTypeNameHelper(parent, type.keyType)
+            parent.addChild('&nbsp;:&nbsp;', isTextRaw = True, isInline = True)
+        _addTypeNameHelper(parent, type.type)
+        parent.addChild('{}', isText = True, isInline = True)
     else:
-        baseType = type
-        typeExtra = None
-
-    # Generate the type string DOM
-    if keyType is not None:
-        if isinstance(keyType, TypeStruct) or isinstance(keyType, TypeEnum):
-            parent.addChild('a', isInline = True, href = '#' + _userTypeHref(keyType)) \
-                  .addChild(keyType.typeName, isText = True)
-        else:
-            parent.addChild(keyType.typeName, isText = True, isInline = True)
-        parent.addChild(' : ', isText = True)
-    if isinstance(baseType, TypeStruct) or isinstance(baseType, TypeEnum):
-        parent.addChild('a', isInline = True, href = '#' + _userTypeHref(baseType)) \
-            .addChild(baseType.typeName, isText = True)
-    else:
-        parent.addChild(baseType.typeName, isText = True, isInline = True)
-    if typeExtra:
-        parent.addChild(typeExtra, isText = True, isInline = True)
+        _addTypeNameHelper(parent, type)
 
 # Get attribute list - [(lhs, op, rhs), ...]
 def _attributeList(attr, valueName, lenName):
@@ -484,6 +488,17 @@ def _addDocText(parent, doc):
 
     # Add the text DOM elements
     _addText(parent, ('\n'.join(lines) for lines in paragraphs))
+
+# Typedef section helper
+def _typedefSection(parent, type):
+
+    # Section title
+    parent.addChild('h3', _id = _userTypeHref(type)) \
+        .addChild('a', isInline = True, _class = 'linktarget') \
+        .addChild('typedef ' + type.typeName, isText = True)
+    _addDocText(parent, type.doc)
+
+    #!!
 
 # Struct section helper
 def _structSection(parent, type, titleTag = None, title = None, emptyMessage = None):
