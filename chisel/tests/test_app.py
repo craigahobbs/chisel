@@ -25,6 +25,8 @@ from chisel.compat import StringIO
 
 import logging
 import os
+import sys
+import types
 import unittest
 
 
@@ -41,6 +43,11 @@ class TestAppApplication(unittest.TestCase):
                 self.logLevel = logging.INFO
 
         self.app = MyApplication()
+
+        self.assertTrue('test_app_files' not in sys.modules)
+        self.assertTrue('module' not in sys.modules)
+        self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files'], types.ModuleType))
+        self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
 
     def test_app_call(self):

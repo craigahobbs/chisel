@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, json, PY3, StringIO
+from .compat import basestring_, iteritems, json, PY3, StringIO, xrange_
 from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
@@ -338,47 +338,91 @@ class Application(object):
     def addDocRequest(self):
         self.addRequest(DocAction())
 
-    # Generator to recursively load all modules
+    # Helper to find a path's package imp.load_module arguments (and load the package)
     @staticmethod
-    def loadModules(moduleDir, moduleExt = '.py', moduleNamePartsPrefix = (), moduleNamePartsIgnore = ()):
+    def loadPackageByPath(pkgPath):
+
+        # If path is a module file get the package directory
+        if not os.path.isdir(pkgPath):
+            pkgPath = os.path.dirname(pkgPath)
+
+        # Break the package directory into possible module name parts
+        pkgParts = os.path.abspath(pkgPath).split(os.sep)[1:]
+
+        # Try to find the full package name part-by-part starting with the most-detailed possible package name
+        for iPartStart in xrange_(len(pkgParts)):
+            loadModules = []
+            partPath = None
+            for iPart in xrange_(iPartStart, len(pkgParts)):
+                try:
+                    partFile, partPath, partDesc = imp.find_module(pkgParts[iPart], None if partPath is None else [partPath])
+                    pkgName = '.'.join(pkgParts[iPartStart:iPart + 1])
+                    loadModules.append((pkgName, partFile, partPath, partDesc))
+
+                    # If this is a module then it can't be part of the module path - close it and move on
+                    if partFile is not None:
+                        partFile.close()
+                        break
+                    # Is this the package we're looking for?
+                    elif os.path.samefile(pkgPath, partPath):
+                        # Load all package in the package path in order
+                        for loadModuleArgs in loadModules:
+                            if loadModuleArgs[0] not in sys.modules:
+                                imp.load_module(*loadModuleArgs)
+                        # Return the load_module args for the package path
+                        return loadModules[-1]
+                except ImportError:
+                    # Import error - move on
+                    break
+
+        return None, None, None, None
+
+    # Generator to recursively load all modules
+    @classmethod
+    def loadModules(cls, moduleDir, moduleExt = '.py'):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
             raise IOError('%r not found or is not a directory' % (moduleDir,))
 
         # Recursively find module files
-        moduleDirNorm = os.path.normpath(moduleDir)
-        modulePathParent = os.path.dirname(moduleDirNorm)
-        modulePathBase = os.path.join(modulePathParent, '') if modulePathParent else modulePathParent
+        moduleDirNorm = os.path.abspath(os.path.normpath(moduleDir))
         for dirpath, dirnames, filenames in os.walk(moduleDirNorm):
+
+            # Skip Python 3.x cache directories
+            if os.path.basename(dirpath) == '__pycache__':
+                continue
+
+            # Search for the directory's package path
+            pkgName, pkgFile, pkgPath, pkgDesc = cls.loadPackageByPath(dirpath)
+            if pkgName is None:
+                continue
+
+            # Load each module file in the directory
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
-                if ext == moduleExt:
+                if ext != moduleExt:
+                    continue
 
-                    # Load the module
-                    module = None
-                    moduleParts = list(moduleNamePartsPrefix)
-                    for modulePart in os.path.join(dirpath, base)[len(modulePathBase):].split(os.sep):
-                        moduleParts.append(modulePart)
-                        if any(len(moduleParts) >= len(x) and tuple(itertools.islice(moduleParts, len(x))) == tuple(x) for x in moduleNamePartsIgnore):
-                            continue
-                        moduleName = '.'.join(moduleParts)
-                        if moduleName not in sys.modules:
-                            moduleFp, modulePath, moduleDesc = \
-                                imp.find_module(modulePart, module.__path__ if module else [modulePathParent])
-                            try:
-                                module = imp.load_module(moduleName, moduleFp, modulePath, moduleDesc)
-                            finally:
-                                if moduleFp:
-                                    moduleFp.close()
-                        else:
-                            module = sys.modules[moduleName]
-                        yield module
+                # Skip package __init__ files
+                if base == '__init__':
+                    continue
+
+                # Load the module
+                moduleName = pkgName + '.' + base
+                module = sys.modules.get(moduleName)
+                if module is None:
+                    moduleFile, modulePath, moduleDesc = imp.find_module(moduleName)
+                    try:
+                        module = imp.load_module(moduleName, moduleFile, modulePath, moduleDesc)
+                    finally:
+                        moduleFile.close()
+                yield module
 
     # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt = '.py', moduleNamePartsPrefix = ()):
+    def loadRequests(self, moduleDir, moduleExt = '.py'):
 
-        for module in self.loadModules(moduleDir, moduleExt = moduleExt, moduleNamePartsPrefix = moduleNamePartsPrefix):
+        for module in self.loadModules(moduleDir, moduleExt = moduleExt):
             for moduleAttr in dir(module):
                 request = getattr(module, moduleAttr)
                 if isinstance(request, Request):
