@@ -412,7 +412,7 @@ class Application(object):
                 moduleName = pkgName + '.' + base
                 module = sys.modules.get(moduleName)
                 if module is None:
-                    moduleFile, modulePath, moduleDesc = imp.find_module(moduleName, [pkgPath])
+                    moduleFile, modulePath, moduleDesc = imp.find_module(base, [pkgPath])
                     try:
                         module = imp.load_module(moduleName, moduleFile, modulePath, moduleDesc)
                     finally:
