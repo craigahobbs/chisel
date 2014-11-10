@@ -50,6 +50,19 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
 
+    def test_app_loadRequests_importError(self):
+        sys_path = sys.path
+        try:
+            sys.path = []
+            self.app.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+        except ImportError as e:
+            self.assertEqual(str(e), "'/home/craig/src/chisel/chisel/tests/test_app_files' not found on system path")
+        else:
+            self.fail()
+        finally:
+            sys.path = sys_path
+
+
     def test_app_call(self):
 
         # Test WSGI environment
