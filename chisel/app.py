@@ -339,7 +339,7 @@ class Application(object):
 
     # Generator to recursively load all modules
     @classmethod
-    def loadModules(cls, moduleDir, moduleExt = '.py'):
+    def loadModules(cls, moduleDir, moduleExt = '.py', excludedSubmodules = ()):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -387,7 +387,8 @@ class Application(object):
 
                 # Load the sub-module
                 submoduleName = '.'.join(itertools.islice(submoduleParts, ixModuleName, None)) + '.' + basename
-                yield __import__(submoduleName, globals(), locals(), ['.'])
+                if submoduleName not in excludedSubmodules:
+                    yield __import__(submoduleName, globals(), locals(), ['.'])
 
     # Recursively load all requests in a directory
     def loadRequests(self, moduleDir, moduleExt = '.py'):
