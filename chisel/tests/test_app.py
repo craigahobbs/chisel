@@ -25,6 +25,7 @@ from chisel.compat import StringIO
 
 import logging
 import os
+import re
 import sys
 import types
 import unittest
@@ -56,7 +57,7 @@ class TestAppApplication(unittest.TestCase):
             sys.path = []
             self.app.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
         except ImportError as e:
-            self.assertEqual(str(e), "'/home/craig/src/chisel/chisel/tests/test_app_files' not found on system path")
+            self.assertTrue(re.search("'.*?' not found on system path", str(e)))
         else:
             self.fail()
         finally:

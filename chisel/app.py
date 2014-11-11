@@ -353,7 +353,14 @@ class Application(object):
                     moduleNameParts = moduleDirParts[iModulePart:]
                     sysModulePath = os.path.join(sysPath, *moduleNameParts)
                     if os.path.isdir(sysModulePath) and os.path.samefile(moduleDir, sysModulePath):
-                        return len(moduleDirParts) - len(moduleNameParts)
+                        # Make sure the module package is import-able
+                        moduleName = '.'.join(moduleNameParts)
+                        try:
+                            __import__(moduleName)
+                        except:
+                            pass
+                        else:
+                            return len(moduleDirParts) - len(moduleNameParts)
             else:
                 raise ImportError('%r not found on system path' % (moduleDir,))
         ixModuleName = findModuleNameIndex()
