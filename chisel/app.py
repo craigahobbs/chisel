@@ -339,7 +339,7 @@ class Application(object):
 
     # Generator to recursively load all modules
     @classmethod
-    def loadModules(cls, moduleDir, moduleExt = '.py', excludedSubmodules = ()):
+    def loadModules(cls, moduleDir, moduleExt = '.py', excludedSubmodules = None):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -366,14 +366,21 @@ class Application(object):
         ixModuleName = findModuleNameIndex()
 
         # Recursively find module files
+        excludedSubmodulesDot = None if excludedSubmodules is None else [x + '.' for x in excludedSubmodules]
         for dirpath, dirnames, filenames in os.walk(moduleDir):
 
             # Skip Python 3.x cache directories
             if os.path.basename(dirpath) == '__pycache__':
                 continue
 
+            # Is the sub-package excluded?
+            subpkgParts = dirpath.split(os.sep)
+            subpkgName = '.'.join(itertools.islice(subpkgParts, ixModuleName, None))
+            if excludedSubmodules is not None and \
+               (subpkgName in excludedSubmodules or any(subpkgName.startswith(x) for x in excludedSubmodulesDot)):
+                continue
+
             # Load each sub-module file in the directory
-            submoduleParts = dirpath.split(os.sep)
             for filename in filenames:
 
                 # Skip non-module files
@@ -385,10 +392,14 @@ class Application(object):
                 if basename == '__init__':
                     continue
 
+                # Is the sub-module excluded?
+                submoduleName = subpkgName + '.' + basename
+                if excludedSubmodules is not None and \
+                   (submoduleName in excludedSubmodules or any(submoduleName.startswith(x) for x in excludedSubmodules)):
+                    continue
+
                 # Load the sub-module
-                submoduleName = '.'.join(itertools.islice(submoduleParts, ixModuleName, None)) + '.' + basename
-                if submoduleName not in excludedSubmodules:
-                    yield __import__(submoduleName, globals(), locals(), ['.'])
+                yield __import__(submoduleName, globals(), locals(), ['.'])
 
     # Recursively load all requests in a directory
     def loadRequests(self, moduleDir, moduleExt = '.py'):
