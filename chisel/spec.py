@@ -162,23 +162,6 @@ class SpecParser(object):
         if self.errors:
             raise SpecParserError(self.errors)
 
-    # Get a line from the current stream
-    def _getLine(self):
-
-        lines = []
-        while True:
-            line = self._parseStream.readline()
-            if not line:
-                break
-            self._parseFileLine += 1
-            isLineCont = self._RE_LINE_CONT.search(line)
-            if isLineCont:
-                line = self._RE_LINE_CONT.sub('', line)
-            lines.append(line)
-            if not isLineCont:
-                break
-        return ' '.join(lines) if lines else None
-
     # Get a type object by name
     def _getType(self, name):
         typeFactory = self._TYPES.get(name)
@@ -305,9 +288,19 @@ class SpecParser(object):
         while True:
 
             # Read a line (including continuation)
-            line = self._getLine()
-            if line is None:
+            lineParts = []
+            while True:
+                linePart = next(self._parseStream, None)
+                if linePart is None:
+                    break
+                self._parseFileLine += 1
+                linePartNoCont = self._RE_LINE_CONT.sub('', linePart)
+                lineParts.append(linePartNoCont)
+                if linePartNoCont is linePart:
+                    break
+            if not lineParts:
                 break
+            line = ' '.join(lineParts)
 
             # Match line syntax
             mComment = self._RE_COMMENT.search(line)
