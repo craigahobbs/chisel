@@ -224,7 +224,7 @@ class SpecParser(object):
         sDictAttr = mTypedef.group('dict')
         sId = mTypedef.group('id')
 
-        # Create the member
+        # Array member?
         if sArrayAttr is not None:
             sValueType = mTypedef.group('type')
             valueType = self._getType(sValueType)
@@ -241,6 +241,7 @@ class SpecParser(object):
 
             return sId, arrayType, arrayAttr
 
+        # Dictionary member?
         elif sDictAttr is not None:
             sValueType = mTypedef.group('dictValueType')
             if sValueType is not None:
@@ -271,6 +272,7 @@ class SpecParser(object):
 
             return sId, dictType, dictAttr
 
+        # Non-container member...
         else:
             sMemType = mTypedef.group('type')
             memType = self._getType(sMemType)
