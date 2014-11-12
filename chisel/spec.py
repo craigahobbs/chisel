@@ -287,22 +287,19 @@ class SpecParser(object):
     def _parse(self):
 
         # Process each line
+        self._parseFileLine = 0
         while True:
 
             # Read a line (including continuation)
-            lineParts = []
-            while True:
-                linePart = next(self._parseStream, None)
-                if linePart is None:
-                    break
+            line = None
+            for linePart in self._parseStream:
                 self._parseFileLine += 1
                 linePartNoCont = self._RE_LINE_CONT.sub('', linePart)
-                lineParts.append(linePartNoCont)
+                line = linePartNoCont if line is None else line + ' ' + linePartNoCont
                 if linePartNoCont is linePart:
                     break
-            if not lineParts:
+            if line is None:
                 break
-            line = ' '.join(lineParts)
 
             # Match line syntax
             mComment = self._RE_COMMENT.search(line)
