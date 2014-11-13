@@ -354,6 +354,9 @@ class TypeDict(object):
         self.keyType = keyType or TypeString()
         self.keyAttr = keyAttr
 
+    def hasDefaultKeyType(self):
+        return isinstance(self.keyType, _TypeString)
+
     def validateAttr(self, attr):
         attr.validateAttr(allowLength = True)
 

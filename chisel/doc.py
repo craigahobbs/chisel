@@ -22,7 +22,7 @@
 
 from .action import Action
 from .compat import cgi, iteritems, itervalues, StringIO, urllib
-from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, _TypeString as TypeString
+from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 import xml.sax.saxutils as saxutils
 
@@ -400,7 +400,7 @@ def _addTypeName(parent, type):
         _addTypeNameHelper(parent, type.type)
         parent.addChild('&nbsp;[]', isTextRaw = True, isInline = True)
     elif isinstance(type, TypeDict):
-        if type.keyType is not None and not isinstance(type.keyType, TypeString):
+        if not type.hasDefaultKeyType():
             _addTypeNameHelper(parent, type.keyType)
             parent.addChild('&nbsp;:&nbsp;', isTextRaw = True, isInline = True)
         _addTypeNameHelper(parent, type.type)
