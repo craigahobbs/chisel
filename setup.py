@@ -26,7 +26,7 @@ tests_require = []
 
 setup(
     name = 'chisel',
-    version = '0.8.14',
+    version = '0.8.15',
     author = 'Craig Hobbs',
     author_email = 'craigahobbs@gmail.com',
     description = ('JSON web APIs made dirt simple'),
