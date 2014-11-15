@@ -47,6 +47,9 @@ class JsonDatetime(float):
     def __str__(self):
         return self.json
 
+    def __float__(self):
+        return self
+
 
 # Floating point number with precision for JSON encoding
 class JsonFloat(float):
@@ -63,6 +66,9 @@ class JsonFloat(float):
 
     def __str__(self):
         return self.json
+
+    def __float__(self):
+        return self
 
 
 # JSON encoding for UUID objects
@@ -81,6 +87,9 @@ class JsonUUID(float):
 
     def __str__(self):
         return self.json
+
+    def __float__(self):
+        return self
 
 
 # Fake JSON float types
