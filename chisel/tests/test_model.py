@@ -61,6 +61,15 @@ class TestModelJsonDatetime(unittest.TestCase):
         self.assertEqual(str(o), repr(oExpected))
         self.assertEqual(json.dumps({'v': o}), '{"v": ' + repr(o) + '}')
 
+    # Test built-in float function behavior
+    def test_model_jsonDatetime_float(self):
+
+        value = datetime(2013, 6, 30, 17, 19, 0, tzinfo = tzutc)
+        o = JsonDatetime(value)
+        f = float(o)
+        self.assertTrue(f is o)
+        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
+
 
 class TestModelJsonFloat(unittest.TestCase):
 
@@ -127,6 +136,14 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(str(o), '2')
         self.assertEqual(json.dumps({'v': o}), '{"v": 2}')
 
+    # Test built-in float function behavior
+    def test_model_jsonFloat_float(self):
+
+        o = JsonFloat(2.25, 2)
+        f = float(o)
+        self.assertTrue(f is o)
+        self.assertEqual(repr(o), '2.25')
+
 
 class TestModelJsonUUID(unittest.TestCase):
 
@@ -139,6 +156,15 @@ class TestModelJsonUUID(unittest.TestCase):
         self.assertEqual(repr(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
         self.assertEqual(str(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
         self.assertEqual(json.dumps({'v': o}), '{"v": "184eab31-4307-416c-aac4-3b92b2358677"}')
+
+    # Test built-in float function behavior
+    def test_model_jsonUUID_float(self):
+
+        value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
+        o = JsonUUID(value)
+        f = float(o)
+        self.assertTrue(f is o)
+        self.assertEqual(repr(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
 
 
 class TestModelValidationError(unittest.TestCase):

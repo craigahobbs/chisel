@@ -36,10 +36,11 @@ class JsonDatetime(float):
         return float.__new__(cls, 0)
 
     def __init__(self, value):
-        if value.tzinfo is None:
-            value = value.replace(tzinfo = tzlocal)
-        self.value = value
-        self.json = '"' + value.isoformat() + '"'
+        if value is not self:
+            if value.tzinfo is None:
+                value = value.replace(tzinfo = tzlocal)
+            self.value = value
+            self.json = '"' + value.isoformat() + '"'
 
     def __repr__(self):
         return self.json
@@ -58,8 +59,9 @@ class JsonFloat(float):
     def __new__(cls, value, prec):
         return float.__new__(cls, value)
 
-    def __init__(self, value, prec):
-        self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
+    def __init__(self, value, prec = None):
+        if value is not self:
+            self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
 
     def __repr__(self):
         return self.json
@@ -79,8 +81,9 @@ class JsonUUID(float):
         return float.__new__(cls, 0)
 
     def __init__(self, value):
-        self.value = value
-        self.json = '"' + str(value) + '"'
+        if value is not self:
+            self.value = value
+            self.json = '"' + str(value) + '"'
 
     def __repr__(self):
         return self.json
