@@ -90,6 +90,16 @@ class TestUrl(unittest.TestCase):
         o = { 'a&b=c.d': 'a&b=c.d' }
         self.assertEqual(decodeQueryString(s), o)
 
+        # Non-initial-zero array-looking index
+        s = 'a.1=0'
+        o = { 'a': { '1': '0' } }
+        self.assertEqual(decodeQueryString(s), o)
+
+        # Dictionary first, then array-looking zero index
+        s = 'a.b=0&a.0=0'
+        o = { 'a': { 'b': '0', '0': '0' } }
+        self.assertEqual(decodeQueryString(s), o)
+
     def test_url_decodeQueryStringDegenerate(self):
 
         def assertDecodeError(s, err):
@@ -166,17 +176,9 @@ class TestUrl(unittest.TestCase):
         s = 'a.0=0&a.1=1&a.3=3'
         assertDecodeError(s, "Invalid key/value pair 'a.3=3'")
 
-        # Initial index too large
-        s = 'a.1=0'
-        assertDecodeError(s, "Invalid key/value pair 'a.1=0'")
-
         # Negative index
         s = 'a.0=0&a.1=1&a.-3=3'
         assertDecodeError(s, "Invalid key/value pair 'a.-3=3'")
-
-        # First dict, then list
-        s = 'a.b=0&a.0=0'
-        assertDecodeError(s, "Invalid key/value pair 'a.0=0'")
 
         # First list, then dict
         s = 'a.0=0&a.b=0'

@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, long_, PY3, urllib, xrange_
+from .compat import basestring_, PY3, urllib, xrange_
 from .model import JsonDatetime, JsonUUID
 
 from datetime import datetime
@@ -82,14 +82,6 @@ def encodeQueryString(o, encoding = 'utf-8'):
     return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(keysValues))
 
 
-# Helper to make a key - int means array index
-def _makeQueryStringKey(keyString):
-    try:
-        return int(keyString)
-    except:
-        return keyString
-
-
 # Decode an object from a URL query string
 def decodeQueryString(queryString, encoding = 'utf-8'):
 
@@ -105,51 +97,45 @@ def decodeQueryString(queryString, encoding = 'utf-8'):
         keysValue = keysValueString.split('=')
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '" + keysValueString + "'")
-        keys = (_makeQueryStringKey(unquote(key, encoding)) for key in keysValue[0].split('.'))
         value = unquote(keysValue[1], encoding)
 
         # Find/create the object on which to set the value
         oParent = oResult
         keyParent = 0
-        for key in keys:
+        for key in (unquote(key, encoding) for key in keysValue[0].split('.')):
+            o = oParent[keyParent]
 
-            # Array key?
-            if isinstance(key, int) or isinstance(key, long_):
+            # Array key?  First "key" of an array must start with "0".
+            if isinstance(o, list) or (o is None and key == '0'):
 
                 # Create this key's container, if necessary
-                o = oParent[keyParent]
                 if o is None:
                     o = oParent[keyParent] = []
-                elif not isinstance(o, list):
-                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
                 # Create the index for this key
+                try:
+                    key = int(key)
+                except:
+                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
                 if key == len(o):
                     o.extend([None])
                 elif key < 0 or key > len(o):
                     raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
-                # Update the parent object and key
-                oParent = o
-                keyParent = key
-
             # Dictionary key
             else:
 
                 # Create this key's container, if necessary
-                o = oParent[keyParent]
                 if o is None:
                     o = oParent[keyParent] = {}
-                elif not isinstance(o, dict):
-                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
                 # Create the index for this key
                 if o.get(key) is None:
                     o[key] = None
 
-                # Update the parent object and key
-                oParent = o
-                keyParent = key
+            # Update the parent object and key
+            oParent = o
+            keyParent = key
 
         # Set the value
         oParent[keyParent] = value
