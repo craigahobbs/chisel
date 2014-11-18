@@ -56,10 +56,10 @@ class JsonDatetime(float):
 class JsonFloat(float):
     __slots__ = ('json',)
 
-    def __new__(cls, value, prec):
+    def __new__(cls, value, prec = 6):
         return float.__new__(cls, value)
 
-    def __init__(self, value, prec = None):
+    def __init__(self, value, prec = 6):
         if value is not self:
             self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
 

@@ -73,6 +73,15 @@ class TestModelJsonDatetime(unittest.TestCase):
 
 class TestModelJsonFloat(unittest.TestCase):
 
+    def test_model_jsonFloat_default(self):
+
+        o = JsonFloat(2.1234567)
+        f = float(o)
+        self.assertTrue(f is o)
+        self.assertEqual(repr(o), '2.123457')
+        self.assertEqual(str(o), '2.123457')
+        self.assertEqual(json.dumps({'v': o}), '{"v": 2.123457}')
+
     # Basic two decimal places float repr
     def test_model_jsonFloat(self):
 
