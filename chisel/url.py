@@ -49,23 +49,22 @@ else:
 def encodeQueryString(o, encoding = 'utf-8'):
 
     # Get the flattened list of URL-quoted name/value pairs
-    keysValues = []
     def iterateItems(o, parent, topLevel = False):
-
-        # Add the object keys
         if isinstance(o, dict):
             if o:
                 for member in o:
-                    iterateItems(o[member], parent + (quote(member, encoding),))
+                    for child in iterateItems(o[member], parent + (quote(member, encoding),)):
+                        yield child
             elif not topLevel:
-                keysValues.append((parent, ''))
+                yield (parent, '')
         elif isinstance(o, list) or isinstance(o, tuple):
             if o:
                 for ix in xrange_(0, len(o)):
-                    iterateItems(o[ix], parent + (quote(ix, encoding),))
+                    for child in iterateItems(o[ix], parent + (quote(ix, encoding),)):
+                        yield child
             elif not topLevel:
-                keysValues.append((parent, ''))
-        elif o is not None:
+                yield (parent, '')
+        else:
             if isinstance(o, datetime):
                 ostr = str(JsonDatetime(o)).strip('"')
             elif isinstance(o, UUID):
@@ -74,12 +73,10 @@ def encodeQueryString(o, encoding = 'utf-8'):
                 ostr = 'true' if o else 'false'
             else:
                 ostr = o
-            keysValues.append((parent, quote(ostr, encoding)))
-
-    iterateItems(o, (), topLevel = True)
+            yield (parent, quote(ostr, encoding))
 
     # Join the object query string
-    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(keysValues))
+    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(iterateItems(o, (), topLevel = True)))
 
 
 # Decode an object from a URL query string
@@ -118,7 +115,7 @@ def decodeQueryString(queryString, encoding = 'utf-8'):
                 except:
                     raise ValueError("Invalid key/value pair '" + keysValueString + "'")
                 if key == len(o):
-                    o.extend([None])
+                    o.append(None)
                 elif key < 0 or key > len(o):
                     raise ValueError("Invalid key/value pair '" + keysValueString + "'")
 
@@ -138,6 +135,8 @@ def decodeQueryString(queryString, encoding = 'utf-8'):
             keyParent = key
 
         # Set the value
+        if oParent[keyParent] is not None:
+            raise ValueError("Duplicate key '" + keysValueString + "'")
         oParent[keyParent] = value
 
     return oResult[0] if (oResult[0] is not None) else {}

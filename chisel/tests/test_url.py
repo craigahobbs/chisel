@@ -159,18 +159,11 @@ class TestUrl(unittest.TestCase):
 
         # Duplicate keys
         s = 'abc=21&ab=19&abc=17'
-        o = { 'abc': '17', 'ab': '19' }
-        self.assertEqual(decodeQueryString(s), o)
-
-        # Duplicate keys - reverse value order - should be stable
-        s = 'abc=17&ab=19&abc=21'
-        o = { 'abc': '21', 'ab': '19' }
-        self.assertEqual(decodeQueryString(s), o)
+        assertDecodeError(s, "Duplicate key 'abc=17'")
 
         # Duplicate index
         s = 'a.0=0&a.1=1&a.0=2'
-        o = { 'a': ['2', '1'] }
-        self.assertEqual(decodeQueryString(s), o)
+        assertDecodeError(s, "Duplicate key 'a.0=2'")
 
         # Index too large
         s = 'a.0=0&a.1=1&a.3=3'
