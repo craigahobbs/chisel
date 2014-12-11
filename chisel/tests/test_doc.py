@@ -24,6 +24,7 @@ import chisel
 from chisel.compat import HTMLParser, StringIO
 from chisel.doc import Element
 
+import sys
 import unittest
 
 
@@ -31,7 +32,11 @@ import unittest
 class HTMLValidator(HTMLParser):
 
     def __init__(self):
-        HTMLParser.__init__(self)
+        # Default value for convert_charrefs (added in Python 3.4) changed in Python 3.5
+        if sys.version_info >= (3, 4):
+            HTMLParser.__init__(self, convert_charrefs = True)
+        else:
+            HTMLParser.__init__(self)
         self.elements = []
 
     def handle_starttag(self, tag, attrs):
