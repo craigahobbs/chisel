@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, StringIO
+from .compat import StringIO
 from . import model
 
 import re
@@ -47,19 +47,6 @@ class SpecParserError(Exception):
         self.errors = errors
 
 
-# Type id reference - converted to types on parser finalization
-class TypeRef(object):
-    __slots__ = ('fileName', 'fileLine', 'parent', 'name', 'attr', 'parentAttr')
-
-    def __init__(self, fileName, fileLine, name, parent, attr, parentAttr = 'type'):
-        self.fileName = fileName
-        self.fileLine = fileLine
-        self.parent = parent
-        self.name = name
-        self.attr = attr
-        self.parentAttr = parentAttr
-
-
 # Specification language parser class
 class SpecParser(object):
 
@@ -71,6 +58,7 @@ class SpecParser(object):
         '_parseFileName',
         '_parseFileLine',
         '_curAction',
+        '_curActionDefs',
         '_curType',
         '_curDoc',
         '_typeRefs',
@@ -87,7 +75,7 @@ class SpecParser(object):
     _RE_LINE_CONT = re.compile(r'\\s*$')
     _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
     _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')\s*$')
-    _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)\s*$')
+    _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)(?:\s+(?P<id>' + _RE_PART_ID + r'))?\s*$')
     _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
                        r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
                        r'(?:' \
@@ -150,22 +138,31 @@ class SpecParser(object):
 
         # Fixup type refs
         for typeRef in self._typeRefs:
-            type = self._getType(typeRef.name)
-            if type is not None:
-                setattr(typeRef.parent, typeRef.parentAttr, type)
-                self._validateAttr(type, typeRef.attr, fileName = typeRef.fileName, fileLine = typeRef.fileLine)
-            else:
-                self._error("Unknown member type '" + typeRef.name + "'", fileName = typeRef.fileName, fileLine = typeRef.fileLine)
+            typeRef(True)
         self._typeRefs = []
 
         # Raise a parser exception if there are any errors
         if self.errors:
             raise SpecParserError(self.errors)
 
-    # Get a type object by name
-    def _getType(self, name):
-        typeFactory = self._TYPES.get(name)
-        return self.types.get(name) if typeFactory is None else typeFactory()
+    # Set a type attribute by name
+    def _setType(self, parent, parentAttr, typeName, typeAttr, typeValidationFn = None):
+        fileName = self._parseFileName
+        fileLine = self._parseFileLine
+        def setType(error):
+            typeFactory = self._TYPES.get(typeName)
+            type_ = self.types.get(typeName) if typeFactory is None else typeFactory()
+            if type_ is not None:
+                if typeValidationFn is not None:
+                    typeValidationFn(type_, fileName, fileLine)
+                self._validateAttr(type_, typeAttr, fileName = fileName, fileLine = fileLine)
+                setattr(parent, parentAttr, type_)
+            elif error:
+                self._error("Unknown member type '" + typeName + "'", fileName = fileName, fileLine = fileLine)
+            return type_
+        type_ = setType(False)
+        if type_ is None:
+            self._typeRefs.append(setType)
 
     # Record an error
     def _error(self, msg, fileName = None, fileLine = None):
@@ -219,69 +216,55 @@ class SpecParser(object):
         return attr
 
     # Construct typedef parts
-    def _parseTypedef(self, mTypedef):
+    def _parseTypedef(self, parent, parentTypeAttr, parentAttrAttr, mTypedef):
         sArrayAttr = mTypedef.group('array')
         sDictAttr = mTypedef.group('dict')
-        sId = mTypedef.group('id')
 
         # Array member?
         if sArrayAttr is not None:
             sValueType = mTypedef.group('type')
-            valueType = self._getType(sValueType)
             valueAttr = self._parseAttr(mTypedef.group('attrs'))
+            arrayType = model.TypeArray(None, attr = valueAttr)
+            self._setType(arrayType, 'type', sValueType, valueAttr)
+
             arrayAttr = self._parseAttr(sArrayAttr)
-            arrayType = model.TypeArray(valueType, attr = valueAttr)
-
-            if valueType is not None:
-                self._validateAttr(valueType, valueAttr)
-            else:
-                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, arrayType, valueAttr))
-
             self._validateAttr(arrayType, arrayAttr)
 
-            return sId, arrayType, arrayAttr
+            setattr(parent, parentTypeAttr, arrayType)
+            setattr(parent, parentAttrAttr, arrayAttr)
 
         # Dictionary member?
         elif sDictAttr is not None:
             sValueType = mTypedef.group('dictValueType')
             if sValueType is not None:
-                valueType = self._getType(sValueType)
                 valueAttr = self._parseAttr(mTypedef.group('dictValueAttrs'))
                 sKeyType = mTypedef.group('type')
-                keyType = self._getType(sKeyType)
                 keyAttr = self._parseAttr(mTypedef.group('attrs'))
+                dictType = model.TypeDict(None, attr = valueAttr, keyType = None, keyAttr = keyAttr)
+                self._setType(dictType, 'type', sValueType, valueAttr)
+                def validateKeyType(keyType, fileName, fileLine):
+                    if not isinstance(keyType, model._TypeString) and not isinstance(keyType, model.TypeEnum):
+                        self._error('Dictionary key type must be string or enum', fileName = fileName, fileLine = fileLine)
+                self._setType(dictType, 'keyType', sKeyType, keyAttr, typeValidationFn = validateKeyType)
             else:
                 sValueType = mTypedef.group('type')
-                valueType = self._getType(sValueType)
                 valueAttr = self._parseAttr(mTypedef.group('attrs'))
-                sKeyType = keyType = keyAttr = None
+                dictType = model.TypeDict(None, attr = valueAttr)
+                self._setType(dictType, 'type', sValueType, valueAttr)
+
             dictAttr = self._parseAttr(sDictAttr)
-            dictType = model.TypeDict(valueType, attr = valueAttr, keyType = keyType, keyAttr = keyAttr)
-
-            if keyType is not None:
-                self._validateAttr(keyType, keyAttr)
-            elif sKeyType is not None:
-                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sKeyType, dictType, keyAttr, parentAttr = 'keyType'))
-
-            if valueType is not None:
-                self._validateAttr(valueType, valueAttr)
-            else:
-                self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, sValueType, dictType, valueAttr))
-
             self._validateAttr(dictType, dictAttr)
 
-            return sId, dictType, dictAttr
+            setattr(parent, parentTypeAttr, dictType)
+            setattr(parent, parentAttrAttr, dictAttr)
 
         # Non-container member...
         else:
             sMemType = mTypedef.group('type')
-            memType = self._getType(sMemType)
             memAttr = self._parseAttr(mTypedef.group('attrs'))
 
-            if memType is not None:
-                self._validateAttr(memType, memAttr)
-
-            return sId, memType or sMemType, memAttr
+            self._setType(parent, parentTypeAttr, sMemType, memAttr)
+            setattr(parent, parentAttrAttr, memAttr)
 
     # Parse a specification from a stream
     def _parse(self):
@@ -329,6 +312,7 @@ class SpecParser(object):
 
                     # Create the new action
                     self._curAction = ActionModel(sDefId, doc = self._curDoc)
+                    self._curActionDefs = set()
                     self._curType = None
                     self._curDoc = []
                     self.actions[self._curAction.name] = self._curAction
@@ -362,19 +346,50 @@ class SpecParser(object):
             # Section?
             elif mSection:
                 sSectType = mSection.group('type')
+                sTypeId = mSection.group('id')
 
                 # Not in an action scope?
-                if not self._curAction:
+                if self._curAction is None:
                     self._error('Action section outside of action scope')
                     continue
 
+                # Action section redefinition?
+                if sSectType in self._curActionDefs:
+                    self._error('Redefinition of action ' + sSectType)
+                    self._curType = None
+                    continue
+                self._curActionDefs.add(sSectType)
+
                 # Set the action section type
                 if sSectType == 'input':
-                    self._curType = self._curAction.inputType
+                    if sTypeId is not None:
+                        def validateInputType(inputType, fileName, fileLine):
+                            if not isinstance(inputType, model.TypeStruct):
+                                self._error('Action input type must be struct', fileName = fileName, fileLine = fileLine)
+                        self._setType(self._curAction, 'inputType', sTypeId, None, typeValidationFn = validateInputType)
+                        self._curType = None
+                    else:
+                        self._curType = self._curAction.inputType
+
                 elif sSectType == 'output':
-                    self._curType = self._curAction.outputType
+                    if sTypeId is not None:
+                        def validateOutputType(outputType, fileName, fileLine):
+                            if not isinstance(outputType, model.TypeStruct):
+                                self._error('Action output type must be struct', fileName = fileName, fileLine = fileLine)
+                        self._setType(self._curAction, 'outputType', sTypeId, None, typeValidationFn = validateOutputType)
+                        self._curType = None
+                    else:
+                        self._curType = self._curAction.outputType
+
                 else: # sSectType == 'errors':
-                    self._curType = self._curAction.errorType
+                    if sTypeId is not None:
+                        def validateErrorType(errorType, fileName, fileLine):
+                            if not isinstance(errorType, model.TypeEnum):
+                                self._error('Action errors type must be enum', fileName = fileName, fileLine = fileLine)
+                        self._setType(self._curAction, 'errorType', sTypeId, None, typeValidationFn = validateErrorType)
+                        self._curType = None
+                    else:
+                        self._curType = self._curAction.errorType
 
             # Enum value?
             elif mValue:
@@ -396,7 +411,7 @@ class SpecParser(object):
             # Struct member?
             elif mMember:
                 isOptional = mMember.group('optional') is not None
-                sMemberName, memType, memAttr = self._parseTypedef(mMember)
+                sMemberName = mMember.group('id')
 
                 # Not in a struct scope?
                 if not isinstance(self._curType, model.TypeStruct):
@@ -408,24 +423,22 @@ class SpecParser(object):
                     self._error("Redefinition of member '" + sMemberName + "'")
 
                 # Create the member
-                member = self._curType.addMember(sMemberName, memType, isOptional, memAttr, doc = self._curDoc)
-                if isinstance(memType, basestring_):
-                    self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, memType, member, memAttr))
+                member = self._curType.addMember(sMemberName, None, isOptional, None, doc = self._curDoc)
+                self._parseTypedef(member, 'type', 'attr', mMember)
 
                 self._curDoc = []
 
             # Typedef?
             elif mTypedef:
-                sTypedefId, typedefType, typedefAttr = self._parseTypedef(mTypedef)
+                sTypedefId = mTypedef.group('id')
 
                 # Type already defined?
                 if sTypedefId in self._TYPES or sTypedefId in self.types:
                     self._error("Redefinition of type '" + sTypedefId + "'")
 
                 # Create the typedef
-                typedef = model.Typedef(typedefType, attr = typedefAttr, typeName = sTypedefId, doc = self._curDoc)
-                if isinstance(typedefType, basestring_):
-                    self._typeRefs.append(TypeRef(self._parseFileName, self._parseFileLine, typedefType, typedef, typedefAttr))
+                typedef = model.Typedef(None, attr = None, typeName = sTypedefId, doc = self._curDoc)
+                self._parseTypedef(typedef, 'type', 'attr', mTypedef)
                 self.types[sTypedefId] = typedef
 
                 # Reset current action/type

@@ -1098,3 +1098,188 @@ struct MyStruct
         self.assertEqual(typedef2.doc, [])
         self.assertTrue(typedef2.type is parser.types['MyEnum'])
         self.assertEqual(typedef2.attr, None)
+
+
+    def test_spec_error_dict_nonStringKey(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+struct Foo
+    int : int {} a
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Dictionary key type must be string or enum',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_error_action_inputRedefinition(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action Foo
+    input
+        int a
+    output
+        int b
+    input
+        int c
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':6: error: Redefinition of action input',
+                ':7: error: Member definition outside of struct scope',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_error_action_outputRedefinition(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action Foo
+    output
+        int a
+    input
+        int b
+    output
+        int c
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':6: error: Redefinition of action output',
+                ':7: error: Member definition outside of struct scope',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_error_action_errorsRedefinition(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action Foo
+    errors
+        A
+        B
+    input
+        int a
+    errors
+        C
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':7: error: Redefinition of action errors',
+                ':8: error: Enumeration value outside of enum scope',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_input_type(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+struct Foo
+    int a
+    int b
+
+action FooAction
+    input Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
+
+
+    def test_spec_action_input_type_nonStruct(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    input Foo
+
+enum Foo
+    A
+    B
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Action input type must be struct',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_output_type(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+struct Foo
+    int a
+    int b
+
+action FooAction
+    output Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
+
+
+    def test_spec_action_output_type_nonStruct(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    output Foo
+
+enum Foo
+    A
+    B
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Action output type must be struct',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_errors_type(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+enum Foo
+    A
+    B
+
+action FooAction
+    errors Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
+
+
+    def test_spec_action_errors_type_nonStruct(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    errors Foo
+
+struct Foo
+    int a
+    int b
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Action errors type must be enum',
+            ])
+        else:
+            self.fail()
