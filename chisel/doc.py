@@ -31,11 +31,13 @@ import xml.sax.saxutils as saxutils
 class DocAction(Action):
     __slots__ = ()
 
-    def __init__(self):
-        Action.__init__(self, self.__action, wsgiResponse = True,
+    def __init__(self, name = None, urls = None):
+        if name is None:
+            name = 'doc'
+        Action.__init__(self, self.__action, name = name, urls = urls, wsgiResponse = True,
                         spec = '''\
 # Generate a documentation HTML for the requests implemented by the application.
-action doc
+action {name}
   input
     # Generate documentation for the specified request name; generate the
     # documentation index if the request name is not specified.
@@ -43,17 +45,39 @@ action doc
 
     # Remove navigation links.
     optional bool nonav
-''')
+'''.format(name = name))
 
-    def __action(self, app, req):
+    def __action(self, ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            requests = sorted(itervalues(app.requests), key = lambda x: x.name.lower())
-            return app.responseText('200 OK', createIndexHtml(app.environ, requests), contentType = 'text/html')
-        elif requestName in app.requests:
-            return app.responseText('200 OK', createRequestHtml(app.environ, app.requests[requestName], req.get('nonav')), contentType = 'text/html')
+            requests = sorted(itervalues(ctx.requests), key = lambda x: x.name.lower())
+            return ctx.responseText('200 OK', createIndexHtml(ctx.environ, requests), contentType = 'text/html')
+        elif requestName in ctx.requests:
+            return ctx.responseText('200 OK', createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')), contentType = 'text/html')
         else:
-            return app.responseText('500 Internal Server Error', 'Unknown Action')
+            return ctx.responseText('500 Internal Server Error', 'Unknown Request')
+
+
+# Doc page for specific action or type
+class DocPage(Action):
+    __slots__ = ('request')
+
+    def __init__(self, request, name = None, urls = None):
+        requestDesc = 'action' if isinstance(request, Action) else 'request'
+        requestName = request.name
+        if name is None:
+            name = 'doc_' + requestDesc + '_' + requestName
+        if urls is None:
+            urls = ('/doc/' + requestDesc + '/' + requestName,)
+        Action.__init__(self, self.__action, name = name, urls = urls, wsgiResponse = True,
+                        spec = '''\
+# Documentation page for {requestDesc} {requestName}.
+action {name}
+'''.format(name = name, requestDesc = requestDesc, requestName = requestName))
+        self.request = request
+
+    def __action(self, ctx, req):
+        return ctx.responseText('200 OK', createRequestHtml(ctx.environ, self.request, nonav = True), contentType = 'text/html')
 
 
 # HTML DOM helper class
@@ -153,7 +177,7 @@ def createIndexHtml(environ, requests):
 
     # Serialize
     out = StringIO()
-    out.write('<!doctype html>')
+    out.write('<!doctype html>\n')
     root.serialize(out)
     return out.getvalue()
 
@@ -252,7 +276,7 @@ def createRequestHtml(environ, request, nonav = False):
 
     # Serialize
     out = StringIO()
-    out.write('<!doctype html>')
+    out.write('<!doctype html>\n')
     root.serialize(out)
     return out.getvalue()
 

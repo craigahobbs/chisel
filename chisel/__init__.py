@@ -30,6 +30,11 @@ from . import app as _app
 
 Application = _app.Application
 
+from . import doc as _doc
+
+DocAction = _doc.DocAction
+DocPage = _doc.DocPage
+
 from . import model as _model
 
 JsonDatetime = _model.JsonDatetime
