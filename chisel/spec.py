@@ -30,6 +30,10 @@ import re
 class ActionModel(object):
     __slots__ = ('name', 'inputType', 'outputType', 'errorType', 'doc')
 
+    VALID_INPUT_TYPES = (model.TypeStruct, model.TypeDict)
+    VALID_OUTPUT_TYPES = (model.TypeStruct, model.TypeDict)
+    VALID_ERROR_TYPES = (model.TypeEnum,)
+
     def __init__(self, name, doc = None):
         self.name = name
         self.inputType = model.TypeStruct(typeName = name + '_Input')
@@ -243,8 +247,8 @@ class SpecParser(object):
                 dictType = model.TypeDict(None, attr = valueAttr, keyType = None, keyAttr = keyAttr)
                 self._setType(dictType, 'type', sValueType, valueAttr)
                 def validateKeyType(keyType, fileName, fileLine):
-                    if not isinstance(keyType, model._TypeString) and not isinstance(keyType, model.TypeEnum):
-                        self._error('Dictionary key type must be string or enum', fileName = fileName, fileLine = fileLine)
+                    if not model.TypeDict.validKeyType(keyType):
+                        self._error('Invalid dictionary key type', fileName = fileName, fileLine = fileLine)
                 self._setType(dictType, 'keyType', sKeyType, keyAttr, typeValidationFn = validateKeyType)
             else:
                 sValueType = mTypedef.group('type')
@@ -364,8 +368,8 @@ class SpecParser(object):
                 if sSectType == 'input':
                     if sTypeId is not None:
                         def validateInputType(inputType, fileName, fileLine):
-                            if not isinstance(inputType, model.TypeStruct):
-                                self._error('Action input type must be struct', fileName = fileName, fileLine = fileLine)
+                            if not isinstance(model.Typedef.baseType(inputType), ActionModel.VALID_INPUT_TYPES):
+                                self._error('Invalid action input type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'inputType', sTypeId, None, typeValidationFn = validateInputType)
                         self._curType = None
                     else:
@@ -374,8 +378,8 @@ class SpecParser(object):
                 elif sSectType == 'output':
                     if sTypeId is not None:
                         def validateOutputType(outputType, fileName, fileLine):
-                            if not isinstance(outputType, model.TypeStruct):
-                                self._error('Action output type must be struct', fileName = fileName, fileLine = fileLine)
+                            if not isinstance(model.Typedef.baseType(outputType), ActionModel.VALID_OUTPUT_TYPES):
+                                self._error('Invalid action output type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'outputType', sTypeId, None, typeValidationFn = validateOutputType)
                         self._curType = None
                     else:
@@ -384,8 +388,8 @@ class SpecParser(object):
                 else: # sSectType == 'errors':
                     if sTypeId is not None:
                         def validateErrorType(errorType, fileName, fileLine):
-                            if not isinstance(errorType, model.TypeEnum):
-                                self._error('Action errors type must be enum', fileName = fileName, fileLine = fileLine)
+                            if not isinstance(model.Typedef.baseType(errorType), ActionModel.VALID_ERROR_TYPES):
+                                self._error('Invalid action errors type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'errorType', sTypeId, None, typeValidationFn = validateErrorType)
                         self._curType = None
                     else:

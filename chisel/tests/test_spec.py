@@ -1110,7 +1110,7 @@ struct Foo
 ''')
         except SpecParserError:
             self.assertEqual(parser.errors, [
-                ':2: error: Dictionary key type must be string or enum',
+                ':2: error: Invalid dictionary key type',
             ])
         else:
             self.fail()
@@ -1183,13 +1183,29 @@ action Foo
             self.fail()
 
 
-    def test_spec_action_input_type(self):
+    def test_spec_action_input_struct(self):
 
         parser = SpecParser()
         parser.parseString('''\
 struct Foo
     int a
     int b
+
+action FooAction
+    input Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
+
+
+    def test_spec_action_input_typedef(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+struct Bar
+    int a
+    int b
+
+typedef Bar Foo
 
 action FooAction
     input Foo
@@ -1211,13 +1227,35 @@ enum Foo
 ''')
         except SpecParserError:
             self.assertEqual(parser.errors, [
-                ':2: error: Action input type must be struct',
+                ':2: error: Invalid action input type',
             ])
         else:
             self.fail()
 
 
-    def test_spec_action_output_type(self):
+    def test_spec_action_input_type_typedef_nonStruct(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    input Foo
+
+enum Bar
+    A
+    B
+
+typedef Bar Foo
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Invalid action input type',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_output_struct(self):
 
         parser = SpecParser()
         parser.parseString('''\
@@ -1231,7 +1269,23 @@ action FooAction
         self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
 
 
-    def test_spec_action_output_type_nonStruct(self):
+    def test_spec_action_output_typedef(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+struct Bar
+    int a
+    int b
+
+typedef Bar Foo
+
+action FooAction
+    output Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
+
+
+    def test_spec_action_output_nonStruct(self):
 
         parser = SpecParser()
         try:
@@ -1245,13 +1299,35 @@ enum Foo
 ''')
         except SpecParserError:
             self.assertEqual(parser.errors, [
-                ':2: error: Action output type must be struct',
+                ':2: error: Invalid action output type',
             ])
         else:
             self.fail()
 
 
-    def test_spec_action_errors_type(self):
+    def test_spec_action_output_typedef_nonStruct(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    output Foo
+
+enum Bar
+    A
+    B
+
+typedef Bar Foo
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Invalid action output type',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_errors_enum(self):
 
         parser = SpecParser()
         parser.parseString('''\
@@ -1265,7 +1341,23 @@ action FooAction
         self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
 
 
-    def test_spec_action_errors_type_nonStruct(self):
+    def test_spec_action_errors_typedef(self):
+
+        parser = SpecParser()
+        parser.parseString('''\
+action FooAction
+    errors Foo
+
+enum Bar
+    A
+    B
+
+typedef Bar Foo
+''')
+        self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
+
+
+    def test_spec_action_errors_nonEnum(self):
 
         parser = SpecParser()
         try:
@@ -1279,7 +1371,29 @@ struct Foo
 ''')
         except SpecParserError:
             self.assertEqual(parser.errors, [
-                ':2: error: Action errors type must be enum',
+                ':2: error: Invalid action errors type',
+            ])
+        else:
+            self.fail()
+
+
+    def test_spec_action_errors_typedef_nonEnum(self):
+
+        parser = SpecParser()
+        try:
+            parser.parseString('''\
+action FooAction
+    errors Foo
+
+struct Bar
+    int a
+    int b
+
+typedef Bar Foo
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':2: error: Invalid action errors type',
             ])
         else:
             self.fail()

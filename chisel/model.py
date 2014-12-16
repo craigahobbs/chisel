@@ -228,6 +228,12 @@ class Typedef(object):
         self.attr = attr
         self.doc = [] if doc is None else doc
 
+    @staticmethod
+    def baseType(type_):
+        while isinstance(type_, Typedef):
+            type_ = type_.type
+        return type_
+
     def validateAttr(self, attr):
         self.type.validateAttr(attr)
 
@@ -365,6 +371,11 @@ class TypeDict(object):
         self.attr = attr
         self.keyType = keyType or TypeString()
         self.keyAttr = keyAttr
+
+    @classmethod
+    def validKeyType(cls, keyType):
+        keyTypeBase = Typedef.baseType(keyType)
+        return isinstance(keyTypeBase, _TypeString) or isinstance(keyTypeBase, TypeEnum)
 
     def hasDefaultKeyType(self):
         return isinstance(self.keyType, _TypeString)
