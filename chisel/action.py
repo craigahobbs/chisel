@@ -168,14 +168,14 @@ class Action(Request):
                 raise _ActionErrorInternal('UnexpectedError')
 
             # Validate the response
-            isErrorResponse = (hasattr(response, '__contains__') and 'error' in response)
             if self.app.validateOutput:
-                if isErrorResponse:
+                if hasattr(response, '__contains__') and 'error' in response:
                     responseType = TypeStruct()
                     responseType.addMember('error', self.model.errorType)
                     responseType.addMember('message', TypeString(), isOptional = True)
                 else:
                     responseType = self.model.outputType
+
                 try:
                     responseType.validate(response, mode = VALIDATE_JSON_OUTPUT)
                 except ValidationError as e:

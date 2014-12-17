@@ -21,7 +21,8 @@
 #
 
 from .compat import StringIO
-from . import model
+from .model import AttributeValidationError, StructMemberAttributes, TypeArray, TypeBool, \
+    TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, TypeFloat, TypeString, TypeStruct, TypeUuid
 
 import re
 
@@ -30,15 +31,15 @@ import re
 class ActionModel(object):
     __slots__ = ('name', 'inputType', 'outputType', 'errorType', 'doc')
 
-    VALID_INPUT_TYPES = (model.TypeStruct, model.TypeDict)
-    VALID_OUTPUT_TYPES = (model.TypeStruct, model.TypeDict)
-    VALID_ERROR_TYPES = (model.TypeEnum,)
+    VALID_INPUT_TYPES = (TypeStruct, TypeDict)
+    VALID_OUTPUT_TYPES = (TypeStruct, TypeDict)
+    VALID_ERROR_TYPES = (TypeEnum,)
 
     def __init__(self, name, doc = None):
         self.name = name
-        self.inputType = model.TypeStruct(typeName = name + '_Input')
-        self.outputType = model.TypeStruct(typeName = name + '_Output')
-        self.errorType = model.TypeEnum(typeName = name + '_Error')
+        self.inputType = TypeStruct(typeName = name + '_Input')
+        self.outputType = TypeStruct(typeName = name + '_Output')
+        self.errorType = TypeEnum(typeName = name + '_Error')
         self.doc = [] if doc is None else doc
 
 
@@ -98,12 +99,12 @@ class SpecParser(object):
 
     # Types
     _TYPES = {
-        'string': model.TypeString,
-        'int': model.TypeInt,
-        'float': model.TypeFloat,
-        'bool': model.TypeBool,
-        'datetime': model.TypeDatetime,
-        'uuid': model.TypeUuid,
+        'string': TypeString,
+        'int': TypeInt,
+        'float': TypeFloat,
+        'bool': TypeBool,
+        'datetime': TypeDatetime,
+        'uuid': TypeUuid,
         }
 
     def __init__(self):
@@ -177,7 +178,7 @@ class SpecParser(object):
         try:
             if attr is not None:
                 type.validateAttr(attr)
-        except model.AttributeValidationError as e:
+        except AttributeValidationError as e:
             self._error("Invalid attribute '" + e.attr + "'", fileName = fileName, fileLine = fileLine)
 
     # Parse an attributes string
@@ -191,7 +192,7 @@ class SpecParser(object):
                 attrLop = mAttr.group('lop') if attrOp is None else None
 
                 if attr is None:
-                    attr = model.StructMemberAttributes()
+                    attr = StructMemberAttributes()
 
                 if attrOp is not None:
                     attrValue = float(mAttr.group('opnum'))
@@ -228,7 +229,7 @@ class SpecParser(object):
         if sArrayAttr is not None:
             sValueType = mTypedef.group('type')
             valueAttr = self._parseAttr(mTypedef.group('attrs'))
-            arrayType = model.TypeArray(None, attr = valueAttr)
+            arrayType = TypeArray(None, attr = valueAttr)
             self._setType(arrayType, 'type', sValueType, valueAttr)
 
             arrayAttr = self._parseAttr(sArrayAttr)
@@ -244,16 +245,16 @@ class SpecParser(object):
                 valueAttr = self._parseAttr(mTypedef.group('dictValueAttrs'))
                 sKeyType = mTypedef.group('type')
                 keyAttr = self._parseAttr(mTypedef.group('attrs'))
-                dictType = model.TypeDict(None, attr = valueAttr, keyType = None, keyAttr = keyAttr)
+                dictType = TypeDict(None, attr = valueAttr, keyType = None, keyAttr = keyAttr)
                 self._setType(dictType, 'type', sValueType, valueAttr)
                 def validateKeyType(keyType, fileName, fileLine):
-                    if not model.TypeDict.validKeyType(keyType):
+                    if not TypeDict.validKeyType(keyType):
                         self._error('Invalid dictionary key type', fileName = fileName, fileLine = fileLine)
                 self._setType(dictType, 'keyType', sKeyType, keyAttr, typeValidationFn = validateKeyType)
             else:
                 sValueType = mTypedef.group('type')
                 valueAttr = self._parseAttr(mTypedef.group('attrs'))
-                dictType = model.TypeDict(None, attr = valueAttr)
+                dictType = TypeDict(None, attr = valueAttr)
                 self._setType(dictType, 'type', sValueType, valueAttr)
 
             dictAttr = self._parseAttr(sDictAttr)
@@ -330,7 +331,7 @@ class SpecParser(object):
 
                     # Create the new struct type
                     self._curAction = None
-                    self._curType = model.TypeStruct(typeName = sDefId, isUnion = (sDefType == 'union'), doc = self._curDoc)
+                    self._curType = TypeStruct(typeName = sDefId, isUnion = (sDefType == 'union'), doc = self._curDoc)
                     self._curDoc = []
                     self.types[self._curType.typeName] = self._curType
 
@@ -343,7 +344,7 @@ class SpecParser(object):
 
                     # Create the new enum type
                     self._curAction = None
-                    self._curType = model.TypeEnum(typeName = sDefId, doc = self._curDoc)
+                    self._curType = TypeEnum(typeName = sDefId, doc = self._curDoc)
                     self._curDoc = []
                     self.types[self._curType.typeName] = self._curType
 
@@ -368,7 +369,7 @@ class SpecParser(object):
                 if sSectType == 'input':
                     if sTypeId is not None:
                         def validateInputType(inputType, fileName, fileLine):
-                            if not isinstance(model.Typedef.baseType(inputType), ActionModel.VALID_INPUT_TYPES):
+                            if not isinstance(Typedef.baseType(inputType), ActionModel.VALID_INPUT_TYPES):
                                 self._error('Invalid action input type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'inputType', sTypeId, None, typeValidationFn = validateInputType)
                         self._curType = None
@@ -378,7 +379,7 @@ class SpecParser(object):
                 elif sSectType == 'output':
                     if sTypeId is not None:
                         def validateOutputType(outputType, fileName, fileLine):
-                            if not isinstance(model.Typedef.baseType(outputType), ActionModel.VALID_OUTPUT_TYPES):
+                            if not isinstance(Typedef.baseType(outputType), ActionModel.VALID_OUTPUT_TYPES):
                                 self._error('Invalid action output type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'outputType', sTypeId, None, typeValidationFn = validateOutputType)
                         self._curType = None
@@ -388,7 +389,7 @@ class SpecParser(object):
                 else: # sSectType == 'errors':
                     if sTypeId is not None:
                         def validateErrorType(errorType, fileName, fileLine):
-                            if not isinstance(model.Typedef.baseType(errorType), ActionModel.VALID_ERROR_TYPES):
+                            if not isinstance(Typedef.baseType(errorType), ActionModel.VALID_ERROR_TYPES):
                                 self._error('Invalid action errors type', fileName = fileName, fileLine = fileLine)
                         self._setType(self._curAction, 'errorType', sTypeId, None, typeValidationFn = validateErrorType)
                         self._curType = None
@@ -400,7 +401,7 @@ class SpecParser(object):
                 sEnumValue = mValue.group('id')
 
                 # Not in an enum scope?
-                if not isinstance(self._curType, model.TypeEnum):
+                if not isinstance(self._curType, TypeEnum):
                     self._error('Enumeration value outside of enum scope')
                     continue
 
@@ -418,7 +419,7 @@ class SpecParser(object):
                 sMemberName = mMember.group('id')
 
                 # Not in a struct scope?
-                if not isinstance(self._curType, model.TypeStruct):
+                if not isinstance(self._curType, TypeStruct):
                     self._error('Member definition outside of struct scope')
                     continue
 
@@ -441,7 +442,7 @@ class SpecParser(object):
                     self._error("Redefinition of type '" + sTypedefId + "'")
 
                 # Create the typedef
-                typedef = model.Typedef(None, attr = None, typeName = sTypedefId, doc = self._curDoc)
+                typedef = Typedef(None, attr = None, typeName = sTypedefId, doc = self._curDoc)
                 self._parseTypedef(typedef, 'type', 'attr', mTypedef)
                 self.types[sTypedefId] = typedef
 

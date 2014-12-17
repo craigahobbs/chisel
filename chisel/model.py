@@ -23,7 +23,8 @@
 from .compat import basestring_, iteritems, long_
 
 from datetime import datetime, timedelta, tzinfo
-import time
+from time import altzone as time_altzone, daylight as time_daylight, localtime as time_localtime, \
+    mktime as time_mktime, timezone as time_timezone, tzname as time_tzname
 import re
 from uuid import UUID
 
@@ -674,24 +675,24 @@ class _TZLocal(tzinfo): # pragma: no cover
             return _timedelta_zero
 
     def tzname(self, dt):
-        return time.tzname[self._isdst(dt)]
+        return time_tzname[self._isdst(dt)]
 
     @classmethod
     def _stdOffset(cls):
-        return timedelta(seconds = -time.timezone)
+        return timedelta(seconds = -time_timezone)
 
     @classmethod
     def _dstOffset(cls):
-        if time.daylight:
-            return timedelta(seconds = -time.altzone)
+        if time_daylight:
+            return timedelta(seconds = -time_altzone)
         else:
             return cls._stdOffset()
 
     @classmethod
     def _isdst(cls, dt):
         tt = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0)
-        stamp = time.mktime(tt)
-        tt = time.localtime(stamp)
+        stamp = time_mktime(tt)
+        tt = time_localtime(stamp)
         return tt.tm_isdst > 0
 
 tzlocal = _TZLocal()

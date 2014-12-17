@@ -23,6 +23,9 @@
 from .compat import basestring_, PY3, urllib, xrange_
 from .model import JsonDatetime, JsonUUID
 
+urllib_quote = urllib.quote
+urllib_unquote = urllib.unquote
+
 from datetime import datetime
 from uuid import UUID
 
@@ -30,19 +33,19 @@ from uuid import UUID
 # Helper to quote strings
 if PY3: # pragma: no cover
     def quote(s, encoding = 'utf-8'):
-        return urllib.quote(s if isinstance(s, str) else str(s), encoding = encoding)
+        return urllib_quote(s if isinstance(s, str) else str(s), encoding = encoding)
 else:
     def quote(s, encoding = 'utf-8'):
-        return urllib.quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
+        return urllib_quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
 
 
 # Helper to unquote a URL key or value
 if PY3: # pragma: no cover
     def unquote(s, encoding = 'utf-8'):
-        return urllib.unquote(s, encoding = encoding)
+        return urllib_unquote(s, encoding = encoding)
 else:
     def unquote(s, encoding = 'utf-8'):
-        return urllib.unquote(s).decode(encoding)
+        return urllib_unquote(s).decode(encoding)
 
 
 # Encode an object as a URL query string
