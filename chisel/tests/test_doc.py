@@ -94,6 +94,7 @@ struct MyStruct
     MyStruct{} member9
     MyEnum : MyStruct{len > 0} member10
     string(len == 2) : int(> 5){len > 0} member11
+    date member12
 
 # An unused struct
 # My Union
@@ -654,6 +655,17 @@ My float member
             <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
             <li><span class="chsl-emphasis">len(key)</span> == 2</li>
             <li><span class="chsl-emphasis">elem</span> &gt; 5</li>
+          </ul>
+        </td>
+        <td>
+        </td>
+      </tr>
+      <tr>
+        <td>member12</td>
+        <td>date</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">none</span></li>
           </ul>
         </td>
         <td>

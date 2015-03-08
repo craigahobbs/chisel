@@ -21,17 +21,39 @@
 #
 
 from chisel.compat import json, long_, PY3
-from chisel.model import JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
+from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
-    TypeUuid, TypeDatetime, tzutc, tzlocal, IMMUTABLE_VALIDATION_MODES
+    TypeUuid, TypeDate, TypeDatetime, tzutc, tzlocal, IMMUTABLE_VALIDATION_MODES
 import chisel.model
 
-from datetime import datetime
+from datetime import date, datetime
 import unittest
 from uuid import UUID
 
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)
+
+
+class TestModelJsonDate(unittest.TestCase):
+
+    def test_model_jsonDate(self):
+
+        value = date(2013, 6, 30)
+        o = JsonDate(value)
+        self.assertTrue(isinstance(o, float))
+        self.assertEqual(o.value, value)
+        self.assertEqual(repr(o), '"2013-06-30"')
+        self.assertEqual(str(o), '"2013-06-30"')
+        self.assertEqual(json.dumps({'v': o}), '{"v": "2013-06-30"}')
+
+    # Test built-in float function behavior
+    def test_model_jsonDate_float(self):
+
+        value = date(2013, 6, 30)
+        o = JsonDate(value)
+        f = float(o)
+        self.assertTrue(f is o)
+        self.assertEqual(repr(o), '"2013-06-30"')
 
 
 class TestModelJsonDatetime(unittest.TestCase):
@@ -1501,6 +1523,86 @@ class TestModelUuidValidation(unittest.TestCase):
                 t.validate(o, mode)
             except ValidationError as e:
                 self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
+            else:
+                self.fail()
+
+
+class TestModelDateValidation(unittest.TestCase):
+
+    # Test date type construction
+    def test_model_date_init(self):
+
+        t = TypeDate()
+
+        self.assertEqual(t.typeName, 'date')
+
+    # All validation modes - date object
+    def test_model_date_validate(self):
+
+        t = TypeDate()
+
+        o = date(2013, 5, 26)
+        for mode in ALL_VALIDATION_MODES:
+            if mode != VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is o2)
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value datetime.date(2013, 5, 26) (type 'date'), expected type 'date' [JsonDate object required]")
+                else:
+                    self.fail()
+
+    # All validation modes - JSONDate object
+    def test_model_date_JSONDate(self):
+
+        t = TypeDate()
+
+        o = JsonDate(date(2013, 5, 26))
+        for mode in ALL_VALIDATION_MODES:
+            if mode == VALIDATE_JSON_OUTPUT:
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is o2)
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value \"2013-05-26\" (type 'JsonDate'), expected type 'date'")
+                else:
+                    self.fail()
+
+    # All validation modes - ISO date string
+    def test_model_date_validate_query_string(self):
+
+        t = TypeDate()
+
+        o = '2013-05-26'
+        for mode in ALL_VALIDATION_MODES:
+            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+                o2 = t.validate(o, mode)
+                self.assertTrue(o is not o2)
+                self.assertTrue(isinstance(o2, date))
+                self.assertEqual(o2, date(2013, 5, 26))
+            else:
+                try:
+                    t.validate(o, mode)
+                except ValidationError as e:
+                    self.assertEqual(str(e), "Invalid value '2013-05-26' (type 'str'), expected type 'date'")
+                else:
+                    self.fail()
+
+    # All validation modes - error - invalid value
+    def test_model_date_validate_error(self):
+
+        t = TypeDate()
+
+        o = 'abc'
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                t.validate(o, mode)
+            except ValidationError as e:
+                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'date'")
             else:
                 self.fail()
 

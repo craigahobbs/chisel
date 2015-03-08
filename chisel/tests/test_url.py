@@ -23,7 +23,7 @@
 from chisel import decodeQueryString, encodeQueryString, tzutc
 from chisel.compat import PY3
 
-from datetime import datetime
+from datetime import date, datetime
 import unittest
 from uuid import UUID
 
@@ -241,6 +241,13 @@ class TestUrl(unittest.TestCase):
 
         o = { 'a': True }
         s = 'a=true'
+        self.assertEqual(encodeQueryString(o), s)
+
+    # Test date query string encoding
+    def test_url_encodeQueryString_date(self):
+
+        o = { 'a': date(2013, 7, 18) }
+        s = 'a=2013-07-18'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test datetime query string encoding
