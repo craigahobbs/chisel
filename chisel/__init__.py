@@ -37,6 +37,7 @@ Application = _app.Application
 DocAction = _doc.DocAction
 DocPage = _doc.DocPage
 
+JsonDate = _model.JsonDate
 JsonDatetime = _model.JsonDatetime
 JsonFloat = _model.JsonFloat
 JsonUUID = _model.JsonUUID
