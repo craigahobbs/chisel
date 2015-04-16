@@ -161,7 +161,7 @@ class TestAppApplication(unittest.TestCase):
         # POST
         logStream = StringIO()
         self.app.logFormat = '%(message)s'
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 7}', environ = {'wsgi.errors': logStream})
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = b'{"value": 7}', environ = {'wsgi.errors': logStream})
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
@@ -180,7 +180,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = '{"value": 9}',
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = b'{"value": 9}',
                                                      environ = { 'MYENVIRON': '10' })
         self.assertEqual(response.decode('utf-8'), '{"result":90}')
         self.assertEqual(status, '200 OK')
@@ -193,7 +193,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
-        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = b'{}')
         self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)

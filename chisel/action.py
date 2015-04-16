@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, itervalues, json
+from .compat import cgi, iteritems, itervalues, json
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
@@ -125,7 +125,9 @@ class Action(Request):
                 # De-serialize the JSON request
                 validateMode = VALIDATE_JSON_INPUT if self.strictValidation else VALIDATE_QUERY_STRING
                 try:
-                    request = json.loads(requestContent)
+                    contentTypeHeader = environ.get('CONTENT_TYPE')
+                    contentCharset = 'utf-8' if contentTypeHeader is None else cgi.parse_header(contentTypeHeader)[1].get('charset', 'utf-8')
+                    request = json.loads(requestContent.decode(contentCharset))
                 except Exception as e:
                     self.app.log.warning("Error decoding JSON content for action '%s': %s", self.name, requestContent)
                     raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(e))

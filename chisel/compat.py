@@ -58,10 +58,12 @@ else:
 
 # cgi
 if _PY32: # pragma: no cover
+    import cgi as _cgi
     import html as _html
     class cgi(object):
         __slots__ = ()
         escape = _html.escape
+        parse_header = _cgi.parse_header
 else:
     import cgi as _cgi
     cgi = _cgi

@@ -20,13 +20,14 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, json, PY3, StringIO, xrange_
+from .compat import basestring_, iteritems, json, PY3, xrange_
 from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
 from .url import unquote
 
 from collections import namedtuple
+from io import BytesIO
 import itertools
 import logging
 import os
@@ -422,7 +423,7 @@ class Application(object):
         if 'QUERY_STRING' not in _environ:
             _environ['QUERY_STRING'] = queryString if queryString else ''
         if 'wsgi.input' not in _environ:
-            _environ['wsgi.input'] = StringIO(wsgiInput if wsgiInput else '')
+            _environ['wsgi.input'] = BytesIO(wsgiInput if wsgiInput else b'')
             if 'CONTENT_LENGTH' not in _environ:
                 _environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
         if 'wsgi.errors' not in _environ:

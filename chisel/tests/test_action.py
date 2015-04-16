@@ -241,7 +241,7 @@ action myAction
             return { 'c': req['a'] + req['b'] }
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": 7, "b": 8}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7, "b": 8}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '8'),
                                            ('Content-Type', 'application/json')])
@@ -280,7 +280,7 @@ action myAction
             return app.responseText('200 OK', 'Hello ' + str(req['a'].upper()))
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": "world"}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": "world"}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '11'),
                                            ('Content-Type', 'text/plain')])
@@ -298,7 +298,7 @@ action myAction
             return {'error': 'MyError'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '19'),
                                            ('Content-Type', 'application/json')])
@@ -316,7 +316,7 @@ action myAction
             return {'error': 'MyError', 'message': 'My message'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '42'),
                                            ('Content-Type', 'application/json')])
@@ -334,7 +334,7 @@ action myAction
             raise chisel.ActionError('MyError')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '19'),
                                            ('Content-Type', 'application/json')])
@@ -352,7 +352,7 @@ action myAction
             raise chisel.ActionError('MyError', 'My message')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '42'),
                                            ('Content-Type', 'application/json')])
@@ -370,7 +370,7 @@ action myAction
             return {'error': 'MyBadError'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '145'),
                                            ('Content-Type', 'application/json')])
@@ -406,7 +406,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": 7}', environ = {'CONTENT_LENGTH': 'asdf'})
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7}', environ = {'CONTENT_LENGTH': 'asdf'})
         self.assertEqual(status, '411 Length Required')
         self.assertEqual(sorted(headers), [('Content-Length', '15'),
                                            ('Content-Type', 'text/plain')])
@@ -424,7 +424,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{a: 7}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{a: 7}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(any(header for header in headers if header[0] == 'Content-Length'))
         self.assertEqual(sorted(header for header in headers if header[0] != 'Content-Length'),
@@ -443,7 +443,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('FOO', '/myAction', wsgiInput = '{"a": 7}')
+        status, headers, response = self.app.request('FOO', '/myAction', wsgiInput = b'{"a": 7}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(sorted(headers), [('Content-Length', '18'),
                                            ('Content-Type', 'text/plain')])
@@ -461,7 +461,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{"a": 7}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '117'),
                                            ('Content-Type', 'application/json')])
@@ -479,7 +479,7 @@ action myAction
             return {'a': 'asdf'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '120'),
                                            ('Content-Type', 'application/json')])
@@ -495,7 +495,7 @@ action myAction
             pass
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '2'),
                                            ('Content-Type', 'application/json')])
@@ -511,7 +511,7 @@ action myAction
             return []
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '101'),
                                            ('Content-Type', 'application/json')])
@@ -527,7 +527,7 @@ action myAction
             raise Exception('My unexpected error')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '27'),
                                            ('Content-Type', 'application/json')])
@@ -570,7 +570,7 @@ action myAction
         self.app.addRequest(myAction)
         self.app.validateOutput = False
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '16'),
                                            ('Content-Type', 'text/plain')])
@@ -586,7 +586,7 @@ action myAction
             raise Exception('FAIL')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = '{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '27'),
                                            ('Content-Type', 'application/json')])
