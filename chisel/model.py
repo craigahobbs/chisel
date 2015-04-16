@@ -22,11 +22,33 @@
 
 from .compat import basestring_, iteritems, long_
 
-from datetime import datetime, timedelta, tzinfo
+from datetime import date, datetime, timedelta, tzinfo
 from time import altzone as time_altzone, daylight as time_daylight, localtime as time_localtime, \
     mktime as time_mktime, timezone as time_timezone, tzname as time_tzname
 import re
 from uuid import UUID
+
+
+# JSON encoding for date objects
+class JsonDate(float):
+    __slots__ = ('value', 'json')
+
+    def __new__(cls, value):
+        return float.__new__(cls, 0)
+
+    def __init__(self, value):
+        if value is not self:
+            self.value = value
+            self.json = '"' + value.isoformat() + '"'
+
+    def __repr__(self):
+        return self.json
+
+    def __str__(self):
+        return self.json
+
+    def __float__(self): # pragma: no cover
+        return self
 
 
 # JSON encoding for datetime objects
@@ -97,7 +119,7 @@ class JsonUUID(float):
 
 
 # Fake JSON float types
-FAKE_FLOAT_TYPES = (JsonDatetime, JsonUUID)
+FAKE_FLOAT_TYPES = (JsonDate, JsonDatetime, JsonUUID)
 
 
 # Validation mode
@@ -604,6 +626,37 @@ def TypeUuid():
     return _TYPE_UUID
 
 
+# Date type
+class _TypeDate(object):
+    __slots__ = ()
+
+    typeName = 'date'
+
+    def validateAttr(self, attr):
+        attr.validateAttr()
+
+    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+
+        # Validate and translate the value
+        if isinstance(value, date):
+            if mode == VALIDATE_JSON_OUTPUT:
+                raise ValidationError.memberError(self, value, _member, constraintSyntax = 'JsonDate object required')
+            return value
+        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDate):
+            return value
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
+            try:
+                return parseISO8601Date(value)
+            except:
+                raise ValidationError.memberError(self, value, _member)
+        else:
+            raise ValidationError.memberError(self, value, _member)
+
+_TYPE_DATE = _TypeDate()
+def TypeDate():
+    return _TYPE_DATE
+
+
 # Datetime type
 class _TypeDatetime(object):
     __slots__ = ()
@@ -698,16 +751,32 @@ class _TZLocal(tzinfo): # pragma: no cover
 tzlocal = _TZLocal()
 
 
-# ISO 8601 regex
-_reISO8601 = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-                        r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
-                        r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+# ISO 8601 regexes
+_reISO8601Date = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s*$')
+_reISO8601Datetime = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+                                r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
+                                r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+
+# Static helper function to parse ISO 8601 date
+def parseISO8601Date(s):
+
+    # Match ISO 8601?
+    m = _reISO8601Date.search(s)
+    if not m:
+        raise ValueError('Expected ISO 8601 date')
+
+    # Extract ISO 8601 components
+    year = int(m.group('year'))
+    month = int(m.group('month'))
+    day = int(m.group('day'))
+
+    return date(year, month, day)
 
 # Static helper function to parse ISO 8601 date/time
 def parseISO8601Datetime(s):
 
     # Match ISO 8601?
-    m = _reISO8601.search(s)
+    m = _reISO8601Datetime.search(s)
     if not m:
         raise ValueError('Expected ISO 8601 date/time')
 

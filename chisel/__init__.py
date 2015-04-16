@@ -37,6 +37,7 @@ DocPage = _doc.DocPage
 
 from . import model as _model
 
+JsonDate = _model.JsonDate
 JsonDatetime = _model.JsonDatetime
 JsonFloat = _model.JsonFloat
 JsonUUID = _model.JsonUUID

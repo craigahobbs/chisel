@@ -107,6 +107,7 @@ struct MyStruct2
     optional datetime h
     optional uuid i
     optional MyEnum : MyStruct{} j
+    optional date k
 
 # This is a union
 union MyUnion
@@ -136,6 +137,7 @@ action MyAction3
     output
         int a
         datetime b
+        date c
 
 # The fourth action
 action MyAction4
@@ -166,7 +168,8 @@ action MyAction4
                                  ('g', chisel.model.TypeDict, True),
                                  ('h', chisel.model._TypeDatetime, True),
                                  ('i', chisel.model._TypeUuid, True),
-                                 ('j', chisel.model.TypeDict, True)))
+                                 ('j', chisel.model.TypeDict, True),
+                                 ('k', chisel.model._TypeDate, True)))
         self.assertStructByName(parser, 'MyUnion',
                                 (('a', chisel.model._TypeInt, True),
                                  ('b', chisel.model._TypeString, True)))
@@ -195,7 +198,8 @@ action MyAction4
         self.assertAction(parser, 'MyAction3',
                           (),
                           (('a', chisel.model._TypeInt, False),
-                           ('b', chisel.model._TypeDatetime, False)),
+                           ('b', chisel.model._TypeDatetime, False),
+                           ('c', chisel.model._TypeDate, False)),
                           ())
         self.assertAction(parser, 'MyAction4',
                           (),
