@@ -72,7 +72,6 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assertStruct(parser.actions[actionName].outputType, outputMembers)
         self.assertEnum(parser.actions[actionName].errorType, errorValues)
 
-
     # Test valid spec parsing
     def test_spec_simple(self):
 
@@ -202,7 +201,6 @@ action MyAction4
                           (),
                           ())
 
-
     # Test multiple parse calls per parser instance
     def test_spec_multiple(self):
 
@@ -224,7 +222,7 @@ struct MyStruct
     string c
     MyEnum2 d
     MyStruct2 e
-''', finalize = False)
+''', finalize=False)
         parser.parseString('''\
 action MyAction2
     input
@@ -278,7 +276,6 @@ enum MyEnum2
         self.assertEqual(parser.actions['MyAction2'].inputType.members[0].type.typeName, 'MyStruct')
         self.assertEqual(parser.actions['MyAction2'].outputType.members[0].type.typeName, 'MyStruct2')
 
-
     # Test multiple finalize
     def test_spec_multiple_finalize(self):
 
@@ -319,7 +316,6 @@ enum MyEnum2
                                  ('b', parser.types['MyEnum'], False),
                                  ('c', parser.types['MyEnum2'], False)))
 
-
     def test_spec_typeref_array_attr(self):
 
         parser = SpecParser()
@@ -336,7 +332,6 @@ struct MyStruct2
         self.assertTrue(parser.types['MyStruct'].members[0].attr is not None)
 
         self.assertStructByName(parser, 'MyStruct2', ())
-
 
     def test_spec_typeref_dict_attr(self):
 
@@ -358,7 +353,6 @@ struct MyStruct2
 
         self.assertStructByName(parser, 'MyStruct2', ())
 
-
     def test_spec_typeref_invalid_attr(self):
 
         parser = SpecParser()
@@ -373,7 +367,6 @@ struct MyStruct2
 :2: error: Invalid attribute 'len > 0'""")
         else:
             self.fail()
-
 
     # Test members referencing unknown user types
     def test_spec_error_unknown_type(self):
@@ -390,7 +383,7 @@ action MyAction
         MyBadType2 a
     output
         MyBadType b
-''', fileName = 'foo')
+''', fileName='foo')
         except SpecParserError as e:
             self.assertEqual(str(e), """\
 foo:2: error: Unknown member type 'MyBadType'
@@ -409,7 +402,6 @@ foo:8: error: Unknown member type 'MyBadType'""")
                          ["foo:2: error: Unknown member type 'MyBadType'",
                           "foo:6: error: Unknown member type 'MyBadType2'",
                           "foo:8: error: Unknown member type 'MyBadType'"])
-
 
     # Error - redefinition of struct
     def test_spec_error_struct_redefinition(self):
@@ -441,7 +433,6 @@ enum Foo
         # Check errors
         self.assertEqual(parser.errors,
                          [":4: error: Redefinition of type 'Foo'"])
-
 
     # Error - redefinition of enum
     def test_spec_error_enum_redefinition(self):
@@ -475,7 +466,6 @@ struct Foo
         self.assertEqual(parser.errors,
                          [":5: error: Redefinition of type 'Foo'"])
 
-
     # Error - redefinition of typedef
     def test_spec_error_typedef_redefinition(self):
 
@@ -504,12 +494,11 @@ typedef int(> 5) Foo
         self.assertEqual(typedef.typeName, 'Foo')
         self.assertEqual(typedef.doc, [])
         self.assertTrue(isinstance(typedef.type, chisel.model._TypeInt))
-        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(gt = 5))
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(gt=5))
 
         # Check errors
         self.assertEqual(parser.errors,
                          [":4: error: Redefinition of type 'Foo'"])
-
 
     # Error - redefinition of user type
     def test_spec_error_action_redefinition(self):
@@ -545,7 +534,6 @@ action MyAction
         # Check errors
         self.assertEqual(parser.errors,
                          [":5: error: Redefinition of action 'MyAction'"])
-
 
     # Error - invalid action section usage
     def test_spec_error_action_section(self):
@@ -599,7 +587,6 @@ errors
                           ':11: error: Syntax error',
                           ':12: error: Syntax error'])
 
-
     # Error - member definition outside struct scope
     def test_spec_error_member(self):
 
@@ -643,7 +630,6 @@ int cde
                          [':2: error: Member definition outside of struct scope',
                           ':8: error: Member definition outside of struct scope',
                           ':10: error: Syntax error'])
-
 
     # Error - enum value definition outside enum scope
     def test_spec_error_enum(self):
@@ -695,10 +681,9 @@ action MyAction
                           ':8: error: Enumeration value outside of enum scope',
                           ':12: error: Enumeration value outside of enum scope'])
 
-
     @staticmethod
-    def attrTuple(attr = None, eq = None, lt = None, lte = None, gt = None, gte = None,
-                  len_eq = None, len_lt = None, len_lte = None, len_gt = None, len_gte = None):
+    def attrTuple(attr=None, eq=None, lt=None, lte=None, gt=None, gte=None,
+                  len_eq=None, len_lt=None, len_lte=None, len_gt=None, len_gte=None):
         return (attr.eq if attr else eq,
                 attr.lt if attr else lt,
                 attr.lte if attr else lte,
@@ -709,7 +694,6 @@ action MyAction
                 attr.len_lte if attr else len_lte,
                 attr.len_gt if attr else len_gt,
                 attr.len_gte if attr else len_gte)
-
 
     # Test valid attribute usage
     def test_spec_attributes(self):
@@ -735,7 +719,7 @@ struct MyStruct
     string(len > 5){len > 10} ds1
     string(len == 2){len == 3} ds2
     string(len == 1) : string(len == 2){len == 3} ds3
-''', fileName = 'foo')
+''', fileName='foo')
         s = parser.types['MyStruct']
 
         # Check counts
@@ -767,82 +751,81 @@ struct MyStruct
         # Check i1 constraints
         itm = iter(s.members)
         i1 = next(itm)
-        self.assertEqual(self.attrTuple(i1.attr), self.attrTuple(lte = 10.5, gt = 1))
+        self.assertEqual(self.attrTuple(i1.attr), self.attrTuple(lte=10.5, gt=1))
 
         # Check i2 constraints
         i2 = next(itm)
-        self.assertEqual(self.attrTuple(i2.attr), self.attrTuple(lt = 10, gte = 1))
+        self.assertEqual(self.attrTuple(i2.attr), self.attrTuple(lt=10, gte=1))
 
         # Check i3 constraints
         i3 = next(itm)
-        self.assertEqual(self.attrTuple(i3.attr), self.attrTuple(lte = 10, gt = 0))
+        self.assertEqual(self.attrTuple(i3.attr), self.attrTuple(lte=10, gt=0))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(lt = -1.4, gt = -4))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(lt=-1.4, gt=-4))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(eq = 5))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(eq=5))
 
         # Check f1 constraints
         f1 = next(itm)
-        self.assertEqual(self.attrTuple(f1.attr), self.attrTuple(lte = 10.5, gt = 1))
+        self.assertEqual(self.attrTuple(f1.attr), self.attrTuple(lte=10.5, gt=1))
 
         # Check f2 constraints
         f2 = next(itm)
-        self.assertEqual(self.attrTuple(f2.attr), self.attrTuple(lt = 10, gte = 1.5))
+        self.assertEqual(self.attrTuple(f2.attr), self.attrTuple(lt=10, gte=1.5))
 
         # Check s1 constraints
         s1 = next(itm)
-        self.assertEqual(self.attrTuple(s1.attr), self.attrTuple(len_lt = 101, len_gt = 5))
+        self.assertEqual(self.attrTuple(s1.attr), self.attrTuple(len_lt=101, len_gt=5))
 
         # Check s2 constraints
         s2 = next(itm)
-        self.assertEqual(self.attrTuple(s2.attr), self.attrTuple(len_lte = 100, len_gte = 5))
+        self.assertEqual(self.attrTuple(s2.attr), self.attrTuple(len_lte=100, len_gte=5))
 
         # Check s3 constraints
         s3 = next(itm)
-        self.assertEqual(self.attrTuple(s3.attr), self.attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(s3.attr), self.attrTuple(len_eq=2))
 
         # Check ai1 constraints
         ai1 = next(itm)
         self.assertEqual(ai1.attr, None)
-        self.assertEqual(self.attrTuple(ai1.type.attr), self.attrTuple(gt = 5))
+        self.assertEqual(self.attrTuple(ai1.type.attr), self.attrTuple(gt=5))
 
         # Check as1 constraints
         as1 = next(itm)
-        self.assertEqual(self.attrTuple(as1.attr), self.attrTuple(len_lt = 10))
-        self.assertEqual(self.attrTuple(as1.type.attr), self.attrTuple(len_lt = 5))
+        self.assertEqual(self.attrTuple(as1.attr), self.attrTuple(len_lt=10))
+        self.assertEqual(self.attrTuple(as1.type.attr), self.attrTuple(len_lt=5))
 
         # Check as2 constraints
         as2 = next(itm)
-        self.assertEqual(self.attrTuple(as2.attr), self.attrTuple(len_eq = 3))
-        self.assertEqual(self.attrTuple(as2.type.attr), self.attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(as2.attr), self.attrTuple(len_eq=3))
+        self.assertEqual(self.attrTuple(as2.type.attr), self.attrTuple(len_eq=2))
 
         # Check di1 constraints
         di1 = next(itm)
         self.assertEqual(di1.attr, None)
-        self.assertEqual(self.attrTuple(di1.type.attr), self.attrTuple(lt = 15))
+        self.assertEqual(self.attrTuple(di1.type.attr), self.attrTuple(lt=15))
 
         # Check ds1 constraints
         ds1 = next(itm)
-        self.assertEqual(self.attrTuple(ds1.attr), self.attrTuple(len_gt = 10))
-        self.assertEqual(self.attrTuple(ds1.type.attr), self.attrTuple(len_gt = 5))
+        self.assertEqual(self.attrTuple(ds1.attr), self.attrTuple(len_gt=10))
+        self.assertEqual(self.attrTuple(ds1.type.attr), self.attrTuple(len_gt=5))
 
         # Check ds2 constraints
         ds2 = next(itm)
-        self.assertEqual(self.attrTuple(ds2.attr), self.attrTuple(len_eq = 3))
-        self.assertEqual(self.attrTuple(ds2.type.attr), self.attrTuple(len_eq = 2))
+        self.assertEqual(self.attrTuple(ds2.attr), self.attrTuple(len_eq=3))
+        self.assertEqual(self.attrTuple(ds2.type.attr), self.attrTuple(len_eq=2))
 
         # Check ds3 constraints
         ds3 = next(itm)
-        self.assertEqual(self.attrTuple(ds3.attr), self.attrTuple(len_eq = 3))
-        self.assertEqual(self.attrTuple(ds3.type.attr), self.attrTuple(len_eq = 2))
-        self.assertEqual(self.attrTuple(ds3.type.keyAttr), self.attrTuple(len_eq = 1))
+        self.assertEqual(self.attrTuple(ds3.attr), self.attrTuple(len_eq=3))
+        self.assertEqual(self.attrTuple(ds3.type.attr), self.attrTuple(len_eq=2))
+        self.assertEqual(self.attrTuple(ds3.type.keyAttr), self.attrTuple(len_eq=1))
 
         self.assertEqual(next(itm, None), None)
-
 
     def _test_spec_error(self, errors, spec):
         parser = SpecParser()
@@ -855,13 +838,11 @@ struct MyStruct
         self.assertEqual(len(parser.errors), len(errors))
         self.assertEqual(parser.errors, errors)
 
-
     def test_spec_error_attribute_eq(self):
         self._test_spec_error([":2: error: Invalid attribute '== 7'"], '''\
 struct MyStruct
     string(== 7) s
 ''')
-
 
     def test_spec_error_attribute_lt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
@@ -869,20 +850,17 @@ struct MyStruct
     string(< 7) s
 ''')
 
-
     def test_spec_error_attribute_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '> 7'"], '''\
 struct MyStruct
     string(> 7) s
 ''')
 
-
     def test_spec_error_attribute_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
 struct MyStruct
     string(< 7, > 7) s
 ''')
-
 
     def test_spec_error_attribute_lte_gte(self):
         self._test_spec_error([":6: error: Invalid attribute '>= 1'",
@@ -896,13 +874,11 @@ struct MyStruct
     MyEnum(<= 2) b
 ''')
 
-
     def test_spec_error_attribute_len_eq(self):
         self._test_spec_error([":2: error: Invalid attribute 'len == 1'"], '''\
 struct MyStruct
     int(len == 1) i
 ''')
-
 
     def test_spec_error_attribute_len_lt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
@@ -910,20 +886,17 @@ struct MyStruct
     float(len < 10) f
 ''')
 
-
     def test_spec_error_attribute_len_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len > 1'"], '''\
 struct MyStruct
     int(len > 1) i
 ''')
 
-
     def test_spec_error_attribute_len_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
 struct MyStruct
     float(len < 10, len > 10) f
 ''')
-
 
     def test_spec_error_attribute_len_lte_gte(self):
         self._test_spec_error([":2: error: Invalid attribute 'len <= 10'",
@@ -933,13 +906,11 @@ struct MyStruct
     float(len >= 10) f2
 ''')
 
-
     def test_spec_error_attribute_invalid(self):
         self._test_spec_error([':2: error: Syntax error'], '''\
 struct MyStruct
     string(regex="abc") a
 ''')
-
 
     def test_spec_error_member_invalid(self):
         self._test_spec_error([':1: error: Member definition outside of struct scope',
@@ -951,7 +922,6 @@ enum MyEnum
     int b
 ''')
 
-
     def test_spec_error_member_redefinition(self):
         self._test_spec_error([":4: error: Redefinition of member 'b'"], '''\
 struct MyStruct
@@ -960,7 +930,6 @@ struct MyStruct
     float b
 ''')
 
-
     def test_spec_error_enum_duplicate_value(self):
         self._test_spec_error([":4: error: Duplicate enumeration value 'bar'"], '''\
 enum MyEnum
@@ -968,7 +937,6 @@ enum MyEnum
     foo
     bar
 ''')
-
 
     def test_spec_doc(self):
 
@@ -1058,7 +1026,6 @@ action MyAction
         self.assertEqual(parser.actions['MyAction'].outputType.members[0].doc,
                          ['My output member'])
 
-
     def test_spec_typedef(self):
 
         parser = SpecParser()
@@ -1084,7 +1051,7 @@ struct MyStruct
         self.assertEqual(typedef.typeName, 'MyTypedef')
         self.assertEqual(typedef.doc, ['My typedef'])
         self.assertTrue(isinstance(typedef.type, chisel.model.TypeDict))
-        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(len_gt = 0))
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(len_gt=0))
         self.assertTrue(typedef.type.keyType is parser.types['MyEnum'])
         self.assertEqual(typedef.type.keyType.doc, [])
         self.assertEqual(len(typedef.type.keyType.values), 2)
@@ -1098,7 +1065,6 @@ struct MyStruct
         self.assertEqual(typedef2.doc, [])
         self.assertTrue(typedef2.type is parser.types['MyEnum'])
         self.assertEqual(typedef2.attr, None)
-
 
     def test_spec_error_dict_nonStringKey(self):
 
@@ -1114,7 +1080,6 @@ struct Foo
             ])
         else:
             self.fail()
-
 
     def test_spec_error_action_inputRedefinition(self):
 
@@ -1137,7 +1102,6 @@ action Foo
         else:
             self.fail()
 
-
     def test_spec_error_action_outputRedefinition(self):
 
         parser = SpecParser()
@@ -1158,7 +1122,6 @@ action Foo
             ])
         else:
             self.fail()
-
 
     def test_spec_error_action_errorsRedefinition(self):
 
@@ -1182,7 +1145,6 @@ action Foo
         else:
             self.fail()
 
-
     def test_spec_action_input_struct(self):
 
         parser = SpecParser()
@@ -1195,7 +1157,6 @@ action FooAction
     input Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
-
 
     def test_spec_action_input_typedef(self):
 
@@ -1211,7 +1172,6 @@ action FooAction
     input Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
-
 
     def test_spec_action_input_type_nonStruct(self):
 
@@ -1231,7 +1191,6 @@ enum Foo
             ])
         else:
             self.fail()
-
 
     def test_spec_action_input_type_typedef_nonStruct(self):
 
@@ -1254,7 +1213,6 @@ typedef Bar Foo
         else:
             self.fail()
 
-
     def test_spec_action_output_struct(self):
 
         parser = SpecParser()
@@ -1267,7 +1225,6 @@ action FooAction
     output Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
-
 
     def test_spec_action_output_typedef(self):
 
@@ -1283,7 +1240,6 @@ action FooAction
     output Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
-
 
     def test_spec_action_output_nonStruct(self):
 
@@ -1303,7 +1259,6 @@ enum Foo
             ])
         else:
             self.fail()
-
 
     def test_spec_action_output_typedef_nonStruct(self):
 
@@ -1326,7 +1281,6 @@ typedef Bar Foo
         else:
             self.fail()
 
-
     def test_spec_action_errors_enum(self):
 
         parser = SpecParser()
@@ -1339,7 +1293,6 @@ action FooAction
     errors Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
-
 
     def test_spec_action_errors_typedef(self):
 
@@ -1355,7 +1308,6 @@ enum Bar
 typedef Bar Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
-
 
     def test_spec_action_errors_nonEnum(self):
 
@@ -1375,7 +1327,6 @@ struct Foo
             ])
         else:
             self.fail()
-
 
     def test_spec_action_errors_typedef_nonEnum(self):
 

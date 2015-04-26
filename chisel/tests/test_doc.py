@@ -34,7 +34,7 @@ class HTMLValidator(HTMLParser):
     def __init__(self):
         # Default value for convert_charrefs (added in Python 3.4) changed in Python 3.5
         if sys.version_info >= (3, 4):
-            HTMLParser.__init__(self, convert_charrefs = True)
+            HTMLParser.__init__(self, convert_charrefs=True)
         else:
             HTMLParser.__init__(self)
         self.elements = []
@@ -134,17 +134,17 @@ action myAction2
 
         # Application object
         self.logStream = StringIO()
-        self.app = chisel.Application(logStream = self.logStream)
+        self.app = chisel.Application(logStream=self.logStream)
         self.app.loadSpecString(self._spec)
-        self.app.addRequest(chisel.Action(lambda app, req: {}, name = 'myAction1'))
-        self.app.addRequest(chisel.Action(lambda app, req: {}, name = 'myAction2'))
+        self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction1'))
+        self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction2'))
         self.app.addDocRequest()
 
     # Test documentation index HTML generation
     def test_doc_DocAction_index(self):
 
         # Validate the HTML
-        status, headers, response = self.app.request('GET', '/doc', environ = self._environ)
+        status, headers, response = self.app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -297,7 +297,7 @@ ul.chsl-constraint-list {
         # Validate the first myAction1's HTML
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=myAction1'
-        status, headers, response = self.app.request('GET', '/doc', environ = environ)
+        status, headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
         htmlExpected = '''\
@@ -695,7 +695,7 @@ A value
         # Validate the myAction2's HTML
         environ = dict(self._environ2)
         environ['QUERY_STRING'] = 'name=myAction2'
-        status, headers, response = self.app.request('GET', '/doc', environ = environ)
+        status, headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
         htmlExpected = '''\
@@ -920,10 +920,10 @@ My Union
         # Test basic DOM element serialization functionality
         root = Element('a')
         b = root.addChild('b')
-        b.addChild('Hello!', isInline = True, isText = True)
-        b.addChild('span', isInline = True).addChild(' There!', isText = True)
-        root.addChild('c', isClosed = False, foo = 'bar')
-        root.addChild('d', attr1 = 'asdf', _attr2 = 'sdfg').addChild('e')
+        b.addChild('Hello!', isInline=True, isText=True)
+        b.addChild('span', isInline=True).addChild(' There!', isText=True)
+        root.addChild('c', isClosed=False, foo='bar')
+        root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
 
         # Default (indented)
         out = StringIO()
@@ -940,7 +940,7 @@ My Union
 
         # Not indented
         out = StringIO()
-        root.serialize(out, indent = '')
+        root.serialize(out, indent='')
         self.assertEqual(out.getvalue(), '''\
 <a>
 <b>Hello!<span> There!</span></b>
@@ -951,12 +951,11 @@ My Union
 </d>
 </a>''')
 
-
     def test_doc_page(self):
 
         app = chisel.Application()
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
     input
         int a
@@ -970,7 +969,7 @@ action myAction
         app.addRequest(chisel.DocAction())
         app.addRequest(chisel.DocPage(myAction))
 
-        status, headers, response = app.request('GET', '/doc', environ = self._environ)
+        status, headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -1118,7 +1117,7 @@ ul.chsl-constraint-list {
 
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=doc_action_myAction'
-        status, headers, response = app.request('GET', '/doc', environ = environ)
+        status, headers, response = app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -1287,7 +1286,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(htmlExpected, html)
 
-        status, headers, response = app.request('GET', '/doc/action/myAction', environ = self._environ)
+        status, headers, response = app.request('GET', '/doc/action/myAction', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)

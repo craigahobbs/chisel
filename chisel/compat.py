@@ -27,7 +27,7 @@ _PY27 = (sys.version_info >= (2, 7))
 _PY32 = (sys.version_info >= (3, 2))
 
 # types
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     basestring_ = str
     long_ = int
     xrange_ = range
@@ -37,19 +37,21 @@ else:
     xrange_ = xrange
 
 # dict
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     def iteritems(d):
         return iter(d.items())
+
     def itervalues(d):
         return iter(d.values())
 else:
     def iteritems(d):
         return d.iteritems()
+
     def itervalues(d):
         return d.itervalues()
 
 # function
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     def func_name(f):
         return f.__name__
 else:
@@ -57,9 +59,10 @@ else:
         return f.func_name
 
 # cgi
-if _PY32: # pragma: no cover
+if _PY32:  # pragma: no cover
     import cgi as _cgi
     import html as _html
+
     class cgi(object):
         __slots__ = ()
         escape = _html.escape
@@ -71,7 +74,7 @@ else:
 # json
 if _PY27:
     import json as _json
-else: # pragma: no cover
+else:  # pragma: no cover
     try:
         import simplejson as _json
     except:
@@ -79,19 +82,20 @@ else: # pragma: no cover
 json = _json
 
 # StringIO
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     import io as _io
     StringIO = _io.StringIO
 else:
     try:
         import cStringIO as _StringIO
-    except: # pragma: no cover
+    except:  # pragma: no cover
         import StringIO as _StringIO
     StringIO = _StringIO.StringIO
 
 # urllib, urlparse
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     import urllib.parse as _urllib_parse
+
     class urllib(object):
         __slots__ = ()
         quote = _urllib_parse.quote
@@ -101,7 +105,7 @@ else:
     urllib = _urllib
 
 # HTMLParser
-if PY3: # pragma: no cover
+if PY3:  # pragma: no cover
     import html.parser as _html_parser
     HTMLParser = _html_parser.HTMLParser
 else:

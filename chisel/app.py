@@ -70,7 +70,7 @@ class Application(object):
 
     ThreadState = namedtuple('ThreadState', ('environ', 'start_response', 'log'))
 
-    def __init__(self, logStream = sys.stderr):
+    def __init__(self, logStream=sys.stderr):
 
         self.__logStream = logStream
         self.__logLevel = logging.WARNING
@@ -176,6 +176,7 @@ class Application(object):
     @property
     def logLevel(self):
         return self.__logLevel
+
     @logLevel.setter
     def logLevel(self, value):
         self.__logLevel = value
@@ -186,8 +187,10 @@ class Application(object):
     @property
     def logFormat(self):
         return self.__logFormat
+
     def __logFormatter(self):
         return logging.Formatter(self.__logFormat) if not hasattr(self.__logFormat, '__call__') else self.__logFormat(self)
+
     @logFormat.setter
     def logFormat(self, value):
         self.__logFormat = value
@@ -224,7 +227,7 @@ class Application(object):
         return threadState.log if threadState else self.__defaultLogger
 
     # Send an HTTP response
-    def response(self, status, contentType, content, headers = None):
+    def response(self, status, contentType, content, headers=None):
         assert not isinstance(content, basestring_) and not isinstance(content, bytes), \
             'Response of type str, unicode, or bytes received'
 
@@ -240,8 +243,8 @@ class Application(object):
         return content
 
     # Send a plain-text response
-    def responseText(self, status, text, headers = None, contentType = 'text/plain', encoding = 'utf-8'):
-        return self.response(status, contentType, [text.encode(encoding)], headers = headers)
+    def responseText(self, status, text, headers=None, contentType='text/plain', encoding='utf-8'):
+        return self.response(status, contentType, [text.encode(encoding)], headers=headers)
 
     # Will responseJSON serialize using JSONP (by default)?
     def isJSONP(self):
@@ -252,13 +255,13 @@ class Application(object):
         self.environ[self.ENVIRON_JSONP] = jsonpFunction
 
     # Serialize an object to JSON
-    def serializeJSON(self, o, allowJSONP = True):
-        return json.dumps(o, sort_keys = True,
-                          indent = 2 if self.prettyOutput else None,
-                          separators = (', ', ': ') if self.prettyOutput else (',', ':'))
+    def serializeJSON(self, o, allowJSONP=True):
+        return json.dumps(o, sort_keys=True,
+                          indent=2 if self.prettyOutput else None,
+                          separators=(', ', ': ') if self.prettyOutput else (',', ':'))
 
     # Send a JSON response
-    def responseJSON(self, response, status = None, isError = False, headers = None):
+    def responseJSON(self, response, status=None, isError=False, headers=None):
         if status is None:
             status = '200 OK' if not isError or self.isJSONP() else '500 Internal Server Error'
         content = self.serializeJSON(response)
@@ -267,10 +270,10 @@ class Application(object):
             content = [jsonpFunction, '(', content, ');']
         else:
             content = [content]
-        if PY3: # pragma: no cover
+        if PY3:  # pragma: no cover
             content = [s.encode('utf-8') for s in content]
 
-        return self.response(status, 'application/json', content, headers = headers)
+        return self.response(status, 'application/json', content, headers=headers)
 
     # Add a request header
     def addHeader(self, key, value):
@@ -284,7 +287,7 @@ class Application(object):
         return self.environ.get(self.ENVIRON_HEADERS)
 
     # Recursively load all specs in a directory
-    def loadSpecs(self, specPath, specExt = '.chsl', finalize = True):
+    def loadSpecs(self, specPath, specExt='.chsl', finalize=True):
 
         # Does the path exist?
         if not os.path.isdir(specPath):
@@ -295,13 +298,13 @@ class Application(object):
             for filename in filenames:
                 (base, ext) = os.path.splitext(filename)
                 if ext == specExt:
-                    self.__specParser.parse(os.path.join(dirpath, filename), finalize = False)
+                    self.__specParser.parse(os.path.join(dirpath, filename), finalize=False)
         if finalize:
             self.__specParser.finalize()
 
     # Load a spec string
-    def loadSpecString(self, spec, fileName = '', finalize = True):
-        self.__specParser.parseString(spec, fileName = fileName, finalize = finalize)
+    def loadSpecString(self, spec, fileName='', finalize=True):
+        self.__specParser.parseString(spec, fileName=fileName, finalize=finalize)
 
     # Regular expression for matching URL arguments
     __reUrlArg = re.compile('/\{([A-Za-z]\w*)\}')
@@ -340,7 +343,7 @@ class Application(object):
 
     # Generator to recursively load all modules
     @classmethod
-    def loadModules(cls, moduleDir, moduleExt = '.py', excludedSubmodules = None):
+    def loadModules(cls, moduleDir, moduleExt='.py', excludedSubmodules=None):
 
         # Does the path exist?
         if not os.path.isdir(moduleDir):
@@ -348,6 +351,7 @@ class Application(object):
 
         # Where is this module on the system path?
         moduleDirParts = moduleDir.split(os.sep)
+
         def findModuleNameIndex():
             for sysPath in sys.path:
                 for iModulePart in xrange_(len(moduleDirParts) - 1, 0, -1):
@@ -403,16 +407,16 @@ class Application(object):
                 yield __import__(submoduleName, globals(), locals(), ['.'])
 
     # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt = '.py'):
+    def loadRequests(self, moduleDir, moduleExt='.py'):
 
-        for module in self.loadModules(moduleDir, moduleExt = moduleExt):
+        for module in self.loadModules(moduleDir, moduleExt=moduleExt):
             for moduleAttr in dir(module):
                 request = getattr(module, moduleAttr)
                 if isinstance(request, Request):
                     self.addRequest(request)
 
     # Make an HTTP request on this application
-    def request(self, requestMethod, pathInfo, queryString = None, wsgiInput = None, environ = None, suppressLogging = True):
+    def request(self, requestMethod, pathInfo, queryString=None, wsgiInput=None, environ=None, suppressLogging=True):
 
         # WSGI environment - used passed-in environ if its complete
         _environ = dict(environ) if environ else {}
@@ -434,6 +438,7 @@ class Application(object):
 
         # Capture the response status and headers
         startResponseArgs = {}
+
         def startResponse(status, responseHeaders):
             startResponseArgs['status'] = status
             startResponseArgs['responseHeaders'] = responseHeaders

@@ -1,5 +1,6 @@
 import chisel
 
+
 # Action callback used by test_app.py
 @chisel.action
 def myAction(ctx, req):
@@ -10,6 +11,7 @@ def myAction(ctx, req):
 
     return {}
 
+
 @chisel.action
 def myAction2(ctx, req):
     ctx.log.info('In myAction2')
@@ -19,4 +21,4 @@ def myAction2(ctx, req):
     else:
         multiplier = 2
 
-    return { 'result': req['value'] * multiplier }
+    return {'result': req['value'] * multiplier}

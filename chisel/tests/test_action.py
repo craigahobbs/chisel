@@ -34,7 +34,7 @@ class TestAction(unittest.TestCase):
 
         # Application object
         self.logStream = StringIO()
-        self.app = chisel.Application(logStream = self.logStream)
+        self.app = chisel.Application(logStream=self.logStream)
         self.app.loadSpecString('''\
 action myActionDefault
 ''')
@@ -73,7 +73,7 @@ action myActionDefault
     # Action decorator with spec
     def test_action_decorator_spec(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myActionName
 ''')
         def myAction(app, req):
@@ -92,7 +92,7 @@ action myActionName
     def test_action_decorator_spec_no_actions(self):
 
         try:
-            @chisel.action(spec = '')
+            @chisel.action(spec='')
             def myAction(app, req):
                 return {}
         except Exception as e:
@@ -104,7 +104,7 @@ action myActionName
     def test_action_decorator_spec_multiple_actions(self):
 
         try:
-            @chisel.action(spec = '''\
+            @chisel.action(spec='''\
 action theActionOther
 action theAction
 ''')
@@ -118,7 +118,7 @@ action theAction
     # Action decorator with spec with syntax errors
     def test_action_decorator_spec_syntax_error(self):
         try:
-            @chisel.action(spec = '''\
+            @chisel.action(spec='''\
 asdfasdf
 ''')
             def myAction(app, req):
@@ -131,7 +131,7 @@ asdfasdf
     # Action decorator with name and spec
     def test_action_decorator_named_spec(self):
 
-        @chisel.action(name = 'theAction', spec = '''\
+        @chisel.action(name='theAction', spec='''\
 action theActionOther
 action theAction
 ''')
@@ -151,7 +151,7 @@ action theAction
     def test_action_decorator_other(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
-        @chisel.action(urls = ('/foo',), wsgiResponse = True)
+        @chisel.action(urls=('/foo',), wsgiResponse=True)
         def myActionDefault(app, req):
             return app.responseText('200 OK', 'OK')
         self.app.addRequest(myActionDefault)
@@ -165,7 +165,7 @@ action theAction
     # Test successful action get
     def test_action_success_get(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -174,10 +174,10 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req['a'] + req['b'] }
+            return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8')
+        status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '8'),
                                            ('Content-Type', 'application/json')])
@@ -186,7 +186,7 @@ action myAction
     # Test successful action get
     def test_action_success_get_no_validate_output(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -195,11 +195,11 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req['a'] + req['b'] }
+            return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
         self.app.validateOutput = False
 
-        status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8')
+        status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '8'),
                                            ('Content-Type', 'application/json')])
@@ -208,7 +208,7 @@ action myAction
     # Test successful action get with JSONP
     def test_action_success_get_jsonp(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -217,10 +217,10 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req['a'] + req['b'] }
+            return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('GET', '/myAction', queryString = 'a=7&b=8&jsonp=foo')
+        status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8&jsonp=foo')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '14'),
                                            ('Content-Type', 'application/json')])
@@ -229,7 +229,7 @@ action myAction
     # Test successful action post
     def test_action_success_post(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -238,10 +238,10 @@ action myAction
     int c
 ''')
         def myAction(app, req):
-            return { 'c': req['a'] + req['b'] }
+            return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7, "b": 8}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7, "b": 8}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '8'),
                                            ('Content-Type', 'application/json')])
@@ -250,7 +250,7 @@ action myAction
     # Test successful action get with headers
     def test_action_success_headers(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
 ''')
         def myAction(app, req):
@@ -259,7 +259,7 @@ action myAction
         self.app.addRequest(myAction)
 
         errors = StringIO()
-        status, headers, response = self.app.request('GET', '/myAction', environ = {'wsgi.errors': errors})
+        status, headers, response = self.app.request('GET', '/myAction', environ={'wsgi.errors': errors})
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '2'),
                                            ('Content-Type', 'application/json'),
@@ -269,7 +269,7 @@ action myAction
     # Test successful action with custom response
     def test_action_success_custom_response(self):
 
-        @chisel.action(wsgiResponse = True, spec = '''\
+        @chisel.action(wsgiResponse=True, spec='''\
 action myAction
   input
     string a
@@ -280,7 +280,7 @@ action myAction
             return app.responseText('200 OK', 'Hello ' + str(req['a'].upper()))
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": "world"}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": "world"}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '11'),
                                            ('Content-Type', 'text/plain')])
@@ -289,7 +289,7 @@ action myAction
     # Test action error response
     def test_action_error(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   errors
     MyError
@@ -298,7 +298,7 @@ action myAction
             return {'error': 'MyError'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '19'),
                                            ('Content-Type', 'application/json')])
@@ -307,7 +307,7 @@ action myAction
     # Test action error response with message
     def test_action_error_message(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   errors
     MyError
@@ -316,7 +316,7 @@ action myAction
             return {'error': 'MyError', 'message': 'My message'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '42'),
                                            ('Content-Type', 'application/json')])
@@ -325,7 +325,7 @@ action myAction
     # Test action raised-error response
     def test_action_error_raised(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   errors
     MyError
@@ -334,7 +334,7 @@ action myAction
             raise chisel.ActionError('MyError')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '19'),
                                            ('Content-Type', 'application/json')])
@@ -343,7 +343,7 @@ action myAction
     # Test action raised-error response with message
     def test_action_error_message_raised(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   errors
     MyError
@@ -352,7 +352,7 @@ action myAction
             raise chisel.ActionError('MyError', 'My message')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '42'),
                                            ('Content-Type', 'application/json')])
@@ -361,7 +361,7 @@ action myAction
     # Test action returning bad error enum value
     def test_action_error_bad_error(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   errors
     MyError
@@ -370,7 +370,7 @@ action myAction
             return {'error': 'MyBadError'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '145'),
                                            ('Content-Type', 'application/json')])
@@ -379,7 +379,7 @@ action myAction
     # Test action query string decode error
     def test_action_error_invalid_query_string(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -388,7 +388,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('GET', '/myAction', queryString = 'a')
+        status, headers, response = self.app.request('GET', '/myAction', queryString='a')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '63'),
                                            ('Content-Type', 'application/json')])
@@ -397,7 +397,7 @@ action myAction
     # Test action post with invalid content length
     def test_action_error_invalid_content_length(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -406,7 +406,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7}', environ = {'CONTENT_LENGTH': 'asdf'})
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7}', environ={'CONTENT_LENGTH': 'asdf'})
         self.assertEqual(status, '411 Length Required')
         self.assertEqual(sorted(headers), [('Content-Length', '15'),
                                            ('Content-Type', 'text/plain')])
@@ -415,7 +415,7 @@ action myAction
     # Test action with invalid json content
     def test_action_error_invalid_json(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -424,7 +424,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{a: 7}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{a: 7}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(any(header for header in headers if header[0] == 'Content-Length'))
         self.assertEqual(sorted(header for header in headers if header[0] != 'Content-Length'),
@@ -434,7 +434,7 @@ action myAction
     # Test action with invalid HTTP method
     def test_action_error_invalid_method(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     int a
@@ -443,7 +443,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('FOO', '/myAction', wsgiInput = b'{"a": 7}')
+        status, headers, response = self.app.request('FOO', '/myAction', wsgiInput=b'{"a": 7}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(sorted(headers), [('Content-Length', '18'),
                                            ('Content-Type', 'text/plain')])
@@ -452,7 +452,7 @@ action myAction
     # Test action with invalid input
     def test_action_error_invalid_input(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   input
     string a
@@ -461,7 +461,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{"a": 7}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '117'),
                                            ('Content-Type', 'application/json')])
@@ -470,7 +470,7 @@ action myAction
     # Test action with invalid output
     def test_action_error_invalid_output(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   output
     int a
@@ -479,7 +479,7 @@ action myAction
             return {'a': 'asdf'}
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '120'),
                                            ('Content-Type', 'application/json')])
@@ -488,14 +488,14 @@ action myAction
     # Test action with invalid None output
     def test_action_error_none_output(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
 ''')
         def myAction(app, req):
             pass
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '2'),
                                            ('Content-Type', 'application/json')])
@@ -504,14 +504,14 @@ action myAction
     # Test action with invalid array output
     def test_action_error_array_output(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
 ''')
         def myAction(app, req):
             return []
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '101'),
                                            ('Content-Type', 'application/json')])
@@ -520,14 +520,14 @@ action myAction
     # Test action with unexpected error
     def test_action_error_unexpected(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
 ''')
         def myAction(app, req):
             raise Exception('My unexpected error')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '27'),
                                            ('Content-Type', 'application/json')])
@@ -536,7 +536,7 @@ action myAction
     # Test action HTTP post IO error handling
     def test_action_error_io(self):
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
 ''')
         def myAction(app, req):
@@ -548,7 +548,7 @@ action myAction
                 raise IOError('FAIL')
 
         status, headers, response = \
-            self.app.request('POST', '/myAction', environ = {'wsgi.input': MyStream(), 'CONTENT_LENGTH': '2'},)
+            self.app.request('POST', '/myAction', environ={'wsgi.input': MyStream(), 'CONTENT_LENGTH': '2'},)
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '61'),
                                            ('Content-Type', 'application/json')])
@@ -560,7 +560,7 @@ action myAction
         class MyClass(object):
             pass
 
-        @chisel.action(spec = '''\
+        @chisel.action(spec='''\
 action myAction
   output
     float a
@@ -570,7 +570,7 @@ action myAction
         self.app.addRequest(myAction)
         self.app.validateOutput = False
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '16'),
                                            ('Content-Type', 'text/plain')])
@@ -579,14 +579,14 @@ action myAction
     # Test action unexpected error response with custom response
     def test_action_error_unexpected_custom_response(self):
 
-        @chisel.action(wsgiResponse = True, spec = '''\
+        @chisel.action(wsgiResponse=True, spec='''\
 action myAction
 ''')
         def myAction(app, req):
             raise Exception('FAIL')
         self.app.addRequest(myAction)
 
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '27'),
                                            ('Content-Type', 'application/json')])

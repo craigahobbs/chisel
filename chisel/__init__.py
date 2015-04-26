@@ -21,21 +21,21 @@
 #
 
 from . import action as _action
+from . import app as _app
+from . import doc as _doc
+from . import model as _model
+from . import request as _request
+from . import spec as _spec
+from . import url as _url
 
 Action = _action.Action
 action = _action.Action
 ActionError = _action.ActionError
 
-from . import app as _app
-
 Application = _app.Application
-
-from . import doc as _doc
 
 DocAction = _doc.DocAction
 DocPage = _doc.DocPage
-
-from . import model as _model
 
 JsonDatetime = _model.JsonDatetime
 JsonFloat = _model.JsonFloat
@@ -49,17 +49,11 @@ VALIDATE_QUERY_STRING = _model.VALIDATE_QUERY_STRING
 VALIDATE_JSON_INPUT = _model.VALIDATE_JSON_INPUT
 VALIDATE_JSON_OUTPUT = _model.VALIDATE_JSON_OUTPUT
 
-from . import request as _request
-
 Request = _request.Request
 request = _request.Request
 
-from . import spec as _spec
-
 SpecParser = _spec.SpecParser
 SpecParserError = _spec.SpecParserError
-
-from . import url as _url
 
 decodeQueryString = _url.decodeQueryString
 encodeQueryString = _url.encodeQueryString

@@ -50,7 +50,6 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files'], types.ModuleType))
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
-
     def test_app_loadRequests_importError(self):
         sys_path = sys.path
         try:
@@ -62,7 +61,6 @@ class TestAppApplication(unittest.TestCase):
             self.fail()
         finally:
             sys.path = sys_path
-
 
     def test_app_call(self):
 
@@ -77,6 +75,7 @@ class TestAppApplication(unittest.TestCase):
             'status': [],
             'headers': []
             }
+
         def startResponse(status, headers):
             startResponseData['status'].append(status)
             startResponseData['headers'].append(headers)
@@ -88,7 +87,6 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(list(responseParts), ['{}'.encode('utf-8')])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
-
 
     def test_app_call_generator(self):
 
@@ -103,6 +101,7 @@ class TestAppApplication(unittest.TestCase):
             'status': [],
             'headers': []
             }
+
         def startResponse(status, headers):
             startResponseData['status'].append(status)
             startResponseData['headers'].append(headers)
@@ -123,7 +122,6 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain')]])
         self.assertEqual(list(responseParts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
-
     def test_app_call_stringResponse(self):
 
         # Test WSGI environment
@@ -137,6 +135,7 @@ class TestAppApplication(unittest.TestCase):
             'status': [],
             'headers': []
             }
+
         def startResponse(status, headers):
             startResponseData['status'].append(status)
             startResponseData['headers'].append(headers)
@@ -155,20 +154,19 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(list(responseParts), ['Unexpected Error'.encode('utf-8')])
         self.assertTrue('Response of type str, unicode, or bytes received' in environ['wsgi.errors'].getvalue())
 
-
     def test_app_request(self):
 
         # POST
         logStream = StringIO()
         self.app.logFormat = '%(message)s'
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = b'{"value": 7}', environ = {'wsgi.errors': logStream})
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 7}', environ={'wsgi.errors': logStream})
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(logStream.getvalue(), 'In myAction2\n')
 
         # GET
-        status, headers, response = self.app.request('GET', '/myAction2', queryString = 'value=8')
+        status, headers, response = self.app.request('GET', '/myAction2', queryString='value=8')
         self.assertEqual(response.decode('utf-8'), '{"result":16}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
@@ -180,8 +178,8 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput = b'{"value": 9}',
-                                                     environ = { 'MYENVIRON': '10' })
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 9}',
+                                                     environ={'MYENVIRON': '10'})
         self.assertEqual(response.decode('utf-8'), '{"result":90}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
@@ -193,17 +191,16 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
-        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput = b'{}')
+        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput=b'{}')
         self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
-        status, headers, response = self.app.request('GET', '/myAction3/123', queryString = 'myArg=321')
+        status, headers, response = self.app.request('GET', '/myAction3/123', queryString='myArg=321')
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
-
 
     def test_app_logFormat_callable(self):
 
@@ -216,10 +213,13 @@ class TestAppApplication(unittest.TestCase):
         class MyFormatter(object):
             def __init__(self, app):
                 assert isinstance(app, Application)
+
             def format(self, record):
                 return record.getMessage()
-            def formatTime(self, record, datefmt = None):
+
+            def formatTime(self, record, datefmt=None):
                 return record.getMessage()
+
             def formatException(self, exc_info):
                 return 'Bad'
 
@@ -228,12 +228,11 @@ class TestAppApplication(unittest.TestCase):
         app.logFormat = MyFormatter
 
         logStream = StringIO()
-        status, headers, response = app.request('GET', '/myWsgi', environ = {'wsgi.errors': logStream})
+        status, headers, response = app.request('GET', '/myWsgi', environ={'wsgi.errors': logStream})
         self.assertEqual(response, 'Hello'.encode('utf-8'))
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(logStream.getvalue(), 'Hello log\n')
-
 
     def test_app_nested_requests(self):
 
@@ -253,8 +252,7 @@ class TestAppApplication(unittest.TestCase):
         status, headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
-        self.assertTrue(app.environ is None) # Make sure thread state was deleted
-
+        self.assertTrue(app.environ is None)  # Make sure thread state was deleted
 
     def test_app_request_exception(self):
 

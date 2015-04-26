@@ -35,12 +35,12 @@ class TestUrl(unittest.TestCase):
 
         # Complex dict
         s = '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'
-        o = { 'a': '7', '_a': '7', 'b': { 'c': '+x y + z', 'd': ['2', '-4', '6'] } }
+        o = {'a': '7', '_a': '7', 'b': {'c': '+x y + z', 'd': ['2', '-4', '6']}}
         self.assertEqual(decodeQueryString(s), o)
 
         # Array of dicts
         s = 'foo.0.bar=17&foo.0.thud=blue&foo.1.boo=bear'
-        o = { 'foo': [{ 'bar': '17', 'thud': 'blue' }, { 'boo': 'bear' }] }
+        o = {'foo': [{'bar': '17', 'thud': 'blue'}, {'boo': 'bear'}]}
         self.assertEqual(decodeQueryString(s), o)
 
         # Top-level array
@@ -55,49 +55,49 @@ class TestUrl(unittest.TestCase):
 
         # Empty string value
         s = 'b='
-        o = { 'b': '' }
+        o = {'b': ''}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string value at end
         s = 'a=7&b='
-        o = { 'a': '7', 'b': '' }
+        o = {'a': '7', 'b': ''}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string value at start
         s = 'b=&a=7'
-        o = { 'a': '7', 'b': '' }
+        o = {'a': '7', 'b': ''}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string value in middle
         s = 'a=7&b=&c=9'
-        o = { 'a': '7', 'b': '', 'c': '9' }
+        o = {'a': '7', 'b': '', 'c': '9'}
         self.assertEqual(decodeQueryString(s), o)
 
         # Decode keys and values
         s = 'a%2eb.c=7%20+%207%20%3d%2014'
-        o = { 'a.b': { 'c': '7 + 7 = 14' } }
+        o = {'a.b': {'c': '7 + 7 = 14'}}
         self.assertEqual(decodeQueryString(s), o)
 
         # Decode unicode string
         unicode_ = str if PY3 else unicode
         unichr_ = chr if PY3 else unichr
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
-        o = { unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd'] }
+        o = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
         self.assertEqual(decodeQueryString(s), o)
 
         # Keys and values with special characters
         s = 'a%26b%3Dc%2ed=a%26b%3Dc.d'
-        o = { 'a&b=c.d': 'a&b=c.d' }
+        o = {'a&b=c.d': 'a&b=c.d'}
         self.assertEqual(decodeQueryString(s), o)
 
         # Non-initial-zero array-looking index
         s = 'a.1=0'
-        o = { 'a': { '1': '0' } }
+        o = {'a': {'1': '0'}}
         self.assertEqual(decodeQueryString(s), o)
 
         # Dictionary first, then array-looking zero index
         s = 'a.b=0&a.0=0'
-        o = { 'a': { 'b': '0', '0': '0' } }
+        o = {'a': {'b': '0', '0': '0'}}
         self.assertEqual(decodeQueryString(s), o)
 
     def test_url_decodeQueryStringDegenerate(self):
@@ -116,22 +116,22 @@ class TestUrl(unittest.TestCase):
 
         # Empty string key
         s = 'a=7&=b'
-        o = { 'a': '7', '': 'b' }
+        o = {'a': '7', '': 'b'}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string key and value
         s = 'a=7&='
-        o = { 'a': '7', '': '' }
+        o = {'a': '7', '': ''}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string key and value with space
         s = 'a=7& = '
-        o = { 'a': '7', ' ': ' ' }
+        o = {'a': '7', ' ': ' '}
         self.assertEqual(decodeQueryString(s), o)
 
         # Empty string key with no equal
         s = 'a=7&'
-        o = { 'a': '7' }
+        o = {'a': '7'}
         self.assertEqual(decodeQueryString(s), o)
 
         # Multiple empty string key with no equal
@@ -154,7 +154,7 @@ class TestUrl(unittest.TestCase):
 
         # Empty string sub-key
         s = 'a.=5'
-        o = { 'a': { '': '5' } }
+        o = {'a': {'': '5'}}
         self.assertEqual(decodeQueryString(s), o)
 
         # Duplicate keys
@@ -180,12 +180,12 @@ class TestUrl(unittest.TestCase):
     def test_url_encodeQueryString(self):
 
         # Complex dict
-        o = { 'a': 7, '_a': '7', 'b': { 'c': '+x y + z', 'd': [2, -4, 6] } }
+        o = {'a': 7, '_a': '7', 'b': {'c': '+x y + z', 'd': [2, -4, 6]}}
         s = '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'
         self.assertEqual(encodeQueryString(o), s)
 
         # List of dicts
-        o = { 'foo': [{ 'bar': '17', 'thud': 'blue' }, { 'boo': 'bear' }] }
+        o = {'foo': [{'bar': '17', 'thud': 'blue'}, {'boo': 'bear'}]}
         s = 'foo.0.bar=17&foo.0.thud=blue&foo.1.boo=bear'
         self.assertEqual(encodeQueryString(o), s)
 
@@ -205,12 +205,12 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encodeQueryString(o), s)
 
         # Empty dict/dict
-        o = { 'foo': {}}
+        o = {'foo': {}}
         s = 'foo='
         self.assertEqual(encodeQueryString(o), s)
 
         # Empty dict/array
-        o = { 'foo': []}
+        o = {'foo': []}
         s = 'foo='
         self.assertEqual(encodeQueryString(o), s)
 
@@ -225,34 +225,34 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encodeQueryString(o), s)
 
         # Keys and values with special characters
-        o = { 'a&b=c.d': 'a&b=c.d' }
+        o = {'a&b=c.d': 'a&b=c.d'}
         s = 'a%26b%3Dc.d=a%26b%3Dc.d'
         self.assertEqual(encodeQueryString(o), s)
 
         # Unicode keys and values
         unicode_ = str if PY3 else unicode
         unichr_ = chr if PY3 else unichr
-        o = { unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd'] }
+        o = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test bool query string encoding
     def test_url_encodeQueryString_bool(self):
 
-        o = { 'a': True }
+        o = {'a': True}
         s = 'a=true'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test datetime query string encoding
     def test_url_encodeQueryString_datetime(self):
 
-        o = { 'a': datetime(2013, 7, 18, 12, 31, tzinfo = tzutc) }
+        o = {'a': datetime(2013, 7, 18, 12, 31, tzinfo=tzutc)}
         s = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encodeQueryString(o), s)
 
     # Test uuid query string encoding
     def test_url_encodeQueryString_uuid(self):
 
-        o = { 'a': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e') }
+        o = {'a': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e')}
         s = 'a=7da81f83-a656-42f1-aeb3-ab207809fb0e'
         self.assertEqual(encodeQueryString(o), s)

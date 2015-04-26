@@ -23,36 +23,36 @@
 from .compat import basestring_, PY3, urllib, xrange_
 from .model import JsonDatetime, JsonUUID
 
-urllib_quote = urllib.quote
-urllib_unquote = urllib.unquote
-
 from datetime import datetime
 from uuid import UUID
 
+urllib_quote = urllib.quote
+urllib_unquote = urllib.unquote
+
 
 # Helper to quote strings
-if PY3: # pragma: no cover
-    def quote(s, encoding = 'utf-8'):
-        return urllib_quote(s if isinstance(s, str) else str(s), encoding = encoding)
+if PY3:  # pragma: no cover
+    def quote(s, encoding='utf-8'):
+        return urllib_quote(s if isinstance(s, str) else str(s), encoding=encoding)
 else:
-    def quote(s, encoding = 'utf-8'):
+    def quote(s, encoding='utf-8'):
         return urllib_quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
 
 
 # Helper to unquote a URL key or value
-if PY3: # pragma: no cover
-    def unquote(s, encoding = 'utf-8'):
-        return urllib_unquote(s, encoding = encoding)
+if PY3:  # pragma: no cover
+    def unquote(s, encoding='utf-8'):
+        return urllib_unquote(s, encoding=encoding)
 else:
-    def unquote(s, encoding = 'utf-8'):
+    def unquote(s, encoding='utf-8'):
         return urllib_unquote(s).decode(encoding)
 
 
 # Encode an object as a URL query string
-def encodeQueryString(o, encoding = 'utf-8'):
+def encodeQueryString(o, encoding='utf-8'):
 
     # Get the flattened list of URL-quoted name/value pairs
-    def iterateItems(o, parent, topLevel = False):
+    def iterateItems(o, parent, topLevel=False):
         if isinstance(o, dict):
             if o:
                 for member in o:
@@ -79,11 +79,11 @@ def encodeQueryString(o, encoding = 'utf-8'):
             yield (parent, quote(ostr, encoding))
 
     # Join the object query string
-    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(iterateItems(o, (), topLevel = True)))
+    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(iterateItems(o, (), topLevel=True)))
 
 
 # Decode an object from a URL query string
-def decodeQueryString(queryString, encoding = 'utf-8'):
+def decodeQueryString(queryString, encoding='utf-8'):
 
     # Build the object
     oResult = [None]

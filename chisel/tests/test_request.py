@@ -32,7 +32,7 @@ class TestRequest(unittest.TestCase):
     def setUp(self):
 
         self.logStream = StringIO()
-        self.app = chisel.Application(logStream = self.logStream)
+        self.app = chisel.Application(logStream=self.logStream)
 
     # Default request decorator
     def test_request_decorator(self):
@@ -50,7 +50,7 @@ class TestRequest(unittest.TestCase):
     # Request decorator with name
     def test_request_decorator_name(self):
 
-        @chisel.request(name = 'foo')
+        @chisel.request(name='foo')
         def myRequest(environ, start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
@@ -63,7 +63,7 @@ class TestRequest(unittest.TestCase):
     # Request decorator with URLs
     def test_request_decorator_urls(self):
 
-        @chisel.request(urls = ('/bar', '/thud',))
+        @chisel.request(urls=('/bar', '/thud',))
         def myRequest(environ, start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
@@ -76,7 +76,7 @@ class TestRequest(unittest.TestCase):
     # Decorator with name and URLs
     def test_request_decorator_name_and_urls(self):
 
-        @chisel.request(name = 'foo', urls = ('/bar', '/thud'))
+        @chisel.request(name='foo', urls=('/bar', '/thud'))
         def myRequest(environ, start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
@@ -89,7 +89,7 @@ class TestRequest(unittest.TestCase):
     # Request headers
     def test_request_headers(self):
 
-        @chisel.request(name = 'foo')
+        @chisel.request(name='foo')
         def myRequest(environ, start_response):
             app = environ[chisel.Application.ENVIRON_APP]
             app.addHeader('OtherHeader', 'Other Value')

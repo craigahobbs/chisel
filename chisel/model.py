@@ -39,7 +39,7 @@ class JsonDatetime(float):
     def __init__(self, value):
         if value is not self:
             if value.tzinfo is None:
-                value = value.replace(tzinfo = tzlocal)
+                value = value.replace(tzinfo=tzlocal)
             self.value = value
             self.json = '"' + value.isoformat() + '"'
 
@@ -49,7 +49,7 @@ class JsonDatetime(float):
     def __str__(self):
         return self.json
 
-    def __float__(self): # pragma: no cover
+    def __float__(self):  # pragma: no cover
         return self
 
 
@@ -57,10 +57,10 @@ class JsonDatetime(float):
 class JsonFloat(float):
     __slots__ = ('json',)
 
-    def __new__(cls, value, prec = 6):
+    def __new__(cls, value, prec=6):
         return float.__new__(cls, value)
 
-    def __init__(self, value, prec = 6):
+    def __init__(self, value, prec=6):
         if value is not self:
             self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
 
@@ -70,7 +70,7 @@ class JsonFloat(float):
     def __str__(self):
         return self.json
 
-    def __float__(self): # pragma: no cover
+    def __float__(self):  # pragma: no cover
         return self
 
 
@@ -92,7 +92,7 @@ class JsonUUID(float):
     def __str__(self):
         return self.json
 
-    def __float__(self): # pragma: no cover
+    def __float__(self):  # pragma: no cover
         return self
 
 
@@ -123,7 +123,7 @@ class AttributeValidationError(Exception):
 class ValidationError(Exception):
     __slots__ = ('member',)
 
-    def __init__(self, msg, member = None):
+    def __init__(self, msg, member=None):
         Exception.__init__(self, msg)
         self.member = member
 
@@ -144,13 +144,13 @@ class ValidationError(Exception):
         return None
 
     @classmethod
-    def memberError(cls, type, value, members, constraintSyntax = None):
+    def memberError(cls, type, value, members, constraintSyntax=None):
         memberSyntax = cls.memberSyntax(members)
         msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
               ((" for member '" + memberSyntax + "'") if memberSyntax else '') + \
               ((", expected type '" + type.typeName + "'") if type else '') + \
               ((' [' + constraintSyntax + ']') if constraintSyntax else '')
-        return ValidationError(msg, member = memberSyntax)
+        return ValidationError(msg, member=memberSyntax)
 
 
 # Struct member attributes
@@ -158,8 +158,8 @@ class StructMemberAttributes(object):
     __slots__ = ('eq', 'lt', 'lte', 'gt', 'gte',
                  'len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte')
 
-    def __init__(self, eq = None, lt = None, lte = None, gt = None, gte = None,
-                 len_eq = None, len_lt = None, len_lte = None, len_gt = None, len_gte = None):
+    def __init__(self, eq=None, lt=None, lte=None, gt=None, gte=None,
+                 len_eq=None, len_lt=None, len_lte=None, len_gt=None, len_gte=None):
 
         self.eq = eq
         self.lt = lt
@@ -172,29 +172,29 @@ class StructMemberAttributes(object):
         self.len_gt = len_gt
         self.len_gte = len_gte
 
-    def validate(self, value, _member = ()):
+    def validate(self, value, _member=()):
         if self.lt is not None and not value < self.lt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = '< ' + repr(JsonFloat(self.lt, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='< ' + repr(JsonFloat(self.lt, 6)))
         if self.lte is not None and not value <= self.lte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = '<= ' + repr(JsonFloat(self.lte, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='<= ' + repr(JsonFloat(self.lte, 6)))
         if self.gt is not None and not value > self.gt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = '> ' + repr(JsonFloat(self.gt, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='> ' + repr(JsonFloat(self.gt, 6)))
         if self.gte is not None and not value >= self.gte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = '>= ' + repr(JsonFloat(self.gte, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='>= ' + repr(JsonFloat(self.gte, 6)))
         if self.eq is not None and not value == self.eq:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = '== ' + repr(JsonFloat(self.eq, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='== ' + repr(JsonFloat(self.eq, 6)))
         if self.len_lt is not None and not len(value) < self.len_lt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len < ' + repr(JsonFloat(self.len_lt, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='len < ' + repr(JsonFloat(self.len_lt, 6)))
         if self.len_lte is not None and not len(value) <= self.len_lte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len <= ' + repr(JsonFloat(self.len_lte, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='len <= ' + repr(JsonFloat(self.len_lte, 6)))
         if self.len_gt is not None and not len(value) > self.len_gt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len > ' + repr(JsonFloat(self.len_gt, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='len > ' + repr(JsonFloat(self.len_gt, 6)))
         if self.len_gte is not None and not len(value) >= self.len_gte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len >= ' + repr(JsonFloat(self.len_gte, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='len >= ' + repr(JsonFloat(self.len_gte, 6)))
         if self.len_eq is not None and not len(value) == self.len_eq:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax = 'len == ' + repr(JsonFloat(self.len_eq, 6)))
+            raise ValidationError.memberError(None, value, _member, constraintSyntax='len == ' + repr(JsonFloat(self.len_eq, 6)))
 
-    def validateAttr(self, allowValue = False, allowLength = False):
+    def validateAttr(self, allowValue=False, allowLength=False):
         if not allowValue:
             if self.lt is not None:
                 raise AttributeValidationError('< ' + repr(JsonFloat(self.lt, 6)))
@@ -223,7 +223,7 @@ class StructMemberAttributes(object):
 class Typedef(object):
     __slots__ = ('typeName', 'type', 'attr', 'doc')
 
-    def __init__(self, type, attr = None, typeName = None, doc = None):
+    def __init__(self, type, attr=None, typeName=None, doc=None):
         self.typeName = 'typedef' if typeName is None else typeName
         self.type = type
         self.attr = attr
@@ -238,7 +238,7 @@ class Typedef(object):
     def validateAttr(self, attr):
         self.type.validateAttr(attr)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
         result = self.type.validate(value, mode, _member)
         if self.attr is not None:
             self.attr.validate(result, _member)
@@ -249,7 +249,7 @@ class Typedef(object):
 class StructMember(object):
     __slots__ = ('name', 'type', 'isOptional', 'attr', 'doc')
 
-    def __init__(self, name, type, isOptional = False, attr = None, doc = None):
+    def __init__(self, name, type, isOptional=False, attr=None, doc=None):
         self.name = name
         self.type = type
         self.isOptional = isOptional
@@ -261,14 +261,14 @@ class StructMember(object):
 class TypeStruct(object):
     __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
 
-    def __init__(self, typeName = None, isUnion = False, doc = None):
+    def __init__(self, typeName=None, isUnion=False, doc=None):
         self.typeName = ('union' if isUnion else 'struct') if typeName is None else typeName
         self.isUnion = isUnion
         self._members = []
         self._membersDict = {}
         self.doc = [] if doc is None else doc
 
-    def addMember(self, name, type, isOptional = False, attr = None, doc = None):
+    def addMember(self, name, type, isOptional=False, attr=None, doc=None):
         member = StructMember(name, type, isOptional or self.isUnion, attr, doc)
         self._members.append(member)
         self._membersDict[name] = member
@@ -281,7 +281,7 @@ class TypeStruct(object):
     def validateAttr(self, attr):
         attr.validateAttr()
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
@@ -327,14 +327,14 @@ class TypeArray(object):
 
     typeName = 'array'
 
-    def __init__(self, type, attr = None):
+    def __init__(self, type, attr=None):
         self.type = type
         self.attr = attr
 
     def validateAttr(self, attr):
-        attr.validateAttr(allowLength = True)
+        attr.validateAttr(allowLength=True)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, list) or isinstance(value, tuple):
@@ -367,7 +367,7 @@ class TypeDict(object):
 
     typeName = 'dict'
 
-    def __init__(self, type, attr = None, keyType = None, keyAttr = None):
+    def __init__(self, type, attr=None, keyType=None, keyAttr=None):
         self.type = type
         self.attr = attr
         self.keyType = keyType or TypeString()
@@ -382,9 +382,9 @@ class TypeDict(object):
         return isinstance(self.keyType, _TypeString)
 
     def validateAttr(self, attr):
-        attr.validateAttr(allowLength = True)
+        attr.validateAttr(allowLength=True)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
@@ -422,7 +422,7 @@ class TypeDict(object):
 class EnumValue(object):
     __slots__ = ('value', 'doc')
 
-    def __init__(self, valueString, doc = None):
+    def __init__(self, valueString, doc=None):
         self.value = valueString
         self.doc = [] if doc is None else doc
 
@@ -433,12 +433,12 @@ class EnumValue(object):
 class TypeEnum(object):
     __slots__ = ('typeName', 'values', 'doc')
 
-    def __init__(self, typeName = 'enum', doc = None):
+    def __init__(self, typeName='enum', doc=None):
         self.typeName = typeName
         self.values = []
         self.doc = [] if doc is None else doc
 
-    def addValue(self, valueString, doc = None):
+    def addValue(self, valueString, doc=None):
         value = EnumValue(valueString, doc)
         self.values.append(value)
         return value
@@ -446,7 +446,7 @@ class TypeEnum(object):
     def validateAttr(self, attr):
         attr.validateAttr()
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
         if value not in self.values:
@@ -462,9 +462,9 @@ class _TypeString(object):
     typeName = 'string'
 
     def validateAttr(self, attr):
-        attr.validateAttr(allowLength = True)
+        attr.validateAttr(allowLength=True)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
         if not isinstance(value, basestring_):
@@ -472,9 +472,11 @@ class _TypeString(object):
 
         return value
 
-_TYPE_STRING = _TypeString()
+
 def TypeString():
     return _TYPE_STRING
+
+_TYPE_STRING = _TypeString()
 
 
 # Int type
@@ -484,9 +486,9 @@ class _TypeInt(object):
     typeName = 'int'
 
     def validateAttr(self, attr):
-        attr.validateAttr(allowValue = True)
+        attr.validateAttr(allowValue=True)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
@@ -505,9 +507,11 @@ class _TypeInt(object):
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
-_TYPE_INT = _TypeInt()
+
 def TypeInt():
     return _TYPE_INT
+
+_TYPE_INT = _TypeInt()
 
 
 # Float type
@@ -517,9 +521,9 @@ class _TypeFloat(object):
     typeName = 'float'
 
     def validateAttr(self, attr):
-        attr.validateAttr(allowValue = True)
+        attr.validateAttr(allowValue=True)
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
@@ -536,9 +540,11 @@ class _TypeFloat(object):
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
-_TYPE_FLOAT = _TypeFloat()
+
 def TypeFloat():
     return _TYPE_FLOAT
+
+_TYPE_FLOAT = _TypeFloat()
 
 
 # Bool type
@@ -548,14 +554,14 @@ class _TypeBool(object):
     typeName = 'bool'
 
     VALUES = {
-        'true' : True,
+        'true': True,
         'false': False
     }
 
     def validateAttr(self, attr):
         attr.validateAttr()
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, bool):
@@ -568,9 +574,11 @@ class _TypeBool(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-_TYPE_BOOL = _TypeBool()
+
 def TypeBool():
     return _TYPE_BOOL
+
+_TYPE_BOOL = _TypeBool()
 
 
 # Uuid type
@@ -582,12 +590,12 @@ class _TypeUuid(object):
     def validateAttr(self, attr):
         attr.validateAttr()
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, UUID):
             if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.memberError(self, value, _member, constraintSyntax = 'JsonUUID object required')
+                raise ValidationError.memberError(self, value, _member, constraintSyntax='JsonUUID object required')
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonUUID):
             return value
@@ -599,9 +607,11 @@ class _TypeUuid(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-_TYPE_UUID = _TypeUuid()
+
 def TypeUuid():
     return _TYPE_UUID
+
+_TYPE_UUID = _TypeUuid()
 
 
 # Datetime type
@@ -613,16 +623,16 @@ class _TypeDatetime(object):
     def validateAttr(self, attr):
         attr.validateAttr()
 
-    def validate(self, value, mode = VALIDATE_DEFAULT, _member = ()):
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, datetime):
             if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.memberError(self, value, _member, constraintSyntax = 'JsonDatetime object required')
+                raise ValidationError.memberError(self, value, _member, constraintSyntax='JsonDatetime object required')
 
             # Set a time zone, if necessary
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
-                return value.replace(tzinfo = tzlocal)
+                return value.replace(tzinfo=tzlocal)
 
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
@@ -635,15 +645,15 @@ class _TypeDatetime(object):
         else:
             raise ValidationError.memberError(self, value, _member)
 
-_TYPE_DATETIME = _TypeDatetime()
+
 def TypeDatetime():
     return _TYPE_DATETIME
 
+_TYPE_DATETIME = _TypeDatetime()
+
 
 # GMT tzinfo class for parseISO8601Datetime (from Python docs)
-_timedelta_zero = timedelta(0)
-
-class _TZUTC(tzinfo): # pragma: no cover
+class _TZUTC(tzinfo):  # pragma: no cover
     __slots__ = ()
 
     def utcoffset(self, dt):
@@ -655,11 +665,9 @@ class _TZUTC(tzinfo): # pragma: no cover
     def tzname(self, dt):
         return 'UTC'
 
-tzutc = _TZUTC()
-
 
 # Local time zone tzinfo class (from Python docs)
-class _TZLocal(tzinfo): # pragma: no cover
+class _TZLocal(tzinfo):  # pragma: no cover
     __slots__ = ()
 
     def utcoffset(self, dt):
@@ -679,12 +687,12 @@ class _TZLocal(tzinfo): # pragma: no cover
 
     @classmethod
     def _stdOffset(cls):
-        return timedelta(seconds = -time_timezone)
+        return timedelta(seconds=-time_timezone)
 
     @classmethod
     def _dstOffset(cls):
         if time_daylight:
-            return timedelta(seconds = -time_altzone)
+            return timedelta(seconds=-time_altzone)
         else:
             return cls._stdOffset()
 
@@ -695,6 +703,9 @@ class _TZLocal(tzinfo): # pragma: no cover
         tt = time_localtime(stamp)
         return tt.tm_isdst > 0
 
+
+_timedelta_zero = timedelta(0)
+tzutc = _TZUTC()
 tzlocal = _TZLocal()
 
 
@@ -702,6 +713,7 @@ tzlocal = _TZLocal()
 _reISO8601 = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
                         r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
                         r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+
 
 # Static helper function to parse ISO 8601 date/time
 def parseISO8601Datetime(s):
@@ -723,4 +735,4 @@ def parseISO8601Datetime(s):
     offmin = int(m.group('offsign') + m.group('offmin')) if m.group('offmin') else 0
 
     return (datetime(year, month, day, hour, minute, sec, microsec, tzutc) -
-            timedelta(hours = offhour, minutes = offmin))
+            timedelta(hours=offhour, minutes=offmin))

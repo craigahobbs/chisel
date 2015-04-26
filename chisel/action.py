@@ -31,7 +31,7 @@ from .url import decodeQueryString
 class ActionError(Exception):
     __slots__ = ('error', 'message')
 
-    def __init__(self, error, message = None):
+    def __init__(self, error, message=None):
         Exception.__init__(self, error)
         self.error = error
         self.message = message
@@ -41,7 +41,7 @@ class ActionError(Exception):
 class _ActionErrorInternal(Exception):
     __slots__ = ('error', 'message', 'member')
 
-    def __init__(self, error, message = None, member = None):
+    def __init__(self, error, message=None, member=None):
         Exception.__init__(self, error)
         self.error = error
         self.message = message
@@ -54,8 +54,8 @@ class Action(Request):
 
     JSONP = 'jsonp'
 
-    def __init__(self, _fn = None, name = None, urls = None, spec = None, wsgiResponse = False,
-                 strictValidation = True):
+    def __init__(self, _fn=None, name=None, urls=None, spec=None, wsgiResponse=False,
+                 strictValidation=True):
 
         # Spec provided?
         self.model = None
@@ -74,7 +74,7 @@ class Action(Request):
 
         self.wsgiResponse = wsgiResponse
         self.strictValidation = strictValidation
-        Request.__init__(self, _fn = _fn, name = name, urls = urls)
+        Request.__init__(self, _fn=_fn, name=name, urls=urls)
 
     def onload(self, app):
 
@@ -162,7 +162,7 @@ class Action(Request):
                 elif response is None:
                     response = {}
             except ActionError as e:
-                response = { 'error': e.error }
+                response = {'error': e.error}
                 if e.message is not None:
                     response['message'] = e.message
             except Exception as e:
@@ -174,22 +174,22 @@ class Action(Request):
                 if hasattr(response, '__contains__') and 'error' in response:
                     responseType = TypeStruct()
                     responseType.addMember('error', self.model.errorType)
-                    responseType.addMember('message', TypeString(), isOptional = True)
+                    responseType.addMember('message', TypeString(), isOptional=True)
                 else:
                     responseType = self.model.outputType
 
                 try:
-                    responseType.validate(response, mode = VALIDATE_JSON_OUTPUT)
+                    responseType.validate(response, mode=VALIDATE_JSON_OUTPUT)
                 except ValidationError as e:
                     self.app.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
                     raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
 
         except _ActionErrorInternal as e:
-            response = { 'error': e.error }
+            response = {'error': e.error}
             if e.message is not None:
                 response['message'] = e.message
             if e.member is not None:
                 response['member'] = e.member
 
         # Serialize the response as JSON
-        return self.app.responseJSON(response, isError = 'error' in response)
+        return self.app.responseJSON(response, isError='error' in response)
