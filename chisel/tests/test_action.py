@@ -374,7 +374,9 @@ action myAction
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '145'),
                                            ('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') for member \'error\', expected type \'myAction_Error\'"}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
+                         'for member \'error\', expected type \'myAction_Error\'"}')
 
     # Test action query string decode error
     def test_action_error_invalid_query_string(self):
@@ -465,7 +467,9 @@ action myAction
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '117'),
                                            ('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') for member \'a\', expected type \'string\'"}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
+                         'for member \'a\', expected type \'string\'"}')
 
     # Test action with invalid output
     def test_action_error_invalid_output(self):
@@ -483,7 +487,9 @@ action myAction
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '120'),
                                            ('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","member":"a","message":"Invalid value \'asdf\' (type \'str\') for member \'a\', expected type \'int\'"}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value \'asdf\' (type \'str\') '
+                         'for member \'a\', expected type \'int\'"}')
 
     # Test action with invalid None output
     def test_action_error_none_output(self):
@@ -515,7 +521,9 @@ action myAction
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '101'),
                                            ('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), expected type \'myAction_Output\'"}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), '
+                         'expected type \'myAction_Output\'"}')
 
     # Test action with unexpected error
     def test_action_error_unexpected(self):

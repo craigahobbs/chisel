@@ -97,7 +97,8 @@ class Application(object):
                 mUrl = reUrl.match(pathInfo)
                 if mUrl:
                     request = requestRegex
-                    environ[self.ENVIRON_URL_ARGS] = dict((unquote(urlArg), unquote(urlValue)) for urlArg, urlValue in iteritems(mUrl.groupdict()))
+                    environ[self.ENVIRON_URL_ARGS] = dict((unquote(urlArg), unquote(urlValue))
+                                                          for urlArg, urlValue in iteritems(mUrl.groupdict()))
                     break
 
         # Handle the request

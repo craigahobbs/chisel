@@ -41,7 +41,8 @@ class TestSpecParseSpec(unittest.TestCase):
                                        chisel.model.TypeArray,
                                        chisel.model.TypeDict,
                                        chisel.model.TypeEnum)):
-                self.assertTrue(structType.members[ixMember].type is typeOrType, (structType.members[ixMember].name, structType.members[ixMember].type, ixMember))
+                self.assertTrue(structType.members[ixMember].type is typeOrType,
+                                (structType.members[ixMember].name, structType.members[ixMember].type, ixMember))
             else:
                 self.assertTrue(isinstance(structType.members[ixMember].type, typeOrType))
             self.assertEqual(structType.members[ixMember].isOptional, isOptional)

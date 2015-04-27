@@ -111,6 +111,6 @@ $(eval $(call ENV_RULE, cover, $(firstword $(PYTHON_VERSIONS)), coverage, COVER_
 # Generate pyflakes rule
 define PYFLAKES_COMMANDS
 	$(call ENV_PYTHON, $(1)) -m pyflakes $(PACKAGE_NAME)
-	$(call ENV_PYTHON, $(1)) -m pep8 --show-pep8 --max-line-length=250 $(PACKAGE_NAME)
+	$(call ENV_PYTHON, $(1)) -m pep8 --show-pep8 --max-line-length=140 $(PACKAGE_NAME)
 endef
 $(eval $(call ENV_RULE, pyflakes, $(firstword $(PYTHON_VERSIONS)), pyflakes pep8, PYFLAKES_COMMANDS))

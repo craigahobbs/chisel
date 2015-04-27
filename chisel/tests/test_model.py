@@ -1448,7 +1448,9 @@ class TestModelUuidValidation(unittest.TestCase):
                 try:
                     o2 = t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value UUID('aed91c7b-dcfd-49b3-a483-dbc9ea2031a3') (type 'UUID'), expected type 'uuid' [JsonUUID object required]")
+                    self.assertEqual(str(e),
+                                     "Invalid value UUID('aed91c7b-dcfd-49b3-a483-dbc9ea2031a3') (type 'UUID'), "
+                                     "expected type 'uuid' [JsonUUID object required]")
                 else:
                     pass
 
@@ -1466,7 +1468,9 @@ class TestModelUuidValidation(unittest.TestCase):
                 try:
                     o2 = t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'uuid'")
+                    self.assertEqual(str(e),
+                                     "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), "
+                                     "expected type 'uuid'")
                 else:
                     pass
 
@@ -1528,7 +1532,8 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, tzinfo=<chisel.model._TZUTC object at '))
+                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, '
+                                                      'tzinfo=<chisel.model._TZUTC object at '))
                     self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
                 else:
                     self.fail()
@@ -1569,7 +1574,9 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 try:
                     t.validate(o, mode)
                 except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value datetime.datetime(2013, 5, 26, 11, 1) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]")
+                    self.assertEqual(str(e),
+                                     "Invalid value datetime.datetime(2013, 5, 26, 11, 1) (type 'datetime'), "
+                                     "expected type 'datetime' [JsonDatetime object required]")
                 else:
                     self.fail()
 

@@ -56,7 +56,8 @@ action {name}
             requests = sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())
             return ctx.responseText('200 OK', createIndexHtml(ctx.environ, requests), contentType='text/html')
         elif requestName in ctx.requests:
-            return ctx.responseText('200 OK', createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')), contentType='text/html')
+            return ctx.responseText('200 OK', createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')),
+                                    contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
 

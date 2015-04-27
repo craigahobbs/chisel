@@ -126,7 +126,8 @@ class Action(Request):
                 validateMode = VALIDATE_JSON_INPUT if self.strictValidation else VALIDATE_QUERY_STRING
                 try:
                     contentTypeHeader = environ.get('CONTENT_TYPE')
-                    contentCharset = 'utf-8' if contentTypeHeader is None else cgi.parse_header(contentTypeHeader)[1].get('charset', 'utf-8')
+                    contentCharset = ('utf-8' if contentTypeHeader is None else
+                                      cgi.parse_header(contentTypeHeader)[1].get('charset', 'utf-8'))
                     request = json.loads(requestContent.decode(contentCharset))
                 except Exception as e:
                     self.app.log.warning("Error decoding JSON content for action '%s': %s", self.name, requestContent)
