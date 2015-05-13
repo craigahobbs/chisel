@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, json, PY3, xrange_
+from .compat import basestring_, iteritems, json, PY3, string_isidentifier, xrange_
 from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
@@ -357,16 +357,17 @@ class Application(object):
             for sysPath in sys.path:
                 for iModulePart in xrange_(len(moduleDirParts) - 1, 0, -1):
                     moduleNameParts = moduleDirParts[iModulePart:]
-                    sysModulePath = os.path.join(sysPath, *moduleNameParts)
-                    if os.path.isdir(sysModulePath) and os.path.samefile(moduleDir, sysModulePath):
-                        # Make sure the module package is import-able
-                        moduleName = '.'.join(moduleNameParts)
-                        try:
-                            __import__(moduleName)
-                        except:
-                            pass
-                        else:
-                            return len(moduleDirParts) - len(moduleNameParts)
+                    if not any(not string_isidentifier(part) for part in moduleNameParts):
+                        sysModulePath = os.path.join(sysPath, *moduleNameParts)
+                        if os.path.isdir(sysModulePath) and os.path.samefile(moduleDir, sysModulePath):
+                            # Make sure the module package is import-able
+                            moduleName = '.'.join(moduleNameParts)
+                            try:
+                                __import__(moduleName)
+                            except:
+                                pass
+                            else:
+                                return len(moduleDirParts) - len(moduleNameParts)
             else:
                 raise ImportError('%r not found on system path' % (moduleDir,))
         ixModuleName = findModuleNameIndex()

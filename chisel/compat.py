@@ -58,6 +58,17 @@ else:
     def func_name(f):
         return f.func_name
 
+# string
+if PY3:  # pragma: no cover
+    string_isidentifier = str.isidentifier
+else:
+    import re as _re
+
+    _rePythonIdentifier = _re.compile(r'^[a-zA-Z_]\w*$')
+
+    def string_isidentifier(s):
+        return _rePythonIdentifier.search(s) is not None
+
 # cgi
 if _PY32:  # pragma: no cover
     import cgi as _cgi
