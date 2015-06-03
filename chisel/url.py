@@ -21,9 +21,9 @@
 #
 
 from .compat import basestring_, PY3, urllib, xrange_
-from .model import JsonDatetime, JsonUUID
+from .model import JsonDate, JsonDatetime, JsonUUID
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 urllib_quote = urllib.quote
@@ -68,7 +68,9 @@ def encodeQueryString(o, encoding='utf-8'):
             elif not topLevel:
                 yield (parent, '')
         else:
-            if isinstance(o, datetime):
+            if isinstance(o, date):
+                ostr = str(JsonDate(o)).strip('"')
+            elif isinstance(o, datetime):
                 ostr = str(JsonDatetime(o)).strip('"')
             elif isinstance(o, UUID):
                 ostr = str(JsonUUID(o)).strip('"')

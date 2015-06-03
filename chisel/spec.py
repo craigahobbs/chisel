@@ -22,7 +22,7 @@
 
 from .compat import StringIO
 from .model import AttributeValidationError, StructMemberAttributes, TypeArray, TypeBool, \
-    TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, TypeFloat, TypeString, TypeStruct, TypeUuid
+    TypeDate, TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, TypeFloat, TypeString, TypeStruct, TypeUuid
 
 import re
 
@@ -103,6 +103,7 @@ class SpecParser(object):
         'int': TypeInt,
         'float': TypeFloat,
         'bool': TypeBool,
+        'date': TypeDate,
         'datetime': TypeDatetime,
         'uuid': TypeUuid,
         }
