@@ -37,6 +37,11 @@ PYTHON_URLS := \
 # Function to get a python URL's name - python_url
 PYTHON_NAME = $(subst -,_,$(subst .,_,$(basename $(notdir $(1)))))
 
+# OS helpers
+ifeq "$(shell uname)" "Darwin"
+    OS_MAC := 1
+endif
+
 .PHONY: help
 help:
 	@echo "usage: make [test|cover|pyflakes|check|clean]"
@@ -67,10 +72,19 @@ clean:
 
 .PHONY: setup
 setup:
+ifndef OS_MAC
 	sudo apt-get install -y \
 		build-essential \
 		zlib1g-dev \
 		libssl-dev
+endif
+
+# Function to generate a wget to stdout command - url
+ifdef OS_MAC
+    WGET_STDOUT = curl -s '$(strip $(1))'
+else
+    WGET_STDOUT = wget -O - '$(strip $(1))'
+endif
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE
@@ -87,10 +101,10 @@ PYTHON_$(call PYTHON_NAME, $(1)) := \
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(ENV)'
-	wget -O - '$(strip $(1))' | tar xzC '$$(ENV)'
+	$(call WGET_STDOUT, $(1)) | tar xzC '$$(ENV)'
 	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && ./configure --prefix='$$(INSTALL_$(call PYTHON_NAME, $(1)))' && make && make install
 	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip; then \
-		wget -O - 'https://bootstrap.pypa.io/get-pip.py' | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
+		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
 	fi
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install virtualenv
 	touch $$@
