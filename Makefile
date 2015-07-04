@@ -67,6 +67,7 @@ clean:
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
 		$$(find $(PACKAGE_NAME) -name '*.so') \
+		build \
 		dist \
 		*.egg-info \
 		*.egg
