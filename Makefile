@@ -72,7 +72,7 @@ clean:
 		*.egg
 
 .PHONY: superclean
-superclean:
+superclean: clean
 	-rm -rf \
 		$(ENV)
 
