@@ -60,7 +60,7 @@ check: pyflakes $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cov
 
 .PHONY: clean
 clean:
-	-rm -rf \
+	rm -rf \
 		$(ENV)/Python_*_*_*_* \
 		$(COVER) \
 		.coverage \
@@ -74,7 +74,7 @@ clean:
 
 .PHONY: superclean
 superclean: clean
-	-rm -rf \
+	rm -rf \
 		$(ENV)
 
 .PHONY: setup
