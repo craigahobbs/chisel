@@ -44,7 +44,7 @@ endif
 
 .PHONY: help
 help:
-	@echo "usage: make [test|cover|pyflakes|check|clean]"
+	@echo "usage: make [test|cover|pyflakes|check|clean|superclean]"
 
 .PHONY: test
 test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
@@ -61,14 +61,20 @@ check: pyflakes $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cov
 .PHONY: clean
 clean:
 	-rm -rf \
-		$(ENV) \
+		$(ENV)/Python_*_*_*_* \
 		$(COVER) \
 		.coverage \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
+		$$(find $(PACKAGE_NAME) -name '*.so') \
 		dist \
 		*.egg-info \
 		*.egg
+
+.PHONY: superclean
+superclean:
+	-rm -rf \
+		$(ENV)
 
 .PHONY: setup
 setup:
@@ -92,11 +98,13 @@ SRC_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(basename $(notdir $(1))))
 INSTALL_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(call PYTHON_NAME, $(1)).install)
 BUILD_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(call PYTHON_NAME, $(1)).build)
 
-PYTHON_$(call PYTHON_NAME, $(1)) := \
+PREFIX_$(call PYTHON_NAME, $(1)) := \
     LD_LIBRARY_PATH='$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
     LDFLAGS=-L'$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
     CFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include' \
-    CXXFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include' \
+    CXXFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include'
+PYTHON_$(call PYTHON_NAME, $(1)) := \
+    $$(PREFIX_$(call PYTHON_NAME, $(1))) \
         $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
@@ -128,10 +136,7 @@ endef
 
 # Function to generate an environment's python interpreter - python_url, env_name
 ENV_PYTHON = \
-    LD_LIBRARY_PATH='$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
-    LDFLAGS=-L'$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
-    CFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include' \
-    CXXFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include' \
+    $$(PREFIX_$(call PYTHON_NAME, $(1))) \
         $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 # Function to generate an environment's pip - python_url, env_name
@@ -139,21 +144,19 @@ ENV_PIP = $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check
 
 # Generate test rules
 define TEST_COMMANDS
-	$(call ENV_PIP, $(1), $(2)) install -q -e . -e .[tests]
 	$(call ENV_PYTHON, $(1), $(2)) setup.py test $(if $(TEST),-s $(TEST))
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), test,, TEST_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), test, -e . -e .[tests], TEST_COMMANDS)))
 
 # Generate coverage rule
 define COVER_COMMANDS
-	$(call ENV_PIP, $(1), $(2)) install -e . -e .[tests]
 	$(call ENV_PYTHON, $(1), $(2)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
 	$(call ENV_PYTHON, $(1), $(2)) -m coverage html -d $(COVER)
 	$(call ENV_PYTHON, $(1), $(2)) -m coverage report
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, coverage, COVER_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage, COVER_COMMANDS)))
 
 # Generate pyflakes rule
 define PYFLAKES_COMMANDS

@@ -1,7 +1,9 @@
 *~
 *.pyc
+*.so
 *.egg-info
 .env/
 .cover/
 .coverage
+build/
 dist/
