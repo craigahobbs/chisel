@@ -24,6 +24,7 @@
 PACKAGE_NAME := chisel
 
 # Local directories
+BUILD := .build
 ENV := .env
 COVER := .cover
 
@@ -61,7 +62,7 @@ check: pyflakes $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cov
 .PHONY: clean
 clean:
 	rm -rf \
-		$(ENV)/Python_*_*_*_* \
+		$(ENV) \
 		$(COVER) \
 		.coverage \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
@@ -75,7 +76,7 @@ clean:
 .PHONY: superclean
 superclean: clean
 	rm -rf \
-		$(ENV)
+		$(BUILD)
 
 .PHONY: setup
 setup:
@@ -95,9 +96,9 @@ endif
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE
-SRC_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(basename $(notdir $(1))))
-INSTALL_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(call PYTHON_NAME, $(1)).install)
-BUILD_$(call PYTHON_NAME, $(1)) := $(abspath $$(ENV)/$(call PYTHON_NAME, $(1)).build)
+SRC_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(basename $(notdir $(1))))
+INSTALL_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).install)
+BUILD_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).build)
 
 PREFIX_$(call PYTHON_NAME, $(1)) := \
     LD_LIBRARY_PATH='$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
@@ -109,8 +110,8 @@ PYTHON_$(call PYTHON_NAME, $(1)) := \
         $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
-	mkdir -p '$$(ENV)'
-	$(call WGET_STDOUT, $(1)) | tar xzC '$$(ENV)'
+	mkdir -p '$$(dir $$@)'
+	$(call WGET_STDOUT, $(1)) | tar xzC '$$(dir $$@)'
 	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && ./configure --prefix='$$(INSTALL_$(call PYTHON_NAME, $(1)))' && make && make install
 	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip; then \
 		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
