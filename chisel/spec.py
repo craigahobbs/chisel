@@ -113,6 +113,13 @@ class SpecParser(object):
         self.actions = {}
         self.errors = []
         self._typeRefs = []
+        self._curAction = None
+        self._curActionDefs = None
+        self._curType = None
+        self._curDoc = None
+        self._parseStream = None
+        self._parseFileName = None
+        self._parseFileLine = 0
 
     # Parse a specification file
     def parse(self, specPath, finalize=True):
@@ -127,12 +134,12 @@ class SpecParser(object):
     def parseStream(self, specStream, fileName='', finalize=True):
 
         # Set the parser state
-        self._parseStream = specStream
-        self._parseFileName = fileName
-        self._parseFileLine = 0
         self._curAction = None
         self._curType = None
         self._curDoc = []
+        self._parseStream = specStream
+        self._parseFileName = fileName
+        self._parseFileLine = 0
 
         # Do the work
         self._parse()
@@ -176,10 +183,10 @@ class SpecParser(object):
         self.errors.append('%s:%d: error: %s' % (fileName or self._parseFileName, fileLine or self._parseFileLine, msg))
 
     # Validate a type's attributes
-    def _validateAttr(self, type, attr, fileName=None, fileLine=None):
+    def _validateAttr(self, type_, attr, fileName=None, fileLine=None):
         try:
             if attr is not None:
-                type.validateAttr(attr)
+                type_.validateAttr(attr)
         except AttributeValidationError as e:
             self._error("Invalid attribute '" + e.attr + "'", fileName=fileName, fileLine=fileLine)
 

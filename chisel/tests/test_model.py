@@ -349,6 +349,7 @@ class TestStructMemberAttributes(unittest.TestCase):
             self.fail()
 
 
+# pylint: disable=protected-access
 class TestModelTypedefValidation(unittest.TestCase):
 
     # Test typedef type construction
@@ -371,15 +372,9 @@ class TestModelTypedefValidation(unittest.TestCase):
 
         t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(gt=5))
 
-        try:
-            t.validateAttr(chisel.model.StructMemberAttributes())
-        except:
-            self.fail()
+        t.validateAttr(chisel.model.StructMemberAttributes())
 
-        try:
-            t.validateAttr(chisel.model.StructMemberAttributes(gt=7))
-        except:
-            self.fail()
+        t.validateAttr(chisel.model.StructMemberAttributes(gt=7))
 
         try:
             t.validateAttr(chisel.model.StructMemberAttributes(len_gt=7))
@@ -1179,7 +1174,7 @@ class TestModelStringValidation(unittest.TestCase):
 
         t = TypeString()
 
-        o = str('abc') if PY3 else unicode('abc')
+        o = str('abc') if PY3 else unicode('abc') # pylint: disable=undefined-variable
         for mode in ALL_VALIDATION_MODES:
             o2 = t.validate(o, mode)
             self.assertTrue(o is o2)

@@ -32,9 +32,9 @@ if PY3:  # pragma: no cover
     long_ = int
     xrange_ = range
 else:
-    basestring_ = basestring
-    long_ = long
-    xrange_ = xrange
+    basestring_ = basestring            # pylint: disable=undefined-variable
+    long_ = long                        # pylint: disable=undefined-variable
+    xrange_ = xrange                    # pylint: disable=undefined-variable
 
 # dict
 if PY3:  # pragma: no cover
@@ -87,8 +87,8 @@ if _PY27:
     import json as _json
 else:  # pragma: no cover
     try:
-        import simplejson as _json
-    except:
+        import simplejson as _json      # pylint: disable=import-error
+    except ImportError:
         import json as _json
 json = _json
 
@@ -98,9 +98,9 @@ if PY3:  # pragma: no cover
     StringIO = _io.StringIO
 else:
     try:
-        import cStringIO as _StringIO
-    except:  # pragma: no cover
-        import StringIO as _StringIO
+        import cStringIO as _StringIO   # pylint: disable=import-error
+    except ImportError:  # pragma: no cover
+        import StringIO as _StringIO    # pylint: disable=import-error
     StringIO = _StringIO.StringIO
 
 # urllib, urlparse
@@ -120,5 +120,5 @@ if PY3:  # pragma: no cover
     import html.parser as _html_parser
     HTMLParser = _html_parser.HTMLParser
 else:
-    import HTMLParser as _HTMLParser
+    import HTMLParser as _HTMLParser    # pylint: disable=import-error
     HTMLParser = _HTMLParser.HTMLParser

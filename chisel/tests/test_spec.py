@@ -28,6 +28,7 @@ import unittest
 
 
 # Spec parser unit tests
+# pylint: disable=protected-access
 class TestSpecParseSpec(unittest.TestCase):
 
     # Helper method to assert struct type member properties
@@ -751,7 +752,7 @@ struct MyStruct
                                  ('ds1', chisel.model.TypeDict, False),
                                  ('ds2', chisel.model.TypeDict, False),
                                  ('ds3', chisel.model.TypeDict, False),
-                                 ))
+                                ))
 
         # Check i1 constraints
         itm = iter(s.members)

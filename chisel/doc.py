@@ -50,7 +50,8 @@ action {name}
     optional bool nonav
 '''.format(name=name))
 
-    def __action(self, ctx, req):
+    @staticmethod
+    def __action(ctx, req):
         requestName = req.get('name')
         if requestName is None:
             requests = sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())
@@ -80,7 +81,7 @@ action {name}
 '''.format(name=name, requestDesc=requestDesc, requestName=requestName))
         self.request = request
 
-    def __action(self, ctx, req):
+    def __action(self, ctx, dummy_req):
         return ctx.responseText('200 OK', createRequestHtml(ctx.environ, self.request, nonav=True), contentType='text/html')
 
 
@@ -234,22 +235,22 @@ def createRequestHtml(environ, request, nonav=False):
         structTypes = {}
         enumTypes = {}
 
-        def addType(type, membersOnly=False):
-            if isinstance(type, TypeStruct) and type.typeName not in structTypes:
+        def addType(type_, membersOnly=False):
+            if isinstance(type_, TypeStruct) and type_.typeName not in structTypes:
                 if not membersOnly:
-                    structTypes[type.typeName] = type
-                for member in type.members:
+                    structTypes[type_.typeName] = type_
+                for member in type_.members:
                     addType(member.type)
-            elif isinstance(type, TypeEnum) and type.typeName not in enumTypes:
-                enumTypes[type.typeName] = type
-            elif isinstance(type, Typedef) and type.typeName not in typedefTypes:
-                typedefTypes[type.typeName] = type
-                addType(type.type)
-            elif isinstance(type, TypeArray):
-                addType(type.type)
-            elif isinstance(type, TypeDict):
-                addType(type.type)
-                addType(type.keyType)
+            elif isinstance(type_, TypeEnum) and type_.typeName not in enumTypes:
+                enumTypes[type_.typeName] = type_
+            elif isinstance(type_, Typedef) and type_.typeName not in typedefTypes:
+                typedefTypes[type_.typeName] = type_
+                addType(type_.type)
+            elif isinstance(type_, TypeArray):
+                addType(type_.type)
+            elif isinstance(type_, TypeDict):
+                addType(type_.type)
+                addType(type_.keyType)
 
         addType(request.model.inputType, membersOnly=True)
         if not request.wsgiResponse:
@@ -413,31 +414,31 @@ ul.chsl-constraint-list {
 
 
 # User type href helper
-def _userTypeHref(type):
-    return type.typeName
+def _userTypeHref(type_):
+    return type_.typeName
 
 # Type name HTML helper
 _userTypes = (Typedef, TypeStruct, TypeEnum)
 
 
-def _addTypeNameHelper(parent, type):
-    if isinstance(type, _userTypes):
-        parent = parent.addChild('a', isInline=True, href='#' + _userTypeHref(type))
-    parent.addChild(type.typeName, isText=True, isInline=True)
+def _addTypeNameHelper(parent, type_):
+    if isinstance(type_, _userTypes):
+        parent = parent.addChild('a', isInline=True, href='#' + _userTypeHref(type_))
+    parent.addChild(type_.typeName, isText=True, isInline=True)
 
 
-def _addTypeName(parent, type):
-    if isinstance(type, TypeArray):
-        _addTypeNameHelper(parent, type.type)
+def _addTypeName(parent, type_):
+    if isinstance(type_, TypeArray):
+        _addTypeNameHelper(parent, type_.type)
         parent.addChild('&nbsp;[]', isTextRaw=True, isInline=True)
-    elif isinstance(type, TypeDict):
-        if not type.hasDefaultKeyType():
-            _addTypeNameHelper(parent, type.keyType)
+    elif isinstance(type_, TypeDict):
+        if not type_.hasDefaultKeyType():
+            _addTypeNameHelper(parent, type_.keyType)
             parent.addChild('&nbsp;:&nbsp;', isTextRaw=True, isInline=True)
-        _addTypeNameHelper(parent, type.type)
+        _addTypeNameHelper(parent, type_.type)
         parent.addChild('&nbsp;{}', isTextRaw=True, isInline=True)
     else:
-        _addTypeNameHelper(parent, type)
+        _addTypeNameHelper(parent, type_)
 
 
 # Get attribute list - [(lhs, op, rhs), ...]
@@ -475,20 +476,20 @@ def _attributeDom(ul, lhs, op, rhs):
 
 
 # Type attributes HTML helper
-def _addTypeAttr(parent, type, attr, isOptional):
+def _addTypeAttr(parent, type_, attr, isOptional):
 
     # Add attribute DOM elements
     ul = parent.addChild('ul', _class='chsl-constraint-list')
     if isOptional:
         _attributeDom(ul, 'optional', None, None)
-    typeName = 'array' if isinstance(type, TypeArray) else ('dict' if isinstance(type, TypeDict) else 'value')
+    typeName = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
     for lhs, op, rhs in _attributeList(attr, typeName, 'len(' + typeName + ')'):
         _attributeDom(ul, lhs, op, rhs)
-    if hasattr(type, 'keyType'):
-        for lhs, op, rhs in _attributeList(type.keyAttr, 'key', 'len(key)'):
+    if hasattr(type_, 'keyType'):
+        for lhs, op, rhs in _attributeList(type_.keyAttr, 'key', 'len(key)'):
             _attributeDom(ul, lhs, op, rhs)
-    if hasattr(type, 'type'):
-        for lhs, op, rhs in _attributeList(type.attr, 'elem', 'len(elem)'):
+    if hasattr(type_, 'type'):
+        for lhs, op, rhs in _attributeList(type_.attr, 'elem', 'len(elem)'):
             _attributeDom(ul, lhs, op, rhs)
 
     # No constraints?
@@ -527,13 +528,13 @@ def _addDocText(parent, doc):
 
 
 # Typedef section helper
-def _typedefSection(parent, type):
+def _typedefSection(parent, type_):
 
     # Section title
-    parent.addChild('h3', _id=_userTypeHref(type)) \
+    parent.addChild('h3', _id=_userTypeHref(type_)) \
         .addChild('a', isInline=True, _class='linktarget') \
-        .addChild('typedef ' + type.typeName, isText=True)
-    _addDocText(parent, type.doc)
+        .addChild('typedef ' + type_.typeName, isText=True)
+    _addDocText(parent, type_.doc)
 
     # Table header
     table = parent.addChild('table')
@@ -543,33 +544,33 @@ def _typedefSection(parent, type):
 
     # Typedef type/attr rows
     tr = table.addChild('tr')
-    _addTypeName(tr.addChild('td'), type.type)
-    _addTypeAttr(tr.addChild('td'), type.type, type.attr, False)
+    _addTypeName(tr.addChild('td'), type_.type)
+    _addTypeAttr(tr.addChild('td'), type_.type, type_.attr, False)
 
 
 # Struct section helper
-def _structSection(parent, type, titleTag=None, title=None, emptyMessage=None):
+def _structSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
 
     # Defaults
     if titleTag is None:
         titleTag = 'h3'
     if title is None:
-        title = ('union ' if type.isUnion else 'struct ') + type.typeName
+        title = ('union ' if type_.isUnion else 'struct ') + type_.typeName
     if emptyMessage is None:
         emptyMessage = 'The struct is empty.'
 
     # Section title
-    parent.addChild(titleTag, _id=_userTypeHref(type)) \
+    parent.addChild(titleTag, _id=_userTypeHref(type_)) \
         .addChild('a', isInline=True, _class='linktarget') \
         .addChild(title, isText=True)
-    _addDocText(parent, type.doc)
+    _addDocText(parent, type_.doc)
 
     # Empty struct?
-    if not type.members:
+    if not type_.members:
         _addText(parent, (emptyMessage,))
     else:
         # Has description header?
-        hasDescription = any(member.doc for member in type.members)
+        hasDescription = any(member.doc for member in type_.members)
 
         # Table header
         table = parent.addChild('table')
@@ -581,7 +582,7 @@ def _structSection(parent, type, titleTag=None, title=None, emptyMessage=None):
             tr.addChild('th').addChild('Description', isText=True, isInline=True)
 
         # Struct member rows
-        for member in type.members:
+        for member in type_.members:
             tr = table.addChild('tr')
             tr.addChild('td').addChild(member.name, isText=True, isInline=True)
             _addTypeName(tr.addChild('td'), member.type)
@@ -591,28 +592,28 @@ def _structSection(parent, type, titleTag=None, title=None, emptyMessage=None):
 
 
 # Enum section helper
-def _enumSection(parent, type, titleTag=None, title=None, emptyMessage=None):
+def _enumSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
 
     # Defaults
     if titleTag is None:
         titleTag = 'h3'
     if title is None:
-        title = 'enum ' + type.typeName
+        title = 'enum ' + type_.typeName
     if emptyMessage is None:
         emptyMessage = 'The enum is empty.'
 
     # Section title
-    parent.addChild(titleTag, _id=_userTypeHref(type)) \
+    parent.addChild(titleTag, _id=_userTypeHref(type_)) \
         .addChild('a', isInline=True, _class='linktarget') \
         .addChild(title, isText=True)
-    _addDocText(parent, type.doc)
+    _addDocText(parent, type_.doc)
 
     # Empty enum?
-    if not type.values:
+    if not type_.values:
         _addText(parent, (emptyMessage,))
     else:
         # Has description header?
-        hasDescription = any(value.doc for value in type.values)
+        hasDescription = any(value.doc for value in type_.values)
 
         # Table header
         table = parent.addChild('table')
@@ -622,7 +623,7 @@ def _enumSection(parent, type, titleTag=None, title=None, emptyMessage=None):
             tr.addChild('th').addChild('Description', isText=True, isInline=True)
 
         # Enum value rows
-        for value in type.values:
+        for value in type_.values:
             tr = table.addChild('tr')
             tr.addChild('td').addChild(value.value, isText=True, isInline=True)
             if hasDescription:

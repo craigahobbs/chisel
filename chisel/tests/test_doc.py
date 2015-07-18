@@ -145,7 +145,7 @@ action myAction2
     def test_doc_DocAction_index(self):
 
         # Validate the HTML
-        status, headers, response = self.app.request('GET', '/doc', environ=self._environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -298,7 +298,7 @@ ul.chsl-constraint-list {
         # Validate the first myAction1's HTML
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=myAction1'
-        status, headers, response = self.app.request('GET', '/doc', environ=environ)
+        dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
         htmlExpected = '''\
@@ -707,7 +707,7 @@ A value
         # Validate the myAction2's HTML
         environ = dict(self._environ2)
         environ['QUERY_STRING'] = 'name=myAction2'
-        status, headers, response = self.app.request('GET', '/doc', environ=environ)
+        dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
         htmlExpected = '''\
@@ -975,13 +975,13 @@ action myAction
     output
         int c
 ''')
-        def myAction(ctx, req):
+        def myAction(dummy_ctx, req):
             return {'c': req['a'] + req['b']}
 
         app.addRequest(chisel.DocAction())
         app.addRequest(chisel.DocPage(myAction))
 
-        status, headers, response = app.request('GET', '/doc', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -1129,7 +1129,7 @@ ul.chsl-constraint-list {
 
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=doc_action_myAction'
-        status, headers, response = app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
@@ -1298,7 +1298,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(htmlExpected, html)
 
-        status, headers, response = app.request('GET', '/doc/action/myAction', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc/action/myAction', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)

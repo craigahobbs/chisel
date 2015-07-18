@@ -33,9 +33,10 @@ from uuid import UUID
 class JsonDate(float):
     __slots__ = ('value', 'json')
 
-    def __new__(cls, value):
+    def __new__(cls, dummy_value):
         return float.__new__(cls, 0)
 
+    # pylint: disable=super-init-not-called
     def __init__(self, value):
         if value is not self:
             self.value = value
@@ -55,9 +56,10 @@ class JsonDate(float):
 class JsonDatetime(float):
     __slots__ = ('value', 'json')
 
-    def __new__(cls, value):
+    def __new__(cls, dummy_value):
         return float.__new__(cls, 0)
 
+    # pylint: disable=super-init-not-called
     def __init__(self, value):
         if value is not self:
             if value.tzinfo is None:
@@ -79,9 +81,10 @@ class JsonDatetime(float):
 class JsonFloat(float):
     __slots__ = ('json',)
 
-    def __new__(cls, value, prec=6):
+    def __new__(cls, value, dummy_prec=6):
         return float.__new__(cls, value)
 
+    # pylint: disable=super-init-not-called
     def __init__(self, value, prec=6):
         if value is not self:
             self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
@@ -100,9 +103,10 @@ class JsonFloat(float):
 class JsonUUID(float):
     __slots__ = ('value', 'json')
 
-    def __new__(cls, value):
+    def __new__(cls, dummy_value):
         return float.__new__(cls, 0)
 
+    # pylint: disable=super-init-not-called
     def __init__(self, value):
         if value is not self:
             self.value = value
@@ -166,11 +170,11 @@ class ValidationError(Exception):
         return None
 
     @classmethod
-    def memberError(cls, type, value, members, constraintSyntax=None):
+    def memberError(cls, type_, value, members, constraintSyntax=None):
         memberSyntax = cls.memberSyntax(members)
         msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
               ((" for member '" + memberSyntax + "'") if memberSyntax else '') + \
-              ((", expected type '" + type.typeName + "'") if type else '') + \
+              ((", expected type '" + type_.typeName + "'") if type_ else '') + \
               ((' [' + constraintSyntax + ']') if constraintSyntax else '')
         return ValidationError(msg, member=memberSyntax)
 
@@ -245,9 +249,9 @@ class StructMemberAttributes(object):
 class Typedef(object):
     __slots__ = ('typeName', 'type', 'attr', 'doc')
 
-    def __init__(self, type, attr=None, typeName=None, doc=None):
+    def __init__(self, type_, attr=None, typeName=None, doc=None):
         self.typeName = 'typedef' if typeName is None else typeName
-        self.type = type
+        self.type = type_
         self.attr = attr
         self.doc = [] if doc is None else doc
 
@@ -271,9 +275,9 @@ class Typedef(object):
 class StructMember(object):
     __slots__ = ('name', 'type', 'isOptional', 'attr', 'doc')
 
-    def __init__(self, name, type, isOptional=False, attr=None, doc=None):
+    def __init__(self, name, type_, isOptional=False, attr=None, doc=None):
         self.name = name
-        self.type = type
+        self.type = type_
         self.isOptional = isOptional
         self.attr = attr
         self.doc = [] if doc is None else doc
@@ -290,8 +294,8 @@ class TypeStruct(object):
         self._membersDict = {}
         self.doc = [] if doc is None else doc
 
-    def addMember(self, name, type, isOptional=False, attr=None, doc=None):
-        member = StructMember(name, type, isOptional or self.isUnion, attr, doc)
+    def addMember(self, name, type_, isOptional=False, attr=None, doc=None):
+        member = StructMember(name, type_, isOptional or self.isUnion, attr, doc)
         self._members.append(member)
         self._membersDict[name] = member
         return member
@@ -300,7 +304,8 @@ class TypeStruct(object):
     def members(self):
         return self._members
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -349,11 +354,12 @@ class TypeArray(object):
 
     typeName = 'array'
 
-    def __init__(self, type, attr=None):
-        self.type = type
+    def __init__(self, type_, attr=None):
+        self.type = type_
         self.attr = attr
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr(allowLength=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -389,8 +395,8 @@ class TypeDict(object):
 
     typeName = 'dict'
 
-    def __init__(self, type, attr=None, keyType=None, keyAttr=None):
-        self.type = type
+    def __init__(self, type_, attr=None, keyType=None, keyAttr=None):
+        self.type = type_
         self.attr = attr
         self.keyType = keyType or TypeString()
         self.keyAttr = keyAttr
@@ -403,7 +409,8 @@ class TypeDict(object):
     def hasDefaultKeyType(self):
         return isinstance(self.keyType, _TypeString)
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr(allowLength=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -465,10 +472,11 @@ class TypeEnum(object):
         self.values.append(value)
         return value
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
         if value not in self.values:
@@ -483,10 +491,11 @@ class _TypeString(object):
 
     typeName = 'string'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr(allowLength=True)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
         if not isinstance(value, basestring_):
@@ -507,7 +516,8 @@ class _TypeInt(object):
 
     typeName = 'int'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr(allowValue=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -542,7 +552,8 @@ class _TypeFloat(object):
 
     typeName = 'float'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr(allowValue=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -580,7 +591,8 @@ class _TypeBool(object):
         'false': False
     }
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -609,7 +621,8 @@ class _TypeUuid(object):
 
     typeName = 'uuid'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -642,7 +655,8 @@ class _TypeDate(object):
 
     typeName = 'date'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
@@ -675,7 +689,8 @@ class _TypeDatetime(object):
 
     typeName = 'datetime'
 
-    def validateAttr(self, attr):
+    @staticmethod
+    def validateAttr(attr):
         attr.validateAttr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):

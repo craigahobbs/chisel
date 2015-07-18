@@ -81,8 +81,7 @@ class Action(Request):
         # Get the action model, if necessary
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
-            if self.model is None:
-                raise Exception("No spec defined for action '%s'" % (self.name,))
+            assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
 
         Request.onload(self, app)
 
@@ -111,7 +110,7 @@ class Action(Request):
                 # Get the content length
                 try:
                     contentLength = int(environ['CONTENT_LENGTH'])
-                except:
+                except ValueError:
                     self.app.log.warning("Invalid content length for action '%s': %s", self.name, environ.get('CONTENT_LENGTH', ''))
                     return self.app.responseText('411 Length Required', 'Length Required')
 

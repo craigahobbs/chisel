@@ -38,7 +38,7 @@ class TestRequest(unittest.TestCase):
     def test_request_decorator(self):
 
         @chisel.request
-        def myRequest(environ, start_response):
+        def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
@@ -51,7 +51,7 @@ class TestRequest(unittest.TestCase):
     def test_request_decorator_name(self):
 
         @chisel.request(name='foo')
-        def myRequest(environ, start_response):
+        def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
@@ -64,7 +64,7 @@ class TestRequest(unittest.TestCase):
     def test_request_decorator_urls(self):
 
         @chisel.request(urls=('/bar', '/thud',))
-        def myRequest(environ, start_response):
+        def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
@@ -77,7 +77,7 @@ class TestRequest(unittest.TestCase):
     def test_request_decorator_name_and_urls(self):
 
         @chisel.request(name='foo', urls=('/bar', '/thud'))
-        def myRequest(environ, start_response):
+        def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
@@ -98,5 +98,5 @@ class TestRequest(unittest.TestCase):
         self.app.addRequest(myRequest)
         status, headers, response = self.app.request('GET', '/foo')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(headers,  [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
+        self.assertEqual(headers, [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
         self.assertEqual(response.decode('utf-8'), 'OK')

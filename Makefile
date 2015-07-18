@@ -45,7 +45,7 @@ endif
 
 .PHONY: help
 help:
-	@echo "usage: make [test|cover|pyflakes|check|clean|superclean]"
+	@echo "usage: make [test|cover|pylint|check|clean|superclean]"
 
 .PHONY: test
 test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
@@ -53,11 +53,11 @@ test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
 .PHONY: cover
 cover: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_cover
 
-.PHONY: pyflakes
-pyflakes: $(call PYTHON_NAME, Python_2_7_10)_pyflakes
+.PHONY: pylint
+pylint: $(call PYTHON_NAME, Python_3_4_3)_pylint
 
 .PHONY: check
-check: pyflakes $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cover
+check: pylint $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cover
 
 .PHONY: clean
 clean:
@@ -162,9 +162,8 @@ define COVER_COMMANDS
 endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage, COVER_COMMANDS)))
 
-# Generate pyflakes rule
-define PYFLAKES_COMMANDS
-	$(call ENV_PYTHON, $(1), $(2)) -m pyflakes $(PACKAGE_NAME)
-	$(call ENV_PYTHON, $(1), $(2)) -m pep8 --show-pep8 --max-line-length=140 $(PACKAGE_NAME)
+# Generate pyint rule
+define PYLINT_COMMANDS
+	$(call ENV_PYTHON, $(1), $(2)) -m pylint -f parseable $(PYLINT_ARGS) $(PACKAGE_NAME)
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pyflakes, pyflakes pep8, PYFLAKES_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pylint, pylint==1.4.4, PYLINT_COMMANDS)))

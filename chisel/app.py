@@ -105,7 +105,7 @@ class Application(object):
         if request is not None:
             try:
                 return request(environ, start_response)
-            except:
+            except: # pylint: disable=bare-except
                 self.log.exception('Exception raised by WSGI request "%s"', request.name)
                 return self.responseText('500 Internal Server Error', 'Unexpected Error')
         else:
@@ -147,7 +147,11 @@ class Application(object):
         threadState = threadStateStack.pop()
         if len(threadStateStack) == 0:
             del self.__threadStates[threadKey]
-        self.__cleanupLogger(threadState.log)
+
+        # Cleanup a logger to avoid memory leaks
+        for handler in threadState.log.handlers:
+            handler.flush()
+            handler.close()
 
     # Get the active thread state
     def __topThreadState(self):
@@ -166,12 +170,6 @@ class Application(object):
             handler.setFormatter(self.__logFormatter())
             logger.addHandler(handler)
         return logger
-
-    # Cleanup a logger to avoid memory leaks
-    def __cleanupLogger(self, logger):
-        for handler in logger.handlers:
-            handler.flush()
-            handler.close()
 
     # Logging level
     @property
@@ -256,7 +254,7 @@ class Application(object):
         self.environ[self.ENVIRON_JSONP] = jsonpFunction
 
     # Serialize an object to JSON
-    def serializeJSON(self, o, allowJSONP=True):
+    def serializeJSON(self, o):
         return json.dumps(o, sort_keys=True,
                           indent=2 if self.prettyOutput else None,
                           separators=(', ', ': ') if self.prettyOutput else (',', ':'))
@@ -295,9 +293,9 @@ class Application(object):
             raise IOError('%r not found or is not a directory' % (specPath,))
 
         # Resursively find spec files
-        for dirpath, dirnames, filenames in os.walk(specPath):
+        for dirpath, dummy_dirnames, filenames in os.walk(specPath):
             for filename in filenames:
-                (base, ext) = os.path.splitext(filename)
+                (dummy_base, ext) = os.path.splitext(filename)
                 if ext == specExt:
                     self.__specParser.parse(os.path.join(dirpath, filename), finalize=False)
         if finalize:
@@ -308,8 +306,8 @@ class Application(object):
         self.__specParser.parseString(spec, fileName=fileName, finalize=finalize)
 
     # Regular expression for matching URL arguments
-    __reUrlArg = re.compile('/\{([A-Za-z]\w*)\}')
-    __reUrlArgEsc = re.compile('/\\\{([A-Za-z]\w*)\\\}')
+    __reUrlArg = re.compile(r'/\{([A-Za-z]\w*)\}')
+    __reUrlArgEsc = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
     # Add a request handler (Request-wrapped WSGI application)
     def addRequest(self, request):
@@ -364,17 +362,16 @@ class Application(object):
                             moduleName = '.'.join(moduleNameParts)
                             try:
                                 __import__(moduleName)
-                            except:
+                            except ImportError:
                                 pass
                             else:
                                 return len(moduleDirParts) - len(moduleNameParts)
-            else:
-                raise ImportError('%r not found on system path' % (moduleDir,))
+            raise ImportError('%r not found on system path' % (moduleDir,))
         ixModuleName = findModuleNameIndex()
 
         # Recursively find module files
         excludedSubmodulesDot = None if excludedSubmodules is None else [x + '.' for x in excludedSubmodules]
-        for dirpath, dirnames, filenames in os.walk(moduleDir):
+        for dirpath, dummy_dirnames, filenames in os.walk(moduleDir):
 
             # Skip Python 3.x cache directories
             if os.path.basename(dirpath) == '__pycache__':

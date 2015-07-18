@@ -79,8 +79,8 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(decodeQueryString(s), o)
 
         # Decode unicode string
-        unicode_ = str if PY3 else unicode
-        unichr_ = chr if PY3 else unichr
+        unicode_ = str if PY3 else unicode # pylint: disable=undefined-variable
+        unichr_ = chr if PY3 else unichr   # pylint: disable=undefined-variable
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
         o = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
         self.assertEqual(decodeQueryString(s), o)
@@ -230,8 +230,8 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encodeQueryString(o), s)
 
         # Unicode keys and values
-        unicode_ = str if PY3 else unicode
-        unichr_ = chr if PY3 else unichr
+        unicode_ = str if PY3 else unicode # pylint: disable=undefined-variable
+        unichr_ = chr if PY3 else unichr   # pylint: disable=undefined-variable
         o = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
         s = 'a=abc%EA%80%80&b.0=c&b.1=d'
         self.assertEqual(encodeQueryString(o), s)

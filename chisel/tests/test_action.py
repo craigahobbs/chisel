@@ -43,7 +43,7 @@ action myActionDefault
     def test_action_decorator(self):
 
         @chisel.action
-        def myActionDefault(app, req):
+        def myActionDefault(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(myActionDefault, chisel.Action))
         self.assertTrue(isinstance(myActionDefault, chisel.Request))
@@ -59,13 +59,13 @@ action myActionDefault
     def test_action_decorator_unknown_action(self):
 
         @chisel.action
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
         try:
             self.app.addRequest(myAction)
-        except Exception as e:
+        except AssertionError as e:
             self.assertEqual(str(e), "No spec defined for action 'myAction'")
         else:
             self.fail()
@@ -76,7 +76,7 @@ action myActionDefault
         @chisel.action(spec='''\
 action myActionName
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
@@ -93,9 +93,9 @@ action myActionName
 
         try:
             @chisel.action(spec='')
-            def myAction(app, req):
+            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
                 return {}
-        except Exception as e:
+        except AssertionError as e:
             self.assertEqual(str(e), 'Action spec must contain exactly one action definition')
         else:
             self.fail()
@@ -108,9 +108,9 @@ action myActionName
 action theActionOther
 action theAction
 ''')
-            def myAction(app, req):
+            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
                 return {}
-        except Exception as e:
+        except AssertionError as e:
             self.assertEqual(str(e), 'Action spec must contain exactly one action definition')
         else:
             self.fail()
@@ -121,9 +121,9 @@ action theAction
             @chisel.action(spec='''\
 asdfasdf
 ''')
-            def myAction(app, req):
+            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
                 return {}
-        except Exception as e:
+        except chisel.SpecParserError as e:
             self.assertEqual(str(e), ':1: error: Syntax error')
         else:
             self.fail()
@@ -135,7 +135,7 @@ asdfasdf
 action theActionOther
 action theAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
@@ -152,7 +152,7 @@ action theAction
 
         # Action decorator with urls, custom response callback, and validate response bool
         @chisel.action(urls=('/foo',), wsgiResponse=True)
-        def myActionDefault(app, req):
+        def myActionDefault(app, dummy_req):
             return app.responseText('200 OK', 'OK')
         self.app.addRequest(myActionDefault)
         self.assertEqual(myActionDefault.app, self.app)
@@ -173,7 +173,7 @@ action myAction
   output
     int c
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
@@ -194,7 +194,7 @@ action myAction
   output
     int c
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
         self.app.validateOutput = False
@@ -216,7 +216,7 @@ action myAction
   output
     int c
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
@@ -237,7 +237,7 @@ action myAction
   output
     int c
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
         self.app.addRequest(myAction)
 
@@ -253,7 +253,7 @@ action myAction
         @chisel.action(spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(app, dummy_req):
             app.addHeader('MyHeader', 'MyValue')
             return {}
         self.app.addRequest(myAction)
@@ -294,7 +294,7 @@ action myAction
   errors
     MyError
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {'error': 'MyError'}
         self.app.addRequest(myAction)
 
@@ -312,7 +312,7 @@ action myAction
   errors
     MyError
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {'error': 'MyError', 'message': 'My message'}
         self.app.addRequest(myAction)
 
@@ -330,7 +330,7 @@ action myAction
   errors
     MyError
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             raise chisel.ActionError('MyError')
         self.app.addRequest(myAction)
 
@@ -348,7 +348,7 @@ action myAction
   errors
     MyError
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             raise chisel.ActionError('MyError', 'My message')
         self.app.addRequest(myAction)
 
@@ -366,7 +366,7 @@ action myAction
   errors
     MyError
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {'error': 'MyBadError'}
         self.app.addRequest(myAction)
 
@@ -386,7 +386,7 @@ action myAction
   input
     int a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
@@ -404,7 +404,7 @@ action myAction
   input
     int a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
@@ -422,7 +422,7 @@ action myAction
   input
     int a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
@@ -441,7 +441,7 @@ action myAction
   input
     int a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
@@ -459,7 +459,7 @@ action myAction
   input
     string a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
@@ -479,7 +479,7 @@ action myAction
   output
     int a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {'a': 'asdf'}
         self.app.addRequest(myAction)
 
@@ -497,7 +497,7 @@ action myAction
         @chisel.action(spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             pass
         self.app.addRequest(myAction)
 
@@ -513,7 +513,7 @@ action myAction
         @chisel.action(spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return []
         self.app.addRequest(myAction)
 
@@ -531,7 +531,7 @@ action myAction
         @chisel.action(spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             raise Exception('My unexpected error')
         self.app.addRequest(myAction)
 
@@ -547,12 +547,13 @@ action myAction
         @chisel.action(spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {}
         self.app.addRequest(myAction)
 
         class MyStream(object):
-            def read(self):
+            @staticmethod
+            def read():
                 raise IOError('FAIL')
 
         status, headers, response = \
@@ -573,7 +574,7 @@ action myAction
   output
     float a
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             return {'a': MyClass()}
         self.app.addRequest(myAction)
         self.app.validateOutput = False
@@ -590,7 +591,7 @@ action myAction
         @chisel.action(wsgiResponse=True, spec='''\
 action myAction
 ''')
-        def myAction(app, req):
+        def myAction(dummy_app, dummy_req):
             raise Exception('FAIL')
         self.app.addRequest(myAction)
 

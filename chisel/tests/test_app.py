@@ -107,7 +107,7 @@ class TestAppApplication(unittest.TestCase):
             startResponseData['headers'].append(headers)
 
         # Request that returns a generator
-        def generatorResponse(environ, startResponse):
+        def generatorResponse(environ, dummy_startResponse):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
@@ -141,7 +141,7 @@ class TestAppApplication(unittest.TestCase):
             startResponseData['headers'].append(headers)
 
         # Request that returns a generator
-        def stringResponse(environ, startResponse):
+        def stringResponse(environ, dummy_startResponse):
             ctx = environ[Application.ENVIRON_APP]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
@@ -214,13 +214,16 @@ class TestAppApplication(unittest.TestCase):
             def __init__(self, app):
                 assert isinstance(app, Application)
 
-            def format(self, record):
+            @staticmethod
+            def format(record):
                 return record.getMessage()
 
-            def formatTime(self, record, datefmt=None):
+            @staticmethod
+            def formatTime(record, dummy_datefmt=None):
                 return record.getMessage()
 
-            def formatException(self, exc_info):
+            @staticmethod
+            def formatException(dummy_exc_info):
                 return 'Bad'
 
         app = Application()
@@ -236,27 +239,27 @@ class TestAppApplication(unittest.TestCase):
 
     def test_app_nested_requests(self):
 
-        def request1(environ, start_response):
+        def request1(environ, dummy_start_response):
             app = environ[Application.ENVIRON_APP]
             return app.responseText('200 OK', '7')
 
-        def request2(environ, start_response):
+        def request2(environ, dummy_start_response):
             app = environ[Application.ENVIRON_APP]
-            status, headers, response = app.request('GET', '/request1')
+            dummy_status, dummy_headers, response = app.request('GET', '/request1')
             return app.responseText('200 OK', str(5 + int(response)))
 
         app = Application()
         app.addRequest(request1)
         app.addRequest(request2)
 
-        status, headers, response = app.request('GET', '/request2')
+        status, dummy_headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
         self.assertTrue(app.environ is None)  # Make sure thread state was deleted
 
     def test_app_request_exception(self):
 
-        def request1(environ, start_response):
+        def request1(dummy_environ, dummy_start_response):
             raise Exception('')
 
         app = Application()

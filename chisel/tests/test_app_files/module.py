@@ -3,7 +3,7 @@ import chisel
 
 # Action callback used by test_app.py
 @chisel.action
-def myAction(ctx, req):
+def myAction(ctx, dummy_req):
 
     # Log info and a warning
     ctx.log.debug('Some info')
