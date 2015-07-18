@@ -65,6 +65,7 @@ clean:
 		$(ENV) \
 		$(COVER) \
 		.coverage \
+		.makefile \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
 		$$(find $(PACKAGE_NAME) -name '*.so') \
@@ -159,4 +160,4 @@ $(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[test
 define PYLINT_COMMANDS
 	$(call ENV_PYTHON, $(1), $(2)) -m pylint -f parseable $(PYLINT_ARGS) $(PACKAGE_NAME)
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pylint, pylint==1.4.4, PYLINT_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pylint, -e . pylint==1.4.4, PYLINT_COMMANDS)))
