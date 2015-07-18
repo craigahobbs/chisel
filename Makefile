@@ -102,14 +102,8 @@ SRC_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(basename $(notdir $(1))))
 INSTALL_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).install)
 BUILD_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).build)
 
-PREFIX_$(call PYTHON_NAME, $(1)) := \
-    LD_LIBRARY_PATH='$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
-    LDFLAGS=-L'$$(INSTALL_$(call PYTHON_NAME, $(1)))/lib' \
-    CFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include' \
-    CXXFLAGS=-I'$$(INSTALL_$(call PYTHON_NAME, $(1)))/include'
 PYTHON_$(call PYTHON_NAME, $(1)) := \
-    $$(PREFIX_$(call PYTHON_NAME, $(1))) \
-        $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
+    $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
@@ -140,8 +134,7 @@ endef
 
 # Function to generate an environment's python interpreter - python_url, env_name
 ENV_PYTHON = \
-    $$(PREFIX_$(call PYTHON_NAME, $(1))) \
-        $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
+    $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 # Function to generate an environment's pip - python_url, env_name
 ENV_PIP = $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check
