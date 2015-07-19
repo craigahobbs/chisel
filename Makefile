@@ -99,9 +99,9 @@ endif
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE
-SRC_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(basename $(notdir $(1))))
-INSTALL_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).install)
-BUILD_$(call PYTHON_NAME, $(1)) := $(abspath $$(BUILD)/$(call PYTHON_NAME, $(1)).build)
+SRC_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(basename $(notdir $(1)))
+INSTALL_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).install
+BUILD_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).build
 
 PYTHON_$(call PYTHON_NAME, $(1)) := \
     $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
@@ -109,11 +109,11 @@ PYTHON_$(call PYTHON_NAME, $(1)) := \
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
 	$(call WGET_STDOUT, $(1)) | tar xzC '$$(dir $$@)'
-	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && ./configure --prefix='$$(INSTALL_$(call PYTHON_NAME, $(1)))' && make && make install
-	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip; then \
+	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && ./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && make && make install
+	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip --default-pip; then \
 		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
 	fi
-	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install virtualenv
+	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install --no-use-wheel virtualenv
 	touch $$@
 endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE, $(X))))
@@ -125,7 +125,7 @@ BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1
 
 $$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2))): $$(BUILD_$(call PYTHON_NAME, $(1)))
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m virtualenv '$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))'
-	$(if $(strip $(3)),$(call ENV_PIP, $(1), $(2)) install $(strip $(3)))
+	$(if $(3), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(3))
 	touch $$@
 
 .PHONY: $(call PYTHON_NAME, $(1))_$(strip $(2))
@@ -134,11 +134,7 @@ $(call $(4), $(1), $(2))
 endef
 
 # Function to generate an environment's python interpreter - python_url, env_name
-ENV_PYTHON = \
-    $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
-
-# Function to generate an environment's pip - python_url, env_name
-ENV_PIP = $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check
+ENV_PYTHON = $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 # Generate test rules
 define TEST_COMMANDS
