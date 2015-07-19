@@ -65,6 +65,7 @@ clean:
 		$(ENV) \
 		$(COVER) \
 		.coverage \
+		.makefile \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		$$(find $(PACKAGE_NAME) -name '*.pyc') \
 		$$(find $(PACKAGE_NAME) -name '*.so') \
@@ -76,8 +77,7 @@ clean:
 .PHONY: superclean
 superclean: clean
 	rm -rf \
-		$(BUILD) \
-		.makefile
+		$(BUILD)
 
 .PHONY: setup
 setup:
