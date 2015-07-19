@@ -39,9 +39,7 @@ PYTHON_URLS := \
 PYTHON_NAME = $(subst -,_,$(subst .,_,$(basename $(notdir $(1)))))
 
 # OS helpers
-ifeq "$(shell uname)" "Darwin"
-    OS_MAC := 1
-endif
+OS_MAC := $(findstring Darwin, $(shell uname))
 
 .PHONY: help
 help:
@@ -81,7 +79,7 @@ superclean: clean
 
 .PHONY: setup
 setup:
-ifndef OS_MAC
+ifeq "$(OS_MAC)" ""
 	sudo apt-get install -y \
 		build-essential \
 		libbz2-dev \
@@ -91,20 +89,14 @@ ifndef OS_MAC
 endif
 
 # Function to generate a wget to stdout command - url
-ifdef OS_MAC
-    WGET_STDOUT = curl -s '$(strip $(1))'
-else
-    WGET_STDOUT = wget -O - '$(strip $(1))'
-endif
+WGET_STDOUT = $(if $(OS_MAC), curl -s, wget -O -) '$(strip $(1))'
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE
 SRC_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(basename $(notdir $(1)))
 INSTALL_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).install
 BUILD_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).build
-
-PYTHON_$(call PYTHON_NAME, $(1)) := \
-    $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
+PYTHON_$(call PYTHON_NAME, $(1)) := $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
