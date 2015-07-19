@@ -20,32 +20,11 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, PY3, urllib, xrange_
+from .compat import basestring_, urllib_parse_quote, urllib_parse_unquote, xrange_
 from .model import JsonDate, JsonDatetime, JsonUUID
 
 from datetime import date, datetime
 from uuid import UUID
-
-urllib_quote = urllib.quote
-urllib_unquote = urllib.unquote
-
-
-# Helper to quote strings
-if PY3:  # pragma: no cover
-    def quote(s, encoding='utf-8'):
-        return urllib_quote(s if isinstance(s, str) else str(s), encoding=encoding)
-else:
-    def quote(s, encoding='utf-8'):
-        return urllib_quote((s if isinstance(s, basestring_) else str(s)).encode(encoding))
-
-
-# Helper to unquote a URL key or value
-if PY3:  # pragma: no cover
-    def unquote(s, encoding='utf-8'):
-        return urllib_unquote(s, encoding=encoding)
-else:
-    def unquote(s, encoding='utf-8'):
-        return urllib_unquote(s).decode(encoding)
 
 
 # Encode an object as a URL query string
@@ -56,14 +35,14 @@ def encodeQueryString(o, encoding='utf-8'):
         if isinstance(o, dict):
             if o:
                 for member in o:
-                    for child in iterateItems(o[member], parent + (quote(member, encoding),)):
+                    for child in iterateItems(o[member], parent + (urllib_parse_quote(member, encoding=encoding),)):
                         yield child
             elif not topLevel:
                 yield (parent, '')
         elif isinstance(o, list) or isinstance(o, tuple):
             if o:
                 for ix in xrange_(0, len(o)):
-                    for child in iterateItems(o[ix], parent + (quote(ix, encoding),)):
+                    for child in iterateItems(o[ix], parent + (urllib_parse_quote(str(ix), encoding=encoding),)):
                         yield child
             elif not topLevel:
                 yield (parent, '')
@@ -77,8 +56,8 @@ def encodeQueryString(o, encoding='utf-8'):
             elif isinstance(o, bool):
                 ostr = 'true' if o else 'false'
             else:
-                ostr = o
-            yield (parent, quote(ostr, encoding))
+                ostr = o if isinstance(o, basestring_) else str(o)
+            yield (parent, urllib_parse_quote(ostr, encoding=encoding))
 
     # Join the object query string
     return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(iterateItems(o, (), topLevel=True)))
@@ -99,12 +78,12 @@ def decodeQueryString(queryString, encoding='utf-8'):
         keysValue = keysValueString.split('=')
         if len(keysValue) != 2:
             raise ValueError("Invalid key/value pair '" + keysValueString + "'")
-        value = unquote(keysValue[1], encoding)
+        value = urllib_parse_unquote(keysValue[1], encoding=encoding)
 
         # Find/create the object on which to set the value
         oParent = oResult
         keyParent = 0
-        for key in (unquote(key, encoding) for key in keysValue[0].split('.')):
+        for key in (urllib_parse_unquote(key, encoding=encoding) for key in keysValue[0].split('.')):
             o = oParent[keyParent]
 
             # Array key?  First "key" of an array must start with "0".

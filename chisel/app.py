@@ -20,15 +20,15 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, json, PY3, string_isidentifier, xrange_
+from .compat import basestring_, iteritems, string_isidentifier, urllib_parse_unquote, xrange_
 from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
-from .url import unquote
 
 from collections import namedtuple
 from io import BytesIO
 import itertools
+import json
 import logging
 import os
 import re
@@ -97,7 +97,7 @@ class Application(object):
                 mUrl = reUrl.match(pathInfo)
                 if mUrl:
                     request = requestRegex
-                    environ[self.ENVIRON_URL_ARGS] = dict((unquote(urlArg), unquote(urlValue))
+                    environ[self.ENVIRON_URL_ARGS] = dict((urllib_parse_unquote(urlArg), urllib_parse_unquote(urlValue))
                                                           for urlArg, urlValue in iteritems(mUrl.groupdict()))
                     break
 
@@ -266,11 +266,9 @@ class Application(object):
         content = self.serializeJSON(response)
         jsonpFunction = self.environ.get(self.ENVIRON_JSONP)
         if jsonpFunction:
-            content = [jsonpFunction, '(', content, ');']
+            content = [jsonpFunction.encode('utf-8'), b'(', content.encode('utf-8'), b');']
         else:
-            content = [content]
-        if PY3:  # pragma: no cover
-            content = [s.encode('utf-8') for s in content]
+            content = [content.encode('utf-8')]
 
         return self.response(status, 'application/json', content, headers=headers)
 

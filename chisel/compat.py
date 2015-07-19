@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2014 Craig Hobbs
+# Copyright (C) 2012-2015 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,30 @@
 
 import sys
 
-PY3 = (sys.version_info >= (3, 0))
-_PY27 = (sys.version_info >= (2, 7))
-_PY32 = (sys.version_info >= (3, 2))
+_PY3 = (sys.version_info >= (3, 0))
 
 # types
-if PY3:  # pragma: no cover
+if _PY3:
     basestring_ = str
     long_ = int
+    unichr_ = chr
+    unicode_ = str
     xrange_ = range
-else:
+else: # pragma: no cover
     basestring_ = basestring            # pylint: disable=undefined-variable
     long_ = long                        # pylint: disable=undefined-variable
+    unichr_ = unichr                    # pylint: disable=undefined-variable
+    unicode_ = unicode                  # pylint: disable=undefined-variable
     xrange_ = xrange                    # pylint: disable=undefined-variable
 
 # dict
-if PY3:  # pragma: no cover
+if _PY3:
     def iteritems(d):
         return iter(d.items())
 
     def itervalues(d):
         return iter(d.values())
-else:
+else: # pragma: no cover
     def iteritems(d):
         return d.iteritems()
 
@@ -51,17 +53,17 @@ else:
         return d.itervalues()
 
 # function
-if PY3:  # pragma: no cover
+if _PY3:
     def func_name(f):
         return f.__name__
-else:
+else: # pragma: no cover
     def func_name(f):
         return f.func_name
 
 # string
-if PY3:  # pragma: no cover
+if _PY3:
     string_isidentifier = str.isidentifier
-else:
+else: # pragma: no cover
     import re as _re
 
     _rePythonIdentifier = _re.compile(r'^[a-zA-Z_]\w*$')
@@ -70,55 +72,34 @@ else:
         return _rePythonIdentifier.search(s) is not None
 
 # cgi
-if _PY32:  # pragma: no cover
-    import cgi as _cgi
-    import html as _html
-
-    class cgi(object):
-        __slots__ = ()
-        escape = _html.escape
-        parse_header = _cgi.parse_header
-else:
-    import cgi as _cgi
-    cgi = _cgi
-
-# json
-if _PY27:
-    import json as _json
-else:  # pragma: no cover
-    try:
-        import simplejson as _json      # pylint: disable=import-error
-    except ImportError:
-        import json as _json
-json = _json
+if _PY3:
+    from html import escape as html_escape # pylint: disable=unused-import
+else: # pragma: no cover
+    from cgi import escape as html_escape
 
 # StringIO
-if PY3:  # pragma: no cover
-    import io as _io
-    StringIO = _io.StringIO
-else:
+if _PY3:
+    from io import StringIO # pylint: disable=unused-import
+else: # pragma: no cover
     try:
-        import cStringIO as _StringIO   # pylint: disable=import-error
-    except ImportError:  # pragma: no cover
-        import StringIO as _StringIO    # pylint: disable=import-error
-    StringIO = _StringIO.StringIO
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO import StringIO # pylint: disable=import-error
 
 # urllib, urlparse
-if PY3:  # pragma: no cover
-    import urllib.parse as _urllib_parse
+if _PY3:
+    from urllib.parse import quote as urllib_parse_quote, unquote as urllib_parse_unquote # pylint: disable=unused-import
+else: # pragma: no cover
+    from urllib import quote as _urllib_quote, unquote as _urllib_unquote # pylint: disable=no-name-in-module
 
-    class urllib(object):
-        __slots__ = ()
-        quote = _urllib_parse.quote
-        unquote = _urllib_parse.unquote
-else:
-    import urllib as _urllib
-    urllib = _urllib
+    def urllib_parse_quote(string, encoding='utf-8'):
+        return _urllib_quote(string.encode(encoding))
+
+    def urllib_parse_unquote(string, encoding='utf-8'):
+        return _urllib_unquote(string).decode(encoding)
 
 # HTMLParser
-if PY3:  # pragma: no cover
-    import html.parser as _html_parser
-    HTMLParser = _html_parser.HTMLParser
-else:
-    import HTMLParser as _HTMLParser    # pylint: disable=import-error
-    HTMLParser = _HTMLParser.HTMLParser
+if _PY3:
+    from html.parser import HTMLParser # pylint: disable=unused-import
+else: # pragma: no cover
+    from HTMLParser import HTMLParser # pylint: disable=import-error

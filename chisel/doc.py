@@ -21,13 +21,10 @@
 #
 
 from .action import Action
-from .compat import cgi, iteritems, itervalues, StringIO, urllib
+from .compat import html_escape, iteritems, itervalues, StringIO, urllib_parse_quote
 from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 from xml.sax.saxutils import quoteattr as saxutils_quoteattr
-
-cgi_escape = cgi.escape
-urllib_quote = urllib.quote
 
 
 # Doc action callback
@@ -117,7 +114,7 @@ class Element(object):
 
         # Text element?
         if self.isText:
-            out.write(cgi_escape(self.name))
+            out.write(html_escape(self.name))
             return
         elif self.isTextRaw:
             out.write(self.name)
@@ -177,7 +174,7 @@ def createIndexHtml(environ, requests):
             ulRequests = liSection.addChild('ul', _class='chsl-request-list')
             for request in sectionRequests:
                 liRequest = ulRequests.addChild('li')
-                liRequest.addChild('a', isInline=True, href=docRootUri + '?name=' + urllib_quote(request.name)) \
+                liRequest.addChild('a', isInline=True, href=docRootUri + '?name=' + urllib_parse_quote(request.name)) \
                          .addChild(request.name, isText=True)
 
     # Serialize

@@ -20,11 +20,14 @@
 # SOFTWARE.
 #
 
-from .compat import cgi, iteritems, itervalues, json
+from .compat import iteritems, itervalues
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
 from .url import decodeQueryString
+
+import cgi
+import json
 
 
 # Action error response exception

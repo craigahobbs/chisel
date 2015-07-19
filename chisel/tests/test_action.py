@@ -93,7 +93,7 @@ action myActionName
 
         try:
             @chisel.action(spec='')
-            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
+            def dummy_myAction(dummy_app, dummy_req):
                 return {}
         except AssertionError as e:
             self.assertEqual(str(e), 'Action spec must contain exactly one action definition')
@@ -108,7 +108,7 @@ action myActionName
 action theActionOther
 action theAction
 ''')
-            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
+            def dummy_myAction(dummy_app, dummy_req):
                 return {}
         except AssertionError as e:
             self.assertEqual(str(e), 'Action spec must contain exactly one action definition')
@@ -121,7 +121,7 @@ action theAction
             @chisel.action(spec='''\
 asdfasdf
 ''')
-            def myAction(dummy_app, dummy_req): # pylint: disable=unused-variable
+            def dummy_myAction(dummy_app, dummy_req):
                 return {}
         except chisel.SpecParserError as e:
             self.assertEqual(str(e), ':1: error: Syntax error')
