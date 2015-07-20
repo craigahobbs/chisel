@@ -48,7 +48,7 @@ class JsonDate(float):
     def __str__(self):
         return self.json
 
-    def __float__(self):  # pragma: no cover
+    def __float__(self):
         return self
 
 
@@ -73,7 +73,7 @@ class JsonDatetime(float):
     def __str__(self):
         return self.json
 
-    def __float__(self):  # pragma: no cover
+    def __float__(self):
         return self
 
 
@@ -95,7 +95,7 @@ class JsonFloat(float):
     def __str__(self):
         return self.json
 
-    def __float__(self):  # pragma: no cover
+    def __float__(self):
         return self
 
 
@@ -118,7 +118,7 @@ class JsonUUID(float):
     def __str__(self):
         return self.json
 
-    def __float__(self):  # pragma: no cover
+    def __float__(self):
         return self
 
 
