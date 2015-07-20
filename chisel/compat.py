@@ -71,13 +71,15 @@ else: # pragma: no cover
     def string_isidentifier(s):
         return _rePythonIdentifier.search(s) is not None
 
-# cgi
+# html
 if _PY3:
     from html import escape as html_escape # pylint: disable=unused-import
+    from html.parser import HTMLParser # pylint: disable=unused-import
 else: # pragma: no cover
     from cgi import escape as html_escape
+    from HTMLParser import HTMLParser # pylint: disable=import-error
 
-# StringIO
+# io
 if _PY3:
     from io import StringIO # pylint: disable=unused-import
 else: # pragma: no cover
@@ -86,7 +88,7 @@ else: # pragma: no cover
     except ImportError:
         from StringIO import StringIO # pylint: disable=import-error
 
-# urllib, urlparse
+# urllib
 if _PY3:
     from urllib.parse import quote as urllib_parse_quote, unquote as urllib_parse_unquote # pylint: disable=unused-import
 else: # pragma: no cover
@@ -97,9 +99,3 @@ else: # pragma: no cover
 
     def urllib_parse_unquote(string, encoding='utf-8'):
         return _urllib_unquote(string).decode(encoding)
-
-# HTMLParser
-if _PY3:
-    from html.parser import HTMLParser # pylint: disable=unused-import
-else: # pragma: no cover
-    from HTMLParser import HTMLParser # pylint: disable=import-error
