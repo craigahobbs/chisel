@@ -21,7 +21,7 @@
 #
 
 import chisel
-from chisel.compat import HTMLParser, StringIO
+from chisel.compat import HTMLParser
 from chisel.doc import Element
 
 import sys
@@ -134,8 +134,7 @@ action myAction2
     def setUp(self):
 
         # Application object
-        self.logStream = StringIO()
-        self.app = chisel.Application(logStream=self.logStream)
+        self.app = chisel.Application(logStream=None)
         self.app.loadSpecString(self._spec)
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction1'))
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction2'))
@@ -938,30 +937,78 @@ My Union
         root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
 
         # Default (indented)
-        out = StringIO()
-        root.serialize(out)
-        self.assertEqual(out.getvalue(), '''\
-<a>
-  <b>Hello!<span> There!</span></b>
-  <c foo="bar">
-  <d attr1="asdf" attr2="sdfg">
-    <e>
-    </e>
-  </d>
-</a>''')
+        self.assertEqual(list(root.serialize()), [
+            '<a',
+            '>',
+            '\n',
+            '  ',
+            '<b',
+            '>',
+            'Hello!',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '</b>',
+            '\n',
+            '  ',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '\n',
+            '  ',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '\n',
+            '    ',
+            '<e',
+            '>',
+            '\n    ',
+            '</e>',
+            '\n  ',
+            '</d>',
+            '\n',
+            '</a>'
+        ])
 
         # Not indented
-        out = StringIO()
-        root.serialize(out, indent='')
-        self.assertEqual(out.getvalue(), '''\
-<a>
-<b>Hello!<span> There!</span></b>
-<c foo="bar">
-<d attr1="asdf" attr2="sdfg">
-<e>
-</e>
-</d>
-</a>''')
+        self.assertEqual(list(root.serialize(indent='')), [
+            '<a',
+            '>',
+            '\n',
+            '',
+            '<b',
+            '>',
+            'Hello!',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '</b>',
+            '\n',
+            '',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '\n',
+            '',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '\n',
+            '',
+            '<e',
+            '>',
+            '\n',
+            '</e>',
+            '\n',
+            '</d>',
+            '\n',
+            '</a>'
+        ])
 
     def test_doc_page(self):
 

@@ -33,8 +33,7 @@ class TestAction(unittest.TestCase):
     def setUp(self):
 
         # Application object
-        self.logStream = StringIO()
-        self.app = chisel.Application(logStream=self.logStream)
+        self.app = chisel.Application(logStream=None)
         self.app.loadSpecString('''\
 action myActionDefault
 ''')

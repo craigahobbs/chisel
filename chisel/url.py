@@ -28,39 +28,37 @@ from uuid import UUID
 
 
 # Encode an object as a URL query string
-def encodeQueryString(o, encoding='utf-8'):
-
-    # Get the flattened list of URL-quoted name/value pairs
-    def iterateItems(o, parent, topLevel=False):
-        if isinstance(o, dict):
-            if o:
-                for member in o:
-                    for child in iterateItems(o[member], parent + (urllib_parse_quote(member, encoding=encoding),)):
-                        yield child
-            elif not topLevel:
-                yield (parent, '')
-        elif isinstance(o, list) or isinstance(o, tuple):
-            if o:
-                for ix in xrange_(0, len(o)):
-                    for child in iterateItems(o[ix], parent + (urllib_parse_quote(str(ix), encoding=encoding),)):
-                        yield child
-            elif not topLevel:
-                yield (parent, '')
+def _encodeQueryString_flatten(o, parent, encoding, topLevel=False):
+    if isinstance(o, dict):
+        if o:
+            for member in o:
+                for child in _encodeQueryString_flatten(o[member], parent + (urllib_parse_quote(member, encoding=encoding),), encoding):
+                    yield child
+        elif not topLevel:
+            yield (parent, '')
+    elif isinstance(o, list) or isinstance(o, tuple):
+        if o:
+            for ix in xrange_(0, len(o)):
+                for child in _encodeQueryString_flatten(o[ix], parent + (urllib_parse_quote(str(ix), encoding=encoding),), encoding):
+                    yield child
+        elif not topLevel:
+            yield (parent, '')
+    else:
+        if isinstance(o, date):
+            ostr = str(JsonDate(o)).strip('"')
+        elif isinstance(o, datetime):
+            ostr = str(JsonDatetime(o)).strip('"')
+        elif isinstance(o, UUID):
+            ostr = str(JsonUUID(o)).strip('"')
+        elif isinstance(o, bool):
+            ostr = 'true' if o else 'false'
         else:
-            if isinstance(o, date):
-                ostr = str(JsonDate(o)).strip('"')
-            elif isinstance(o, datetime):
-                ostr = str(JsonDatetime(o)).strip('"')
-            elif isinstance(o, UUID):
-                ostr = str(JsonUUID(o)).strip('"')
-            elif isinstance(o, bool):
-                ostr = 'true' if o else 'false'
-            else:
-                ostr = o if isinstance(o, basestring_) else str(o)
-            yield (parent, urllib_parse_quote(ostr, encoding=encoding))
+            ostr = o if isinstance(o, basestring_) else str(o)
+        yield (parent, urllib_parse_quote(ostr, encoding=encoding))
 
-    # Join the object query string
-    return '&'.join('='.join(('.'.join(k), v)) for k, v in sorted(iterateItems(o, (), topLevel=True)))
+def encodeQueryString(o, encoding='utf-8'):
+    return '&'.join('='.join(('.'.join(k), v)) for k, v in
+                    sorted(_encodeQueryString_flatten(o, (), encoding, topLevel=True)))
 
 
 # Decode an object from a URL query string

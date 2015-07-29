@@ -285,24 +285,20 @@ class StructMember(object):
 
 # Struct type
 class TypeStruct(object):
-    __slots__ = ('typeName', 'isUnion', '_members', '_membersDict', 'doc')
+    __slots__ = ('typeName', 'isUnion', 'members', '_membersDict', 'doc')
 
     def __init__(self, typeName=None, isUnion=False, doc=None):
         self.typeName = ('union' if isUnion else 'struct') if typeName is None else typeName
         self.isUnion = isUnion
-        self._members = []
+        self.members = []
         self._membersDict = {}
         self.doc = [] if doc is None else doc
 
     def addMember(self, name, type_, isOptional=False, attr=None, doc=None):
         member = StructMember(name, type_, isOptional or self.isUnion, attr, doc)
-        self._members.append(member)
+        self.members.append(member)
         self._membersDict[name] = member
         return member
-
-    @property
-    def members(self):
-        return self._members
 
     @staticmethod
     def validateAttr(attr):
@@ -340,8 +336,8 @@ class TypeStruct(object):
                 valueCopy[memberName] = memberValueX
 
         # Any missing required members?
-        if len(self._members) != len(valueX):
-            for member in self._members:
+        if len(self.members) != len(valueX):
+            for member in self.members:
                 if not self.isUnion and not member.isOptional and member.name not in valueX:
                     raise ValidationError("Required member '" + ValidationError.memberSyntax((_member, member.name)) + "' missing")
 

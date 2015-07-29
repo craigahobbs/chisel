@@ -20,10 +20,11 @@
 # SOFTWARE.
 #
 
-from .compat import StringIO
-from .model import AttributeValidationError, StructMemberAttributes, TypeArray, TypeBool, \
-    TypeDate, TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, TypeFloat, TypeString, TypeStruct, TypeUuid
+from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
+    TypeBool, TypeDate, TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, \
+    TypeFloat, TypeString, TypeStruct, TypeUuid
 
+from itertools import chain
 import re
 
 
@@ -59,7 +60,7 @@ class SpecParser(object):
         'types',
         'actions',
         'errors',
-        '_parseStream',
+        '_parseLines',
         '_parseFileName',
         '_parseFileLine',
         '_curAction',
@@ -67,9 +68,9 @@ class SpecParser(object):
         '_curType',
         '_curDoc',
         '_typeRefs',
-        )
+    )
 
-    # Parser regex
+    # Spec language regex
     _RE_PART_ID = r'(?:[A-Za-z]\w*)'
     _RE_PART_ATTR_GROUP = r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
                           r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
@@ -97,7 +98,7 @@ class SpecParser(object):
     _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
     _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 
-    # Types
+    # Built-in types
     _TYPES = {
         'string': TypeString,
         'int': TypeInt,
@@ -106,7 +107,7 @@ class SpecParser(object):
         'date': TypeDate,
         'datetime': TypeDatetime,
         'uuid': TypeUuid,
-        }
+    }
 
     def __init__(self):
         self.types = {}
@@ -117,27 +118,22 @@ class SpecParser(object):
         self._curActionDefs = None
         self._curType = None
         self._curDoc = None
-        self._parseStream = None
+        self._parseLines = None
         self._parseFileName = None
         self._parseFileLine = 0
 
-    # Parse a specification file
-    def parse(self, specPath, finalize=True):
-        with open(specPath, 'r') as specStream:
-            self.parseStream(specStream, finalize=finalize, fileName=specPath)
-
     # Parse a specification string
     def parseString(self, spec, fileName='', finalize=True):
-        self.parseStream(StringIO(spec), finalize=finalize, fileName=fileName)
+        self.parse(spec.splitlines(), finalize=finalize, fileName=fileName)
 
-    # Parse a specification from an input stream
-    def parseStream(self, specStream, fileName='', finalize=True):
+    # Parse a specification from a collection of spec lines (e.g an input stream)
+    def parse(self, specLines, fileName='', finalize=True):
 
         # Set the parser state
         self._curAction = None
         self._curType = None
         self._curDoc = []
-        self._parseStream = specStream
+        self._parseLines = specLines
         self._parseFileName = fileName
         self._parseFileLine = 0
 
@@ -286,18 +282,21 @@ class SpecParser(object):
 
         # Process each line
         self._parseFileLine = 0
-        while True:
+        lineCont = []
+        for linePart in chain(self._parseLines, ('',)):
+            self._parseFileLine += 1
 
-            # Read a line (including continuation)
-            line = None
-            for linePart in self._parseStream:
-                self._parseFileLine += 1
-                linePartNoCont = self._RE_LINE_CONT.sub('', linePart)
-                line = linePartNoCont if line is None else line + ' ' + linePartNoCont
-                if linePartNoCont is linePart:
-                    break
-            if line is None:
-                break
+            # Line continuation?
+            linePartNoCont = self._RE_LINE_CONT.sub('', linePart)
+            if lineCont or linePartNoCont is not linePart:
+                lineCont.append(linePartNoCont)
+            if linePartNoCont is not linePart:
+                continue
+            elif lineCont:
+                line = ''.join(lineCont)
+                del lineCont[:]
+            else:
+                line = linePart
 
             # Match line syntax
             mComment = self._RE_COMMENT.search(line)

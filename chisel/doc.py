@@ -21,7 +21,7 @@
 #
 
 from .action import Action
-from .compat import html_escape, iteritems, itervalues, StringIO, urllib_parse_quote
+from .compat import html_escape, iteritems, itervalues, urllib_parse_quote
 from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 from xml.sax.saxutils import quoteattr as saxutils_quoteattr
@@ -51,11 +51,13 @@ action {name}
     def __action(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            requests = sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())
-            return ctx.responseText('200 OK', createIndexHtml(ctx.environ, requests), contentType='text/html')
+            ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
+            return (chunk.encode('utf-8') for chunk in
+                    createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())))
         elif requestName in ctx.requests:
-            return ctx.responseText('200 OK', createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')),
-                                    contentType='text/html')
+            ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
+            return (chunk.encode('utf-8') for chunk in
+                    createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')))
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
 
@@ -79,7 +81,9 @@ action {name}
         self.request = request
 
     def __action(self, ctx, dummy_req):
-        return ctx.responseText('200 OK', createRequestHtml(ctx.environ, self.request, nonav=True), contentType='text/html')
+        ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
+        return (chunk.encode('utf-8') for chunk in
+                createRequestHtml(ctx.environ, self.request, nonav=True))
 
 
 # HTML DOM helper class
@@ -102,42 +106,43 @@ class Element(object):
         self.children.append(child)
         return child
 
-    def serialize(self, out, indent='  ', indentIndex=0, isRoot=True):
+    def serialize(self, indent='  ', indentIndex=0, isRoot=True):
 
         indentCur = indent * indentIndex
 
         # Initial newline and indent as necessary...
         if not self.isInline and not isRoot:
-            out.write('\n')
+            yield '\n'
             if not self.isText and not self.isTextRaw:
-                out.write(indentCur)
+                yield indentCur
 
         # Text element?
         if self.isText:
-            out.write(html_escape(self.name))
+            yield html_escape(self.name)
             return
         elif self.isTextRaw:
-            out.write(self.name)
+            yield self.name
             return
 
         # Element open
-        out.write('<' + self.name)
+        yield '<' + self.name
         for attrKey, attrValue in sorted(iteritems(self.attrs), key=lambda x: x[0].lstrip('_')):
-            out.write(' ' + attrKey.lstrip('_') + '=' + saxutils_quoteattr(attrValue))
-        out.write('>')
+            yield ' ' + attrKey.lstrip('_') + '=' + saxutils_quoteattr(attrValue)
+        yield '>'
         if not self.isClosed and not self.children:
             return
 
         # Children elements
         childPrevInline = self.isInline
         for child in self.children:
-            child.serialize(out, indent, indentIndex + 1, False)
+            for chunk in child.serialize(indent=indent, indentIndex=indentIndex + 1, isRoot=False):
+                yield chunk
             childPrevInline = child.isInline
 
         # Element close
         if not childPrevInline:
-            out.write('\n' + indentCur)
-        out.write('</' + self.name + '>')
+            yield '\n' + indentCur
+        yield '</' + self.name + '>'
 
 
 # Generate the top-level action documentation index
@@ -178,10 +183,9 @@ def createIndexHtml(environ, requests):
                          .addChild(request.name, isText=True)
 
     # Serialize
-    out = StringIO()
-    out.write('<!doctype html>\n')
-    root.serialize(out)
-    return out.getvalue()
+    yield '<!doctype html>\n'
+    for chunk in root.serialize():
+        yield chunk
 
 
 # Generate the documentation for a request
@@ -277,10 +281,9 @@ def createRequestHtml(environ, request, nonav=False):
                 _enumSection(body, enumType)
 
     # Serialize
-    out = StringIO()
-    out.write('<!doctype html>\n')
-    root.serialize(out)
-    return out.getvalue()
+    yield '<!doctype html>\n'
+    for chunk in root.serialize():
+        yield chunk
 
 
 # Add style DOM helper

@@ -100,7 +100,8 @@ struct MyStruct2
     int a
     optional \\
         float b
-    string c
+    string \\
+        c
     bool d
     int[] e
     optional MyStruct[] f
@@ -141,7 +142,7 @@ action MyAction3
         date c
 
 # The fourth action
-action MyAction4
+action MyAction4 \\
 ''')
 
         # Check errors & counts

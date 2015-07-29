@@ -21,7 +21,6 @@
 #
 
 import chisel
-from chisel.compat import StringIO
 
 import unittest
 
@@ -30,9 +29,7 @@ import unittest
 class TestRequest(unittest.TestCase):
 
     def setUp(self):
-
-        self.logStream = StringIO()
-        self.app = chisel.Application(logStream=self.logStream)
+        self.app = chisel.Application(logStream=None)
 
     # Default request decorator
     def test_request_decorator(self):

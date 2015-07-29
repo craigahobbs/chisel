@@ -295,7 +295,8 @@ class Application(object):
             for filename in filenames:
                 (dummy_base, ext) = os.path.splitext(filename)
                 if ext == specExt:
-                    self.__specParser.parse(os.path.join(dirpath, filename), finalize=False)
+                    with open(os.path.join(dirpath, filename), 'r') as specStream:
+                        self.__specParser.parse(specStream, finalize=False)
         if finalize:
             self.__specParser.finalize()
 
