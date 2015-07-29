@@ -32,6 +32,7 @@ COVER := .cover
 PYTHON_URLS := \
     https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz \
     https://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz \
+    https://www.python.org/ftp/python/3.5.0/Python-3.5.0b2.tgz \
     https://www.python.org/ftp/python/3.3.6/Python-3.3.6.tgz \
     https://www.python.org/ftp/python/3.2.6/Python-3.2.6.tgz
 
