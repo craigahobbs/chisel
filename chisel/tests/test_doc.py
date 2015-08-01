@@ -938,6 +938,7 @@ My Union
 
         # Default (indented)
         self.assertEqual(list(root.serialize()), [
+            '<!doctype html>\n',
             '<a',
             '>',
             '\n',
@@ -975,6 +976,7 @@ My Union
 
         # Not indented
         self.assertEqual(list(root.serialize(indent='')), [
+            '<!doctype html>\n',
             '<a',
             '>',
             '\n',

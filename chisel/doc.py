@@ -51,10 +51,10 @@ action {name}
     def __action(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            content = ''.join(createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())))
+            content = ''.join(createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize())
             return ctx.responseText('200 OK', content, contentType='text/html')
         elif requestName in ctx.requests:
-            content = ''.join(createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')))
+            content = ''.join(createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize())
             return ctx.responseText('200 OK', content, contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
@@ -79,7 +79,7 @@ action {name}
         self.request = request
 
     def __action(self, ctx, dummy_req):
-        content = ''.join(createRequestHtml(ctx.environ, self.request, nonav=True))
+        content = ''.join(createRequestHtml(ctx.environ, self.request, nonav=True).serialize())
         return ctx.responseText('200 OK', content, contentType='text/html')
 
 
@@ -105,6 +105,10 @@ class Element(object):
 
     def serialize(self, indent='  ', indentIndex=0):
         indentCur = indent * indentIndex
+
+        # HTML5
+        if indentIndex <= 0:
+            yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
         if not self.isInline and indentIndex > 0:
@@ -178,10 +182,7 @@ def createIndexHtml(environ, requests):
                 liRequest.addChild('a', isInline=True, href=docRootUri + '?name=' + urllib_parse_quote(request.name)) \
                          .addChild(request.name, isText=True)
 
-    # Serialize
-    yield '<!doctype html>\n'
-    for chunk in root.serialize():
-        yield chunk
+    return root
 
 
 # Generate the documentation for a request
@@ -276,10 +277,7 @@ def createRequestHtml(environ, request, nonav=False):
             for enumType in sorted(itervalues(enumTypes), key=lambda x: x.typeName.lower()):
                 _enumSection(body, enumType)
 
-    # Serialize
-    yield '<!doctype html>\n'
-    for chunk in root.serialize():
-        yield chunk
+    return root
 
 
 # Add style DOM helper
