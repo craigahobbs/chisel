@@ -51,13 +51,11 @@ action {name}
     def __action(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
-            return (chunk.encode('utf-8') for chunk in
-                    createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())))
+            content = ''.join(createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())))
+            return ctx.responseText('200 OK', content, contentType='text/html')
         elif requestName in ctx.requests:
-            ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
-            return (chunk.encode('utf-8') for chunk in
-                    createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')))
+            content = ''.join(createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')))
+            return ctx.responseText('200 OK', content, contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
 
@@ -81,9 +79,8 @@ action {name}
         self.request = request
 
     def __action(self, ctx, dummy_req):
-        ctx.start_response('200 OK', [('Content-Type:', 'text/html; charset=utf-8')])
-        return (chunk.encode('utf-8') for chunk in
-                createRequestHtml(ctx.environ, self.request, nonav=True))
+        content = ''.join(createRequestHtml(ctx.environ, self.request, nonav=True))
+        return ctx.responseText('200 OK', content, contentType='text/html')
 
 
 # HTML DOM helper class
@@ -106,12 +103,11 @@ class Element(object):
         self.children.append(child)
         return child
 
-    def serialize(self, indent='  ', indentIndex=0, isRoot=True):
-
+    def serialize(self, indent='  ', indentIndex=0):
         indentCur = indent * indentIndex
 
         # Initial newline and indent as necessary...
-        if not self.isInline and not isRoot:
+        if not self.isInline and indentIndex > 0:
             yield '\n'
             if not self.isText and not self.isTextRaw:
                 yield indentCur
@@ -135,7 +131,7 @@ class Element(object):
         # Children elements
         childPrevInline = self.isInline
         for child in self.children:
-            for chunk in child.serialize(indent=indent, indentIndex=indentIndex + 1, isRoot=False):
+            for chunk in child.serialize(indent=indent, indentIndex=indentIndex + 1):
                 yield chunk
             childPrevInline = child.isInline
 
