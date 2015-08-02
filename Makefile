@@ -23,8 +23,9 @@
 
 PACKAGE_NAME := chisel
 
-# Local directories
+# Build directories
 BUILD := .build
+DOC := doc/_build
 ENV := .env
 COVER := .cover
 
@@ -44,7 +45,7 @@ OS_MAC := $(findstring Darwin, $(shell uname))
 
 .PHONY: help
 help:
-	@echo "usage: make [test|cover|pylint|check|clean|superclean]"
+	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean]"
 
 .PHONY: test
 test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
@@ -52,15 +53,19 @@ test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
 .PHONY: cover
 cover: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_cover
 
+.PHONY: doc
+doc: $(call PYTHON_NAME, Python_3_4_3)_doc
+
 .PHONY: pylint
 pylint: $(call PYTHON_NAME, Python_3_4_3)_pylint
 
 .PHONY: check
-check: pylint $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cover
+check: $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cover doc pylint
 
 .PHONY: clean
 clean:
 	rm -rf \
+		$(DOC) \
 		$(ENV) \
 		$(COVER) \
 		.coverage \
@@ -144,6 +149,14 @@ define COVER_COMMANDS
 	@echo Coverage report is $(COVER)/index.html
 endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage, COVER_COMMANDS)))
+
+# Generate doc rule
+define DOC_COMMANDS
+	$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/sphinx-build -b html -d $(DOC)/doctrees doc $(DOC)/html
+	@echo
+	@echo Doc index is $(DOC)/html/index.html
+endef
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), doc, sphinx==1.3.1, DOC_COMMANDS)))
 
 # Generate pyint rule
 define PYLINT_COMMANDS

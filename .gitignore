@@ -7,4 +7,5 @@
 .cover/
 .coverage
 build/
+doc/_build
 dist/
