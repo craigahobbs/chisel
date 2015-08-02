@@ -37,7 +37,7 @@ class DocAction(Action):
     def __init__(self, name=None, urls=None):
         if name is None:
             name = 'doc'
-        Action.__init__(self, self.__action_callback, name=name, urls=urls, wsgiResponse=True,
+        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgiResponse=True,
                         spec='''\
 # Generate a documentation HTML for the requests implemented by the application.
 action {name}
@@ -51,7 +51,7 @@ action {name}
 '''.format(name=name))
 
     @staticmethod
-    def __action_callback(ctx, req):
+    def _action_callback(ctx, req):
         requestName = req.get('name')
         if requestName is None:
             content = _indexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize()
@@ -77,14 +77,14 @@ class DocPage(Action):
             name = 'doc_' + requestDesc + '_' + requestName
         if urls is None:
             urls = ('/doc/' + requestDesc + '/' + requestName,)
-        Action.__init__(self, self.__action_callback, name=name, urls=urls, wsgiResponse=True,
+        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgiResponse=True,
                         spec='''\
 # Documentation page for {requestDesc} {requestName}.
 action {name}
 '''.format(name=name, requestDesc=requestDesc, requestName=requestName))
         self.request = request
 
-    def __action_callback(self, ctx, dummy_req):
+    def _action_callback(self, ctx, dummy_req):
         content = _requestHtml(ctx.environ, self.request, nonav=True).serialize()
         return ctx.responseText('200 OK', content, contentType='text/html')
 

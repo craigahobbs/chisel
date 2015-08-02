@@ -33,7 +33,7 @@ import json
 
 def action(_action_callback=None, name=None, urls=None, spec=None, wsgiResponse=False):
     """
-    Chisel application action decorator
+    Chisel action request decorator
     """
 
     if _action_callback is None:
@@ -66,7 +66,7 @@ class _ActionErrorInternal(Exception):
 
 class Action(Request):
     """
-    Chisel application action object
+    Chisel action request
     """
 
     __slots__ = ('action_callback', 'model', 'wsgiResponse')
@@ -90,7 +90,7 @@ class Action(Request):
         if name is None:
             name = model.name if model is not None else func_name(action_callback)
 
-        Request.__init__(self, self.__wsgi_callback, name=name, urls=urls)
+        Request.__init__(self, self._wsgi_callback, name=name, urls=urls)
         self.action_callback = action_callback
         self.model = model
         self.wsgiResponse = wsgiResponse
@@ -103,7 +103,7 @@ class Action(Request):
             self.model = app.specs.actions.get(self.name)
             assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
 
-    def __wsgi_callback(self, environ, dummy_start_response):
+    def _wsgi_callback(self, environ, dummy_start_response):
         ctx = environ[Application.ENVIRON_APP]
         urlArgs = environ.get(Application.ENVIRON_URL_ARGS)
 

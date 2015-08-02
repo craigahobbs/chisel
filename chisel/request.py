@@ -25,7 +25,7 @@ from .compat import func_name
 
 def request(_wsgi_callback=None, name=None, urls=None, doc=None):
     """
-    Chisel application request decorator
+    Chisel request decorator
     """
 
     if _wsgi_callback is None:
@@ -35,7 +35,7 @@ def request(_wsgi_callback=None, name=None, urls=None, doc=None):
 
 class Request(object):
     """
-    Chisel application request object
+    Chisel request
     """
 
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc')
