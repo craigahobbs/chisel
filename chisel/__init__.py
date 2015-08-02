@@ -30,7 +30,8 @@ from .app import \
 
 from .doc import \
     DocAction, \
-    DocPage
+    DocPage, \
+    Element
 
 from .model import \
     JsonDate, \

@@ -27,8 +27,11 @@ from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 from xml.sax.saxutils import quoteattr as saxutils_quoteattr
 
 
-# Doc action callback
 class DocAction(Action):
+    """
+    Chisel documentation request
+    """
+
     __slots__ = ()
 
     def __init__(self, name=None, urls=None):
@@ -51,17 +54,20 @@ action {name}
     def __action_callback(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            content = createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize()
+            content = _indexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
         elif requestName in ctx.requests:
-            content = createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize()
+            content = _requestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
 
 
-# Doc page for specific action or type
 class DocPage(Action):
+    """
+    Chisel single-request documentation request
+    """
+
     __slots__ = ('request')
 
     def __init__(self, request, name=None, urls=None):
@@ -79,12 +85,15 @@ action {name}
         self.request = request
 
     def __action_callback(self, ctx, dummy_req):
-        content = createRequestHtml(ctx.environ, self.request, nonav=True).serialize()
+        content = _requestHtml(ctx.environ, self.request, nonav=True).serialize()
         return ctx.responseText('200 OK', content, contentType='text/html')
 
 
-# HTML DOM helper class
 class Element(object):
+    """
+    HTML5 DOM element
+    """
+
     __slots__ = ('name', 'isText', 'isTextRaw', 'isClosed', 'isInline', 'attrs', 'children')
 
     def __init__(self, name, isText=False, isTextRaw=False, isClosed=True, isInline=False, **attrs):
@@ -149,7 +158,7 @@ class Element(object):
 
 
 # Generate the top-level action documentation index
-def createIndexHtml(environ, requests):
+def _indexHtml(environ, requests):
 
     docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
@@ -189,7 +198,7 @@ def createIndexHtml(environ, requests):
 
 
 # Generate the documentation for a request
-def createRequestHtml(environ, request, nonav=False):
+def _requestHtml(environ, request, nonav=False):
 
     docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
     isAction = isinstance(request, Action)
