@@ -138,7 +138,7 @@ action myAction2
         self.app.loadSpecString(self._spec)
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction1'))
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction2'))
-        self.app.addDocRequest()
+        self.app.addRequest(chisel.DocAction())
 
     # Test documentation index HTML generation
     def test_doc_DocAction_index(self):
@@ -928,7 +928,6 @@ My Union
     # Test doc generation element class
     def test_doc_element(self):
 
-        # Test basic DOM element serialization functionality
         root = Element('a')
         b = root.addChild('b')
         b.addChild('Hello!', isInline=True, isText=True)
@@ -936,8 +935,7 @@ My Union
         root.addChild('c', isClosed=False, foo='bar')
         root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
 
-        # Default (indented)
-        self.assertEqual(list(root.serialize()), [
+        chunks = [
             '<!doctype html>\n',
             '<a',
             '>',
@@ -972,10 +970,21 @@ My Union
             '</d>',
             '\n',
             '</a>'
-        ])
+        ]
+        self.assertEqual(list(root.serialize_chunks()), chunks)
+        self.assertEqual(root.serialize(), ''.join(chunks))
 
-        # Not indented
-        self.assertEqual(list(root.serialize(indent='')), [
+    # Test doc generation element class - no indent
+    def test_doc_element_noindent(self):
+
+        root = Element('a')
+        b = root.addChild('b')
+        b.addChild('Hello!', isInline=True, isText=True)
+        b.addChild('span', isInline=True).addChild(' There!', isText=True)
+        root.addChild('c', isClosed=False, foo='bar')
+        root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
+
+        chunks = [
             '<!doctype html>\n',
             '<a',
             '>',
@@ -1010,7 +1019,9 @@ My Union
             '</d>',
             '\n',
             '</a>'
-        ])
+        ]
+        self.assertEqual(list(root.serialize_chunks(indent='')), chunks)
+        self.assertEqual(root.serialize(indent=''), ''.join(chunks))
 
     def test_doc_page(self):
 

@@ -34,7 +34,7 @@ class DocAction(Action):
     def __init__(self, name=None, urls=None):
         if name is None:
             name = 'doc'
-        Action.__init__(self, self.__action, name=name, urls=urls, wsgiResponse=True,
+        Action.__init__(self, self.__action_callback, name=name, urls=urls, wsgiResponse=True,
                         spec='''\
 # Generate a documentation HTML for the requests implemented by the application.
 action {name}
@@ -48,13 +48,13 @@ action {name}
 '''.format(name=name))
 
     @staticmethod
-    def __action(ctx, req):
+    def __action_callback(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            content = ''.join(createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize())
+            content = createIndexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
         elif requestName in ctx.requests:
-            content = ''.join(createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize())
+            content = createRequestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')
@@ -71,15 +71,15 @@ class DocPage(Action):
             name = 'doc_' + requestDesc + '_' + requestName
         if urls is None:
             urls = ('/doc/' + requestDesc + '/' + requestName,)
-        Action.__init__(self, self.__action, name=name, urls=urls, wsgiResponse=True,
+        Action.__init__(self, self.__action_callback, name=name, urls=urls, wsgiResponse=True,
                         spec='''\
 # Documentation page for {requestDesc} {requestName}.
 action {name}
 '''.format(name=name, requestDesc=requestDesc, requestName=requestName))
         self.request = request
 
-    def __action(self, ctx, dummy_req):
-        content = ''.join(createRequestHtml(ctx.environ, self.request, nonav=True).serialize())
+    def __action_callback(self, ctx, dummy_req):
+        content = createRequestHtml(ctx.environ, self.request, nonav=True).serialize()
         return ctx.responseText('200 OK', content, contentType='text/html')
 
 
@@ -103,7 +103,7 @@ class Element(object):
         self.children.append(child)
         return child
 
-    def serialize(self, indent='  ', indentIndex=0):
+    def serialize_chunks(self, indent='  ', indentIndex=0):
         indentCur = indent * indentIndex
 
         # HTML5
@@ -135,7 +135,7 @@ class Element(object):
         # Children elements
         childPrevInline = self.isInline
         for child in self.children:
-            for chunk in child.serialize(indent=indent, indentIndex=indentIndex + 1):
+            for chunk in child.serialize_chunks(indent=indent, indentIndex=indentIndex + 1):
                 yield chunk
             childPrevInline = child.isInline
 
@@ -143,6 +143,9 @@ class Element(object):
         if not childPrevInline:
             yield '\n' + indentCur
         yield '</' + self.name + '>'
+
+    def serialize(self, indent='  '):
+        return ''.join(self.serialize_chunks(indent=indent))
 
 
 # Generate the top-level action documentation index

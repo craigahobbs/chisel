@@ -38,17 +38,16 @@ class Request(object):
     Chisel application request object
     """
 
-    __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'app')
+    __slots__ = ('wsgi_callback', 'name', 'urls', 'doc')
 
     def __init__(self, wsgi_callback, name=None, urls=None, doc=None):
         self.wsgi_callback = wsgi_callback
         self.name = name if name is not None else func_name(wsgi_callback)
         self.urls = urls if urls is not None else ('/' + self.name,)
         self.doc = [] if doc is None else doc
-        self.app = None
 
-    def onload(self, app):
-        self.app = app
+    def onload(self, dummy_app):
+        pass
 
     def __call__(self, environ, start_response):
         return self.wsgi_callback(environ, start_response)

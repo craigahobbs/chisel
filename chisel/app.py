@@ -21,7 +21,6 @@
 #
 
 from .compat import basestring_, iteritems, string_isidentifier, urllib_parse_unquote, xrange_
-from .doc import DocAction
 from .request import Request
 from .spec import SpecParser
 
@@ -97,8 +96,8 @@ class Application(object):
                 mUrl = reUrl.match(pathInfo)
                 if mUrl:
                     request = requestRegex
-                    environ[self.ENVIRON_URL_ARGS] = dict((urllib_parse_unquote(urlArg), urllib_parse_unquote(urlValue))
-                                                          for urlArg, urlValue in iteritems(mUrl.groupdict()))
+                    environ[self.ENVIRON_URL_ARGS] = {urllib_parse_unquote(urlArg): urllib_parse_unquote(urlValue)
+                                                      for urlArg, urlValue in iteritems(mUrl.groupdict())}
                     break
 
         # Handle the request
@@ -334,10 +333,6 @@ class Application(object):
 
         # Make the request app-aware at load-time
         request.onload(self)
-
-    # Add the built-in documentation request
-    def addDocRequest(self):
-        self.addRequest(DocAction())
 
     # Generator to recursively load all modules
     @classmethod

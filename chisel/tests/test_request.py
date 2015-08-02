@@ -39,7 +39,6 @@ class TestRequest(unittest.TestCase):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
-        self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'myRequest')
         self.assertEqual(myRequest.urls, ('/myRequest',))
@@ -52,7 +51,6 @@ class TestRequest(unittest.TestCase):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
-        self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'foo')
         self.assertEqual(myRequest.urls, ('/foo',))
@@ -65,7 +63,6 @@ class TestRequest(unittest.TestCase):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
-        self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'myRequest')
         self.assertEqual(myRequest.urls, ('/bar', '/thud'))
@@ -78,7 +75,6 @@ class TestRequest(unittest.TestCase):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
         self.app.addRequest(myRequest)
-        self.assertEqual(myRequest.app, self.app)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'foo')
         self.assertEqual(myRequest.urls, ('/bar', '/thud'))
