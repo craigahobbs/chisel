@@ -123,7 +123,7 @@ BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1
 
 $$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2))): $$(BUILD_$(call PYTHON_NAME, $(1)))
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m virtualenv '$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))'
-	$(if $(3), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(3))
+	$(if $(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(3))
 	touch $$@
 
 .PHONY: $(call PYTHON_NAME, $(1))_$(strip $(2))
@@ -151,12 +151,15 @@ endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage, COVER_COMMANDS)))
 
 # Generate doc rule
+HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)
 define DOC_COMMANDS
+ifneq "$(HAS_DOC)" ""
 	$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/sphinx-build -b html -d $(DOC)/doctrees doc $(DOC)/html
 	@echo
 	@echo Doc index is $(DOC)/html/index.html
+endif
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), doc, sphinx==1.3.1, DOC_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), doc, $(if $(HAS_DOC), sphinx==1.3.1), DOC_COMMANDS)))
 
 # Generate pyint rule
 define PYLINT_COMMANDS
