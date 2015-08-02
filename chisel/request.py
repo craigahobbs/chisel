@@ -23,41 +23,32 @@
 from .compat import func_name
 
 
-# Request WSGI application decorator
+def request(_wsgi_callback=None, name=None, urls=None, doc=None):
+    """
+    Chisel application request decorator
+    """
+
+    if _wsgi_callback is None:
+        return lambda fn: Request(fn, name=name, urls=urls, doc=doc)
+    return Request(_wsgi_callback, name=name, urls=urls, doc=doc)
+
+
 class Request(object):
-    __slots__ = ('app', 'fn', 'name', 'urls', 'doc')
+    """
+    Chisel application request object
+    """
 
-    def __init__(self, _fn=None, name=None, urls=None, doc=None):
-        self.app = None
-        self.fn = _fn
-        self.name = name
-        self.urls = urls
+    __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'app')
+
+    def __init__(self, wsgi_callback, name=None, urls=None, doc=None):
+        self.wsgi_callback = wsgi_callback
+        self.name = name if name is not None else func_name(wsgi_callback)
+        self.urls = urls if urls is not None else ('/' + self.name,)
         self.doc = [] if doc is None else doc
-        self._setDefaults()
-
-    def _setDefaults(self):
-
-        # Set the default request name, if necessary
-        if self.name is None and self.fn is not None:
-            self.name = func_name(self.fn)
-
-        # Set the default urls, if necessary
-        if self.urls is None and self.name is not None:
-            self.urls = ('/' + self.name,)
-
-    def __call__(self, *args):
-
-        # If not constructed as function decorator, first call must be function decorator...
-        if self.fn is None:
-            self.fn, = args
-            self._setDefaults()
-            return self
-        else:
-            environ, start_response = args
-            return self.call(environ, start_response)
+        self.app = None
 
     def onload(self, app):
         self.app = app
 
-    def call(self, environ, start_response):
-        return self.fn(environ, start_response)
+    def __call__(self, environ, start_response):
+        return self.wsgi_callback(environ, start_response)

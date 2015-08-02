@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import iteritems, itervalues
+from .compat import func_name, iteritems, itervalues
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
@@ -30,8 +30,21 @@ import cgi
 import json
 
 
-# Action error response exception
+def action(_action_callback=None, name=None, urls=None, spec=None, wsgiResponse=False):
+    """
+    Chisel application action decorator
+    """
+
+    if _action_callback is None:
+        return lambda fn: Action(fn, name=name, urls=urls, spec=spec, wsgiResponse=wsgiResponse)
+    return Action(_action_callback, name=name, urls=urls, spec=spec, wsgiResponse=wsgiResponse)
+
+
 class ActionError(Exception):
+    """
+    Action error response exception
+    """
+
     __slots__ = ('error', 'message')
 
     def __init__(self, error, message=None):
@@ -40,7 +53,6 @@ class ActionError(Exception):
         self.message = message
 
 
-# Internal action error response exception
 class _ActionErrorInternal(Exception):
     __slots__ = ('error', 'message', 'member')
 
@@ -51,44 +63,46 @@ class _ActionErrorInternal(Exception):
         self.member = member
 
 
-# Action callback decorator
 class Action(Request):
-    __slots__ = ('model', 'wsgiResponse', 'strictValidation')
+    """
+    Chisel application action object
+    """
+
+    __slots__ = ('action_callback', 'model', 'wsgiResponse')
 
     JSONP = 'jsonp'
 
-    def __init__(self, _fn=None, name=None, urls=None, spec=None, wsgiResponse=False,
-                 strictValidation=True):
+    def __init__(self, action_callback, name=None, urls=None, spec=None, wsgiResponse=False):
 
         # Spec provided?
-        self.model = None
+        model = None
         if spec is not None:
             specParser = SpecParser()
             specParser.parseString(spec)
             if name is not None:
-                self.model = specParser.actions[name]
+                model = specParser.actions[name]
             else:
                 assert len(specParser.actions) == 1, 'Action spec must contain exactly one action definition'
-                self.model = next(itervalues(specParser.actions))
+                model = next(itervalues(specParser.actions))
 
         # Use the action model name, if available
-        if name is None and self.model is not None:
-            name = self.model.name
+        if name is None:
+            name = model.name if model is not None else func_name(action_callback)
 
+        Request.__init__(self, self.__wsgi_callback, name=name, urls=urls)
+        self.action_callback = action_callback
+        self.model = model
         self.wsgiResponse = wsgiResponse
-        self.strictValidation = strictValidation
-        Request.__init__(self, _fn=_fn, name=name, urls=urls)
 
     def onload(self, app):
+        Request.onload(self, app)
 
         # Get the action model, if necessary
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
             assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
 
-        Request.onload(self, app)
-
-    def call(self, environ, start_response):
+    def __wsgi_callback(self, environ, dummy_start_response):
 
         # Check the method
         isGet = (environ['REQUEST_METHOD'] == 'GET')
@@ -125,7 +139,7 @@ class Action(Request):
                     raise _ActionErrorInternal('IOError', 'Error reading request content')
 
                 # De-serialize the JSON request
-                validateMode = VALIDATE_JSON_INPUT if self.strictValidation else VALIDATE_QUERY_STRING
+                validateMode = VALIDATE_JSON_INPUT
                 try:
                     contentTypeHeader = environ.get('CONTENT_TYPE')
                     contentCharset = ('utf-8' if contentTypeHeader is None else
@@ -159,7 +173,7 @@ class Action(Request):
 
             # Call the action callback
             try:
-                response = self.fn(self.app, request)
+                response = self.action_callback(self.app, request)
                 if self.wsgiResponse:
                     return response
                 elif response is None:

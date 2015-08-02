@@ -21,8 +21,8 @@
 #
 
 from .action import \
+    action, \
     Action, \
-    Action as action, \
     ActionError
 
 from .app import \
@@ -47,8 +47,8 @@ from .model import \
     VALIDATE_JSON_OUTPUT
 
 from .request import \
-    Request, \
-    Request as request
+    request, \
+    Request
 
 from .spec import \
     SpecParser, \
