@@ -123,7 +123,7 @@ BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1
 
 $$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2))): $$(BUILD_$(call PYTHON_NAME, $(1)))
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m virtualenv '$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))'
-	$(if $(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(3))
+	$(if $(PIP_ARGS)$(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(PIP_ARGS) $(3))
 	touch $$@
 
 .PHONY: $(call PYTHON_NAME, $(1))_$(strip $(2))
