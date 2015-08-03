@@ -33,83 +33,6 @@ import re
 import sys
 
 
-class _Context(object):
-    """
-    Chisel request context
-    """
-
-    __slots__ = ('app', 'environ', '_start_response', 'url_args', 'jsonp', 'log', 'headers')
-
-    def __init__(self, app, environ, start_response, url_args):
-        self.app = app
-        self.environ = environ
-        self._start_response = start_response
-        self.url_args = url_args
-        self.jsonp = None
-        self.headers = []
-
-        # Create the logger
-        self.log = logging.getLoggerClass()('')
-        self.log.setLevel(self.app.logLevel)
-        wsgi_errors = environ.get('wsgi.errors')
-        if wsgi_errors is not None:
-            handler = logging.StreamHandler(wsgi_errors)
-            if hasattr(self.app.logFormat, '__call__'):
-                handler.setFormatter(self.app.logFormat(self))
-            else:
-                handler.setFormatter(logging.Formatter(self.app.logFormat))
-            self.log.addHandler(handler)
-
-    def start_response(self, status, headers):
-        return self._start_response(status, list(itertools.chain(headers, self.headers)))
-
-    def addHeader(self, key, value):
-        """
-        Add a response header
-        """
-        self.headers.append((key, value))
-
-    def response(self, status, contentType, content, headers=None):
-        """
-        Send an HTTP response
-        """
-        assert not isinstance(content, basestring_) and not isinstance(content, bytes), \
-            'Response content of type str or bytes received'
-
-        # Build the headers array
-        _headers = list(headers) if headers is not None else []
-        headers_set = {header[0] for header in _headers}
-        if 'Content-Type' not in headers_set:
-            _headers.append(('Content-Type', contentType))
-        if isinstance(content, list) and 'Content-Length' not in headers_set:
-            _headers.append(('Content-Length', str(sum(len(x) for x in content))))
-
-        # Return the response
-        self.start_response(status, _headers)
-        return content
-
-    def responseText(self, status, text, headers=None, contentType='text/plain', encoding='utf-8'):
-        """
-        Send a plain-text response
-        """
-        return self.response(status, contentType, [text.encode(encoding)], headers=headers)
-
-    def responseJSON(self, response, status=None, isError=False, headers=None):
-        """
-        Send a JSON response
-        """
-        if status is None:
-            status = '200 OK' if not isError or self.jsonp is not None else '500 Internal Server Error'
-        content = json.dumps(response, sort_keys=True,
-                             indent=2 if self.app.prettyOutput else None,
-                             separators=(', ', ': ') if self.app.prettyOutput else (',', ':'))
-        if self.jsonp:
-            content = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
-        else:
-            content = [content.encode('utf-8')]
-        return self.response(status, 'application/json', content, headers=headers)
-
-
 class Application(object):
     """
     Chisel base application
@@ -316,3 +239,80 @@ class Application(object):
         # Make the request
         response = self(environ, startResponse)
         return startResponseArgs['status'], startResponseArgs['responseHeaders'], b''.join(response)
+
+
+class _Context(object):
+    """
+    Chisel request context
+    """
+
+    __slots__ = ('app', 'environ', '_start_response', 'url_args', 'jsonp', 'log', 'headers')
+
+    def __init__(self, app, environ, start_response, url_args):
+        self.app = app
+        self.environ = environ
+        self._start_response = start_response
+        self.url_args = url_args
+        self.jsonp = None
+        self.headers = []
+
+        # Create the logger
+        self.log = logging.getLoggerClass()('')
+        self.log.setLevel(self.app.logLevel)
+        wsgi_errors = environ.get('wsgi.errors')
+        if wsgi_errors is not None:
+            handler = logging.StreamHandler(wsgi_errors)
+            if hasattr(self.app.logFormat, '__call__'):
+                handler.setFormatter(self.app.logFormat(self))
+            else:
+                handler.setFormatter(logging.Formatter(self.app.logFormat))
+            self.log.addHandler(handler)
+
+    def start_response(self, status, headers):
+        return self._start_response(status, list(itertools.chain(headers, self.headers)))
+
+    def addHeader(self, key, value):
+        """
+        Add a response header
+        """
+        self.headers.append((key, value))
+
+    def response(self, status, contentType, content, headers=None):
+        """
+        Send an HTTP response
+        """
+        assert not isinstance(content, basestring_) and not isinstance(content, bytes), \
+            'Response content of type str or bytes received'
+
+        # Build the headers array
+        _headers = list(headers) if headers is not None else []
+        headers_set = {header[0] for header in _headers}
+        if 'Content-Type' not in headers_set:
+            _headers.append(('Content-Type', contentType))
+        if isinstance(content, list) and 'Content-Length' not in headers_set:
+            _headers.append(('Content-Length', str(sum(len(x) for x in content))))
+
+        # Return the response
+        self.start_response(status, _headers)
+        return content
+
+    def responseText(self, status, text, headers=None, contentType='text/plain', encoding='utf-8'):
+        """
+        Send a plain-text response
+        """
+        return self.response(status, contentType, [text.encode(encoding)], headers=headers)
+
+    def responseJSON(self, response, status=None, isError=False, headers=None):
+        """
+        Send a JSON response
+        """
+        if status is None:
+            status = '200 OK' if not isError or self.jsonp is not None else '500 Internal Server Error'
+        content = json.dumps(response, sort_keys=True,
+                             indent=2 if self.app.prettyOutput else None,
+                             separators=(', ', ': ') if self.app.prettyOutput else (',', ':'))
+        if self.jsonp:
+            content = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
+        else:
+            content = [content.encode('utf-8')]
+        return self.response(status, 'application/json', content, headers=headers)
