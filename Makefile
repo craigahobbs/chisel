@@ -116,7 +116,7 @@ $$(BUILD_$(call PYTHON_NAME, $(1))):
 endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE, $(X))))
 
-# Function to generate virtualenv rules - python_url, env_name, packages, commands
+# Function to generate virtualenv rules - python_url, env_name, pip_args, commands
 define ENV_RULE
 ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1))_$(strip $(2))
 BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1))_$(strip $(2)).build
