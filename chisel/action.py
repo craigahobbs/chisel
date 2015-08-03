@@ -104,8 +104,7 @@ class Action(Request):
             assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
 
     def _wsgi_callback(self, environ, dummy_start_response):
-        ctx = environ[Application.ENVIRON_APP]
-        urlArgs = environ.get(Application.ENVIRON_URL_ARGS)
+        ctx = environ[Application.ENVIRON_CTX]
 
         # Check the method
         isGet = (environ['REQUEST_METHOD'] == 'GET')
@@ -154,17 +153,17 @@ class Action(Request):
 
             # JSONP?
             if isGet and self.JSONP in request:
-                ctx.setJSONP(str(request[self.JSONP]))
+                ctx.jsonp = str(request[self.JSONP])
                 del request[self.JSONP]
 
             # Add url arguments
-            if urlArgs is not None:
+            if ctx.url_args is not None:
                 validateMode = VALIDATE_QUERY_STRING
-                for urlArg, urlValue in iteritems(urlArgs):
-                    if urlArg in request or urlArg == self.JSONP:
-                        ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", urlArg, self.name)
-                        raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (urlArg,))
-                    request[urlArg] = urlValue
+                for url_arg, url_value in iteritems(ctx.url_args):
+                    if url_arg in request or url_arg == self.JSONP:
+                        ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
+                        raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (url_arg,))
+                    request[url_arg] = url_value
 
             # Validate the request
             try:
@@ -189,7 +188,7 @@ class Action(Request):
                 raise _ActionErrorInternal('UnexpectedError')
 
             # Validate the response
-            if ctx.validateOutput:
+            if ctx.app.validateOutput:
                 if hasattr(response, '__contains__') and 'error' in response:
                     responseType = TypeStruct()
                     responseType.addMember('error', self.model.errorType)

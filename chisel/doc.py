@@ -54,10 +54,10 @@ action {name}
     def _action_callback(ctx, req):
         requestName = req.get('name')
         if requestName is None:
-            content = _indexHtml(ctx.environ, sorted(itervalues(ctx.requests), key=lambda x: x.name.lower())).serialize()
+            content = _indexHtml(ctx.environ, sorted(itervalues(ctx.app.requests), key=lambda x: x.name.lower())).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
-        elif requestName in ctx.requests:
-            content = _requestHtml(ctx.environ, ctx.requests[requestName], req.get('nonav')).serialize()
+        elif requestName in ctx.app.requests:
+            content = _requestHtml(ctx.environ, ctx.app.requests[requestName], req.get('nonav')).serialize()
             return ctx.responseText('200 OK', content, contentType='text/html')
         else:
             return ctx.responseText('500 Internal Server Error', 'Unknown Request')

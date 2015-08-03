@@ -29,7 +29,7 @@ import unittest
 class TestRequest(unittest.TestCase):
 
     def setUp(self):
-        self.app = chisel.Application(logStream=None)
+        self.app = chisel.Application()
 
     # Default request decorator
     def test_request_decorator(self):
@@ -84,8 +84,8 @@ class TestRequest(unittest.TestCase):
 
         @chisel.request(name='foo')
         def myRequest(environ, start_response):
-            app = environ[chisel.Application.ENVIRON_APP]
-            app.addHeader('OtherHeader', 'Other Value')
+            ctx = environ[chisel.Application.ENVIRON_CTX]
+            ctx.addHeader('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
             return ['OK'.encode('utf-8')]
         self.app.addRequest(myRequest)

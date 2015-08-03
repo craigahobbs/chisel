@@ -111,7 +111,7 @@ class TestAppApplication(unittest.TestCase):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
-            ctx = environ[Application.ENVIRON_APP]
+            ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', response())
 
         self.app.addRequest(generatorResponse)
@@ -142,7 +142,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Request that returns a generator
         def stringResponse(environ, dummy_startResponse):
-            ctx = environ[Application.ENVIRON_APP]
+            ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
         self.app.addRequest(stringResponse)
@@ -152,18 +152,18 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(startResponseData['status'], ['500 Internal Server Error'])
         self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain'), ('Content-Length', '16')]])
         self.assertEqual(list(responseParts), ['Unexpected Error'.encode('utf-8')])
-        self.assertTrue('Response of type str, unicode, or bytes received' in environ['wsgi.errors'].getvalue())
+        self.assertTrue('Response content of type str or bytes received' in environ['wsgi.errors'].getvalue())
 
     def test_app_request(self):
 
         # POST
-        logStream = StringIO()
         self.app.logFormat = '%(message)s'
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 7}', environ={'wsgi.errors': logStream})
+        environ = {}
+        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 7}', environ=environ)
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(logStream.getvalue(), 'In myAction2\n')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), 'In myAction2\n')
 
         # GET
         status, headers, response = self.app.request('GET', '/myAction2', queryString='value=8')
@@ -205,14 +205,14 @@ class TestAppApplication(unittest.TestCase):
     def test_app_logFormat_callable(self):
 
         def myWsgi(environ, start_response):
-            ctx = environ[Application.ENVIRON_APP]
+            ctx = environ[Application.ENVIRON_CTX]
             ctx.log.warning('Hello log')
             start_response('200 OK', [('Content-Type', 'text/plain')])
             return ['Hello'.encode('utf-8')]
 
         class MyFormatter(object):
-            def __init__(self, app):
-                assert isinstance(app, Application)
+            def __init__(self, ctx):
+                assert ctx is not None
 
             @staticmethod
             def format(record):
@@ -230,23 +230,23 @@ class TestAppApplication(unittest.TestCase):
         app.addRequest(myWsgi)
         app.logFormat = MyFormatter
 
-        logStream = StringIO()
-        status, headers, response = app.request('GET', '/myWsgi', environ={'wsgi.errors': logStream})
+        environ = {}
+        status, headers, response = app.request('GET', '/myWsgi', environ=environ)
         self.assertEqual(response, 'Hello'.encode('utf-8'))
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
-        self.assertEqual(logStream.getvalue(), 'Hello log\n')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), 'Hello log\n')
 
     def test_app_nested_requests(self):
 
         def request1(environ, dummy_start_response):
-            app = environ[Application.ENVIRON_APP]
-            return app.responseText('200 OK', '7')
+            ctx = environ[Application.ENVIRON_CTX]
+            return ctx.responseText('200 OK', '7')
 
         def request2(environ, dummy_start_response):
-            app = environ[Application.ENVIRON_APP]
-            dummy_status, dummy_headers, response = app.request('GET', '/request1')
-            return app.responseText('200 OK', str(5 + int(response)))
+            ctx = environ[Application.ENVIRON_CTX]
+            dummy_status, dummy_headers, response = ctx.app.request('GET', '/request1')
+            return ctx.responseText('200 OK', str(5 + int(response)))
 
         app = Application()
         app.addRequest(request1)
@@ -255,7 +255,6 @@ class TestAppApplication(unittest.TestCase):
         status, dummy_headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
-        self.assertTrue(app.environ is None)  # Make sure thread state was deleted
 
     def test_app_request_exception(self):
 

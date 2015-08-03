@@ -21,7 +21,6 @@
 #
 
 import chisel
-from chisel.compat import StringIO
 
 import re
 import unittest
@@ -33,7 +32,7 @@ class TestAction(unittest.TestCase):
     def setUp(self):
 
         # Application object
-        self.app = chisel.Application(logStream=None)
+        self.app = chisel.Application()
         self.app.loadSpecString('''\
 action myActionDefault
 ''')
@@ -253,8 +252,7 @@ action myAction
             return {}
         self.app.addRequest(myAction)
 
-        errors = StringIO()
-        status, headers, response = self.app.request('GET', '/myAction', environ={'wsgi.errors': errors})
+        status, headers, response = self.app.request('GET', '/myAction')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Length', '2'),
                                            ('Content-Type', 'application/json'),

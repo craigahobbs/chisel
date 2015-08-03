@@ -134,7 +134,7 @@ action myAction2
     def setUp(self):
 
         # Application object
-        self.app = chisel.Application(logStream=None)
+        self.app = chisel.Application()
         self.app.loadSpecString(self._spec)
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction1'))
         self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction2'))
