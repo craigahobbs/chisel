@@ -33,7 +33,7 @@ class TestAction(unittest.TestCase):
 
         # Application object
         self.app = chisel.Application()
-        self.app.loadSpecString('''\
+        self.app.specs.parseString('''\
 action myActionDefault
 ''')
 
@@ -45,7 +45,7 @@ action myActionDefault
             return {}
         self.assertTrue(isinstance(myActionDefault, chisel.Action))
         self.assertTrue(isinstance(myActionDefault, chisel.Request))
-        self.app.addRequest(myActionDefault)
+        self.app.add_request(myActionDefault)
         self.assertEqual(myActionDefault.name, 'myActionDefault')
         self.assertEqual(myActionDefault.urls, ('/myActionDefault',))
         self.assertTrue(isinstance(myActionDefault.model, chisel.spec.ActionModel))
@@ -61,7 +61,7 @@ action myActionDefault
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
         try:
-            self.app.addRequest(myAction)
+            self.app.add_request(myAction)
         except AssertionError as e:
             self.assertEqual(str(e), "No spec defined for action 'myAction'")
         else:
@@ -77,7 +77,7 @@ action myActionName
             return {}
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
         self.assertEqual(myAction.name, 'myActionName')
         self.assertEqual(myAction.urls, ('/myActionName',))
         self.assertTrue(isinstance(myAction.model, chisel.spec.ActionModel))
@@ -135,7 +135,7 @@ action theAction
             return {}
         self.assertTrue(isinstance(myAction, chisel.Action))
         self.assertTrue(isinstance(myAction, chisel.Request))
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
         self.assertEqual(myAction.name, 'theAction')
         self.assertEqual(myAction.urls, ('/theAction',))
         self.assertTrue(isinstance(myAction.model, chisel.spec.ActionModel))
@@ -149,7 +149,7 @@ action theAction
         @chisel.action(urls=('/foo',), wsgiResponse=True)
         def myActionDefault(app, dummy_req):
             return app.responseText('200 OK', 'OK')
-        self.app.addRequest(myActionDefault)
+        self.app.add_request(myActionDefault)
         self.assertEqual(myActionDefault.name, 'myActionDefault')
         self.assertEqual(myActionDefault.urls, ('/foo',))
         self.assertTrue(isinstance(myActionDefault.model, chisel.spec.ActionModel))
@@ -169,7 +169,7 @@ action myAction
 ''')
         def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8')
         self.assertEqual(status, '200 OK')
@@ -190,7 +190,7 @@ action myAction
 ''')
         def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
         self.app.validateOutput = False
 
         status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8')
@@ -212,7 +212,7 @@ action myAction
 ''')
         def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction', queryString='a=7&b=8&jsonp=foo')
         self.assertEqual(status, '200 OK')
@@ -233,7 +233,7 @@ action myAction
 ''')
         def myAction(dummy_app, req):
             return {'c': req['a'] + req['b']}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7, "b": 8}')
         self.assertEqual(status, '200 OK')
@@ -250,7 +250,7 @@ action myAction
         def myAction(app, dummy_req):
             app.addHeader('MyHeader', 'MyValue')
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction')
         self.assertEqual(status, '200 OK')
@@ -271,7 +271,7 @@ action myAction
 ''')
         def myAction(app, req):
             return app.responseText('200 OK', 'Hello ' + str(req['a'].upper()))
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": "world"}')
         self.assertEqual(status, '200 OK')
@@ -289,7 +289,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {'error': 'MyError'}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -307,7 +307,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {'error': 'MyError', 'message': 'My message'}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -325,7 +325,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             raise chisel.ActionError('MyError')
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -343,7 +343,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             raise chisel.ActionError('MyError', 'My message')
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -361,7 +361,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {'error': 'MyBadError'}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -381,7 +381,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('GET', '/myAction', queryString='a')
         self.assertEqual(status, '500 Internal Server Error')
@@ -399,7 +399,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7}', environ={'CONTENT_LENGTH': 'asdf'})
         self.assertEqual(status, '411 Length Required')
@@ -417,7 +417,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{a: 7}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -436,7 +436,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('FOO', '/myAction', wsgiInput=b'{"a": 7}')
         self.assertEqual(status, '405 Method Not Allowed')
@@ -454,7 +454,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -474,7 +474,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {'a': 'asdf'}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -492,7 +492,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             pass
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '200 OK')
@@ -508,7 +508,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return []
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -526,7 +526,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             raise Exception('My unexpected error')
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
@@ -542,7 +542,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         class MyStream(object):
             @staticmethod
@@ -569,7 +569,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             return {'a': MyClass()}
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
         self.app.validateOutput = False
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
@@ -586,7 +586,7 @@ action myAction
 ''')
         def myAction(dummy_app, dummy_req):
             raise Exception('FAIL')
-        self.app.addRequest(myAction)
+        self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{}')
         self.assertEqual(status, '500 Internal Server Error')

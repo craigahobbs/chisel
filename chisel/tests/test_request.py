@@ -38,7 +38,7 @@ class TestRequest(unittest.TestCase):
         def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.addRequest(myRequest)
+        self.app.add_request(myRequest)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'myRequest')
         self.assertEqual(myRequest.urls, ('/myRequest',))
@@ -50,7 +50,7 @@ class TestRequest(unittest.TestCase):
         def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.addRequest(myRequest)
+        self.app.add_request(myRequest)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'foo')
         self.assertEqual(myRequest.urls, ('/foo',))
@@ -62,7 +62,7 @@ class TestRequest(unittest.TestCase):
         def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.addRequest(myRequest)
+        self.app.add_request(myRequest)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'myRequest')
         self.assertEqual(myRequest.urls, ('/bar', '/thud'))
@@ -74,7 +74,7 @@ class TestRequest(unittest.TestCase):
         def myRequest(dummy_environ, dummy_start_response):
             return []
         self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.addRequest(myRequest)
+        self.app.add_request(myRequest)
         self.assertEqual(myRequest({}, lambda x, y: None), [])
         self.assertEqual(myRequest.name, 'foo')
         self.assertEqual(myRequest.urls, ('/bar', '/thud'))
@@ -88,7 +88,7 @@ class TestRequest(unittest.TestCase):
             ctx.addHeader('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
             return ['OK'.encode('utf-8')]
-        self.app.addRequest(myRequest)
+        self.app.add_request(myRequest)
         status, headers, response = self.app.request('GET', '/foo')
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers, [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])

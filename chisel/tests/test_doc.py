@@ -135,10 +135,10 @@ action myAction2
 
         # Application object
         self.app = chisel.Application()
-        self.app.loadSpecString(self._spec)
-        self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction1'))
-        self.app.addRequest(chisel.Action(lambda app, req: {}, name='myAction2'))
-        self.app.addRequest(chisel.DocAction())
+        self.app.specs.parseString(self._spec)
+        self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction1'))
+        self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction2'))
+        self.app.add_request(chisel.DocAction())
 
     # Test documentation index HTML generation
     def test_doc_DocAction_index(self):
@@ -1038,8 +1038,8 @@ action myAction
         def myAction(dummy_ctx, req):
             return {'c': req['a'] + req['b']}
 
-        app.addRequest(chisel.DocAction())
-        app.addRequest(chisel.DocPage(myAction))
+        app.add_request(chisel.DocAction())
+        app.add_request(chisel.DocPage(myAction))
 
         status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')

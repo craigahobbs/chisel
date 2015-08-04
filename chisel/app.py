@@ -20,9 +20,10 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, string_isidentifier, StringIO, urllib_parse_unquote, xrange_
+from .compat import basestring_, iteritems, StringIO, urllib_parse_unquote
 from .request import Request
 from .spec import SpecParser
+from .util import load_modules
 
 from io import BytesIO
 import itertools
@@ -30,7 +31,11 @@ import json
 import logging
 import os
 import re
-import sys
+
+
+# Regular expression for matching URL arguments
+_RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
+_RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 
 class Application(object):
@@ -52,8 +57,98 @@ class Application(object):
         self.__requestUrls = {}
         self.__requestUrlRegex = []
 
-    # WSGI entry point
+    def load_specs(self, spec_path, spec_ext='.chsl', finalize=True):
+        """
+        Load a spec file or directory
+        """
+        if os.path.isdir(spec_path):
+            for dirpath, dummy_dirnames, filenames in os.walk(spec_path):
+                for filename in filenames:
+                    (dummy_base, ext) = os.path.splitext(filename)
+                    if ext == spec_ext:
+                        with open(os.path.join(dirpath, filename), 'r') as fo:
+                            self.specs.parse(fo, finalize=False)
+        else:
+            with open(spec_path, 'r') as fo:
+                self.specs.parse(fo, finalize=False)
+
+        if finalize:
+            self.specs.finalize()
+
+    def add_request(self, request):
+        """
+        Add a request object
+        """
+
+        # Wrap bare functions in a request decorator
+        if not isinstance(request, Request):
+            request = Request(request)
+
+        # Duplicate request name?
+        if request.name in self.requests:
+            raise Exception("Redefinition of request '%s'" % (request.name,))
+        self.requests[request.name] = request
+
+        # Add the request URLs
+        for url in request.urls:
+
+            # URL with arguments?
+            if _RE_URL_ARG.search(url):
+                urlRegex = '^' + _RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
+                self.__requestUrlRegex.append((re.compile(urlRegex), request))
+            else:
+                if url in self.__requestUrls:
+                    raise Exception("Redefinition of request URL '%s'" % (url,))
+                self.__requestUrls[url] = request
+
+        # Make the request app-aware at load-time
+        request.onload(self)
+
+    def load_requests(self, moduleDir, moduleExt='.py'):
+        """
+        Recursively load all requests in a directory
+        """
+        for module in load_modules(moduleDir, moduleExt=moduleExt):
+            for moduleAttr in dir(module):
+                request = getattr(module, moduleAttr)
+                if isinstance(request, Request):
+                    self.add_request(request)
+
+    def request(self, requestMethod, pathInfo, queryString=None, wsgiInput=None, environ=None):
+        """
+        Make an HTTP request on this application
+        """
+
+        # WSGI environment - used passed-in environ if its complete
+        if environ is None:
+            environ = {}
+        environ['REQUEST_METHOD'] = requestMethod
+        environ['PATH_INFO'] = pathInfo
+        if 'SCRIPT_NAME' not in environ:
+            environ['SCRIPT_NAME'] = ''
+        if 'QUERY_STRING' not in environ:
+            environ['QUERY_STRING'] = queryString if queryString else ''
+        if 'wsgi.input' not in environ:
+            environ['wsgi.input'] = BytesIO(wsgiInput if wsgiInput else b'')
+            if 'CONTENT_LENGTH' not in environ:
+                environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
+        if 'wsgi.errors' not in environ:
+            environ['wsgi.errors'] = StringIO()
+
+        # Capture the response status and headers
+        startResponseArgs = {}
+        def startResponse(status, responseHeaders):
+            startResponseArgs['status'] = status
+            startResponseArgs['responseHeaders'] = responseHeaders
+
+        # Make the request
+        response = self(environ, startResponse)
+        return startResponseArgs['status'], startResponseArgs['responseHeaders'], b''.join(response)
+
     def __call__(self, environ, start_response):
+        """
+        Chisel application WSGI entry point
+        """
 
         # Match the request by exact URL
         pathInfo = environ['PATH_INFO']
@@ -84,161 +179,6 @@ class Application(object):
         except: # pylint: disable=bare-except
             ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
             return ctx.responseText('500 Internal Server Error', 'Unexpected Error')
-
-    # Recursively load all specs in a directory
-    def loadSpecs(self, specPath, specExt='.chsl', finalize=True):
-
-        # Does the path exist?
-        if not os.path.isdir(specPath):
-            raise IOError('%r not found or is not a directory' % (specPath,))
-
-        # Resursively find spec files
-        for dirpath, dummy_dirnames, filenames in os.walk(specPath):
-            for filename in filenames:
-                (dummy_base, ext) = os.path.splitext(filename)
-                if ext == specExt:
-                    with open(os.path.join(dirpath, filename), 'r') as specStream:
-                        self.specs.parse(specStream, finalize=False)
-        if finalize:
-            self.specs.finalize()
-
-    # Load a spec string
-    def loadSpecString(self, spec, fileName='', finalize=True):
-        self.specs.parseString(spec, fileName=fileName, finalize=finalize)
-
-    # Regular expression for matching URL arguments
-    __reUrlArg = re.compile(r'/\{([A-Za-z]\w*)\}')
-    __reUrlArgEsc = re.compile(r'/\\{([A-Za-z]\w*)\\}')
-
-    # Add a request handler (Request-wrapped WSGI application)
-    def addRequest(self, request):
-
-        # Wrap bare functions in a request decorator
-        if not isinstance(request, Request):
-            request = Request(request)
-
-        # Duplicate request name?
-        if request.name in self.requests:
-            raise Exception("Redefinition of request '%s'" % (request.name,))
-        self.requests[request.name] = request
-
-        # Add the request URLs
-        for url in request.urls:
-
-            # URL with arguments?
-            if self.__reUrlArg.search(url):
-                urlRegex = '^' + self.__reUrlArgEsc.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
-                self.__requestUrlRegex.append((re.compile(urlRegex), request))
-            else:
-                if url in self.__requestUrls:
-                    raise Exception("Redefinition of request URL '%s'" % (url,))
-                self.__requestUrls[url] = request
-
-        # Make the request app-aware at load-time
-        request.onload(self)
-
-    # Generator to recursively load all modules
-    @staticmethod
-    def loadModules(moduleDir, moduleExt='.py', excludedSubmodules=None):
-
-        # Does the path exist?
-        if not os.path.isdir(moduleDir):
-            raise IOError('%r not found or is not a directory' % (moduleDir,))
-
-        # Where is this module on the system path?
-        moduleDirParts = moduleDir.split(os.sep)
-
-        def findModuleNameIndex():
-            for sysPath in sys.path:
-                for iModulePart in xrange_(len(moduleDirParts) - 1, 0, -1):
-                    moduleNameParts = moduleDirParts[iModulePart:]
-                    if not any(not string_isidentifier(part) for part in moduleNameParts):
-                        sysModulePath = os.path.join(sysPath, *moduleNameParts)
-                        if os.path.isdir(sysModulePath) and os.path.samefile(moduleDir, sysModulePath):
-                            # Make sure the module package is import-able
-                            moduleName = '.'.join(moduleNameParts)
-                            try:
-                                __import__(moduleName)
-                            except ImportError:
-                                pass
-                            else:
-                                return len(moduleDirParts) - len(moduleNameParts)
-            raise ImportError('%r not found on system path' % (moduleDir,))
-        ixModuleName = findModuleNameIndex()
-
-        # Recursively find module files
-        excludedSubmodulesDot = None if excludedSubmodules is None else [x + '.' for x in excludedSubmodules]
-        for dirpath, dummy_dirnames, filenames in os.walk(moduleDir):
-
-            # Skip Python 3.x cache directories
-            if os.path.basename(dirpath) == '__pycache__':
-                continue
-
-            # Is the sub-package excluded?
-            subpkgParts = dirpath.split(os.sep)
-            subpkgName = '.'.join(itertools.islice(subpkgParts, ixModuleName, None))
-            if excludedSubmodules is not None and \
-               (subpkgName in excludedSubmodules or any(subpkgName.startswith(x) for x in excludedSubmodulesDot)):
-                continue
-
-            # Load each sub-module file in the directory
-            for filename in filenames:
-
-                # Skip non-module files
-                (basename, ext) = os.path.splitext(filename)
-                if ext != moduleExt:
-                    continue
-
-                # Skip package __init__ files
-                if basename == '__init__':
-                    continue
-
-                # Is the sub-module excluded?
-                submoduleName = subpkgName + '.' + basename
-                if excludedSubmodules is not None and \
-                   (submoduleName in excludedSubmodules or any(submoduleName.startswith(x) for x in excludedSubmodules)):
-                    continue
-
-                # Load the sub-module
-                yield __import__(submoduleName, globals(), locals(), ['.'])
-
-    # Recursively load all requests in a directory
-    def loadRequests(self, moduleDir, moduleExt='.py'):
-
-        for module in self.loadModules(moduleDir, moduleExt=moduleExt):
-            for moduleAttr in dir(module):
-                request = getattr(module, moduleAttr)
-                if isinstance(request, Request):
-                    self.addRequest(request)
-
-    # Make an HTTP request on this application
-    def request(self, requestMethod, pathInfo, queryString=None, wsgiInput=None, environ=None):
-
-        # WSGI environment - used passed-in environ if its complete
-        if environ is None:
-            environ = {}
-        environ['REQUEST_METHOD'] = requestMethod
-        environ['PATH_INFO'] = pathInfo
-        if 'SCRIPT_NAME' not in environ:
-            environ['SCRIPT_NAME'] = ''
-        if 'QUERY_STRING' not in environ:
-            environ['QUERY_STRING'] = queryString if queryString else ''
-        if 'wsgi.input' not in environ:
-            environ['wsgi.input'] = BytesIO(wsgiInput if wsgiInput else b'')
-            if 'CONTENT_LENGTH' not in environ:
-                environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
-        if 'wsgi.errors' not in environ:
-            environ['wsgi.errors'] = StringIO()
-
-        # Capture the response status and headers
-        startResponseArgs = {}
-        def startResponse(status, responseHeaders):
-            startResponseArgs['status'] = status
-            startResponseArgs['responseHeaders'] = responseHeaders
-
-        # Make the request
-        response = self(environ, startResponse)
-        return startResponseArgs['status'], startResponseArgs['responseHeaders'], b''.join(response)
 
 
 class _Context(object):

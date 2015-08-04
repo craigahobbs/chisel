@@ -31,14 +31,11 @@ import cgi
 import json
 
 
-def action(_action_callback=None, name=None, urls=None, spec=None, wsgiResponse=False):
+def action(_action_callback=None, **kwargs):
     """
     Chisel action request decorator
     """
-
-    if _action_callback is None:
-        return lambda fn: Action(fn, name=name, urls=urls, spec=spec, wsgiResponse=wsgiResponse)
-    return Action(_action_callback, name=name, urls=urls, spec=spec, wsgiResponse=wsgiResponse)
+    return Action(_action_callback, **kwargs) if _action_callback is not None else lambda fn: Action(fn, **kwargs)
 
 
 class ActionError(Exception):

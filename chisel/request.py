@@ -23,14 +23,11 @@
 from .compat import func_name
 
 
-def request(_wsgi_callback=None, name=None, urls=None, doc=None):
+def request(_wsgi_callback=None, **kwargs):
     """
     Chisel request decorator
     """
-
-    if _wsgi_callback is None:
-        return lambda fn: Request(fn, name=name, urls=urls, doc=doc)
-    return Request(_wsgi_callback, name=name, urls=urls, doc=doc)
+    return Request(_wsgi_callback, **kwargs) if _wsgi_callback is not None else lambda fn: Request(fn, **kwargs)
 
 
 class Request(object):

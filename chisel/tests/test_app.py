@@ -39,8 +39,8 @@ class TestAppApplication(unittest.TestCase):
         class MyApplication(Application):
             def __init__(self):
                 Application.__init__(self)
-                self.loadSpecs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-                self.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+                self.load_specs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+                self.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.logLevel = logging.INFO
 
         self.app = MyApplication()
@@ -50,11 +50,11 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files'], types.ModuleType))
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
-    def test_app_loadRequests_importError(self):
+    def test_app_load_requests_importError(self):
         sys_path = sys.path
         try:
             sys.path = []
-            self.app.loadRequests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+            self.app.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
         except ImportError as e:
             self.assertTrue(re.search("'.*?' not found on system path", str(e)))
         else:
@@ -114,7 +114,7 @@ class TestAppApplication(unittest.TestCase):
             ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', response())
 
-        self.app.addRequest(generatorResponse)
+        self.app.add_request(generatorResponse)
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
@@ -145,7 +145,7 @@ class TestAppApplication(unittest.TestCase):
             ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
-        self.app.addRequest(stringResponse)
+        self.app.add_request(stringResponse)
 
         # Successfully create and call the application
         responseParts = self.app(environ, startResponse)
@@ -227,7 +227,7 @@ class TestAppApplication(unittest.TestCase):
                 return 'Bad'
 
         app = Application()
-        app.addRequest(myWsgi)
+        app.add_request(myWsgi)
         app.logFormat = MyFormatter
 
         environ = {}
@@ -249,8 +249,8 @@ class TestAppApplication(unittest.TestCase):
             return ctx.responseText('200 OK', str(5 + int(response)))
 
         app = Application()
-        app.addRequest(request1)
-        app.addRequest(request2)
+        app.add_request(request1)
+        app.add_request(request2)
 
         status, dummy_headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
@@ -262,7 +262,7 @@ class TestAppApplication(unittest.TestCase):
             raise Exception('')
 
         app = Application()
-        app.addRequest(request1)
+        app.add_request(request1)
 
         status, headers, response = app.request('GET', '/request1')
         self.assertEqual(status, '500 Internal Server Error')
