@@ -106,7 +106,7 @@ class Action(Request):
         # Check the method
         isGet = (environ['REQUEST_METHOD'] == 'GET')
         if not isGet and environ['REQUEST_METHOD'] != 'POST':
-            return ctx.responseText('405 Method Not Allowed', 'Method Not Allowed')
+            return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
 
         # Handle the action
         try:
@@ -128,7 +128,7 @@ class Action(Request):
                     contentLength = int(environ['CONTENT_LENGTH'])
                 except ValueError:
                     ctx.log.warning("Invalid content length for action '%s': %s", self.name, environ.get('CONTENT_LENGTH', ''))
-                    return ctx.responseText('411 Length Required', 'Length Required')
+                    return ctx.response_text('411 Length Required', 'Length Required')
 
                 # Read the request content
                 try:
@@ -207,4 +207,4 @@ class Action(Request):
                 response['member'] = e.member
 
         # Serialize the response as JSON
-        return ctx.responseJSON(response, isError='error' in response)
+        return ctx.response_json(response, is_error='error' in response)

@@ -148,17 +148,17 @@ def parse_iso8601_datetime(s):
             timedelta(hours=offhour, minutes=offmin))
 
 
-def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
+def load_modules(module_path, module_ext='.py', exclude_submodules=None):
     """
     Recursively load Python modules
     """
 
     # Does the path exist?
-    if not os.path.isdir(moduleDir):
-        raise IOError('%r not found or is not a directory' % (moduleDir,))
+    if not os.path.isdir(module_path):
+        raise IOError('%r not found or is not a directory' % (module_path,))
 
     # Where is this module on the system path?
-    moduleDirParts = moduleDir.split(os.sep)
+    moduleDirParts = module_path.split(os.sep)
 
     def findModuleNameIndex():
         for sysPath in sys.path:
@@ -166,7 +166,7 @@ def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
                 moduleNameParts = moduleDirParts[iModulePart:]
                 if not any(not string_isidentifier(part) for part in moduleNameParts):
                     sysModulePath = os.path.join(sysPath, *moduleNameParts)
-                    if os.path.isdir(sysModulePath) and os.path.samefile(moduleDir, sysModulePath):
+                    if os.path.isdir(sysModulePath) and os.path.samefile(module_path, sysModulePath):
                         # Make sure the module package is import-able
                         moduleName = '.'.join(moduleNameParts)
                         try:
@@ -175,12 +175,12 @@ def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
                             pass
                         else:
                             return len(moduleDirParts) - len(moduleNameParts)
-        raise ImportError('%r not found on system path' % (moduleDir,))
+        raise ImportError('%r not found on system path' % (module_path,))
     ixModuleName = findModuleNameIndex()
 
     # Recursively find module files
-    excludedSubmodulesDot = None if excludedSubmodules is None else [x + '.' for x in excludedSubmodules]
-    for dirpath, dummy_dirnames, filenames in os.walk(moduleDir):
+    excludedSubmodulesDot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
+    for dirpath, dummy_dirnames, filenames in os.walk(module_path):
 
         # Skip Python 3.x cache directories
         if os.path.basename(dirpath) == '__pycache__':
@@ -189,8 +189,8 @@ def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
         # Is the sub-package excluded?
         subpkgParts = dirpath.split(os.sep)
         subpkgName = '.'.join(itertools.islice(subpkgParts, ixModuleName, None))
-        if excludedSubmodules is not None and \
-           (subpkgName in excludedSubmodules or any(subpkgName.startswith(x) for x in excludedSubmodulesDot)):
+        if exclude_submodules is not None and \
+           (subpkgName in exclude_submodules or any(subpkgName.startswith(x) for x in excludedSubmodulesDot)):
             continue
 
         # Load each sub-module file in the directory
@@ -198,7 +198,7 @@ def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
 
             # Skip non-module files
             (basename, ext) = os.path.splitext(filename)
-            if ext != moduleExt:
+            if ext != module_ext:
                 continue
 
             # Skip package __init__ files
@@ -207,8 +207,8 @@ def load_modules(moduleDir, moduleExt='.py', excludedSubmodules=None):
 
             # Is the sub-module excluded?
             submoduleName = subpkgName + '.' + basename
-            if excludedSubmodules is not None and \
-               (submoduleName in excludedSubmodules or any(submoduleName.startswith(x) for x in excludedSubmodules)):
+            if exclude_submodules is not None and \
+               (submoduleName in exclude_submodules or any(submoduleName.startswith(x) for x in exclude_submodules)):
                 continue
 
             # Load the sub-module

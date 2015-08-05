@@ -104,15 +104,50 @@ class Application(object):
         # Make the request app-aware at load-time
         request.onload(self)
 
-    def load_requests(self, moduleDir, moduleExt='.py'):
+    def load_requests(self, module_path, module_ext='.py'):
         """
         Recursively load all requests in a directory
         """
-        for module in load_modules(moduleDir, moduleExt=moduleExt):
+        for module in load_modules(module_path, module_ext=module_ext):
             for moduleAttr in dir(module):
                 request = getattr(module, moduleAttr)
                 if isinstance(request, Request):
                     self.add_request(request)
+
+    def __call__(self, environ, start_response):
+        """
+        Chisel application WSGI entry point
+        """
+
+        # Match the request by exact URL
+        pathInfo = environ['PATH_INFO']
+        request = self.__requestUrls.get(pathInfo)
+
+        # If no request was matched, match by url regular expression
+        url_args = None
+        if request is None:
+            for reUrl, requestRegex in self.__requestUrlRegex:
+                mUrl = reUrl.match(pathInfo)
+                if mUrl:
+                    request = requestRegex
+                    url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
+                                for url_arg, url_value in iteritems(mUrl.groupdict())}
+                    break
+
+        # Create the request context
+        ctx = Context(self, environ, start_response, url_args)
+        environ[self.ENVIRON_CTX] = ctx
+
+        # Request not found?
+        if request is None:
+            return ctx.response_text('404 Not Found', 'Not Found')
+
+        # Handle the request
+        try:
+            return request(ctx.environ, ctx.start_response)
+        except: # pylint: disable=bare-except
+            ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
+            return ctx.response_text('500 Internal Server Error', 'Unexpected Error')
 
     def request(self, requestMethod, pathInfo, queryString=None, wsgiInput=None, environ=None):
         """
@@ -145,43 +180,8 @@ class Application(object):
         response = self(environ, startResponse)
         return startResponseArgs['status'], startResponseArgs['responseHeaders'], b''.join(response)
 
-    def __call__(self, environ, start_response):
-        """
-        Chisel application WSGI entry point
-        """
 
-        # Match the request by exact URL
-        pathInfo = environ['PATH_INFO']
-        request = self.__requestUrls.get(pathInfo)
-
-        # If no request was matched, match by url regular expression
-        url_args = None
-        if request is None:
-            for reUrl, requestRegex in self.__requestUrlRegex:
-                mUrl = reUrl.match(pathInfo)
-                if mUrl:
-                    request = requestRegex
-                    url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
-                                for url_arg, url_value in iteritems(mUrl.groupdict())}
-                    break
-
-        # Create the request context
-        ctx = _Context(self, environ, start_response, url_args)
-        environ[self.ENVIRON_CTX] = ctx
-
-        # Request not found?
-        if request is None:
-            return ctx.responseText('404 Not Found', 'Not Found')
-
-        # Handle the request
-        try:
-            return request(ctx.environ, ctx.start_response)
-        except: # pylint: disable=bare-except
-            ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
-            return ctx.responseText('500 Internal Server Error', 'Unexpected Error')
-
-
-class _Context(object):
+class Context(object):
     """
     Chisel request context
     """
@@ -211,13 +211,13 @@ class _Context(object):
     def start_response(self, status, headers):
         return self._start_response(status, list(itertools.chain(headers, self.headers)))
 
-    def addHeader(self, key, value):
+    def add_header(self, key, value):
         """
         Add a response header
         """
         self.headers.append((key, value))
 
-    def response(self, status, contentType, content, headers=None):
+    def response(self, status, content_type, content, headers=None):
         """
         Send an HTTP response
         """
@@ -228,7 +228,7 @@ class _Context(object):
         _headers = list(headers) if headers is not None else []
         headers_set = {header[0] for header in _headers}
         if 'Content-Type' not in headers_set:
-            _headers.append(('Content-Type', contentType))
+            _headers.append(('Content-Type', content_type))
         if isinstance(content, list) and 'Content-Length' not in headers_set:
             _headers.append(('Content-Length', str(sum(len(x) for x in content))))
 
@@ -236,18 +236,18 @@ class _Context(object):
         self.start_response(status, _headers)
         return content
 
-    def responseText(self, status, text, headers=None, contentType='text/plain', encoding='utf-8'):
+    def response_text(self, status, text, content_type='text/plain', encoding='utf-8', headers=None):
         """
         Send a plain-text response
         """
-        return self.response(status, contentType, [text.encode(encoding)], headers=headers)
+        return self.response(status, content_type, [text.encode(encoding)], headers=headers)
 
-    def responseJSON(self, response, status=None, isError=False, headers=None):
+    def response_json(self, response, status=None, headers=None, is_error=False):
         """
         Send a JSON response
         """
         if status is None:
-            status = '200 OK' if not isError or self.jsonp is not None else '500 Internal Server Error'
+            status = '200 OK' if not is_error or self.jsonp is not None else '500 Internal Server Error'
         content = json.dumps(response, sort_keys=True,
                              indent=2 if self.app.prettyOutput else None,
                              separators=(', ', ': ') if self.app.prettyOutput else (',', ':'))

@@ -241,12 +241,12 @@ class TestAppApplication(unittest.TestCase):
 
         def request1(environ, dummy_start_response):
             ctx = environ[Application.ENVIRON_CTX]
-            return ctx.responseText('200 OK', '7')
+            return ctx.response_text('200 OK', '7')
 
         def request2(environ, dummy_start_response):
             ctx = environ[Application.ENVIRON_CTX]
             dummy_status, dummy_headers, response = ctx.app.request('GET', '/request1')
-            return ctx.responseText('200 OK', str(5 + int(response)))
+            return ctx.response_text('200 OK', str(5 + int(response)))
 
         app = Application()
         app.add_request(request1)

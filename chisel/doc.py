@@ -55,12 +55,12 @@ action {name}
         requestName = req.get('name')
         if requestName is None:
             content = _indexHtml(ctx.environ, sorted(itervalues(ctx.app.requests), key=lambda x: x.name.lower())).serialize()
-            return ctx.responseText('200 OK', content, contentType='text/html')
+            return ctx.response_text('200 OK', content, content_type='text/html')
         elif requestName in ctx.app.requests:
             content = _requestHtml(ctx.environ, ctx.app.requests[requestName], req.get('nonav')).serialize()
-            return ctx.responseText('200 OK', content, contentType='text/html')
+            return ctx.response_text('200 OK', content, content_type='text/html')
         else:
-            return ctx.responseText('500 Internal Server Error', 'Unknown Request')
+            return ctx.response_text('500 Internal Server Error', 'Unknown Request')
 
 
 class DocPage(Action):
@@ -86,7 +86,7 @@ action {name}
 
     def _action_callback(self, ctx, dummy_req):
         content = _requestHtml(ctx.environ, self.request, nonav=True).serialize()
-        return ctx.responseText('200 OK', content, contentType='text/html')
+        return ctx.response_text('200 OK', content, content_type='text/html')
 
 
 class Element(object):

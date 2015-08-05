@@ -148,7 +148,7 @@ action theAction
         # Action decorator with urls, custom response callback, and validate response bool
         @chisel.action(urls=('/foo',), wsgiResponse=True)
         def myActionDefault(app, dummy_req):
-            return app.responseText('200 OK', 'OK')
+            return app.response_text('200 OK', 'OK')
         self.app.add_request(myActionDefault)
         self.assertEqual(myActionDefault.name, 'myActionDefault')
         self.assertEqual(myActionDefault.urls, ('/foo',))
@@ -248,7 +248,7 @@ action myAction
 action myAction
 ''')
         def myAction(app, dummy_req):
-            app.addHeader('MyHeader', 'MyValue')
+            app.add_header('MyHeader', 'MyValue')
             return {}
         self.app.add_request(myAction)
 
@@ -270,7 +270,7 @@ action myAction
     string b
 ''')
         def myAction(app, req):
-            return app.responseText('200 OK', 'Hello ' + str(req['a'].upper()))
+            return app.response_text('200 OK', 'Hello ' + str(req['a'].upper()))
         self.app.add_request(myAction)
 
         status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": "world"}')
