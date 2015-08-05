@@ -24,8 +24,9 @@ from chisel.compat import long_, unicode_
 from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
     TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
-    TypeUuid, TypeDate, TypeDatetime, tzutc, tzlocal, IMMUTABLE_VALIDATION_MODES
+    TypeUuid, TypeDate, TypeDatetime, IMMUTABLE_VALIDATION_MODES
 import chisel.model
+from chisel.util import tzutc, tzlocal
 
 from datetime import date, datetime
 import json
@@ -1633,7 +1634,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     t.validate(o, mode)
                 except ValidationError as e:
                     self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, '
-                                                      'tzinfo=<chisel.model._TZUTC object at '))
+                                                      'tzinfo=<chisel.util.TZUTC object at '))
                     self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
                 else:
                     self.fail()

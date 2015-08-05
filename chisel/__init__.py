@@ -40,8 +40,6 @@ from .model import \
     JsonUUID, \
     AttributeValidationError, \
     ValidationError, \
-    tzutc, \
-    tzlocal, \
     VALIDATE_DEFAULT, \
     VALIDATE_QUERY_STRING, \
     VALIDATE_JSON_INPUT, \
@@ -58,3 +56,7 @@ from .spec import \
 from .url import \
     decodeQueryString, \
     encodeQueryString
+
+from .util import \
+    tzutc, \
+    tzlocal
