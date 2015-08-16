@@ -62,11 +62,11 @@ def encodeQueryString(o, encoding='utf-8'):
 
 
 # Decode an object from a URL query string
-def decodeQueryString(queryString, encoding='utf-8'):
+def decodeQueryString(query_string, encoding='utf-8'):
 
     # Build the object
     oResult = [None]
-    for keysValueString in queryString.split('&'):
+    for keysValueString in query_string.split('&'):
 
         # Ignore empty key/value strings
         if not keysValueString:

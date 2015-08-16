@@ -26,50 +26,50 @@ _PY3 = (sys.version_info >= (3, 0))
 
 # types
 if _PY3:
-    basestring_ = str
-    long_ = int
-    unichr_ = chr
-    unicode_ = str
-    xrange_ = range
+    basestring_ = str                   # pylint: disable=invalid-name
+    long_ = int                         # pylint: disable=invalid-name
+    unichr_ = chr                       # pylint: disable=invalid-name
+    unicode_ = str                      # pylint: disable=invalid-name
+    xrange_ = range                     # pylint: disable=invalid-name
 else: # pragma: no cover
-    basestring_ = basestring            # pylint: disable=undefined-variable
-    long_ = long                        # pylint: disable=undefined-variable
-    unichr_ = unichr                    # pylint: disable=undefined-variable
-    unicode_ = unicode                  # pylint: disable=undefined-variable
-    xrange_ = xrange                    # pylint: disable=undefined-variable
+    basestring_ = basestring            # pylint: disable=invalid-name, undefined-variable
+    long_ = long                        # pylint: disable=invalid-name, undefined-variable
+    unichr_ = unichr                    # pylint: disable=invalid-name, undefined-variable
+    unicode_ = unicode                  # pylint: disable=invalid-name, undefined-variable
+    xrange_ = xrange                    # pylint: disable=invalid-name, undefined-variable
 
 # dict
 if _PY3:
-    def iteritems(d):
-        return iter(d.items())
+    def iteritems(dict_):
+        return iter(dict_.items())
 
-    def itervalues(d):
-        return iter(d.values())
+    def itervalues(dict_):
+        return iter(dict_.values())
 else: # pragma: no cover
-    def iteritems(d):
-        return d.iteritems()
+    def iteritems(dict_):
+        return dict_.iteritems()
 
-    def itervalues(d):
-        return d.itervalues()
+    def itervalues(dict_):
+        return dict_.itervalues()
 
 # function
 if _PY3:
-    def func_name(f):
-        return f.__name__
+    def func_name(func):
+        return func.__name__
 else: # pragma: no cover
-    def func_name(f):
-        return f.func_name
+    def func_name(func):
+        return func.func_name
 
 # string
 if _PY3:
-    string_isidentifier = str.isidentifier
+    string_isidentifier = str.isidentifier # pylint: disable=invalid-name
 else: # pragma: no cover
     import re as _re
 
-    _rePythonIdentifier = _re.compile(r'^[a-zA-Z_]\w*$')
+    _REGEX_IDENTIFIER = _re.compile(r'^[a-zA-Z_]\w*$')
 
-    def string_isidentifier(s):
-        return _rePythonIdentifier.search(s) is not None
+    def string_isidentifier(string):
+        return _REGEX_IDENTIFIER.search(string) is not None
 
 # html
 if _PY3:

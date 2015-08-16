@@ -41,7 +41,7 @@ class TestAppApplication(unittest.TestCase):
                 Application.__init__(self)
                 self.load_specs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-                self.logLevel = logging.INFO
+                self.log_level = logging.INFO
 
         self.app = MyApplication()
 
@@ -157,16 +157,16 @@ class TestAppApplication(unittest.TestCase):
     def test_app_request(self):
 
         # POST
-        self.app.logFormat = '%(message)s'
+        self.app.log_format = '%(message)s'
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 7}', environ=environ)
+        status, headers, response = self.app.request('POST', '/myAction2', wsgi_input=b'{"value": 7}', environ=environ)
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(environ['wsgi.errors'].getvalue(), 'In myAction2\n')
 
         # GET
-        status, headers, response = self.app.request('GET', '/myAction2', queryString='value=8')
+        status, headers, response = self.app.request('GET', '/myAction2', query_string='value=8')
         self.assertEqual(response.decode('utf-8'), '{"result":16}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
@@ -178,7 +178,7 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         # Request with environ
-        status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 9}',
+        status, headers, response = self.app.request('POST', '/myAction2', wsgi_input=b'{"value": 9}',
                                                      environ={'MYENVIRON': '10'})
         self.assertEqual(response.decode('utf-8'), '{"result":90}')
         self.assertEqual(status, '200 OK')
@@ -191,18 +191,18 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
-        status, headers, response = self.app.request('POST', '/myAction3/123', wsgiInput=b'{}')
+        status, headers, response = self.app.request('POST', '/myAction3/123', wsgi_input=b'{}')
         self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
-        status, headers, response = self.app.request('GET', '/myAction3/123', queryString='myArg=321')
+        status, headers, response = self.app.request('GET', '/myAction3/123', query_string='myArg=321')
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
-    def test_app_logFormat_callable(self):
+    def test_app_log_format_callable(self):
 
         def myWsgi(environ, start_response):
             ctx = environ[Application.ENVIRON_CTX]
@@ -228,7 +228,7 @@ class TestAppApplication(unittest.TestCase):
 
         app = Application()
         app.add_request(myWsgi)
-        app.logFormat = MyFormatter
+        app.log_format = MyFormatter
 
         environ = {'wsgi.errors': StringIO()}
         status, headers, response = app.request('GET', '/myWsgi', environ=environ)

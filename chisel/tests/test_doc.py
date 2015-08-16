@@ -929,11 +929,11 @@ My Union
     def test_doc_element(self):
 
         root = Element('a')
-        b = root.addChild('b')
-        b.addChild('Hello!', isInline=True, isText=True)
-        b.addChild('span', isInline=True).addChild(' There!', isText=True)
-        root.addChild('c', isClosed=False, foo='bar')
-        root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
+        b = root.add_child('b')
+        b.add_child('Hello!', inline=True, text=True)
+        b.add_child('span', inline=True).add_child(' There!', text=True)
+        root.add_child('c', closed=False, foo='bar')
+        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
         chunks = [
             '<!doctype html>\n',
@@ -978,11 +978,11 @@ My Union
     def test_doc_element_noindent(self):
 
         root = Element('a')
-        b = root.addChild('b')
-        b.addChild('Hello!', isInline=True, isText=True)
-        b.addChild('span', isInline=True).addChild(' There!', isText=True)
-        root.addChild('c', isClosed=False, foo='bar')
-        root.addChild('d', attr1='asdf', _attr2='sdfg').addChild('e')
+        b = root.add_child('b')
+        b.add_child('Hello!', inline=True, text=True)
+        b.add_child('span', inline=True).add_child(' There!', text=True)
+        root.add_child('c', closed=False, foo='bar')
+        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
         chunks = [
             '<!doctype html>\n',

@@ -66,22 +66,22 @@ class Action(Request):
     Chisel action request
     """
 
-    __slots__ = ('action_callback', 'model', 'wsgiResponse')
+    __slots__ = ('action_callback', 'model', 'wsgi_response')
 
     JSONP = 'jsonp'
 
-    def __init__(self, action_callback, name=None, urls=None, spec=None, wsgiResponse=False):
+    def __init__(self, action_callback, name=None, urls=None, spec=None, wsgi_response=False):
 
         # Spec provided?
         model = None
         if spec is not None:
-            specParser = SpecParser()
-            specParser.parseString(spec)
+            parser = SpecParser()
+            parser.parseString(spec)
             if name is not None:
-                model = specParser.actions[name]
+                model = parser.actions[name]
             else:
-                assert len(specParser.actions) == 1, 'Action spec must contain exactly one action definition'
-                model = next(itervalues(specParser.actions))
+                assert len(parser.actions) == 1, 'Action spec must contain exactly one action definition'
+                model = next(itervalues(parser.actions))
 
         # Use the action model name, if available
         if name is None:
@@ -90,7 +90,7 @@ class Action(Request):
         Request.__init__(self, self._wsgi_callback, name=name, urls=urls)
         self.action_callback = action_callback
         self.model = model
-        self.wsgiResponse = wsgiResponse
+        self.wsgi_response = wsgi_response
 
     def onload(self, app):
         Request.onload(self, app)
@@ -104,51 +104,51 @@ class Action(Request):
         ctx = environ[Application.ENVIRON_CTX]
 
         # Check the method
-        isGet = (environ['REQUEST_METHOD'] == 'GET')
-        if not isGet and environ['REQUEST_METHOD'] != 'POST':
+        is_get = (environ['REQUEST_METHOD'] == 'GET')
+        if not is_get and environ['REQUEST_METHOD'] != 'POST':
             return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
 
         # Handle the action
         try:
             # Get the input dict
-            if isGet:
+            if is_get:
 
                 # Decode the query string
-                validateMode = VALIDATE_QUERY_STRING
+                validate_mode = VALIDATE_QUERY_STRING
                 try:
                     request = decodeQueryString(environ.get('QUERY_STRING', ''))
-                except Exception as e:
+                except Exception as exc:
                     ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
-                    raise _ActionErrorInternal('InvalidInput', str(e))
+                    raise _ActionErrorInternal('InvalidInput', str(exc))
 
             else:
 
                 # Read the request content
                 try:
-                    requestContent = environ['wsgi.input'].read()
+                    content = environ['wsgi.input'].read()
                 except:
                     ctx.log.warning("I/O error reading input for action '%s'", self.name)
                     raise _ActionErrorInternal('IOError', 'Error reading request content')
 
                 # De-serialize the JSON request
-                validateMode = VALIDATE_JSON_INPUT
+                validate_mode = VALIDATE_JSON_INPUT
                 try:
-                    contentTypeHeader = environ.get('CONTENT_TYPE')
-                    contentCharset = ('utf-8' if contentTypeHeader is None else
-                                      cgi.parse_header(contentTypeHeader)[1].get('charset', 'utf-8'))
-                    request = json.loads(requestContent.decode(contentCharset))
-                except Exception as e:
-                    ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, requestContent)
-                    raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(e))
+                    content_type = environ.get('CONTENT_TYPE')
+                    content_charset = ('utf-8' if content_type is None else
+                                       cgi.parse_header(content_type)[1].get('charset', 'utf-8'))
+                    request = json.loads(content.decode(content_charset))
+                except Exception as exc:
+                    ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
+                    raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
 
             # JSONP?
-            if isGet and self.JSONP in request:
+            if is_get and self.JSONP in request:
                 ctx.jsonp = str(request[self.JSONP])
                 del request[self.JSONP]
 
             # Add url arguments
             if ctx.url_args is not None:
-                validateMode = VALIDATE_QUERY_STRING
+                validate_mode = VALIDATE_QUERY_STRING
                 for url_arg, url_value in iteritems(ctx.url_args):
                     if url_arg in request or url_arg == self.JSONP:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
@@ -157,47 +157,47 @@ class Action(Request):
 
             # Validate the request
             try:
-                request = self.model.inputType.validate(request, validateMode)
-            except ValidationError as e:
-                ctx.log.warning("Invalid input for action '%s': %s", self.name, str(e))
-                raise _ActionErrorInternal('InvalidInput', str(e), e.member)
+                request = self.model.inputType.validate(request, validate_mode)
+            except ValidationError as exc:
+                ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
+                raise _ActionErrorInternal('InvalidInput', str(exc), exc.member)
 
             # Call the action callback
             try:
                 response = self.action_callback(ctx, request)
-                if self.wsgiResponse:
+                if self.wsgi_response:
                     return response
                 elif response is None:
                     response = {}
-            except ActionError as e:
-                response = {'error': e.error}
-                if e.message is not None:
-                    response['message'] = e.message
-            except Exception as e:
+            except ActionError as exc:
+                response = {'error': exc.error}
+                if exc.message is not None:
+                    response['message'] = exc.message
+            except Exception as exc:
                 ctx.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal('UnexpectedError')
 
             # Validate the response
-            if ctx.app.validateOutput:
+            if ctx.app.validate_output:
                 if hasattr(response, '__contains__') and 'error' in response:
-                    responseType = TypeStruct()
-                    responseType.addMember('error', self.model.errorType)
-                    responseType.addMember('message', TypeString(), isOptional=True)
+                    response_type = TypeStruct()
+                    response_type.addMember('error', self.model.errorType)
+                    response_type.addMember('message', TypeString(), isOptional=True)
                 else:
-                    responseType = self.model.outputType
+                    response_type = self.model.outputType
 
                 try:
-                    responseType.validate(response, mode=VALIDATE_JSON_OUTPUT)
-                except ValidationError as e:
-                    ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(e))
-                    raise _ActionErrorInternal('InvalidOutput', str(e), e.member)
+                    response_type.validate(response, mode=VALIDATE_JSON_OUTPUT)
+                except ValidationError as exc:
+                    ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
+                    raise _ActionErrorInternal('InvalidOutput', str(exc), exc.member)
 
-        except _ActionErrorInternal as e:
-            response = {'error': e.error}
-            if e.message is not None:
-                response['message'] = e.message
-            if e.member is not None:
-                response['member'] = e.member
+        except _ActionErrorInternal as exc:
+            response = {'error': exc.error}
+            if exc.message is not None:
+                response['message'] = exc.message
+            if exc.member is not None:
+                response['member'] = exc.member
 
         # Serialize the response as JSON
         return ctx.response_json(response, is_error='error' in response)

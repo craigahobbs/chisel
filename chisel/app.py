@@ -43,19 +43,19 @@ class Application(object):
     Chisel base application
     """
 
-    __slots__ = ('logLevel', 'logFormat', 'prettyOutput', 'validateOutput', 'specs', 'requests', '__requestUrls', '__requestUrlRegex')
+    __slots__ = ('log_level', 'log_format', 'pretty_output', 'validate_output', 'specs', 'requests', '__request_urls', '__request_regex')
 
     ENVIRON_CTX = 'chisel.ctx'
 
     def __init__(self):
-        self.logLevel = logging.WARNING
-        self.logFormat = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
-        self.prettyOutput = False
-        self.validateOutput = True
+        self.log_level = logging.WARNING
+        self.log_format = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
+        self.pretty_output = False
+        self.validate_output = True
         self.specs = SpecParser()
         self.requests = {}
-        self.__requestUrls = {}
-        self.__requestUrlRegex = []
+        self.__request_urls = {}
+        self.__request_regex = []
 
     def load_specs(self, spec_path, spec_ext='.chsl', finalize=True):
         """
@@ -66,11 +66,11 @@ class Application(object):
                 for filename in filenames:
                     (dummy_base, ext) = os.path.splitext(filename)
                     if ext == spec_ext:
-                        with open(os.path.join(dirpath, filename), 'r') as fo:
-                            self.specs.parse(fo, finalize=False)
+                        with open(os.path.join(dirpath, filename), 'r') as file_spec:
+                            self.specs.parse(file_spec, finalize=False)
         else:
-            with open(spec_path, 'r') as fo:
-                self.specs.parse(fo, finalize=False)
+            with open(spec_path, 'r') as file_spec:
+                self.specs.parse(file_spec, finalize=False)
 
         if finalize:
             self.specs.finalize()
@@ -94,12 +94,12 @@ class Application(object):
 
             # URL with arguments?
             if _RE_URL_ARG.search(url):
-                urlRegex = '^' + _RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
-                self.__requestUrlRegex.append((re.compile(urlRegex), request))
+                request_regex = '^' + _RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
+                self.__request_regex.append((re.compile(request_regex), request))
             else:
-                if url in self.__requestUrls:
+                if url in self.__request_urls:
                     raise Exception("Redefinition of request URL '%s'" % (url,))
-                self.__requestUrls[url] = request
+                self.__request_urls[url] = request
 
         # Make the request app-aware at load-time
         request.onload(self)
@@ -109,8 +109,8 @@ class Application(object):
         Recursively load all requests in a directory
         """
         for module in load_modules(module_path, module_ext=module_ext):
-            for moduleAttr in dir(module):
-                request = getattr(module, moduleAttr)
+            for module_attr in dir(module):
+                request = getattr(module, module_attr)
                 if isinstance(request, Request):
                     self.add_request(request)
 
@@ -120,18 +120,18 @@ class Application(object):
         """
 
         # Match the request by exact URL
-        pathInfo = environ['PATH_INFO']
-        request = self.__requestUrls.get(pathInfo)
+        path_info = environ['PATH_INFO']
+        request = self.__request_urls.get(path_info)
 
         # If no request was matched, match by url regular expression
         url_args = None
         if request is None:
-            for reUrl, requestRegex in self.__requestUrlRegex:
-                mUrl = reUrl.match(pathInfo)
-                if mUrl:
-                    request = requestRegex
+            for request_regex, request_ in self.__request_regex:
+                match_request = request_regex.match(path_info)
+                if match_request:
+                    request = request_
                     url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
-                                for url_arg, url_value in iteritems(mUrl.groupdict())}
+                                for url_arg, url_value in iteritems(match_request.groupdict())}
                     break
 
         # Create the request context
@@ -149,7 +149,7 @@ class Application(object):
             ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
             return ctx.response_text('500 Internal Server Error', 'Unexpected Error')
 
-    def request(self, requestMethod, pathInfo, queryString=None, wsgiInput=None, environ=None):
+    def request(self, request_method, path_info, query_string=None, wsgi_input=None, environ=None):
         """
         Make an HTTP request on this application
         """
@@ -157,24 +157,24 @@ class Application(object):
         # WSGI environment
         if environ is None:
             environ = {}
-        environ['REQUEST_METHOD'] = requestMethod
-        environ['PATH_INFO'] = pathInfo
+        environ['REQUEST_METHOD'] = request_method
+        environ['PATH_INFO'] = path_info
         if 'SCRIPT_NAME' not in environ:
             environ['SCRIPT_NAME'] = ''
         if 'QUERY_STRING' not in environ:
-            environ['QUERY_STRING'] = queryString if queryString else ''
-        if wsgiInput is not None:
-            environ['wsgi.input'] = BytesIO(wsgiInput)
+            environ['QUERY_STRING'] = '' if query_string is None else query_string
+        if wsgi_input is not None:
+            environ['wsgi.input'] = BytesIO(wsgi_input)
 
         # Capture the response status and headers
-        startResponseArgs = {}
-        def startResponse(status, responseHeaders):
-            startResponseArgs['status'] = status
-            startResponseArgs['responseHeaders'] = responseHeaders
+        start_response_args = {}
+        def start_response(status, response_headers):
+            start_response_args['status'] = status
+            start_response_args['response_headers'] = response_headers
 
         # Make the request
-        response = self(environ, startResponse)
-        return startResponseArgs['status'], startResponseArgs['responseHeaders'], b''.join(response)
+        response = self(environ, start_response)
+        return start_response_args['status'], start_response_args['response_headers'], b''.join(response)
 
 
 class Context(object):
@@ -194,14 +194,14 @@ class Context(object):
 
         # Create the logger
         self.log = logging.getLoggerClass()('')
-        self.log.setLevel(self.app.logLevel)
+        self.log.setLevel(self.app.log_level)
         wsgi_errors = environ.get('wsgi.errors')
         if wsgi_errors is not None:
             handler = logging.StreamHandler(wsgi_errors)
-            if hasattr(self.app.logFormat, '__call__'):
-                handler.setFormatter(self.app.logFormat(self))
+            if hasattr(self.app.log_format, '__call__'):
+                handler.setFormatter(self.app.log_format(self))
             else:
-                handler.setFormatter(logging.Formatter(self.app.logFormat))
+                handler.setFormatter(logging.Formatter(self.app.log_format))
             self.log.addHandler(handler)
 
     def start_response(self, status, headers):
@@ -245,8 +245,8 @@ class Context(object):
         if status is None:
             status = '200 OK' if not is_error or self.jsonp is not None else '500 Internal Server Error'
         content = json.dumps(response, sort_keys=True,
-                             indent=2 if self.app.prettyOutput else None,
-                             separators=(', ', ': ') if self.app.prettyOutput else (',', ':'))
+                             indent=2 if self.app.pretty_output else None,
+                             separators=(', ', ': ') if self.app.pretty_output else (',', ':'))
         if self.jsonp:
             content = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
         else:
