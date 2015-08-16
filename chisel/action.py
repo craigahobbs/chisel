@@ -123,16 +123,9 @@ class Action(Request):
 
             else:
 
-                # Get the content length
-                try:
-                    contentLength = int(environ['CONTENT_LENGTH'])
-                except ValueError:
-                    ctx.log.warning("Invalid content length for action '%s': %s", self.name, environ.get('CONTENT_LENGTH', ''))
-                    return ctx.response_text('411 Length Required', 'Length Required')
-
                 # Read the request content
                 try:
-                    requestContent = environ['wsgi.input'].read(contentLength)
+                    requestContent = environ['wsgi.input'].read()
                 except:
                     ctx.log.warning("I/O error reading input for action '%s'", self.name)
                     raise _ActionErrorInternal('IOError', 'Error reading request content')

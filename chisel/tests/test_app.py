@@ -158,7 +158,7 @@ class TestAppApplication(unittest.TestCase):
 
         # POST
         self.app.logFormat = '%(message)s'
-        environ = {}
+        environ = {'wsgi.errors': StringIO()}
         status, headers, response = self.app.request('POST', '/myAction2', wsgiInput=b'{"value": 7}', environ=environ)
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
         self.assertEqual(status, '200 OK')
@@ -230,7 +230,7 @@ class TestAppApplication(unittest.TestCase):
         app.add_request(myWsgi)
         app.logFormat = MyFormatter
 
-        environ = {}
+        environ = {'wsgi.errors': StringIO()}
         status, headers, response = app.request('GET', '/myWsgi', environ=environ)
         self.assertEqual(response, 'Hello'.encode('utf-8'))
         self.assertEqual(status, '200 OK')

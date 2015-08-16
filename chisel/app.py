@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, StringIO, urllib_parse_unquote
+from .compat import basestring_, iteritems, urllib_parse_unquote
 from .request import Request
 from .spec import SpecParser
 from .util import load_modules
@@ -154,7 +154,7 @@ class Application(object):
         Make an HTTP request on this application
         """
 
-        # WSGI environment - used passed-in environ if its complete
+        # WSGI environment
         if environ is None:
             environ = {}
         environ['REQUEST_METHOD'] = requestMethod
@@ -163,12 +163,8 @@ class Application(object):
             environ['SCRIPT_NAME'] = ''
         if 'QUERY_STRING' not in environ:
             environ['QUERY_STRING'] = queryString if queryString else ''
-        if 'wsgi.input' not in environ:
-            environ['wsgi.input'] = BytesIO(wsgiInput if wsgiInput else b'')
-            if 'CONTENT_LENGTH' not in environ:
-                environ['CONTENT_LENGTH'] = str(len(wsgiInput)) if wsgiInput else '0'
-        if 'wsgi.errors' not in environ:
-            environ['wsgi.errors'] = StringIO()
+        if wsgiInput is not None:
+            environ['wsgi.input'] = BytesIO(wsgiInput)
 
         # Capture the response status and headers
         startResponseArgs = {}

@@ -389,24 +389,6 @@ action myAction
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
 
-    # Test action post with invalid content length
-    def test_action_error_invalid_content_length(self):
-
-        @chisel.action(spec='''\
-action myAction
-  input
-    int a
-''')
-        def myAction(dummy_app, dummy_req):
-            return {}
-        self.app.add_request(myAction)
-
-        status, headers, response = self.app.request('POST', '/myAction', wsgiInput=b'{"a": 7}', environ={'CONTENT_LENGTH': 'asdf'})
-        self.assertEqual(status, '411 Length Required')
-        self.assertEqual(sorted(headers), [('Content-Length', '15'),
-                                           ('Content-Type', 'text/plain')])
-        self.assertEqual(response.decode('utf-8'), 'Length Required')
-
     # Test action with invalid json content
     def test_action_error_invalid_json(self):
 
@@ -550,7 +532,7 @@ action myAction
                 raise IOError('FAIL')
 
         status, headers, response = \
-            self.app.request('POST', '/myAction', environ={'wsgi.input': MyStream(), 'CONTENT_LENGTH': '2'},)
+            self.app.request('POST', '/myAction', environ={'wsgi.input': MyStream()},)
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Length', '61'),
                                            ('Content-Type', 'application/json')])
