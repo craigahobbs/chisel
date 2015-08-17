@@ -105,21 +105,19 @@ class Element(object):
         self.attrs = attrs
         self.children = []
 
-    def add_child(self, name, inline=None, **attrs):
-        if inline is None:
-            inline = self.inline
-        child = Element(name, inline=inline, **attrs)
+    def add_child(self, name, **kwargs):
+        child = Element(name, **kwargs)
         self.children.append(child)
         return child
 
-    def serialize_chunks(self, indent='  ', indent_index=0):
+    def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
 
         # HTML5
         if indent_index <= 0:
             yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
-        if not self.inline and indent_index > 0:
+        if not inline and indent_index > 0:
             yield '\n'
             if not self.text and not self.text_raw:
                 yield indent * indent_index
@@ -141,14 +139,12 @@ class Element(object):
             return
 
         # Children elements
-        inline = self.inline
         for child in self.children:
-            for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1):
+            for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
                 yield chunk
-            inline = child.inline
 
         # Element close
-        if not inline:
+        if not inline and not self.inline:
             yield '\n' + indent * indent_index
         yield '</' + self.name + '>'
 
@@ -156,15 +152,14 @@ class Element(object):
         return ''.join(self.serialize_chunks(indent=indent))
 
 
-# Generate the top-level action documentation index
 def _index_html(environ, requests):
-    docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
     # Index page header
     root = Element('html')
     head = root.add_child('head')
     head.add_child('meta', closed=False, charset='UTF-8')
-    head.add_child('title').add_child('Actions', text=True, inline=True)
+    head.add_child('title', inline=True).add_child('Actions', text=True)
     _add_style(head)
     body = root.add_child('body', _class='chsl-index-body')
 
@@ -173,68 +168,65 @@ def _index_html(environ, requests):
         title = environ['HTTP_HOST']
     else:
         title = environ['SERVER_NAME'] + (':' + environ['SERVER_PORT'] if environ['SERVER_NAME'] != 80 else '')
-    body.add_child('h1').add_child(title, text=True, inline=True)
+    body.add_child('h1', inline=True).add_child(title, text=True)
 
     # Action and request links
-    ulSections = body.add_child('ul', _class='chsl-request-section')
-    for sectionTitle, sectionFilter in \
-        (('Actions', lambda request: isinstance(request, Action)),
-         ('Other Requests', lambda request: not isinstance(request, Action))):
-
-        sectionRequests = [request for request in requests if sectionFilter(request)]
-        if sectionRequests:
-            liSection = ulSections.add_child('li')
-            liSection.add_child('span', inline=True) \
-                     .add_child(sectionTitle, text=True, inline=True)
-            ulRequests = liSection.add_child('ul', _class='chsl-request-list')
-            for request in sectionRequests:
-                liRequest = ulRequests.add_child('li')
-                liRequest.add_child('a', inline=True, href=docRootUri + '?name=' + urllib_parse_quote(request.name)) \
-                         .add_child(request.name, text=True)
+    ul_sections = body.add_child('ul', _class='chsl-request-section')
+    for section_title, section_requests in \
+        (('Actions', [request for request in requests if isinstance(request, Action)]),
+         ('Other Requests', [request for request in requests if not isinstance(request, Action)])):
+        if section_requests:
+            li_section = ul_sections.add_child('li')
+            li_section.add_child('span', inline=True) \
+                      .add_child(section_title, text=True)
+            ul_requests = li_section.add_child('ul', _class='chsl-request-list')
+            for request in section_requests:
+                li_request = ul_requests.add_child('li', inline=True)
+                li_request.add_child('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name)) \
+                          .add_child(request.name, text=True)
 
     return root
 
 
-# Generate the documentation for a request
 def _request_html(environ, request, nonav=False):
-    docRootUri = environ['SCRIPT_NAME'] + environ['PATH_INFO']
-    isAction = isinstance(request, Action)
+    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
     # Request page header
     root = Element('html')
     head = root.add_child('head')
     head.add_child('meta', closed=False, charset='UTF-8')
-    head.add_child('title').add_child(request.name, text=True, inline=True)
+    head.add_child('title', inline=True).add_child(request.name, text=True)
     _add_style(head)
     body = root.add_child('body', _class='chsl-request-body')
     if not nonav:
         header = body.add_child('div', _class='chsl-header')
-        header.add_child('a', href=docRootUri) \
-            .add_child('Back to documentation index', text=True, inline=True)
+        header.add_child('a', inline=True, href=doc_root_url) \
+              .add_child('Back to documentation index', text=True)
 
     # Request title
-    body.add_child('h1') \
-        .add_child(request.name, text=True, inline=True)
-    _addDocText(body, request.model.doc if isAction else request.doc)
+    body.add_child('h1', inline=True) \
+        .add_child(request.name, text=True)
+    _addDocText(body, request.model.doc if isinstance(request, Action) else request.doc)
 
     # Note for request URLs
     notes = body.add_child('div', _class='chsl-notes')
     if request.urls:
         noteUrl = notes.add_child('div', _class='chsl-note')
         noteUrlP = noteUrl.add_child('p')
-        noteUrlP.add_child('b').add_child('Note: ', text=True, inline=True)
+        noteUrlP.add_child('b', inline=True).add_child('Note: ', text=True)
         noteUrlP.add_child('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
         ulUrls = noteUrl.add_child('ul')
         for url in request.urls:
-            ulUrls.add_child('li').add_child('a', inline=True, href=url) \
-                .add_child(url, text=True, inline=True)
+            ulUrls.add_child('li', inline=True) \
+                  .add_child('a', href=url) \
+                  .add_child(url, text=True)
 
-    if isAction:
+    if isinstance(request, Action):
         # Note for custom response callback
         if request.wsgi_response:
             noteResponse = notes.add_child('div', _class='chsl-note')
             noteResponseP = noteResponse.add_child('p')
-            noteResponseP.add_child('b').add_child('Note: ', text=True, inline=True)
+            noteResponseP.add_child('b', inline=True).add_child('Note: ', text=True)
             noteResponseP.add_child('The action has a non-default response. See documentation for details.', text=True)
 
         # Find all user types referenced by the action
@@ -271,18 +263,18 @@ def _request_html(environ, request, nonav=False):
 
         # User types
         if typedefTypes:
-            body.add_child('h2') \
-                .add_child('Typedefs', text=True, inline=True)
+            body.add_child('h2', inline=True) \
+                .add_child('Typedefs', text=True)
             for typedefType in sorted(itervalues(typedefTypes), key=lambda x: x.typeName.lower()):
                 _typedefSection(body, typedefType)
         if structTypes:
-            body.add_child('h2') \
-                .add_child('Struct Types', text=True, inline=True)
+            body.add_child('h2', inline=True) \
+                .add_child('Struct Types', text=True)
             for structType in sorted(itervalues(structTypes), key=lambda x: x.typeName.lower()):
                 _structSection(body, structType)
         if enumTypes:
-            body.add_child('h2') \
-                .add_child('Enum Types', text=True, inline=True)
+            body.add_child('h2', inline=True) \
+                .add_child('Enum Types', text=True)
             for enumType in sorted(itervalues(enumTypes), key=lambda x: x.typeName.lower()):
                 _enumSection(body, enumType)
 
@@ -433,13 +425,13 @@ def _addTypeNameHelper(parent, type_):
 def _addTypeName(parent, type_):
     if isinstance(type_, TypeArray):
         _addTypeNameHelper(parent, type_.type)
-        parent.add_child('&nbsp;[]', text_raw=True, inline=True)
+        parent.add_child('&nbsp;[]', text_raw=True)
     elif isinstance(type_, TypeDict):
         if not type_.hasDefaultKeyType():
             _addTypeNameHelper(parent, type_.keyType)
-            parent.add_child('&nbsp;:&nbsp;', text_raw=True, inline=True)
+            parent.add_child('&nbsp;:&nbsp;', text_raw=True)
         _addTypeNameHelper(parent, type_.type)
-        parent.add_child('&nbsp;{}', text_raw=True, inline=True)
+        parent.add_child('&nbsp;{}', text_raw=True)
     else:
         _addTypeNameHelper(parent, type_)
 
@@ -472,10 +464,10 @@ def _attributeList(attr, valueName, lenName):
 
 # Attribute DOM helper
 def _attributeDom(ul, lhs, op, rhs):
-    li = ul.add_child('li')
-    li.add_child('span', inline=True, _class='chsl-emphasis').add_child(lhs, text=True)
+    li = ul.add_child('li', inline=True)
+    li.add_child('span', _class='chsl-emphasis').add_child(lhs, text=True)
     if op is not None and rhs is not None:
-        li.add_child(' ' + op + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True, inline=True)
+        li.add_child(' ' + op + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
 
 
 # Type attributes HTML helper
@@ -534,20 +526,20 @@ def _addDocText(parent, doc):
 def _typedefSection(parent, type_):
 
     # Section title
-    parent.add_child('h3', _id=_userTypeHref(type_)) \
-        .add_child('a', inline=True, _class='linktarget') \
+    parent.add_child('h3', inline=True, _id=_userTypeHref(type_)) \
+        .add_child('a', _class='linktarget') \
         .add_child('typedef ' + type_.typeName, text=True)
     _addDocText(parent, type_.doc)
 
     # Table header
     table = parent.add_child('table')
     tr = table.add_child('tr')
-    tr.add_child('th').add_child('Type', text=True, inline=True)
-    tr.add_child('th').add_child('Attributes', text=True, inline=True)
+    tr.add_child('th', inline=True).add_child('Type', text=True)
+    tr.add_child('th', inline=True).add_child('Attributes', text=True)
 
     # Typedef type/attr rows
     tr = table.add_child('tr')
-    _addTypeName(tr.add_child('td'), type_.type)
+    _addTypeName(tr.add_child('td', inline=True), type_.type)
     _addTypeAttr(tr.add_child('td'), type_.type, type_.attr, False)
 
 
@@ -563,8 +555,8 @@ def _structSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
         emptyMessage = 'The struct is empty.'
 
     # Section title
-    parent.add_child(titleTag, _id=_userTypeHref(type_)) \
-        .add_child('a', inline=True, _class='linktarget') \
+    parent.add_child(titleTag, inline=True, _id=_userTypeHref(type_)) \
+        .add_child('a', _class='linktarget') \
         .add_child(title, text=True)
     _addDocText(parent, type_.doc)
 
@@ -578,17 +570,17 @@ def _structSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
         # Table header
         table = parent.add_child('table')
         tr = table.add_child('tr')
-        tr.add_child('th').add_child('Name', text=True, inline=True)
-        tr.add_child('th').add_child('Type', text=True, inline=True)
-        tr.add_child('th').add_child('Attributes', text=True, inline=True)
+        tr.add_child('th', inline=True).add_child('Name', text=True)
+        tr.add_child('th', inline=True).add_child('Type', text=True)
+        tr.add_child('th', inline=True).add_child('Attributes', text=True)
         if hasDescription:
-            tr.add_child('th').add_child('Description', text=True, inline=True)
+            tr.add_child('th', inline=True).add_child('Description', text=True)
 
         # Struct member rows
         for member in type_.members:
             tr = table.add_child('tr')
-            tr.add_child('td').add_child(member.name, text=True, inline=True)
-            _addTypeName(tr.add_child('td'), member.type)
+            tr.add_child('td', inline=True).add_child(member.name, text=True)
+            _addTypeName(tr.add_child('td', inline=True), member.type)
             _addTypeAttr(tr.add_child('td'), member.type, member.attr, member.isOptional)
             if hasDescription:
                 _addDocText(tr.add_child('td'), member.doc)
@@ -606,8 +598,8 @@ def _enumSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
         emptyMessage = 'The enum is empty.'
 
     # Section title
-    parent.add_child(titleTag, _id=_userTypeHref(type_)) \
-        .add_child('a', inline=True, _class='linktarget') \
+    parent.add_child(titleTag, inline=True, _id=_userTypeHref(type_)) \
+        .add_child('a', _class='linktarget') \
         .add_child(title, text=True)
     _addDocText(parent, type_.doc)
 
@@ -621,13 +613,13 @@ def _enumSection(parent, type_, titleTag=None, title=None, emptyMessage=None):
         # Table header
         table = parent.add_child('table')
         tr = table.add_child('tr')
-        tr.add_child('th').add_child('Value', text=True, inline=True)
+        tr.add_child('th', inline=True).add_child('Value', text=True)
         if hasDescription:
-            tr.add_child('th').add_child('Description', text=True, inline=True)
+            tr.add_child('th', inline=True).add_child('Description', text=True)
 
         # Enum value rows
         for value in type_.values:
             tr = table.add_child('tr')
-            tr.add_child('td').add_child(value.value, text=True, inline=True)
+            tr.add_child('td', inline=True).add_child(value.value, text=True)
             if hasDescription:
                 _addDocText(tr.add_child('td'), value.doc)

@@ -279,7 +279,8 @@ ul.chsl-constraint-list {
   <body class="chsl-index-body">
     <h1>localhost:8080</h1>
     <ul class="chsl-request-section">
-      <li><span>Actions</span>
+      <li>
+        <span>Actions</span>
         <ul class="chsl-request-list">
           <li><a href="/doc?name=doc">doc</a></li>
           <li><a href="/doc?name=myAction1">myAction1</a></li>
@@ -929,9 +930,9 @@ My Union
     def test_doc_element(self):
 
         root = Element('a')
-        b = root.add_child('b')
-        b.add_child('Hello!', inline=True, text=True)
-        b.add_child('span', inline=True).add_child(' There!', text=True)
+        b = root.add_child('b', inline=True)
+        b.add_child('Hello!', text=True)
+        b.add_child('span').add_child(' There!', text=True)
         root.add_child('c', closed=False, foo='bar')
         root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
@@ -978,9 +979,9 @@ My Union
     def test_doc_element_noindent(self):
 
         root = Element('a')
-        b = root.add_child('b')
-        b.add_child('Hello!', inline=True, text=True)
-        b.add_child('span', inline=True).add_child(' There!', text=True)
+        b = root.add_child('b', inline=True)
+        b.add_child('Hello!', text=True)
+        b.add_child('span').add_child(' There!', text=True)
         root.add_child('c', closed=False, foo='bar')
         root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
@@ -1176,7 +1177,8 @@ ul.chsl-constraint-list {
   <body class="chsl-index-body">
     <h1>localhost:8080</h1>
     <ul class="chsl-request-section">
-      <li><span>Actions</span>
+      <li>
+        <span>Actions</span>
         <ul class="chsl-request-list">
           <li><a href="/doc?name=doc">doc</a></li>
           <li><a href="/doc?name=doc_action_myAction">doc_action_myAction</a></li>
