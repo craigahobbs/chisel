@@ -202,46 +202,46 @@ class TestModelJsonUUID(unittest.TestCase):
 
 class TestModelValidationError(unittest.TestCase):
 
-    def test_model_memberSyntax_dict_single(self):
-        self.assertEqual(ValidationError.memberSyntax(('a',)), 'a')
+    def test_model_member_syntax_dict_single(self):
+        self.assertEqual(ValidationError.member_syntax(('a',)), 'a')
 
-    def test_model_memberSyntax_dict_nested(self):
-        self.assertEqual(ValidationError.memberSyntax(('a', 'b', 'c')), 'a.b.c')
+    def test_model_member_syntax_dict_nested(self):
+        self.assertEqual(ValidationError.member_syntax(('a', 'b', 'c')), 'a.b.c')
 
-    def test_model_memberSyntax_array_single(self):
-        self.assertEqual(ValidationError.memberSyntax((0,)), '[0]')
+    def test_model_member_syntax_array_single(self):
+        self.assertEqual(ValidationError.member_syntax((0,)), '[0]')
 
-    def test_model_memberSyntax_array_nested(self):
-        self.assertEqual(ValidationError.memberSyntax((0, 1, 0)), '[0][1][0]')
+    def test_model_member_syntax_array_nested(self):
+        self.assertEqual(ValidationError.member_syntax((0, 1, 0)), '[0][1][0]')
 
-    def test_model_memberSyntax_mixed(self):
-        self.assertEqual(ValidationError.memberSyntax(('a', 1, 'b')), 'a[1].b')
+    def test_model_member_syntax_mixed(self):
+        self.assertEqual(ValidationError.member_syntax(('a', 1, 'b')), 'a[1].b')
 
-    def test_model_memberSyntax_mixed2(self):
-        self.assertEqual(ValidationError.memberSyntax((1, 'a', 0)), '[1].a[0]')
+    def test_model_member_syntax_mixed2(self):
+        self.assertEqual(ValidationError.member_syntax((1, 'a', 0)), '[1].a[0]')
 
-    def test_model_memberSyntax_empty(self):
-        self.assertEqual(ValidationError.memberSyntax(()), None)
+    def test_model_member_syntax_empty(self):
+        self.assertEqual(ValidationError.member_syntax(()), None)
 
-    def test_model_memberSyntax_none(self):
-        self.assertEqual(ValidationError.memberSyntax(None), None)
+    def test_model_member_syntax_none(self):
+        self.assertEqual(ValidationError.member_syntax(None), None)
 
-    def test_model_memberError_basic(self):
-        e = ValidationError.memberError(TypeInt(), 'abc', ('a',))
+    def test_model_member_error_basic(self):
+        e = ValidationError.member_error(TypeInt(), 'abc', ('a',))
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
         self.assertEqual(e.member, 'a')
 
-    def test_model_memberError_no_member(self):
-        e = ValidationError.memberError(TypeInt(), 'abc', ())
+    def test_model_member_error_no_member(self):
+        e = ValidationError.member_error(TypeInt(), 'abc', ())
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
         self.assertEqual(e.member, None)
 
-    def test_model_memberError_constraint(self):
-        e = ValidationError.memberError(TypeInt(), 6, ('a',), constraintSyntax='< 5')
+    def test_model_member_error_constraint(self):
+        e = ValidationError.member_error(TypeInt(), 6, ('a',), constraint_syntax='< 5')
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")

@@ -152,29 +152,29 @@ class ValidationError(Exception):
         self.member = member
 
     @classmethod
-    def _flattenMembers(cls, members):
+    def _flatten_members(cls, members):
         for member2 in members:
             if isinstance(member2, tuple):
-                for member3 in cls._flattenMembers(member2):
+                for member3 in cls._flatten_members(member2):
                     yield member3
             else:
                 yield member2
 
     @classmethod
-    def memberSyntax(cls, members):
+    def member_syntax(cls, members):
         if members:
             return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']'))
-                           for x in cls._flattenMembers(members)).lstrip('.')
+                           for x in cls._flatten_members(members)).lstrip('.')
         return None
 
     @classmethod
-    def memberError(cls, type_, value, members, constraintSyntax=None):
-        memberSyntax = cls.memberSyntax(members)
+    def member_error(cls, type_, value, members, constraint_syntax=None):
+        member_syntax = cls.member_syntax(members)
         msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
-              ((" for member '" + memberSyntax + "'") if memberSyntax else '') + \
+              ((" for member '" + member_syntax + "'") if member_syntax else '') + \
               ((", expected type '" + type_.typeName + "'") if type_ else '') + \
-              ((' [' + constraintSyntax + ']') if constraintSyntax else '')
-        return ValidationError(msg, member=memberSyntax)
+              ((' [' + constraint_syntax + ']') if constraint_syntax else '')
+        return ValidationError(msg, member=member_syntax)
 
 
 # Struct member attributes
@@ -198,25 +198,25 @@ class StructMemberAttributes(object):
 
     def validate(self, value, _member=()):
         if self.lt is not None and not value < self.lt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='< ' + repr(JsonFloat(self.lt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='< ' + repr(JsonFloat(self.lt, 6)))
         if self.lte is not None and not value <= self.lte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='<= ' + repr(JsonFloat(self.lte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='<= ' + repr(JsonFloat(self.lte, 6)))
         if self.gt is not None and not value > self.gt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='> ' + repr(JsonFloat(self.gt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='> ' + repr(JsonFloat(self.gt, 6)))
         if self.gte is not None and not value >= self.gte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='>= ' + repr(JsonFloat(self.gte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='>= ' + repr(JsonFloat(self.gte, 6)))
         if self.eq is not None and not value == self.eq:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='== ' + repr(JsonFloat(self.eq, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='== ' + repr(JsonFloat(self.eq, 6)))
         if self.len_lt is not None and not len(value) < self.len_lt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='len < ' + repr(JsonFloat(self.len_lt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len < ' + repr(JsonFloat(self.len_lt, 6)))
         if self.len_lte is not None and not len(value) <= self.len_lte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='len <= ' + repr(JsonFloat(self.len_lte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len <= ' + repr(JsonFloat(self.len_lte, 6)))
         if self.len_gt is not None and not len(value) > self.len_gt:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='len > ' + repr(JsonFloat(self.len_gt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len > ' + repr(JsonFloat(self.len_gt, 6)))
         if self.len_gte is not None and not len(value) >= self.len_gte:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='len >= ' + repr(JsonFloat(self.len_gte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len >= ' + repr(JsonFloat(self.len_gte, 6)))
         if self.len_eq is not None and not len(value) == self.len_eq:
-            raise ValidationError.memberError(None, value, _member, constraintSyntax='len == ' + repr(JsonFloat(self.len_eq, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len == ' + repr(JsonFloat(self.len_eq, 6)))
 
     def validateAttr(self, allowValue=False, allowLength=False):
         if not allowValue:
@@ -310,12 +310,12 @@ class TypeStruct(object):
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = {}
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         # Valid union?
         if self.isUnion:
             if len(valueX) != 1:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
@@ -326,7 +326,7 @@ class TypeStruct(object):
             memberPath = (_member, memberName)
             member = membersDict.get(memberName)
             if member is None:
-                raise ValidationError("Unknown member '" + ValidationError.memberSyntax((_member, memberName)) + "'")
+                raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, memberName)) + "'")
             memberValueX = membersDict[memberName].type.validate(memberValue, mode, memberPath)
             if member.attr is not None:
                 member.attr.validate(memberValueX, memberPath)
@@ -337,7 +337,7 @@ class TypeStruct(object):
         if len(self.members) != len(valueX):
             for member in self.members:
                 if not self.isUnion and not member.isOptional and member.name not in valueX:
-                    raise ValidationError("Required member '" + ValidationError.memberSyntax((_member, member.name)) + "' missing")
+                    raise ValidationError("Required member '" + ValidationError.member_syntax((_member, member.name)) + "' missing")
 
         return value if valueCopy is None else valueCopy
 
@@ -364,7 +364,7 @@ class TypeArray(object):
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = []
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else []
@@ -415,7 +415,7 @@ class TypeDict(object):
         elif mode == VALIDATE_QUERY_STRING and value == '':
             valueX = {}
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
         valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
@@ -474,7 +474,7 @@ class TypeEnum(object):
 
         # Validate the value
         if value not in self.values:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         return value
 
@@ -493,7 +493,7 @@ class _TypeString(object):
 
         # Validate the value
         if not isinstance(value, basestring_):
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         return value
 
@@ -522,14 +522,14 @@ class _TypeInt(object):
         elif isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
             valueX = int(value)
             if valueX != value:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
                 valueX = int(value)
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
@@ -561,9 +561,9 @@ class _TypeFloat(object):
             try:
                 valueX = float(value)
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
 
@@ -598,9 +598,9 @@ class _TypeBool(object):
             try:
                 return self.VALUES[value]
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
 
 def TypeBool():
@@ -624,7 +624,7 @@ class _TypeUuid(object):
         # Validate and translate the value
         if isinstance(value, UUID):
             if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.memberError(self, value, _member, constraintSyntax='JsonUUID object required')
+                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonUUID object required')
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonUUID):
             return value
@@ -632,9 +632,9 @@ class _TypeUuid(object):
             try:
                 return UUID(value)
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
 
 def TypeUuid():
@@ -658,7 +658,7 @@ class _TypeDate(object):
         # Validate and translate the value
         if isinstance(value, date):
             if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.memberError(self, value, _member, constraintSyntax='JsonDate object required')
+                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonDate object required')
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDate):
             return value
@@ -666,9 +666,9 @@ class _TypeDate(object):
             try:
                 return parse_iso8601_date(value)
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
 
 def TypeDate():
@@ -692,7 +692,7 @@ class _TypeDatetime(object):
         # Validate and translate the value
         if isinstance(value, datetime):
             if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.memberError(self, value, _member, constraintSyntax='JsonDatetime object required')
+                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonDatetime object required')
 
             # Set a time zone, if necessary
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
@@ -705,9 +705,9 @@ class _TypeDatetime(object):
             try:
                 return parse_iso8601_datetime(value)
             except:
-                raise ValidationError.memberError(self, value, _member)
+                raise ValidationError.member_error(self, value, _member)
         else:
-            raise ValidationError.memberError(self, value, _member)
+            raise ValidationError.member_error(self, value, _member)
 
 
 def TypeDatetime():
