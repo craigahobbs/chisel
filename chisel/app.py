@@ -196,13 +196,15 @@ class Context(object):
         self.log = logging.getLoggerClass()('')
         self.log.setLevel(self.app.log_level)
         wsgi_errors = environ.get('wsgi.errors')
-        if wsgi_errors is not None:
+        if wsgi_errors is None:
+            handler = logging.NullHandler()
+        else:
             handler = logging.StreamHandler(wsgi_errors)
-            if hasattr(self.app.log_format, '__call__'):
-                handler.setFormatter(self.app.log_format(self))
-            else:
-                handler.setFormatter(logging.Formatter(self.app.log_format))
-            self.log.addHandler(handler)
+        if hasattr(self.app.log_format, '__call__'):
+            handler.setFormatter(self.app.log_format(self))
+        else:
+            handler.setFormatter(logging.Formatter(self.app.log_format))
+        self.log.addHandler(handler)
 
     def start_response(self, status, headers):
         return self._start_response(status, list(itertools.chain(headers, self.headers)))
