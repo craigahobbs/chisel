@@ -54,9 +54,9 @@ from .spec import \
     SpecParserError
 
 from .url import \
-    decodeQueryString, \
-    encodeQueryString
+    decode_query_string, \
+    encode_query_string
 
 from .util import \
-    tzutc, \
-    tzlocal
+    TZLOCAL, \
+    TZUTC

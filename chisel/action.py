@@ -25,7 +25,7 @@ from .compat import func_name, iteritems, itervalues
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
 from .request import Request
 from .spec import SpecParser
-from .url import decodeQueryString
+from .url import decode_query_string
 
 import cgi
 import json
@@ -116,7 +116,7 @@ class Action(Request):
                 # Decode the query string
                 validate_mode = VALIDATE_QUERY_STRING
                 try:
-                    request = decodeQueryString(environ.get('QUERY_STRING', ''))
+                    request = decode_query_string(environ.get('QUERY_STRING', ''))
                 except Exception as exc:
                     ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
                     raise _ActionErrorInternal('InvalidInput', str(exc))

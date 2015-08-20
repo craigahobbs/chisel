@@ -31,7 +31,7 @@ import re
 import sys
 
 
-class TZUTC(tzinfo):
+class _TZUTC(tzinfo):
     """
     GMT tzinfo class (from Python docs)
     """
@@ -39,16 +39,16 @@ class TZUTC(tzinfo):
     __slots__ = ()
 
     def utcoffset(self, dt):
-        return timedelta_zero
+        return TIMEDELTA_ZERO
 
     def dst(self, dt):
-        return timedelta_zero
+        return TIMEDELTA_ZERO
 
     def tzname(self, dt):
         return 'UTC'
 
 
-class TZLocal(tzinfo):
+class _TZLocal(tzinfo):
     """
     Local time zone tzinfo class (from Python docs)
     """
@@ -57,45 +57,45 @@ class TZLocal(tzinfo):
 
     def utcoffset(self, dt):
         if self._isdst(dt):
-            return self._dstOffset()
+            return self._dst_offset()
         else:
-            return self._stdOffset()
+            return self._std_offset()
 
     def dst(self, dt):
         if self._isdst(dt):
-            return self._dstOffset() - self._stdOffset()
+            return self._dst_offset() - self._std_offset()
         else:
-            return timedelta_zero
+            return TIMEDELTA_ZERO
 
     def tzname(self, dt):
         return time_tzname[self._isdst(dt)]
 
     @classmethod
-    def _stdOffset(cls):
+    def _std_offset(cls):
         return timedelta(seconds=-time_timezone)
 
     @classmethod
-    def _dstOffset(cls):
+    def _dst_offset(cls):
         if time_daylight:
             return timedelta(seconds=-time_altzone)
         else:
-            return cls._stdOffset()
+            return cls._std_offset()
 
     @classmethod
-    def _isdst(cls, dt):
-        tt = (dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0)
-        stamp = time_mktime(tt)
-        tt = time_localtime(stamp)
-        return tt.tm_isdst > 0
+    def _isdst(cls, dt_):
+        tt_ = (dt_.year, dt_.month, dt_.day, dt_.hour, dt_.minute, dt_.second, dt_.weekday(), 0, 0)
+        stamp = time_mktime(tt_)
+        tt_ = time_localtime(stamp)
+        return tt_.tm_isdst > 0
 
 
 # Datetime constants
-timedelta_zero = timedelta(0)
+TIMEDELTA_ZERO = timedelta(0)
 
 
 # Time zone constants
-tzutc = TZUTC()
-tzlocal = TZLocal()
+TZUTC = _TZUTC()
+TZLOCAL = _TZLocal()
 
 
 # ISO 8601 regexes
@@ -105,46 +105,46 @@ _RE_ISO8601_DATETIME = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day
                                   r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
 
 
-def parse_iso8601_date(s):
+def parse_iso8601_date(string):
     """
     Parse an ISO 8601 date string
     """
 
     # Match ISO 8601?
-    m = _RE_ISO8601_DATE.search(s)
-    if not m:
+    match = _RE_ISO8601_DATE.search(string)
+    if not match:
         raise ValueError('Expected ISO 8601 date')
 
     # Extract ISO 8601 components
-    year = int(m.group('year'))
-    month = int(m.group('month'))
-    day = int(m.group('day'))
+    year = int(match.group('year'))
+    month = int(match.group('month'))
+    day = int(match.group('day'))
 
     return date(year, month, day)
 
 
-def parse_iso8601_datetime(s):
+def parse_iso8601_datetime(string):
     """
     Parse an ISO 8601 date/time string
     """
 
     # Match ISO 8601?
-    m = _RE_ISO8601_DATETIME.search(s)
-    if not m:
+    match = _RE_ISO8601_DATETIME.search(string)
+    if not match:
         raise ValueError('Expected ISO 8601 date/time')
 
     # Extract ISO 8601 components
-    year = int(m.group('year'))
-    month = int(m.group('month'))
-    day = int(m.group('day'))
-    hour = int(m.group('hour')) if m.group('hour') else 0
-    minute = int(m.group('min')) if m.group('min') else 0
-    sec = int(m.group('sec')) if m.group('sec') else 0
-    microsec = int(float('.' + m.group('fracsec')) * 1000000) if m.group('fracsec') else 0
-    offhour = int(m.group('offsign') + m.group('offhour')) if m.group('offhour') else 0
-    offmin = int(m.group('offsign') + m.group('offmin')) if m.group('offmin') else 0
+    year = int(match.group('year'))
+    month = int(match.group('month'))
+    day = int(match.group('day'))
+    hour = int(match.group('hour')) if match.group('hour') else 0
+    minute = int(match.group('min')) if match.group('min') else 0
+    sec = int(match.group('sec')) if match.group('sec') else 0
+    microsec = int(float('.' + match.group('fracsec')) * 1000000) if match.group('fracsec') else 0
+    offhour = int(match.group('offsign') + match.group('offhour')) if match.group('offhour') else 0
+    offmin = int(match.group('offsign') + match.group('offmin')) if match.group('offmin') else 0
 
-    return (datetime(year, month, day, hour, minute, sec, microsec, tzutc) -
+    return (datetime(year, month, day, hour, minute, sec, microsec, TZUTC) -
             timedelta(hours=offhour, minutes=offmin))
 
 
@@ -158,28 +158,28 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
         raise IOError('%r not found or is not a directory' % (module_path,))
 
     # Where is this module on the system path?
-    moduleDirParts = module_path.split(os.sep)
+    module_dir_parts = module_path.split(os.sep)
 
-    def findModuleNameIndex():
-        for sysPath in sys.path:
-            for iModulePart in xrange_(len(moduleDirParts) - 1, 0, -1):
-                moduleNameParts = moduleDirParts[iModulePart:]
-                if not any(not string_isidentifier(part) for part in moduleNameParts):
-                    sysModulePath = os.path.join(sysPath, *moduleNameParts)
-                    if os.path.isdir(sysModulePath) and os.path.samefile(module_path, sysModulePath):
+    def find_module_name_index():
+        for sys_path in sys.path:
+            for ix_module_part in xrange_(len(module_dir_parts) - 1, 0, -1):
+                module_name_parts = module_dir_parts[ix_module_part:]
+                if not any(not string_isidentifier(part) for part in module_name_parts):
+                    sys_module_path = os.path.join(sys_path, *module_name_parts)
+                    if os.path.isdir(sys_module_path) and os.path.samefile(module_path, sys_module_path):
                         # Make sure the module package is import-able
-                        moduleName = '.'.join(moduleNameParts)
+                        module_name = '.'.join(module_name_parts)
                         try:
-                            __import__(moduleName)
+                            __import__(module_name)
                         except ImportError:
                             pass
                         else:
-                            return len(moduleDirParts) - len(moduleNameParts)
+                            return len(module_dir_parts) - len(module_name_parts)
         raise ImportError('%r not found on system path' % (module_path,))
-    ixModuleName = findModuleNameIndex()
+    ix_module_name = find_module_name_index()
 
     # Recursively find module files
-    excludedSubmodulesDot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
+    excluded_submodules_dot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
     for dirpath, dummy_dirnames, filenames in os.walk(module_path):
 
         # Skip Python 3.x cache directories
@@ -187,10 +187,10 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
             continue
 
         # Is the sub-package excluded?
-        subpkgParts = dirpath.split(os.sep)
-        subpkgName = '.'.join(itertools.islice(subpkgParts, ixModuleName, None))
+        subpackage_parts = dirpath.split(os.sep)
+        subpackage_name = '.'.join(itertools.islice(subpackage_parts, ix_module_name, None))
         if exclude_submodules is not None and \
-           (subpkgName in exclude_submodules or any(subpkgName.startswith(x) for x in excludedSubmodulesDot)):
+           (subpackage_name in exclude_submodules or any(subpackage_name.startswith(x) for x in excluded_submodules_dot)):
             continue
 
         # Load each sub-module file in the directory
@@ -206,10 +206,10 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
                 continue
 
             # Is the sub-module excluded?
-            submoduleName = subpkgName + '.' + basename
+            submodule_name = subpackage_name + '.' + basename
             if exclude_submodules is not None and \
-               (submoduleName in exclude_submodules or any(submoduleName.startswith(x) for x in exclude_submodules)):
+               (submodule_name in exclude_submodules or any(submodule_name.startswith(x) for x in exclude_submodules)):
                 continue
 
             # Load the sub-module
-            yield __import__(submoduleName, globals(), locals(), ['.'])
+            yield __import__(submodule_name, globals(), locals(), ['.'])

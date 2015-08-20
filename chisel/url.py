@@ -28,97 +28,97 @@ from uuid import UUID
 
 
 # Encode an object as a URL query string
-def _encodeQueryString_flatten(o, parent, encoding, topLevel=False):
-    if isinstance(o, dict):
-        if o:
-            for member in o:
-                for child in _encodeQueryString_flatten(o[member], parent + (urllib_parse_quote(member, encoding=encoding),), encoding):
+def _encode_query_string_flatten(obj, parent, encoding):
+    if isinstance(obj, dict):
+        if obj:
+            for member in obj:
+                for child in _encode_query_string_flatten(obj[member], parent + (urllib_parse_quote(member, encoding=encoding),), encoding):
                     yield child
-        elif not topLevel:
+        elif parent:
             yield (parent, '')
-    elif isinstance(o, list) or isinstance(o, tuple):
-        if o:
-            for ix in xrange_(0, len(o)):
-                for child in _encodeQueryString_flatten(o[ix], parent + (urllib_parse_quote(str(ix), encoding=encoding),), encoding):
+    elif isinstance(obj, list) or isinstance(obj, tuple):
+        if obj:
+            for i in xrange_(len(obj)):
+                for child in _encode_query_string_flatten(obj[i], parent + (urllib_parse_quote(str(i), encoding=encoding),), encoding):
                     yield child
-        elif not topLevel:
+        elif parent:
             yield (parent, '')
     else:
-        if isinstance(o, date):
-            ostr = str(JsonDate(o)).strip('"')
-        elif isinstance(o, datetime):
-            ostr = str(JsonDatetime(o)).strip('"')
-        elif isinstance(o, UUID):
-            ostr = str(JsonUUID(o)).strip('"')
-        elif isinstance(o, bool):
-            ostr = 'true' if o else 'false'
+        if isinstance(obj, date):
+            ostr = str(JsonDate(obj)).strip('"')
+        elif isinstance(obj, datetime):
+            ostr = str(JsonDatetime(obj)).strip('"')
+        elif isinstance(obj, UUID):
+            ostr = str(JsonUUID(obj)).strip('"')
+        elif isinstance(obj, bool):
+            ostr = 'true' if obj else 'false'
         else:
-            ostr = o if isinstance(o, basestring_) else str(o)
+            ostr = obj if isinstance(obj, basestring_) else str(obj)
         yield (parent, urllib_parse_quote(ostr, encoding=encoding))
 
-def encodeQueryString(o, encoding='utf-8'):
+def encode_query_string(obj, encoding='utf-8'):
     return '&'.join('='.join(('.'.join(k), v)) for k, v in
-                    sorted(_encodeQueryString_flatten(o, (), encoding, topLevel=True)))
+                    sorted(_encode_query_string_flatten(obj, (), encoding)))
 
 
 # Decode an object from a URL query string
-def decodeQueryString(query_string, encoding='utf-8'):
+def decode_query_string(query_string, encoding='utf-8'):
 
     # Build the object
-    oResult = [None]
-    for keysValueString in query_string.split('&'):
+    result = [None]
+    for key_value_str in query_string.split('&'):
 
         # Ignore empty key/value strings
-        if not keysValueString:
+        if not key_value_str:
             continue
 
         # Split the key/value string
-        keysValue = keysValueString.split('=')
-        if len(keysValue) != 2:
-            raise ValueError("Invalid key/value pair '" + keysValueString + "'")
-        value = urllib_parse_unquote(keysValue[1], encoding=encoding)
+        key_value = key_value_str.split('=')
+        if len(key_value) != 2:
+            raise ValueError("Invalid key/value pair '" + key_value_str + "'")
+        value = urllib_parse_unquote(key_value[1], encoding=encoding)
 
         # Find/create the object on which to set the value
-        oParent = oResult
-        keyParent = 0
-        for key in (urllib_parse_unquote(key, encoding=encoding) for key in keysValue[0].split('.')):
-            o = oParent[keyParent]
+        parent = result
+        key_parent = 0
+        for key in (urllib_parse_unquote(key, encoding=encoding) for key in key_value[0].split('.')):
+            obj = parent[key_parent]
 
             # Array key?  First "key" of an array must start with "0".
-            if isinstance(o, list) or (o is None and key == '0'):
+            if isinstance(obj, list) or (obj is None and key == '0'):
 
                 # Create this key's container, if necessary
-                if o is None:
-                    o = oParent[keyParent] = []
+                if obj is None:
+                    obj = parent[key_parent] = []
 
                 # Create the index for this key
                 try:
                     key = int(key)
                 except:
-                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
-                if key == len(o):
-                    o.append(None)
-                elif key < 0 or key > len(o):
-                    raise ValueError("Invalid key/value pair '" + keysValueString + "'")
+                    raise ValueError("Invalid key/value pair '" + key_value_str + "'")
+                if key == len(obj):
+                    obj.append(None)
+                elif key < 0 or key > len(obj):
+                    raise ValueError("Invalid key/value pair '" + key_value_str + "'")
 
             # Dictionary key
             else:
 
                 # Create this key's container, if necessary
-                if o is None:
-                    o = oParent[keyParent] = {}
+                if obj is None:
+                    obj = parent[key_parent] = {}
 
                 # Create the index for this key
-                if o.get(key) is None:
-                    o[key] = None
+                if obj.get(key) is None:
+                    obj[key] = None
 
             # Update the parent object and key
-            oParent = o
-            keyParent = key
+            parent = obj
+            key_parent = key
 
         # Set the value
-        if oParent[keyParent] is not None:
-            raise ValueError("Duplicate key '" + keysValueString + "'")
-        oParent[keyParent] = value
+        if parent[key_parent] is not None:
+            raise ValueError("Duplicate key '" + key_value_str + "'")
+        parent[key_parent] = value
 
-    return oResult[0] if (oResult[0] is not None) else {}
+    return result[0] if (result[0] is not None) else {}

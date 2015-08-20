@@ -21,7 +21,7 @@
 #
 
 from .compat import basestring_, iteritems, long_
-from .util import tzlocal, parse_iso8601_date, parse_iso8601_datetime
+from .util import TZLOCAL, parse_iso8601_date, parse_iso8601_datetime
 
 from datetime import date, datetime
 from uuid import UUID
@@ -61,7 +61,7 @@ class JsonDatetime(float):
     def __init__(self, value):
         if value is not self:
             if value.tzinfo is None:
-                value = value.replace(tzinfo=tzlocal)
+                value = value.replace(tzinfo=TZLOCAL)
             self.value = value
             self.json = '"' + value.isoformat() + '"'
 
@@ -696,7 +696,7 @@ class _TypeDatetime(object):
 
             # Set a time zone, if necessary
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
-                return value.replace(tzinfo=tzlocal)
+                return value.replace(tzinfo=TZLOCAL)
 
             return value
         elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
