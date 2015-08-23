@@ -75,7 +75,7 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assertEnum(parser.actions[actionName].error_type, errorValues)
 
     # Test valid spec parsing
-    def test_spec_simple(self):
+    def test_simple(self):
 
         # Parse the spec
         parser = SpecParser()
@@ -209,7 +209,7 @@ action MyAction4 \\
                           ())
 
     # Test multiple parse calls per parser instance
-    def test_spec_multiple(self):
+    def test_multiple(self):
 
         # Parse spec strings
         parser = SpecParser()
@@ -284,7 +284,7 @@ enum MyEnum2
         self.assertEqual(parser.actions['MyAction2'].output_type.members[0].type.type_name, 'MyStruct2')
 
     # Test multiple finalize
-    def test_spec_multiple_finalize(self):
+    def test_multiple_finalize(self):
 
         # Parse spec strings
         parser = SpecParser()
@@ -323,7 +323,7 @@ enum MyEnum2
                                  ('b', parser.types['MyEnum'], False),
                                  ('c', parser.types['MyEnum2'], False)))
 
-    def test_spec_typeref_array_attr(self):
+    def test_typeref_array_attr(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -340,7 +340,7 @@ struct MyStruct2
 
         self.assertStructByName(parser, 'MyStruct2', ())
 
-    def test_spec_typeref_dict_attr(self):
+    def test_typeref_dict_attr(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -360,7 +360,7 @@ struct MyStruct2
 
         self.assertStructByName(parser, 'MyStruct2', ())
 
-    def test_spec_typeref_invalid_attr(self):
+    def test_typeref_invalid_attr(self):
 
         parser = SpecParser()
         try:
@@ -376,7 +376,7 @@ struct MyStruct2
             self.fail()
 
     # Test members referencing unknown user types
-    def test_spec_error_unknown_type(self):
+    def test_error_unknown_type(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -411,7 +411,7 @@ foo:8: error: Unknown member type 'MyBadType'""")
                           "foo:8: error: Unknown member type 'MyBadType'"])
 
     # Error - redefinition of struct
-    def test_spec_error_struct_redefinition(self):
+    def test_error_struct_redefinition(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -442,7 +442,7 @@ enum Foo
                          [":4: error: Redefinition of type 'Foo'"])
 
     # Error - redefinition of enum
-    def test_spec_error_enum_redefinition(self):
+    def test_error_enum_redefinition(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -474,7 +474,7 @@ struct Foo
                          [":5: error: Redefinition of type 'Foo'"])
 
     # Error - redefinition of typedef
-    def test_spec_error_typedef_redefinition(self):
+    def test_error_typedef_redefinition(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -508,7 +508,7 @@ typedef int(> 5) Foo
                          [":4: error: Redefinition of type 'Foo'"])
 
     # Error - redefinition of user type
-    def test_spec_error_action_redefinition(self):
+    def test_error_action_redefinition(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -543,7 +543,7 @@ action MyAction
                          [":5: error: Redefinition of action 'MyAction'"])
 
     # Error - invalid action section usage
-    def test_spec_error_action_section(self):
+    def test_error_action_section(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -595,7 +595,7 @@ errors
                           ':12: error: Syntax error'])
 
     # Error - member definition outside struct scope
-    def test_spec_error_member(self):
+    def test_error_member(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -639,7 +639,7 @@ int cde
                           ':10: error: Syntax error'])
 
     # Error - enum value definition outside enum scope
-    def test_spec_error_enum(self):
+    def test_error_enum(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -703,7 +703,7 @@ action MyAction
                 attr.op_len_gte if attr else op_len_gte)
 
     # Test valid attribute usage
-    def test_spec_attributes(self):
+    def test_attributes(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -845,31 +845,31 @@ struct MyStruct
         self.assertEqual(len(parser.errors), len(errors))
         self.assertEqual(parser.errors, errors)
 
-    def test_spec_error_attribute_eq(self):
+    def test_error_attribute_eq(self):
         self._test_spec_error([":2: error: Invalid attribute '== 7'"], '''\
 struct MyStruct
     string(== 7) s
 ''')
 
-    def test_spec_error_attribute_lt(self):
+    def test_error_attribute_lt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
 struct MyStruct
     string(< 7) s
 ''')
 
-    def test_spec_error_attribute_gt(self):
+    def test_error_attribute_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '> 7'"], '''\
 struct MyStruct
     string(> 7) s
 ''')
 
-    def test_spec_error_attribute_lt_gt(self):
+    def test_error_attribute_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
 struct MyStruct
     string(< 7, > 7) s
 ''')
 
-    def test_spec_error_attribute_lte_gte(self):
+    def test_error_attribute_lte_gte(self):
         self._test_spec_error([":6: error: Invalid attribute '>= 1'",
                                ":7: error: Invalid attribute '<= 2'"], '''\
 enum MyEnum
@@ -881,31 +881,31 @@ struct MyStruct
     MyEnum(<= 2) b
 ''')
 
-    def test_spec_error_attribute_len_eq(self):
+    def test_error_attribute_len_eq(self):
         self._test_spec_error([":2: error: Invalid attribute 'len == 1'"], '''\
 struct MyStruct
     int(len == 1) i
 ''')
 
-    def test_spec_error_attribute_len_lt(self):
+    def test_error_attribute_len_lt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
 struct MyStruct
     float(len < 10) f
 ''')
 
-    def test_spec_error_attribute_len_gt(self):
+    def test_error_attribute_len_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len > 1'"], '''\
 struct MyStruct
     int(len > 1) i
 ''')
 
-    def test_spec_error_attribute_len_lt_gt(self):
+    def test_error_attribute_len_lt_gt(self):
         self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
 struct MyStruct
     float(len < 10, len > 10) f
 ''')
 
-    def test_spec_error_attribute_len_lte_gte(self):
+    def test_error_attribute_len_lte_gte(self):
         self._test_spec_error([":2: error: Invalid attribute 'len <= 10'",
                                ":3: error: Invalid attribute 'len >= 10'"], '''\
 struct MyStruct
@@ -913,13 +913,13 @@ struct MyStruct
     float(len >= 10) f2
 ''')
 
-    def test_spec_error_attribute_invalid(self):
+    def test_error_attribute_invalid(self):
         self._test_spec_error([':2: error: Syntax error'], '''\
 struct MyStruct
     string(regex="abc") a
 ''')
 
-    def test_spec_error_member_invalid(self):
+    def test_error_member_invalid(self):
         self._test_spec_error([':1: error: Member definition outside of struct scope',
                                ':5: error: Member definition outside of struct scope'], '''\
     string a
@@ -929,7 +929,7 @@ enum MyEnum
     int b
 ''')
 
-    def test_spec_error_member_redefinition(self):
+    def test_error_member_redefinition(self):
         self._test_spec_error([":4: error: Redefinition of member 'b'"], '''\
 struct MyStruct
     string b
@@ -937,7 +937,7 @@ struct MyStruct
     float b
 ''')
 
-    def test_spec_error_enum_duplicate_value(self):
+    def test_error_enum_duplicate_value(self):
         self._test_spec_error([":4: error: Duplicate enumeration value 'bar'"], '''\
 enum MyEnum
     bar
@@ -945,7 +945,7 @@ enum MyEnum
     bar
 ''')
 
-    def test_spec_doc(self):
+    def test_doc(self):
 
         # Parse spec string
         parser = SpecParser()
@@ -1033,7 +1033,7 @@ action MyAction
         self.assertEqual(parser.actions['MyAction'].output_type.members[0].doc,
                          ['My output member'])
 
-    def test_spec_typedef(self):
+    def test_typedef(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1073,7 +1073,7 @@ struct MyStruct
         self.assertTrue(typedef2.type is parser.types['MyEnum'])
         self.assertEqual(typedef2.attr, None)
 
-    def test_spec_error_dict_nonStringKey(self):
+    def test_error_dict_nonStringKey(self):
 
         parser = SpecParser()
         try:
@@ -1088,7 +1088,7 @@ struct Foo
         else:
             self.fail()
 
-    def test_spec_error_action_inputRedefinition(self):
+    def test_error_action_inputRedefinition(self):
 
         parser = SpecParser()
         try:
@@ -1109,7 +1109,7 @@ action Foo
         else:
             self.fail()
 
-    def test_spec_error_action_outputRedefinition(self):
+    def test_error_action_outputRedefinition(self):
 
         parser = SpecParser()
         try:
@@ -1130,7 +1130,7 @@ action Foo
         else:
             self.fail()
 
-    def test_spec_error_action_errorsRedefinition(self):
+    def test_error_action_errorsRedefinition(self):
 
         parser = SpecParser()
         try:
@@ -1152,7 +1152,7 @@ action Foo
         else:
             self.fail()
 
-    def test_spec_action_input_struct(self):
+    def test_action_input_struct(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1165,7 +1165,7 @@ action FooAction
 ''')
         self.assertTrue(parser.actions['FooAction'].input_type, parser.types['Foo'])
 
-    def test_spec_action_input_typedef(self):
+    def test_action_input_typedef(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1180,7 +1180,7 @@ action FooAction
 ''')
         self.assertTrue(parser.actions['FooAction'].input_type, parser.types['Foo'])
 
-    def test_spec_action_input_type_nonStruct(self):
+    def test_action_input_type_nonStruct(self):
 
         parser = SpecParser()
         try:
@@ -1199,7 +1199,7 @@ enum Foo
         else:
             self.fail()
 
-    def test_spec_action_input_type_typedef_nonStruct(self):
+    def test_action_input_type_typedef_nonStruct(self):
 
         parser = SpecParser()
         try:
@@ -1220,7 +1220,7 @@ typedef Bar Foo
         else:
             self.fail()
 
-    def test_spec_action_output_struct(self):
+    def test_action_output_struct(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1233,7 +1233,7 @@ action FooAction
 ''')
         self.assertTrue(parser.actions['FooAction'].output_type, parser.types['Foo'])
 
-    def test_spec_action_output_typedef(self):
+    def test_action_output_typedef(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1248,7 +1248,7 @@ action FooAction
 ''')
         self.assertTrue(parser.actions['FooAction'].output_type, parser.types['Foo'])
 
-    def test_spec_action_output_nonStruct(self):
+    def test_action_output_nonStruct(self):
 
         parser = SpecParser()
         try:
@@ -1267,7 +1267,7 @@ enum Foo
         else:
             self.fail()
 
-    def test_spec_action_output_typedef_nonStruct(self):
+    def test_action_output_typedef_nonStruct(self):
 
         parser = SpecParser()
         try:
@@ -1288,7 +1288,7 @@ typedef Bar Foo
         else:
             self.fail()
 
-    def test_spec_action_errors_enum(self):
+    def test_action_errors_enum(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1301,7 +1301,7 @@ action FooAction
 ''')
         self.assertTrue(parser.actions['FooAction'].error_type, parser.types['Foo'])
 
-    def test_spec_action_errors_typedef(self):
+    def test_action_errors_typedef(self):
 
         parser = SpecParser()
         parser.parse_string('''\
@@ -1316,7 +1316,7 @@ typedef Bar Foo
 ''')
         self.assertTrue(parser.actions['FooAction'].error_type, parser.types['Foo'])
 
-    def test_spec_action_errors_nonEnum(self):
+    def test_action_errors_nonEnum(self):
 
         parser = SpecParser()
         try:
@@ -1335,7 +1335,7 @@ struct Foo
         else:
             self.fail()
 
-    def test_spec_action_errors_typedef_nonEnum(self):
+    def test_action_errors_typedef_nonEnum(self):
 
         parser = SpecParser()
         try:

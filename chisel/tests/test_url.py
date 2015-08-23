@@ -31,7 +31,7 @@ from uuid import UUID
 # Tests for URL utilities
 class TestUrl(unittest.TestCase):
 
-    def test_url_decode_query_string(self):
+    def test_decode_query_string(self):
 
         # Complex dict
         s = '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'
@@ -98,7 +98,7 @@ class TestUrl(unittest.TestCase):
         o = {'a': {'b': '0', '0': '0'}}
         self.assertEqual(decode_query_string(s), o)
 
-    def test_url_decode_query_stringDegenerate(self):
+    def test_decode_query_stringDegenerate(self):
 
         def assertDecodeError(s, err):
             try:
@@ -175,7 +175,7 @@ class TestUrl(unittest.TestCase):
         s = 'a.0=0&a.b=0'
         assertDecodeError(s, "Invalid key/value pair 'a.b=0'")
 
-    def test_url_encode_query_string(self):
+    def test_encode_query_string(self):
 
         # Complex dict
         o = {'a': 7, '_a': '7', 'b': {'c': '+x y + z', 'd': [2, -4, 6]}}
@@ -233,28 +233,28 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encode_query_string(o), s)
 
     # Test bool query string encoding
-    def test_url_encode_query_string_bool(self):
+    def test_encode_query_string_bool(self):
 
         o = {'a': True}
         s = 'a=true'
         self.assertEqual(encode_query_string(o), s)
 
     # Test date query string encoding
-    def test_url_encode_query_string_date(self):
+    def test_encode_query_string_date(self):
 
         o = {'a': date(2013, 7, 18)}
         s = 'a=2013-07-18'
         self.assertEqual(encode_query_string(o), s)
 
     # Test datetime query string encoding
-    def test_url_encode_query_string_datetime(self):
+    def test_encode_query_string_datetime(self):
 
         o = {'a': datetime(2013, 7, 18, 12, 31, tzinfo=TZUTC)}
         s = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encode_query_string(o), s)
 
     # Test uuid query string encoding
-    def test_url_encode_query_string_uuid(self):
+    def test_encode_query_string_uuid(self):
 
         o = {'a': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e')}
         s = 'a=7da81f83-a656-42f1-aeb3-ab207809fb0e'

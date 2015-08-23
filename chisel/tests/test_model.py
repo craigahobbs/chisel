@@ -38,7 +38,7 @@ ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_I
 
 class TestModelJsonDate(unittest.TestCase):
 
-    def test_model_jsonDate(self):
+    def test_jsonDate(self):
 
         value = date(2013, 6, 30)
         o = JsonDate(value)
@@ -49,7 +49,7 @@ class TestModelJsonDate(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": "2013-06-30"}')
 
     # Test built-in float function behavior
-    def test_model_jsonDate_float(self):
+    def test_jsonDate_float(self):
 
         value = date(2013, 6, 30)
         o = JsonDate(value)
@@ -61,7 +61,7 @@ class TestModelJsonDate(unittest.TestCase):
 class TestModelJsonDatetime(unittest.TestCase):
 
     # Datetime with timezone
-    def test_model_jsonDatetime(self):
+    def test_jsonDatetime(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZUTC)
         o = JsonDatetime(value)
@@ -73,7 +73,7 @@ class TestModelJsonDatetime(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": "2013-06-30T17:19:00+00:00"}')
 
     # Datetime without timezone
-    def test_model_jsonDatetime_no_timezone(self):
+    def test_jsonDatetime_no_timezone(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0)
         o = JsonDatetime(value)
@@ -86,7 +86,7 @@ class TestModelJsonDatetime(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": ' + repr(o) + '}')
 
     # Test built-in float function behavior
-    def test_model_jsonDatetime_float(self):
+    def test_jsonDatetime_float(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZUTC)
         o = JsonDatetime(value)
@@ -97,7 +97,7 @@ class TestModelJsonDatetime(unittest.TestCase):
 
 class TestModelJsonFloat(unittest.TestCase):
 
-    def test_model_jsonFloat_default(self):
+    def test_jsonFloat_default(self):
 
         o = JsonFloat(2.1234567)
         f = float(o)
@@ -107,7 +107,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.123457}')
 
     # Basic two decimal places float repr
-    def test_model_jsonFloat(self):
+    def test_jsonFloat(self):
 
         o = JsonFloat(2.25, 2)
         self.assertTrue(isinstance(o, float))
@@ -116,7 +116,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.25}')
 
     # Two decimal places float repr round up
-    def test_model_jsonFloat_round_up(self):
+    def test_jsonFloat_round_up(self):
 
         o = JsonFloat(2.256, 2)
         self.assertTrue(isinstance(o, float))
@@ -125,7 +125,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.26}')
 
     # Two decimal places float repr round down
-    def test_model_jsonFloat_round_down(self):
+    def test_jsonFloat_round_down(self):
 
         o = JsonFloat(2.254, 2)
         self.assertTrue(isinstance(o, float))
@@ -134,7 +134,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.25}')
 
     # Two decimal places float repr - ugly in Python 2.6
-    def test_model_jsonFloat_ugly(self):
+    def test_jsonFloat_ugly(self):
 
         o = JsonFloat(2.03, 2)
         self.assertTrue(isinstance(o, float))
@@ -143,7 +143,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.03}')
 
     # Two decimal places float repr with end-zero trimming
-    def test_model_jsonFloat_zero_trim(self):
+    def test_jsonFloat_zero_trim(self):
 
         o = JsonFloat(2.5, 2)
         self.assertTrue(isinstance(o, float))
@@ -152,7 +152,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2.5}')
 
     # Two decimal places float repr with end-point trimming
-    def test_model_jsonFloat_point_trim(self):
+    def test_jsonFloat_point_trim(self):
 
         o = JsonFloat(2., 2)
         self.assertTrue(isinstance(o, float))
@@ -161,7 +161,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2}')
 
     # Zero decimal places
-    def test_model_jsonFloat_zero_prec(self):
+    def test_jsonFloat_zero_prec(self):
 
         o = JsonFloat(2.25, 0)
         self.assertTrue(isinstance(o, float))
@@ -170,7 +170,7 @@ class TestModelJsonFloat(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": 2}')
 
     # Test built-in float function behavior
-    def test_model_jsonFloat_float(self):
+    def test_jsonFloat_float(self):
 
         o = JsonFloat(2.25, 2)
         f = float(o)
@@ -180,7 +180,7 @@ class TestModelJsonFloat(unittest.TestCase):
 
 class TestModelJsonUUID(unittest.TestCase):
 
-    def test_model_jsonUUID(self):
+    def test_jsonUUID(self):
 
         value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
         o = JsonUUID(value)
@@ -191,7 +191,7 @@ class TestModelJsonUUID(unittest.TestCase):
         self.assertEqual(json.dumps({'v': o}), '{"v": "184eab31-4307-416c-aac4-3b92b2358677"}')
 
     # Test built-in float function behavior
-    def test_model_jsonUUID_float(self):
+    def test_jsonUUID_float(self):
 
         value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
         o = JsonUUID(value)
@@ -202,45 +202,45 @@ class TestModelJsonUUID(unittest.TestCase):
 
 class TestModelValidationError(unittest.TestCase):
 
-    def test_model_member_syntax_dict_single(self):
+    def test_member_syntax_dict_single(self):
         self.assertEqual(ValidationError.member_syntax(('a',)), 'a')
 
-    def test_model_member_syntax_dict_nested(self):
+    def test_member_syntax_dict_nested(self):
         self.assertEqual(ValidationError.member_syntax(('a', 'b', 'c')), 'a.b.c')
 
-    def test_model_member_syntax_array_single(self):
+    def test_member_syntax_array_single(self):
         self.assertEqual(ValidationError.member_syntax((0,)), '[0]')
 
-    def test_model_member_syntax_array_nested(self):
+    def test_member_syntax_array_nested(self):
         self.assertEqual(ValidationError.member_syntax((0, 1, 0)), '[0][1][0]')
 
-    def test_model_member_syntax_mixed(self):
+    def test_member_syntax_mixed(self):
         self.assertEqual(ValidationError.member_syntax(('a', 1, 'b')), 'a[1].b')
 
-    def test_model_member_syntax_mixed2(self):
+    def test_member_syntax_mixed2(self):
         self.assertEqual(ValidationError.member_syntax((1, 'a', 0)), '[1].a[0]')
 
-    def test_model_member_syntax_empty(self):
+    def test_member_syntax_empty(self):
         self.assertEqual(ValidationError.member_syntax(()), None)
 
-    def test_model_member_syntax_none(self):
+    def test_member_syntax_none(self):
         self.assertEqual(ValidationError.member_syntax(None), None)
 
-    def test_model_member_error_basic(self):
+    def test_member_error_basic(self):
         e = ValidationError.member_error(TYPE_INT, 'abc', ('a',))
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
         self.assertEqual(e.member, 'a')
 
-    def test_model_member_error_no_member(self):
+    def test_member_error_no_member(self):
         e = ValidationError.member_error(TYPE_INT, 'abc', ())
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
         self.assertEqual(e.member, None)
 
-    def test_model_member_error_constraint(self):
+    def test_member_error_constraint(self):
         e = ValidationError.member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
@@ -250,7 +250,7 @@ class TestModelValidationError(unittest.TestCase):
 
 class TestStructMemberAttributes(unittest.TestCase):
 
-    def test_model_StructMemberAttributes_validate_eq(self):
+    def test_StructMemberAttributes_validate_eq(self):
         attr = chisel.model.StructMemberAttributes(op_eq=5)
         attr.validate(5)
         try:
@@ -260,7 +260,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_lt(self):
+    def test_StructMemberAttributes_validate_lt(self):
         attr = chisel.model.StructMemberAttributes(op_lt=5)
         attr.validate(4)
         try:
@@ -270,7 +270,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_lte(self):
+    def test_StructMemberAttributes_validate_lte(self):
         attr = chisel.model.StructMemberAttributes(op_lte=5)
         attr.validate(5)
         try:
@@ -280,7 +280,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_gt(self):
+    def test_StructMemberAttributes_validate_gt(self):
         attr = chisel.model.StructMemberAttributes(op_gt=5)
         attr.validate(6)
         try:
@@ -290,7 +290,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_gte(self):
+    def test_StructMemberAttributes_validate_gte(self):
         attr = chisel.model.StructMemberAttributes(op_gte=5)
         attr.validate(5)
         try:
@@ -300,7 +300,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_len_eq(self):
+    def test_StructMemberAttributes_validate_len_eq(self):
         attr = chisel.model.StructMemberAttributes(op_len_eq=3)
         attr.validate('abc')
         try:
@@ -310,7 +310,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_len_lt(self):
+    def test_StructMemberAttributes_validate_len_lt(self):
         attr = chisel.model.StructMemberAttributes(op_len_lt=3)
         attr.validate('ab')
         try:
@@ -320,7 +320,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_len_lte(self):
+    def test_StructMemberAttributes_validate_len_lte(self):
         attr = chisel.model.StructMemberAttributes(op_len_lte=3)
         attr.validate('abc')
         try:
@@ -330,7 +330,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_len_gt(self):
+    def test_StructMemberAttributes_validate_len_gt(self):
         attr = chisel.model.StructMemberAttributes(op_len_gt=3)
         attr.validate('abcd')
         try:
@@ -340,7 +340,7 @@ class TestStructMemberAttributes(unittest.TestCase):
         else:
             self.fail()
 
-    def test_model_StructMemberAttributes_validate_len_gte(self):
+    def test_StructMemberAttributes_validate_len_gte(self):
         attr = chisel.model.StructMemberAttributes(op_len_gte=3)
         attr.validate('abc')
         try:
@@ -355,7 +355,7 @@ class TestStructMemberAttributes(unittest.TestCase):
 class TestModelTypedefValidation(unittest.TestCase):
 
     # Test typedef type construction
-    def test_model_typedef_init(self):
+    def test_typedef_init(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
         self.assertEqual(t.type_name, 'typedef')
@@ -370,7 +370,7 @@ class TestModelTypedefValidation(unittest.TestCase):
         self.assertEqual(t.doc, ['A', 'B'])
 
     # Test typedef attribute validation
-    def test_model_typedef_validate_attr(self):
+    def test_typedef_validate_attr(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
 
@@ -385,7 +385,7 @@ class TestModelTypedefValidation(unittest.TestCase):
             self.assertEqual(str(e), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
-    def test_model_typedef_validate(self):
+    def test_typedef_validate(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
@@ -395,7 +395,7 @@ class TestModelTypedefValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - success
-    def test_model_typedef_validate_no_attr(self):
+    def test_typedef_validate_no_attr(self):
 
         t = chisel.model.Typedef(TYPE_INT)
 
@@ -405,7 +405,7 @@ class TestModelTypedefValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # Query string validation mode - transformed value
-    def test_model_typedef_validate_transformed_value(self):
+    def test_typedef_validate_transformed_value(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
@@ -415,7 +415,7 @@ class TestModelTypedefValidation(unittest.TestCase):
         self.assertEqual(o2, 5)
 
     # Query string validation mode - transformed value
-    def test_model_typedef_validate_type_error(self):
+    def test_typedef_validate_type_error(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
@@ -429,7 +429,7 @@ class TestModelTypedefValidation(unittest.TestCase):
                 self.fail()
 
     # Query string validation mode - transformed value
-    def test_model_typedef_validate_attr_error(self):
+    def test_typedef_validate_attr_error(self):
 
         t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
@@ -446,7 +446,7 @@ class TestModelTypedefValidation(unittest.TestCase):
 class TestModelStructValidation(unittest.TestCase):
 
     # Test struct type construction
-    def test_model_struct_init(self):
+    def test_struct_init(self):
 
         t = TypeStruct()
         self.assertEqual(t.type_name, 'struct')
@@ -462,7 +462,7 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(t.members[0].doc, [])
 
     # Test union type construction
-    def test_model_struct_init_union(self):
+    def test_struct_init_union(self):
 
         t = TypeStruct(union=True)
         self.assertEqual(t.type_name, 'union')
@@ -478,7 +478,7 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(t.members[0].doc, [])
 
     # All validation modes - success
-    def test_model_struct_validation(self):
+    def test_struct_validation(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -495,7 +495,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - union success
-    def test_model_struct_validation_union(self):
+    def test_struct_validation_union(self):
 
         t = TypeStruct(union=True)
         t.add_member('a', TYPE_INT)
@@ -522,7 +522,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'b': 'abc'})
 
     # All validation modes - optional member present
-    def test_model_struct_validation_optional_present(self):
+    def test_struct_validation_optional_present(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -539,7 +539,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - optional member missing
-    def test_model_struct_validation_optional_missing(self):
+    def test_struct_validation_optional_missing(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -556,7 +556,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 7})
 
     # All validation modes - member with attributes - valid
-    def test_model_struct_validation_member_attributes_valid(self):
+    def test_struct_validation_member_attributes_valid(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
@@ -572,7 +572,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 4})
 
     # All validation modes - member with attributes - invalid
-    def test_model_struct_validation_member_attributes_invalid(self):
+    def test_struct_validation_member_attributes_invalid(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
@@ -587,7 +587,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - nested structure
-    def test_model_struct_validation_nested(self):
+    def test_struct_validation_nested(self):
 
         t = TypeStruct()
         t2 = TypeStruct()
@@ -608,7 +608,7 @@ class TestModelStructValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_model_struct_validation_query_string_transformed_member(self):
+    def test_struct_validation_query_string_transformed_member(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -619,7 +619,7 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(o2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_model_struct_validation_query_string_empty_string(self):
+    def test_struct_validation_query_string_empty_string(self):
 
         t = TypeStruct()
 
@@ -629,7 +629,7 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(o2, {})
 
     # JSON input validation mode - transformed member
-    def test_model_struct_validation_json_input_transformed_member(self):
+    def test_struct_validation_json_input_transformed_member(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_UUID)
@@ -640,7 +640,7 @@ class TestModelStructValidation(unittest.TestCase):
         self.assertEqual(o2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
 
     # All validation modes - error - invalid value
-    def test_model_struct_validation_error_invalid_value(self):
+    def test_struct_validation_error_invalid_value(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -655,7 +655,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - optional none value
-    def test_model_struct_validation_error_optional_none_value(self):
+    def test_struct_validation_error_optional_none_value(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT, optional=True)
@@ -670,7 +670,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_model_struct_validation_error_member_validation(self):
+    def test_struct_validation_error_member_validation(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -685,7 +685,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - nested member validation
-    def test_model_struct_validation_error_nested_member_validation(self):
+    def test_struct_validation_error_nested_member_validation(self):
 
         t = TypeStruct()
         t2 = TypeStruct()
@@ -702,7 +702,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - unknown member
-    def test_model_struct_validation_error_unknown_member(self):
+    def test_struct_validation_error_unknown_member(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -717,7 +717,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - missing member
-    def test_model_struct_validation_error_missing_member(self):
+    def test_struct_validation_error_missing_member(self):
 
         t = TypeStruct()
         t.add_member('a', TYPE_INT)
@@ -732,7 +732,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - union with more than one member
-    def test_model_struct_validation_error_union_multiple_members(self):
+    def test_struct_validation_error_union_multiple_members(self):
 
         t = TypeStruct(union=True)
         t.add_member('a', TYPE_INT)
@@ -749,7 +749,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - empty union
-    def test_model_struct_validation_error_union_zero_members(self):
+    def test_struct_validation_error_union_zero_members(self):
 
         t = TypeStruct(union=True)
         t.add_member('a', TYPE_INT)
@@ -765,7 +765,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - union unknown member
-    def test_model_struct_validation_error_union_unknown_member(self):
+    def test_struct_validation_error_union_unknown_member(self):
 
         t = TypeStruct(union=True)
         t.add_member('a', TYPE_INT)
@@ -784,7 +784,7 @@ class TestModelStructValidation(unittest.TestCase):
 class TestModelArrayValidation(unittest.TestCase):
 
     # Test array type construction
-    def test_model_array_init(self):
+    def test_array_init(self):
 
         t = TypeArray(TYPE_INT)
         self.assertEqual(t.type_name, 'array')
@@ -792,7 +792,7 @@ class TestModelArrayValidation(unittest.TestCase):
         self.assertEqual(t.attr, None)
 
     # All validation modes - success
-    def test_model_array_validation(self):
+    def test_array_validation(self):
 
         t = TypeArray(TYPE_INT)
 
@@ -807,7 +807,7 @@ class TestModelArrayValidation(unittest.TestCase):
             self.assertEqual(o2, [1, 2, 3])
 
     # All validation modes - value attributes - success
-    def test_model_array_validation_attributes(self):
+    def test_array_validation_attributes(self):
 
         t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
@@ -822,7 +822,7 @@ class TestModelArrayValidation(unittest.TestCase):
             self.assertEqual(o2, [1, 2, 3])
 
     # All validation modes - value attributes - invalid value
-    def test_model_array_validation_attributes_invalid(self):
+    def test_array_validation_attributes_invalid(self):
 
         t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
@@ -836,7 +836,7 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - nested
-    def test_model_array_validation_nested(self):
+    def test_array_validation_nested(self):
 
         t = TypeArray(TypeArray(TYPE_INT))
 
@@ -851,7 +851,7 @@ class TestModelArrayValidation(unittest.TestCase):
             self.assertEqual(o2, [[1, 2, 3], [4, 5, 6]])
 
     # Query string validation mode - transformed member
-    def test_model_array_validation_query_string_transformed_member(self):
+    def test_array_validation_query_string_transformed_member(self):
 
         t = TypeArray(TYPE_INT)
 
@@ -861,7 +861,7 @@ class TestModelArrayValidation(unittest.TestCase):
         self.assertEqual(o2, [1, 2, 3])
 
     # Query string validation mode - empty string
-    def test_model_array_validation_query_string_empty_string(self):
+    def test_array_validation_query_string_empty_string(self):
 
         t = TypeArray(TYPE_INT)
 
@@ -871,7 +871,7 @@ class TestModelArrayValidation(unittest.TestCase):
         self.assertEqual(o2, [])
 
     # JSON input validation mode - transformed member
-    def test_model_array_validation_json_input_transformed_member(self):
+    def test_array_validation_json_input_transformed_member(self):
 
         t = TypeArray(TYPE_UUID)
 
@@ -881,7 +881,7 @@ class TestModelArrayValidation(unittest.TestCase):
         self.assertEqual(o2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
 
     # All validation modes - error - invalid value
-    def test_model_array_validation_error_invalid_value(self):
+    def test_array_validation_error_invalid_value(self):
 
         t = TypeArray(TYPE_INT)
 
@@ -895,7 +895,7 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_model_array_validation_error_member_validation(self):
+    def test_array_validation_error_member_validation(self):
 
         t = TypeArray(TYPE_INT)
 
@@ -909,7 +909,7 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - error nested
-    def test_model_array_validation_error_nested(self):
+    def test_array_validation_error_nested(self):
 
         t = TypeArray(TypeArray(TYPE_INT))
 
@@ -926,14 +926,14 @@ class TestModelArrayValidation(unittest.TestCase):
 class TestModelDictValidation(unittest.TestCase):
 
     # Test dict type construction
-    def test_model_dict_init(self):
+    def test_dict_init(self):
 
         t = TypeDict(TYPE_INT)
         self.assertEqual(t.type_name, 'dict')
         self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
 
     # All validation modes - success
-    def test_model_dict_validation(self):
+    def test_dict_validation(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -948,7 +948,7 @@ class TestModelDictValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 7, 'b': 8})
 
     # All validation modes - value attributes - success
-    def test_model_dict_validation_value_attributes(self):
+    def test_dict_validation_value_attributes(self):
 
         t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
@@ -963,7 +963,7 @@ class TestModelDictValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 1, 'b': 2})
 
     # All validation modes - value attributes - invalid value
-    def test_model_dict_validation_value_attributes_invalid(self):
+    def test_dict_validation_value_attributes_invalid(self):
 
         t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
@@ -977,7 +977,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - key attributes - success
-    def test_model_dict_validation_key_attributes(self):
+    def test_dict_validation_key_attributes(self):
 
         t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
 
@@ -992,7 +992,7 @@ class TestModelDictValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': 1, 'b': 2})
 
     # All validation modes - key attributes - invalid key
-    def test_model_dict_validation_key_attributes_invalid(self):
+    def test_dict_validation_key_attributes_invalid(self):
 
         t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
 
@@ -1006,7 +1006,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - nested
-    def test_model_dict_validation_nested(self):
+    def test_dict_validation_nested(self):
 
         t = TypeDict(TypeDict(TYPE_INT))
 
@@ -1021,7 +1021,7 @@ class TestModelDictValidation(unittest.TestCase):
             self.assertEqual(o2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_model_dict_validation_query_string_transformed_member(self):
+    def test_dict_validation_query_string_transformed_member(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -1031,7 +1031,7 @@ class TestModelDictValidation(unittest.TestCase):
         self.assertEqual(o2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_model_dict_validation_query_string_empty_string(self):
+    def test_dict_validation_query_string_empty_string(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -1041,7 +1041,7 @@ class TestModelDictValidation(unittest.TestCase):
         self.assertEqual(o2, {})
 
     # JSON input validation mode - transformed member
-    def test_model_dict_validation_json_input_transformed_member(self):
+    def test_dict_validation_json_input_transformed_member(self):
 
         t = TypeDict(TYPE_UUID)
 
@@ -1051,7 +1051,7 @@ class TestModelDictValidation(unittest.TestCase):
         self.assertEqual(o2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
 
     # All validation modes - error - invalid value
-    def test_model_dict_validation_error_invalid_value(self):
+    def test_dict_validation_error_invalid_value(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -1065,7 +1065,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - member key validation
-    def test_model_dict_validation_error_member_key_validation(self):
+    def test_dict_validation_error_member_key_validation(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -1079,7 +1079,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_model_dict_validation_error_member_validation(self):
+    def test_dict_validation_error_member_validation(self):
 
         t = TypeDict(TYPE_INT)
 
@@ -1093,7 +1093,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - nested member validation
-    def test_model_dict_validation_error_nested_member_validation(self):
+    def test_dict_validation_error_nested_member_validation(self):
 
         t = TypeDict(TypeDict(TYPE_INT))
 
@@ -1110,7 +1110,7 @@ class TestModelDictValidation(unittest.TestCase):
 class TestModelEnumValidation(unittest.TestCase):
 
     # Test enum type construction
-    def test_model_enum_init(self):
+    def test_enum_init(self):
 
         t = TypeEnum()
         t.add_value('a')
@@ -1124,7 +1124,7 @@ class TestModelEnumValidation(unittest.TestCase):
         self.assertEqual(t.doc, [])
 
     # All validation modes - valid enumeration value
-    def test_model_enum_validate(self):
+    def test_enum_validate(self):
 
         t = TypeEnum()
         t.add_value('a')
@@ -1136,7 +1136,7 @@ class TestModelEnumValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - valid enumeration value
-    def test_model_enum_validate_error(self):
+    def test_enum_validate_error(self):
 
         t = TypeEnum()
         t.add_value('a')
@@ -1155,14 +1155,14 @@ class TestModelEnumValidation(unittest.TestCase):
 class TestModelStringValidation(unittest.TestCase):
 
     # Test string type construction
-    def test_model_string_init(self):
+    def test_string_init(self):
 
         t = TYPE_STRING
 
         self.assertEqual(t.type_name, 'string')
 
     # All validation modes - success
-    def test_model_string_validate(self):
+    def test_string_validate(self):
 
         t = TYPE_STRING
 
@@ -1172,7 +1172,7 @@ class TestModelStringValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - unicode
-    def test_model_string_validate_unicode(self):
+    def test_string_validate_unicode(self):
 
         t = TYPE_STRING
 
@@ -1182,7 +1182,7 @@ class TestModelStringValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - error - invalid value
-    def test_model_string_validate_error(self):
+    def test_string_validate_error(self):
 
         t = TYPE_STRING
 
@@ -1199,14 +1199,14 @@ class TestModelStringValidation(unittest.TestCase):
 class TestModelIntValidation(unittest.TestCase):
 
     # Test int type construction
-    def test_model_int_init(self):
+    def test_int_init(self):
 
         t = TYPE_INT
 
         self.assertEqual(t.type_name, 'int')
 
     # All validation modes - success
-    def test_model_int_validate(self):
+    def test_int_validate(self):
 
         t = TYPE_INT
 
@@ -1216,7 +1216,7 @@ class TestModelIntValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - float
-    def test_model_int_validate_float(self):
+    def test_int_validate_float(self):
 
         t = TYPE_INT
 
@@ -1231,7 +1231,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.assertEqual(o2, 7)
 
     # Query string validation mode - string
-    def test_model_int_query_string(self):
+    def test_int_query_string(self):
 
         t = TYPE_INT
 
@@ -1241,7 +1241,7 @@ class TestModelIntValidation(unittest.TestCase):
         self.assertEqual(o2, 7)
 
     # All validation modes - error - invalid value
-    def test_model_int_validate_error(self):
+    def test_int_validate_error(self):
 
         t = TYPE_INT
 
@@ -1255,7 +1255,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - not-integer float
-    def test_model_int_validate_error_float(self):
+    def test_int_validate_error_float(self):
 
         t = TYPE_INT
 
@@ -1269,7 +1269,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - fake JSON float
-    def test_model_int_validate_error_fake_float(self):
+    def test_int_validate_error_fake_float(self):
 
         t = TYPE_INT
 
@@ -1283,7 +1283,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - bool
-    def test_model_int_validate_error_bool(self):
+    def test_int_validate_error_bool(self):
 
         t = TYPE_INT
 
@@ -1300,14 +1300,14 @@ class TestModelIntValidation(unittest.TestCase):
 class TestModelFloatValidation(unittest.TestCase):
 
     # Test float type construction
-    def test_model_float_init(self):
+    def test_float_init(self):
 
         t = TYPE_FLOAT
 
         self.assertEqual(t.type_name, 'float')
 
     # All validation modes - success
-    def test_model_float_validate(self):
+    def test_float_validate(self):
 
         t = TYPE_FLOAT
 
@@ -1317,7 +1317,7 @@ class TestModelFloatValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # All validation modes - int
-    def test_model_float_validate_int(self):
+    def test_float_validate_int(self):
 
         t = TYPE_FLOAT
 
@@ -1332,7 +1332,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.assertEqual(o2, 7.)
 
     # All validation modes - long
-    def test_model_float_validate_long(self):
+    def test_float_validate_long(self):
 
         t = TYPE_FLOAT
 
@@ -1347,7 +1347,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.assertEqual(o2, 7.)
 
     # Query string validation mode - string
-    def test_model_float_query_string(self):
+    def test_float_query_string(self):
 
         t = TYPE_FLOAT
 
@@ -1357,7 +1357,7 @@ class TestModelFloatValidation(unittest.TestCase):
         self.assertEqual(o2, 7.5)
 
     # All validation modes - error - invalid value
-    def test_model_float_validate_error(self):
+    def test_float_validate_error(self):
 
         t = TYPE_FLOAT
 
@@ -1371,7 +1371,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - bool
-    def test_model_float_validate_error_bool(self):
+    def test_float_validate_error_bool(self):
 
         t = TYPE_FLOAT
 
@@ -1385,7 +1385,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.fail()
 
     # All validation modes - error - fake JSON float
-    def test_model_float_validate_error_fake_float(self):
+    def test_float_validate_error_fake_float(self):
 
         t = TYPE_FLOAT
 
@@ -1402,14 +1402,14 @@ class TestModelFloatValidation(unittest.TestCase):
 class TestModelBoolValidation(unittest.TestCase):
 
     # Test bool type construction
-    def test_model_bool_init(self):
+    def test_bool_init(self):
 
         t = TYPE_BOOL
 
         self.assertEqual(t.type_name, 'bool')
 
     # All validation modes - success
-    def test_model_bool_validate(self):
+    def test_bool_validate(self):
 
         t = TYPE_BOOL
 
@@ -1419,7 +1419,7 @@ class TestModelBoolValidation(unittest.TestCase):
             self.assertTrue(o is o2)
 
     # Query string validation mode - string
-    def test_model_bool_validate_query_string(self):
+    def test_bool_validate_query_string(self):
 
         t = TYPE_BOOL
 
@@ -1430,7 +1430,7 @@ class TestModelBoolValidation(unittest.TestCase):
             self.assertEqual(o2, expected)
 
     # All validation modes - error - invalid value
-    def test_model_bool_validate_error(self):
+    def test_bool_validate_error(self):
 
         t = TYPE_BOOL
 
@@ -1447,14 +1447,14 @@ class TestModelBoolValidation(unittest.TestCase):
 class TestModelUuidValidation(unittest.TestCase):
 
     # Test uuid type construction
-    def test_model_uuid_init(self):
+    def test_uuid_init(self):
 
         t = TYPE_UUID
 
         self.assertEqual(t.type_name, 'uuid')
 
     # All validation modes - UUID object
-    def test_model_uuid_validate(self):
+    def test_uuid_validate(self):
 
         t = TYPE_UUID
 
@@ -1474,7 +1474,7 @@ class TestModelUuidValidation(unittest.TestCase):
                     pass
 
     # All validation modes - JsonUUID object
-    def test_model_uuid_validate_JsonUUID(self):
+    def test_uuid_validate_JsonUUID(self):
 
         t = TYPE_UUID
 
@@ -1494,7 +1494,7 @@ class TestModelUuidValidation(unittest.TestCase):
                     pass
 
     # All validation modes - UUID string
-    def test_model_uuid_validate_string(self):
+    def test_uuid_validate_string(self):
 
         t = TYPE_UUID
 
@@ -1514,7 +1514,7 @@ class TestModelUuidValidation(unittest.TestCase):
                     pass
 
     # All validation modes - error - invalid value
-    def test_model_uuid_validate_error(self):
+    def test_uuid_validate_error(self):
 
         t = TYPE_UUID
 
@@ -1531,14 +1531,14 @@ class TestModelUuidValidation(unittest.TestCase):
 class TestModelDateValidation(unittest.TestCase):
 
     # Test date type construction
-    def test_model_date_init(self):
+    def test_date_init(self):
 
         t = TYPE_DATE
 
         self.assertEqual(t.type_name, 'date')
 
     # All validation modes - date object
-    def test_model_date_validate(self):
+    def test_date_validate(self):
 
         t = TYPE_DATE
 
@@ -1558,7 +1558,7 @@ class TestModelDateValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - JSONDate object
-    def test_model_date_JSONDate(self):
+    def test_date_JSONDate(self):
 
         t = TYPE_DATE
 
@@ -1576,7 +1576,7 @@ class TestModelDateValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO date string
-    def test_model_date_validate_query_string(self):
+    def test_date_validate_query_string(self):
 
         t = TYPE_DATE
 
@@ -1596,7 +1596,7 @@ class TestModelDateValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - error - invalid value
-    def test_model_date_validate_error(self):
+    def test_date_validate_error(self):
 
         t = TYPE_DATE
 
@@ -1613,14 +1613,14 @@ class TestModelDateValidation(unittest.TestCase):
 class TestModelDatetimeValidation(unittest.TestCase):
 
     # Test datetime type construction
-    def test_model_datetime_init(self):
+    def test_datetime_init(self):
 
         t = TYPE_DATETIME
 
         self.assertEqual(t.type_name, 'datetime')
 
     # All validation modes - datetime object
-    def test_model_datetime_validate(self):
+    def test_datetime_validate(self):
 
         t = TYPE_DATETIME
 
@@ -1640,7 +1640,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - JSONDatetime object
-    def test_model_datetime_JSONDatetime(self):
+    def test_datetime_JSONDatetime(self):
 
         t = TYPE_DATETIME
 
@@ -1658,7 +1658,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - datetime object with no timezone
-    def test_model_datetime_validate_no_timezone(self):
+    def test_datetime_validate_no_timezone(self):
 
         t = TYPE_DATETIME
 
@@ -1682,7 +1682,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO datetime string
-    def test_model_datetime_validate_query_string(self):
+    def test_datetime_validate_query_string(self):
 
         t = TYPE_DATETIME
 
@@ -1702,7 +1702,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO datetime string - zulu
-    def test_model_datetime_validate_query_string_zulu(self):
+    def test_datetime_validate_query_string_zulu(self):
 
         t = TYPE_DATETIME
 
@@ -1722,7 +1722,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO datetime string - fraction second
-    def test_model_datetime_validate_query_string_fracsec(self):
+    def test_datetime_validate_query_string_fracsec(self):
 
         t = TYPE_DATETIME
 
@@ -1742,7 +1742,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO datetime string - no seconds
-    def test_model_datetime_validate_query_string_no_seconds(self):
+    def test_datetime_validate_query_string_no_seconds(self):
 
         t = TYPE_DATETIME
 
@@ -1762,7 +1762,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - ISO datetime string - no minutes
-    def test_model_datetime_validate_query_string_no_minutes(self):
+    def test_datetime_validate_query_string_no_minutes(self):
 
         t = TYPE_DATETIME
 
@@ -1782,7 +1782,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                     self.fail()
 
     # All validation modes - error - invalid value
-    def test_model_datetime_validate_error(self):
+    def test_datetime_validate_error(self):
 
         t = TYPE_DATETIME
 

@@ -3,7 +3,7 @@ import chisel
 
 # Action callback used by test_app.py
 @chisel.action
-def myAction(ctx, dummy_req):
+def my_action(ctx, dummy_req):
 
     # Log info and a warning
     ctx.log.debug('Some info')
@@ -13,8 +13,8 @@ def myAction(ctx, dummy_req):
 
 
 @chisel.action
-def myAction2(ctx, req):
-    ctx.log.info('In myAction2')
+def my_action2(ctx, req):
+    ctx.log.info('In my_action2')
 
     if 'MYENVIRON' in ctx.environ:
         multiplier = int(ctx.environ['MYENVIRON'])

@@ -1,12 +1,12 @@
-action myAction
+action my_action
 
-action myAction2
+action my_action2
     input
         int value
     output
         int result
 
-action myAction3
+action my_action3
     input
         int myArg
     output

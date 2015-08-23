@@ -32,63 +32,63 @@ class TestRequest(unittest.TestCase):
         self.app = chisel.Application()
 
     # Default request decorator
-    def test_request_decorator(self):
+    def test_decorator(self):
 
         @chisel.request
-        def myRequest(dummy_environ, dummy_start_response):
+        def my_request(dummy_environ, dummy_start_response):
             return []
-        self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.add_request(myRequest)
-        self.assertEqual(myRequest({}, lambda x, y: None), [])
-        self.assertEqual(myRequest.name, 'myRequest')
-        self.assertEqual(myRequest.urls, ('/myRequest',))
+        self.assertTrue(isinstance(my_request, chisel.Request))
+        self.app.add_request(my_request)
+        self.assertEqual(my_request({}, lambda x, y: None), [])
+        self.assertEqual(my_request.name, 'my_request')
+        self.assertEqual(my_request.urls, ('/my_request',))
 
     # Request decorator with name
-    def test_request_decorator_name(self):
+    def test_decorator_name(self):
 
         @chisel.request(name='foo')
-        def myRequest(dummy_environ, dummy_start_response):
+        def my_request(dummy_environ, dummy_start_response):
             return []
-        self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.add_request(myRequest)
-        self.assertEqual(myRequest({}, lambda x, y: None), [])
-        self.assertEqual(myRequest.name, 'foo')
-        self.assertEqual(myRequest.urls, ('/foo',))
+        self.assertTrue(isinstance(my_request, chisel.Request))
+        self.app.add_request(my_request)
+        self.assertEqual(my_request({}, lambda x, y: None), [])
+        self.assertEqual(my_request.name, 'foo')
+        self.assertEqual(my_request.urls, ('/foo',))
 
     # Request decorator with URLs
-    def test_request_decorator_urls(self):
+    def test_decorator_urls(self):
 
         @chisel.request(urls=('/bar', '/thud',))
-        def myRequest(dummy_environ, dummy_start_response):
+        def my_request(dummy_environ, dummy_start_response):
             return []
-        self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.add_request(myRequest)
-        self.assertEqual(myRequest({}, lambda x, y: None), [])
-        self.assertEqual(myRequest.name, 'myRequest')
-        self.assertEqual(myRequest.urls, ('/bar', '/thud'))
+        self.assertTrue(isinstance(my_request, chisel.Request))
+        self.app.add_request(my_request)
+        self.assertEqual(my_request({}, lambda x, y: None), [])
+        self.assertEqual(my_request.name, 'my_request')
+        self.assertEqual(my_request.urls, ('/bar', '/thud'))
 
     # Decorator with name and URLs
-    def test_request_decorator_name_and_urls(self):
+    def test_decorator_name_and_urls(self):
 
         @chisel.request(name='foo', urls=('/bar', '/thud'))
-        def myRequest(dummy_environ, dummy_start_response):
+        def my_request(dummy_environ, dummy_start_response):
             return []
-        self.assertTrue(isinstance(myRequest, chisel.Request))
-        self.app.add_request(myRequest)
-        self.assertEqual(myRequest({}, lambda x, y: None), [])
-        self.assertEqual(myRequest.name, 'foo')
-        self.assertEqual(myRequest.urls, ('/bar', '/thud'))
+        self.assertTrue(isinstance(my_request, chisel.Request))
+        self.app.add_request(my_request)
+        self.assertEqual(my_request({}, lambda x, y: None), [])
+        self.assertEqual(my_request.name, 'foo')
+        self.assertEqual(my_request.urls, ('/bar', '/thud'))
 
     # Request headers
-    def test_request_headers(self):
+    def test_headers(self):
 
         @chisel.request(name='foo')
-        def myRequest(environ, start_response):
+        def my_request(environ, start_response):
             ctx = environ[chisel.Application.ENVIRON_CTX]
             ctx.add_header('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
             return ['OK'.encode('utf-8')]
-        self.app.add_request(myRequest)
+        self.app.add_request(my_request)
         status, headers, response = self.app.request('GET', '/foo')
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers, [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])

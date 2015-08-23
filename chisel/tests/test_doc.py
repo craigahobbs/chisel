@@ -105,12 +105,12 @@ union MyUnion
 # A typedef
 typedef string(len == 2) : MyStruct {len > 0} MyTypedef
 
-action myAction1
+action my_action1
     input
         MyStruct struct
         MyTypedef typedef
 
-action myAction2
+action my_action2
     output
         MyUnion union
     errors
@@ -136,12 +136,12 @@ action myAction2
         # Application object
         self.app = chisel.Application()
         self.app.specs.parse_string(self._spec)
-        self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction1'))
-        self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction2'))
+        self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action1'))
+        self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action2'))
         self.app.add_request(chisel.DocAction())
 
     # Test documentation index HTML generation
-    def test_doc_index(self):
+    def test_index(self):
 
         # Validate the HTML
         status, dummy_headers, response = self.app.request('GET', '/doc', environ=self._environ)
@@ -283,8 +283,8 @@ ul.chsl-constraint-list {
         <span>Actions</span>
         <ul class="chsl-request-list">
           <li><a href="/doc?name=doc">doc</a></li>
-          <li><a href="/doc?name=myAction1">myAction1</a></li>
-          <li><a href="/doc?name=myAction2">myAction2</a></li>
+          <li><a href="/doc?name=my_action1">my_action1</a></li>
+          <li><a href="/doc?name=my_action2">my_action2</a></li>
         </ul>
       </li>
     </ul>
@@ -293,11 +293,11 @@ ul.chsl-constraint-list {
         self.assertEqual(html_expected, html)
 
     # Test action model HTML generation
-    def test_doc_request(self):
+    def test_request(self):
 
-        # Validate the first myAction1's HTML
+        # Validate the first my_action1's HTML
         environ = dict(self._environ)
-        environ['QUERY_STRING'] = 'name=myAction1'
+        environ['QUERY_STRING'] = 'name=my_action1'
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
@@ -306,7 +306,7 @@ ul.chsl-constraint-list {
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>myAction1</title>
+    <title>my_action1</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -433,7 +433,7 @@ ul.chsl-constraint-list {
     <div class="chsl-header">
       <a href="/doc">Back to documentation index</a>
     </div>
-    <h1>myAction1</h1>
+    <h1>my_action1</h1>
     <div class="chsl-notes">
       <div class="chsl-note">
         <p>
@@ -441,11 +441,11 @@ ul.chsl-constraint-list {
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/myAction1">/myAction1</a></li>
+          <li><a href="/my_action1">/my_action1</a></li>
         </ul>
       </div>
     </div>
-    <h2 id="myAction1_input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="my_action1_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -471,13 +471,13 @@ The request is exposed at the following URL:
         </td>
       </tr>
     </table>
-    <h2 id="myAction1_output"><a class="linktarget">Output Parameters</a></h2>
+    <h2 id="my_action1_output"><a class="linktarget">Output Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no output parameters.
       </p>
     </div>
-    <h2 id="myAction1_error"><a class="linktarget">Error Codes</a></h2>
+    <h2 id="my_action1_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
       <p>
 The action returns no custom error codes.
@@ -704,9 +704,9 @@ A value
 </html>'''
         self.assertEqual(html_expected, html)
 
-        # Validate the myAction2's HTML
+        # Validate the my_action2's HTML
         environ = dict(self._environ2)
-        environ['QUERY_STRING'] = 'name=myAction2'
+        environ['QUERY_STRING'] = 'name=my_action2'
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
@@ -715,7 +715,7 @@ A value
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>myAction2</title>
+    <title>my_action2</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -842,7 +842,7 @@ ul.chsl-constraint-list {
     <div class="chsl-header">
       <a href="/doc">Back to documentation index</a>
     </div>
-    <h1>myAction2</h1>
+    <h1>my_action2</h1>
     <div class="chsl-notes">
       <div class="chsl-note">
         <p>
@@ -850,17 +850,17 @@ ul.chsl-constraint-list {
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/myAction2">/myAction2</a></li>
+          <li><a href="/my_action2">/my_action2</a></li>
         </ul>
       </div>
     </div>
-    <h2 id="myAction2_input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no input parameters.
       </p>
     </div>
-    <h2 id="myAction2_output"><a class="linktarget">Output Parameters</a></h2>
+    <h2 id="my_action2_output"><a class="linktarget">Output Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -877,7 +877,7 @@ The action has no input parameters.
         </td>
       </tr>
     </table>
-    <h2 id="myAction2_error"><a class="linktarget">Error Codes</a></h2>
+    <h2 id="my_action2_error"><a class="linktarget">Error Codes</a></h2>
     <table>
       <tr>
         <th>Value</th>
@@ -927,7 +927,7 @@ My Union
         self.assertEqual(html_expected, html)
 
     # Test doc generation element class
-    def test_doc_element(self):
+    def test_element(self):
 
         root = Element('a')
         elem_b = root.add_child('b', inline=True)
@@ -976,7 +976,7 @@ My Union
         self.assertEqual(root.serialize(), ''.join(chunks))
 
     # Test doc generation element class - no indent
-    def test_doc_element_noindent(self):
+    def test_element_noindent(self):
 
         root = Element('a')
         elem_b = root.add_child('b', inline=True)
@@ -1024,7 +1024,7 @@ My Union
         self.assertEqual(list(root.serialize_chunks(indent='')), chunks)
         self.assertEqual(root.serialize(indent=''), ''.join(chunks))
 
-    def test_doc_page(self):
+    def test_page(self):
 
         app = chisel.Application()
 
