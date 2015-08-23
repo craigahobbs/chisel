@@ -235,21 +235,21 @@ def _request_html(environ, request, nonav=False):
         enum_types = {}
 
         def add_type(type_, members_only=False):
-            if isinstance(type_, TypeStruct) and type_.typeName not in struct_types:
+            if isinstance(type_, TypeStruct) and type_.type_name not in struct_types:
                 if not members_only:
-                    struct_types[type_.typeName] = type_
+                    struct_types[type_.type_name] = type_
                 for member in type_.members:
                     add_type(member.type)
-            elif isinstance(type_, TypeEnum) and type_.typeName not in enum_types:
-                enum_types[type_.typeName] = type_
-            elif isinstance(type_, Typedef) and type_.typeName not in typedef_types:
-                typedef_types[type_.typeName] = type_
+            elif isinstance(type_, TypeEnum) and type_.type_name not in enum_types:
+                enum_types[type_.type_name] = type_
+            elif isinstance(type_, Typedef) and type_.type_name not in typedef_types:
+                typedef_types[type_.type_name] = type_
                 add_type(type_.type)
             elif isinstance(type_, TypeArray):
                 add_type(type_.type)
             elif isinstance(type_, TypeDict):
                 add_type(type_.type)
-                add_type(type_.keyType)
+                add_type(type_.key_type)
 
         add_type(request.model.inputType, members_only=True)
         if not request.wsgi_response:
@@ -265,17 +265,17 @@ def _request_html(environ, request, nonav=False):
         if typedef_types:
             body.add_child('h2', inline=True) \
                 .add_child('Typedefs', text=True)
-            for typedef_type in sorted(itervalues(typedef_types), key=lambda x: x.typeName.lower()):
+            for typedef_type in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower()):
                 _typedef_section(body, typedef_type)
         if struct_types:
             body.add_child('h2', inline=True) \
                 .add_child('Struct Types', text=True)
-            for struct_type in sorted(itervalues(struct_types), key=lambda x: x.typeName.lower()):
+            for struct_type in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower()):
                 _struct_section(body, struct_type)
         if enum_types:
             body.add_child('h2', inline=True) \
                 .add_child('Enum Types', text=True)
-            for enum_type in sorted(itervalues(enum_types), key=lambda x: x.typeName.lower()):
+            for enum_type in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower()):
                 _enum_section(body, enum_type)
 
     return root
@@ -406,7 +406,7 @@ ul.chsl-constraint-list {
 
 
 def _user_type_href(type_):
-    return type_.typeName
+    return type_.type_name
 
 
 _USER_TYPES = (Typedef, TypeStruct, TypeEnum)
@@ -415,7 +415,7 @@ _USER_TYPES = (Typedef, TypeStruct, TypeEnum)
 def _add_type_name_helper(parent, type_):
     if isinstance(type_, _USER_TYPES):
         parent = parent.add_child('a', inline=True, href='#' + _user_type_href(type_))
-    parent.add_child(type_.typeName, text=True, inline=True)
+    parent.add_child(type_.type_name, text=True, inline=True)
 
 
 def _add_type_name(parent, type_):
@@ -423,8 +423,8 @@ def _add_type_name(parent, type_):
         _add_type_name_helper(parent, type_.type)
         parent.add_child('&nbsp;[]', text_raw=True)
     elif isinstance(type_, TypeDict):
-        if not type_.hasDefaultKeyType():
-            _add_type_name_helper(parent, type_.keyType)
+        if not type_.has_default_key_type():
+            _add_type_name_helper(parent, type_.key_type)
             parent.add_child('&nbsp;:&nbsp;', text_raw=True)
         _add_type_name_helper(parent, type_.type)
         parent.add_child('&nbsp;{}', text_raw=True)
@@ -436,26 +436,26 @@ def _add_type_name(parent, type_):
 def _attribute_list(attr, value_name, len_name):
     if attr is None:
         return
-    if attr.gt is not None:
-        yield (value_name, '>', str(JsonFloat(attr.gt, 6)))
-    if attr.gte is not None:
-        yield (value_name, '>=', str(JsonFloat(attr.gte, 6)))
-    if attr.lt is not None:
-        yield (value_name, '<', str(JsonFloat(attr.lt, 6)))
-    if attr.lte is not None:
-        yield (value_name, '<=', str(JsonFloat(attr.lte, 6)))
-    if attr.eq is not None:
-        yield (value_name, '==', str(JsonFloat(attr.eq, 6)))
-    if attr.len_gt is not None:
-        yield (len_name, '>', str(JsonFloat(attr.len_gt, 6)))
-    if attr.len_gte is not None:
-        yield (len_name, '>=', str(JsonFloat(attr.len_gte, 6)))
-    if attr.len_lt is not None:
-        yield (len_name, '<', str(JsonFloat(attr.len_lt, 6)))
-    if attr.len_lte is not None:
-        yield (len_name, '<=', str(JsonFloat(attr.len_lte, 6)))
-    if attr.len_eq is not None:
-        yield (len_name, '==', str(JsonFloat(attr.len_eq, 6)))
+    if attr.op_gt is not None:
+        yield (value_name, '>', str(JsonFloat(attr.op_gt, 6)))
+    if attr.op_gte is not None:
+        yield (value_name, '>=', str(JsonFloat(attr.op_gte, 6)))
+    if attr.op_lt is not None:
+        yield (value_name, '<', str(JsonFloat(attr.op_lt, 6)))
+    if attr.op_lte is not None:
+        yield (value_name, '<=', str(JsonFloat(attr.op_lte, 6)))
+    if attr.op_eq is not None:
+        yield (value_name, '==', str(JsonFloat(attr.op_eq, 6)))
+    if attr.op_len_gt is not None:
+        yield (len_name, '>', str(JsonFloat(attr.op_len_gt, 6)))
+    if attr.op_len_gte is not None:
+        yield (len_name, '>=', str(JsonFloat(attr.op_len_gte, 6)))
+    if attr.op_len_lt is not None:
+        yield (len_name, '<', str(JsonFloat(attr.op_len_lt, 6)))
+    if attr.op_len_lte is not None:
+        yield (len_name, '<=', str(JsonFloat(attr.op_len_lte, 6)))
+    if attr.op_len_eq is not None:
+        yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
 
 
 def _add_type_attr_helper(ul_type_attr, lhs, operator, rhs):
@@ -472,8 +472,8 @@ def _add_type_attr(parent, type_, attr, optional):
     type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
     for lhs, operator, rhs in _attribute_list(attr, type_name, 'len(' + type_name + ')'):
         _add_type_attr_helper(ul_type_attr, lhs, operator, rhs)
-    if hasattr(type_, 'keyType'):
-        for lhs, operator, rhs in _attribute_list(type_.keyAttr, 'key', 'len(key)'):
+    if hasattr(type_, 'key_type'):
+        for lhs, operator, rhs in _attribute_list(type_.key_attr, 'key', 'len(key)'):
             _add_type_attr_helper(ul_type_attr, lhs, operator, rhs)
     if hasattr(type_, 'type'):
         for lhs, operator, rhs in _attribute_list(type_.attr, 'elem', 'len(elem)'):
@@ -518,7 +518,7 @@ def _typedef_section(parent, type_):
     # Section title
     parent.add_child('h3', inline=True, _id=_user_type_href(type_)) \
         .add_child('a', _class='linktarget') \
-        .add_child('typedef ' + type_.typeName, text=True)
+        .add_child('typedef ' + type_.type_name, text=True)
     _add_doc_text(parent, type_.doc)
 
     # Table header
@@ -537,7 +537,7 @@ def _struct_section(parent, type_, title_tag=None, title=None, empty_message=Non
     if title_tag is None:
         title_tag = 'h3'
     if title is None:
-        title = ('union ' if type_.isUnion else 'struct ') + type_.typeName
+        title = ('union ' if type_.union else 'struct ') + type_.type_name
     if empty_message is None:
         empty_message = 'The struct is empty.'
 
@@ -568,7 +568,7 @@ def _struct_section(parent, type_, title_tag=None, title=None, empty_message=Non
             tr_member = table.add_child('tr')
             tr_member.add_child('td', inline=True).add_child(member.name, text=True)
             _add_type_name(tr_member.add_child('td', inline=True), member.type)
-            _add_type_attr(tr_member.add_child('td'), member.type, member.attr, member.isOptional)
+            _add_type_attr(tr_member.add_child('td'), member.type, member.attr, member.optional)
             if has_description:
                 _add_doc_text(tr_member.add_child('td'), member.doc)
 
@@ -577,7 +577,7 @@ def _enum_section(parent, type_, title_tag=None, title=None, empty_message=None)
     if title_tag is None:
         title_tag = 'h3'
     if title is None:
-        title = 'enum ' + type_.typeName
+        title = 'enum ' + type_.type_name
     if empty_message is None:
         empty_message = 'The enum is empty.'
 

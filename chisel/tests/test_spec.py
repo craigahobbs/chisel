@@ -36,7 +36,7 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assertTrue(isinstance(structType, chisel.model.TypeStruct))
         self.assertEqual(len(structType.members), len(members))
         for ixMember in chisel.compat.xrange_(0, len(members)):
-            name, typeOrType, isOptional = members[ixMember]
+            name, typeOrType, optional = members[ixMember]
             self.assertEqual(structType.members[ixMember].name, name)
             if isinstance(typeOrType, (chisel.model.TypeStruct,
                                        chisel.model.TypeArray,
@@ -46,12 +46,12 @@ class TestSpecParseSpec(unittest.TestCase):
                                 (structType.members[ixMember].name, structType.members[ixMember].type, ixMember))
             else:
                 self.assertTrue(isinstance(structType.members[ixMember].type, typeOrType))
-            self.assertEqual(structType.members[ixMember].isOptional, isOptional)
+            self.assertEqual(structType.members[ixMember].optional, optional)
 
     # Helper method to assert struct type member properties (by struct name)
-    def assertStructByName(self, parser, typeName, members):
-        self.assertEqual(parser.types[typeName].typeName, typeName)
-        self.assertStruct(parser.types[typeName], members)
+    def assertStructByName(self, parser, type_name, members):
+        self.assertEqual(parser.types[type_name].type_name, type_name)
+        self.assertStruct(parser.types[type_name], members)
 
     # Helper method to assert enum type values
     def assertEnum(self, enumType, values):
@@ -61,15 +61,15 @@ class TestSpecParseSpec(unittest.TestCase):
             self.assertTrue(enumValue in enumType.values)
 
     # Helper method to assert enum type values (by enum name)
-    def assertEnumByName(self, parser, typeName, values):
-        self.assertEqual(parser.types[typeName].typeName, typeName)
-        self.assertEnum(parser.types[typeName], values)
+    def assertEnumByName(self, parser, type_name, values):
+        self.assertEqual(parser.types[type_name].type_name, type_name)
+        self.assertEnum(parser.types[type_name], values)
 
     # Helper method to assert action properties
     def assertAction(self, parser, actionName, inputMembers, outputMembers, errorValues):
-        self.assertEqual(parser.actions[actionName].inputType.typeName, actionName + '_Input')
-        self.assertEqual(parser.actions[actionName].outputType.typeName, actionName + '_Output')
-        self.assertEqual(parser.actions[actionName].errorType.typeName, actionName + '_Error')
+        self.assertEqual(parser.actions[actionName].inputType.type_name, actionName + '_Input')
+        self.assertEqual(parser.actions[actionName].outputType.type_name, actionName + '_Output')
+        self.assertEqual(parser.actions[actionName].errorType.type_name, actionName + '_Error')
         self.assertStruct(parser.actions[actionName].inputType, inputMembers)
         self.assertStruct(parser.actions[actionName].outputType, outputMembers)
         self.assertEnum(parser.actions[actionName].errorType, errorValues)
@@ -177,10 +177,10 @@ action MyAction4 \\
                                  ('b', chisel.model._TypeString, True)))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[4].type.type, chisel.model._TypeInt))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[5].type.type, chisel.model.TypeStruct))
-        self.assertEqual(parser.types['MyStruct2'].members[5].type.type.typeName, 'MyStruct')
+        self.assertEqual(parser.types['MyStruct2'].members[5].type.type.type_name, 'MyStruct')
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[6].type.type, chisel.model._TypeFloat))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.type, chisel.model.TypeStruct))
-        self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.keyType, chisel.model.TypeEnum))
+        self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.key_type, chisel.model.TypeEnum))
 
         # Check actions
         self.assertAction(parser, 'MyAction',
@@ -196,7 +196,7 @@ action MyAction4 \\
                           (),
                           ())
         self.assertTrue(isinstance(parser.actions['MyAction2'].inputType.members[1].type.type, chisel.model.TypeStruct))
-        self.assertEqual(parser.actions['MyAction2'].inputType.members[1].type.type.typeName, 'MyStruct2')
+        self.assertEqual(parser.actions['MyAction2'].inputType.members[1].type.type.type_name, 'MyStruct2')
         self.assertAction(parser, 'MyAction3',
                           (),
                           (('a', chisel.model._TypeInt, False),
@@ -274,14 +274,14 @@ enum MyEnum2
                           (('b', chisel.model.TypeStruct, False),
                            ('c', parser.types['MyEnum2'], False)),
                           ())
-        self.assertEqual(parser.actions['MyAction'].inputType.members[0].type.typeName, 'MyStruct2')
-        self.assertEqual(parser.actions['MyAction'].outputType.members[0].type.typeName, 'MyStruct')
+        self.assertEqual(parser.actions['MyAction'].inputType.members[0].type.type_name, 'MyStruct2')
+        self.assertEqual(parser.actions['MyAction'].outputType.members[0].type.type_name, 'MyStruct')
         self.assertAction(parser, 'MyAction2',
                           (('d', chisel.model.TypeStruct, False),),
                           (('e', chisel.model.TypeStruct, False),),
                           ())
-        self.assertEqual(parser.actions['MyAction2'].inputType.members[0].type.typeName, 'MyStruct')
-        self.assertEqual(parser.actions['MyAction2'].outputType.members[0].type.typeName, 'MyStruct2')
+        self.assertEqual(parser.actions['MyAction2'].inputType.members[0].type.type_name, 'MyStruct')
+        self.assertEqual(parser.actions['MyAction2'].outputType.members[0].type.type_name, 'MyStruct2')
 
     # Test multiple finalize
     def test_spec_multiple_finalize(self):
@@ -354,8 +354,8 @@ struct MyStruct2
                                 (('a', chisel.model.TypeDict, False),))
         self.assertTrue(parser.types['MyStruct'].members[0].type.type is parser.types['MyStruct2'])
         self.assertTrue(parser.types['MyStruct'].members[0].type.attr is None)
-        self.assertTrue(parser.types['MyStruct'].members[0].type.keyType is parser.types['MyEnum'])
-        self.assertTrue(parser.types['MyStruct'].members[0].type.keyAttr is None)
+        self.assertTrue(parser.types['MyStruct'].members[0].type.key_type is parser.types['MyEnum'])
+        self.assertTrue(parser.types['MyStruct'].members[0].type.key_attr is None)
         self.assertTrue(parser.types['MyStruct'].members[0].attr is not None)
 
         self.assertStructByName(parser, 'MyStruct2', ())
@@ -498,10 +498,10 @@ typedef int(> 5) Foo
         # Check types
         typedef = parser.types['Foo']
         self.assertTrue(isinstance(typedef, chisel.model.Typedef))
-        self.assertEqual(typedef.typeName, 'Foo')
+        self.assertEqual(typedef.type_name, 'Foo')
         self.assertEqual(typedef.doc, [])
         self.assertTrue(isinstance(typedef.type, chisel.model._TypeInt))
-        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(gt=5))
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(op_gt=5))
 
         # Check errors
         self.assertEqual(parser.errors,
@@ -689,18 +689,18 @@ action MyAction
                           ':12: error: Enumeration value outside of enum scope'])
 
     @staticmethod
-    def attrTuple(attr=None, eq=None, lt=None, lte=None, gt=None, gte=None,
-                  len_eq=None, len_lt=None, len_lte=None, len_gt=None, len_gte=None):
-        return (attr.eq if attr else eq,
-                attr.lt if attr else lt,
-                attr.lte if attr else lte,
-                attr.gt if attr else gt,
-                attr.gte if attr else gte,
-                attr.len_eq if attr else len_eq,
-                attr.len_lt if attr else len_lt,
-                attr.len_lte if attr else len_lte,
-                attr.len_gt if attr else len_gt,
-                attr.len_gte if attr else len_gte)
+    def attrTuple(attr=None, op_eq=None, op_lt=None, op_lte=None, op_gt=None, op_gte=None,
+                  op_len_eq=None, op_len_lt=None, op_len_lte=None, op_len_gt=None, op_len_gte=None):
+        return (attr.op_eq if attr else op_eq,
+                attr.op_lt if attr else op_lt,
+                attr.op_lte if attr else op_lte,
+                attr.op_gt if attr else op_gt,
+                attr.op_gte if attr else op_gte,
+                attr.op_len_eq if attr else op_len_eq,
+                attr.op_len_lt if attr else op_len_lt,
+                attr.op_len_lte if attr else op_len_lte,
+                attr.op_len_gt if attr else op_len_gt,
+                attr.op_len_gte if attr else op_len_gte)
 
     # Test valid attribute usage
     def test_spec_attributes(self):
@@ -758,79 +758,79 @@ struct MyStruct
         # Check i1 constraints
         itm = iter(s.members)
         i1 = next(itm)
-        self.assertEqual(self.attrTuple(i1.attr), self.attrTuple(lte=10.5, gt=1))
+        self.assertEqual(self.attrTuple(i1.attr), self.attrTuple(op_lte=10.5, op_gt=1))
 
         # Check i2 constraints
         i2 = next(itm)
-        self.assertEqual(self.attrTuple(i2.attr), self.attrTuple(lt=10, gte=1))
+        self.assertEqual(self.attrTuple(i2.attr), self.attrTuple(op_lt=10, op_gte=1))
 
         # Check i3 constraints
         i3 = next(itm)
-        self.assertEqual(self.attrTuple(i3.attr), self.attrTuple(lte=10, gt=0))
+        self.assertEqual(self.attrTuple(i3.attr), self.attrTuple(op_lte=10, op_gt=0))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(lt=-1.4, gt=-4))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(op_lt=-1.4, op_gt=-4))
 
         # Check i4 constraints
         i4 = next(itm)
-        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(eq=5))
+        self.assertEqual(self.attrTuple(i4.attr), self.attrTuple(op_eq=5))
 
         # Check f1 constraints
         f1 = next(itm)
-        self.assertEqual(self.attrTuple(f1.attr), self.attrTuple(lte=10.5, gt=1))
+        self.assertEqual(self.attrTuple(f1.attr), self.attrTuple(op_lte=10.5, op_gt=1))
 
         # Check f2 constraints
         f2 = next(itm)
-        self.assertEqual(self.attrTuple(f2.attr), self.attrTuple(lt=10, gte=1.5))
+        self.assertEqual(self.attrTuple(f2.attr), self.attrTuple(op_lt=10, op_gte=1.5))
 
         # Check s1 constraints
         s1 = next(itm)
-        self.assertEqual(self.attrTuple(s1.attr), self.attrTuple(len_lt=101, len_gt=5))
+        self.assertEqual(self.attrTuple(s1.attr), self.attrTuple(op_len_lt=101, op_len_gt=5))
 
         # Check s2 constraints
         s2 = next(itm)
-        self.assertEqual(self.attrTuple(s2.attr), self.attrTuple(len_lte=100, len_gte=5))
+        self.assertEqual(self.attrTuple(s2.attr), self.attrTuple(op_len_lte=100, op_len_gte=5))
 
         # Check s3 constraints
         s3 = next(itm)
-        self.assertEqual(self.attrTuple(s3.attr), self.attrTuple(len_eq=2))
+        self.assertEqual(self.attrTuple(s3.attr), self.attrTuple(op_len_eq=2))
 
         # Check ai1 constraints
         ai1 = next(itm)
         self.assertEqual(ai1.attr, None)
-        self.assertEqual(self.attrTuple(ai1.type.attr), self.attrTuple(gt=5))
+        self.assertEqual(self.attrTuple(ai1.type.attr), self.attrTuple(op_gt=5))
 
         # Check as1 constraints
         as1 = next(itm)
-        self.assertEqual(self.attrTuple(as1.attr), self.attrTuple(len_lt=10))
-        self.assertEqual(self.attrTuple(as1.type.attr), self.attrTuple(len_lt=5))
+        self.assertEqual(self.attrTuple(as1.attr), self.attrTuple(op_len_lt=10))
+        self.assertEqual(self.attrTuple(as1.type.attr), self.attrTuple(op_len_lt=5))
 
         # Check as2 constraints
         as2 = next(itm)
-        self.assertEqual(self.attrTuple(as2.attr), self.attrTuple(len_eq=3))
-        self.assertEqual(self.attrTuple(as2.type.attr), self.attrTuple(len_eq=2))
+        self.assertEqual(self.attrTuple(as2.attr), self.attrTuple(op_len_eq=3))
+        self.assertEqual(self.attrTuple(as2.type.attr), self.attrTuple(op_len_eq=2))
 
         # Check di1 constraints
         di1 = next(itm)
         self.assertEqual(di1.attr, None)
-        self.assertEqual(self.attrTuple(di1.type.attr), self.attrTuple(lt=15))
+        self.assertEqual(self.attrTuple(di1.type.attr), self.attrTuple(op_lt=15))
 
         # Check ds1 constraints
         ds1 = next(itm)
-        self.assertEqual(self.attrTuple(ds1.attr), self.attrTuple(len_gt=10))
-        self.assertEqual(self.attrTuple(ds1.type.attr), self.attrTuple(len_gt=5))
+        self.assertEqual(self.attrTuple(ds1.attr), self.attrTuple(op_len_gt=10))
+        self.assertEqual(self.attrTuple(ds1.type.attr), self.attrTuple(op_len_gt=5))
 
         # Check ds2 constraints
         ds2 = next(itm)
-        self.assertEqual(self.attrTuple(ds2.attr), self.attrTuple(len_eq=3))
-        self.assertEqual(self.attrTuple(ds2.type.attr), self.attrTuple(len_eq=2))
+        self.assertEqual(self.attrTuple(ds2.attr), self.attrTuple(op_len_eq=3))
+        self.assertEqual(self.attrTuple(ds2.type.attr), self.attrTuple(op_len_eq=2))
 
         # Check ds3 constraints
         ds3 = next(itm)
-        self.assertEqual(self.attrTuple(ds3.attr), self.attrTuple(len_eq=3))
-        self.assertEqual(self.attrTuple(ds3.type.attr), self.attrTuple(len_eq=2))
-        self.assertEqual(self.attrTuple(ds3.type.keyAttr), self.attrTuple(len_eq=1))
+        self.assertEqual(self.attrTuple(ds3.attr), self.attrTuple(op_len_eq=3))
+        self.assertEqual(self.attrTuple(ds3.type.attr), self.attrTuple(op_len_eq=2))
+        self.assertEqual(self.attrTuple(ds3.type.key_attr), self.attrTuple(op_len_eq=1))
 
         self.assertEqual(next(itm, None), None)
 
@@ -1055,20 +1055,20 @@ struct MyStruct
 
         typedef = parser.types['MyTypedef']
         self.assertTrue(isinstance(typedef, chisel.model.Typedef))
-        self.assertEqual(typedef.typeName, 'MyTypedef')
+        self.assertEqual(typedef.type_name, 'MyTypedef')
         self.assertEqual(typedef.doc, ['My typedef'])
         self.assertTrue(isinstance(typedef.type, chisel.model.TypeDict))
-        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(len_gt=0))
-        self.assertTrue(typedef.type.keyType is parser.types['MyEnum'])
-        self.assertEqual(typedef.type.keyType.doc, [])
-        self.assertEqual(len(typedef.type.keyType.values), 2)
+        self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(op_len_gt=0))
+        self.assertTrue(typedef.type.key_type is parser.types['MyEnum'])
+        self.assertEqual(typedef.type.key_type.doc, [])
+        self.assertEqual(len(typedef.type.key_type.values), 2)
         self.assertTrue(typedef.type.type is parser.types['MyStruct'])
         self.assertEqual(typedef.type.type.doc, [])
         self.assertEqual(len(typedef.type.type.members), 2)
 
         typedef2 = parser.types['MyTypedef2']
         self.assertTrue(isinstance(typedef2, chisel.model.Typedef))
-        self.assertEqual(typedef2.typeName, 'MyTypedef2')
+        self.assertEqual(typedef2.type_name, 'MyTypedef2')
         self.assertEqual(typedef2.doc, [])
         self.assertTrue(typedef2.type is parser.types['MyEnum'])
         self.assertEqual(typedef2.attr, None)

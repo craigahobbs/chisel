@@ -181,8 +181,8 @@ class Action(Request):
             if ctx.app.validate_output:
                 if hasattr(response, '__contains__') and 'error' in response:
                     response_type = TypeStruct()
-                    response_type.addMember('error', self.model.errorType)
-                    response_type.addMember('message', TypeString(), isOptional=True)
+                    response_type.add_member('error', self.model.errorType)
+                    response_type.add_member('message', TypeString(), optional=True)
                 else:
                     response_type = self.model.outputType
 

@@ -38,9 +38,9 @@ class ActionModel(object):
 
     def __init__(self, name, doc=None):
         self.name = name
-        self.inputType = TypeStruct(typeName=name + '_Input')
-        self.outputType = TypeStruct(typeName=name + '_Output')
-        self.errorType = TypeEnum(typeName=name + '_Error')
+        self.inputType = TypeStruct(type_name=name + '_Input')
+        self.outputType = TypeStruct(type_name=name + '_Output')
+        self.errorType = TypeEnum(type_name=name + '_Error')
         self.doc = [] if doc is None else doc
 
 
@@ -155,20 +155,20 @@ class SpecParser(object):
             raise SpecParserError(self.errors)
 
     # Set a type attribute by name
-    def _setType(self, parent, parentAttr, typeName, typeAttr, typeValidationFn=None):
+    def _setType(self, parent, parentAttr, type_name, typeAttr, typeValidationFn=None):
         fileName = self._parseFileName
         fileLine = self._parseFileLine
 
         def setType(error):
-            typeFactory = self._TYPES.get(typeName)
-            type_ = self.types.get(typeName) if typeFactory is None else typeFactory()
+            typeFactory = self._TYPES.get(type_name)
+            type_ = self.types.get(type_name) if typeFactory is None else typeFactory()
             if type_ is not None:
                 if typeValidationFn is not None:
                     typeValidationFn(type_, fileName, fileLine)
-                self._validateAttr(type_, typeAttr, fileName=fileName, fileLine=fileLine)
+                self._validate_attr(type_, typeAttr, fileName=fileName, fileLine=fileLine)
                 setattr(parent, parentAttr, type_)
             elif error:
-                self._error("Unknown member type '" + typeName + "'", fileName=fileName, fileLine=fileLine)
+                self._error("Unknown member type '" + type_name + "'", fileName=fileName, fileLine=fileLine)
             return type_
         type_ = setType(False)
         if type_ is None:
@@ -179,10 +179,10 @@ class SpecParser(object):
         self.errors.append('%s:%d: error: %s' % (fileName or self._parseFileName, fileLine or self._parseFileLine, msg))
 
     # Validate a type's attributes
-    def _validateAttr(self, type_, attr, fileName=None, fileLine=None):
+    def _validate_attr(self, type_, attr, fileName=None, fileLine=None):
         try:
             if attr is not None:
-                type_.validateAttr(attr)
+                type_.validate_attr(attr)
         except AttributeValidationError as e:
             self._error("Invalid attribute '" + e.attr + "'", fileName=fileName, fileLine=fileLine)
 
@@ -202,27 +202,27 @@ class SpecParser(object):
                 if attrOp is not None:
                     attrValue = float(mAttr.group('opnum'))
                     if attrOp == '<':
-                        attr.lt = attrValue
+                        attr.op_lt = attrValue
                     elif attrOp == '<=':
-                        attr.lte = attrValue
+                        attr.op_lte = attrValue
                     elif attrOp == '>':
-                        attr.gt = attrValue
+                        attr.op_gt = attrValue
                     elif attrOp == '>=':
-                        attr.gte = attrValue
+                        attr.op_gte = attrValue
                     else:  # ==
-                        attr.eq = attrValue
+                        attr.op_eq = attrValue
                 else:  # attrLop is not None:
                     attrValue = int(mAttr.group('lopnum'))
                     if attrLop == '<':
-                        attr.len_lt = attrValue
+                        attr.op_len_lt = attrValue
                     elif attrLop == '<=':
-                        attr.len_lte = attrValue
+                        attr.op_len_lte = attrValue
                     elif attrLop == '>':
-                        attr.len_gt = attrValue
+                        attr.op_len_gt = attrValue
                     elif attrLop == '>=':
-                        attr.len_gte = attrValue
+                        attr.op_len_gte = attrValue
                     else:  # ==
-                        attr.len_eq = attrValue
+                        attr.op_len_eq = attrValue
         return attr
 
     # Construct typedef parts
@@ -238,7 +238,7 @@ class SpecParser(object):
             self._setType(arrayType, 'type', sValueType, valueAttr)
 
             arrayAttr = self._parseAttr(sArrayAttr)
-            self._validateAttr(arrayType, arrayAttr)
+            self._validate_attr(arrayType, arrayAttr)
 
             setattr(parent, parentTypeAttr, arrayType)
             setattr(parent, parentAttrAttr, arrayAttr)
@@ -249,14 +249,14 @@ class SpecParser(object):
             if sValueType is not None:
                 valueAttr = self._parseAttr(mTypedef.group('dictValueAttrs'))
                 sKeyType = mTypedef.group('type')
-                keyAttr = self._parseAttr(mTypedef.group('attrs'))
-                dictType = TypeDict(None, attr=valueAttr, keyType=None, keyAttr=keyAttr)
+                key_attr = self._parseAttr(mTypedef.group('attrs'))
+                dictType = TypeDict(None, attr=valueAttr, key_type=None, key_attr=key_attr)
                 self._setType(dictType, 'type', sValueType, valueAttr)
 
-                def validateKeyType(keyType, fileName, fileLine):
-                    if not TypeDict.validKeyType(keyType):
+                def validateKeyType(key_type, fileName, fileLine):
+                    if not TypeDict.valid_key_type(key_type):
                         self._error('Invalid dictionary key type', fileName=fileName, fileLine=fileLine)
-                self._setType(dictType, 'keyType', sKeyType, keyAttr, typeValidationFn=validateKeyType)
+                self._setType(dictType, 'key_type', sKeyType, key_attr, typeValidationFn=validateKeyType)
             else:
                 sValueType = mTypedef.group('type')
                 valueAttr = self._parseAttr(mTypedef.group('attrs'))
@@ -264,7 +264,7 @@ class SpecParser(object):
                 self._setType(dictType, 'type', sValueType, valueAttr)
 
             dictAttr = self._parseAttr(sDictAttr)
-            self._validateAttr(dictType, dictAttr)
+            self._validate_attr(dictType, dictAttr)
 
             setattr(parent, parentTypeAttr, dictType)
             setattr(parent, parentAttrAttr, dictAttr)
@@ -340,9 +340,9 @@ class SpecParser(object):
 
                     # Create the new struct type
                     self._curAction = None
-                    self._curType = TypeStruct(typeName=sDefId, isUnion=(sDefType == 'union'), doc=self._curDoc)
+                    self._curType = TypeStruct(type_name=sDefId, union=(sDefType == 'union'), doc=self._curDoc)
                     self._curDoc = []
-                    self.types[self._curType.typeName] = self._curType
+                    self.types[self._curType.type_name] = self._curType
 
                 # Enum definition
                 else:  # sDefType == 'enum':
@@ -353,9 +353,9 @@ class SpecParser(object):
 
                     # Create the new enum type
                     self._curAction = None
-                    self._curType = TypeEnum(typeName=sDefId, doc=self._curDoc)
+                    self._curType = TypeEnum(type_name=sDefId, doc=self._curDoc)
                     self._curDoc = []
-                    self.types[self._curType.typeName] = self._curType
+                    self.types[self._curType.type_name] = self._curType
 
             # Section?
             elif mSection:
@@ -378,7 +378,7 @@ class SpecParser(object):
                 if sSectType == 'input':
                     if sTypeId is not None:
                         def validateInputType(inputType, fileName, fileLine):
-                            if not isinstance(Typedef.baseType(inputType), ActionModel.VALID_INPUT_TYPES):
+                            if not isinstance(Typedef.base_type(inputType), ActionModel.VALID_INPUT_TYPES):
                                 self._error('Invalid action input type', fileName=fileName, fileLine=fileLine)
                         self._setType(self._curAction, 'inputType', sTypeId, None, typeValidationFn=validateInputType)
                         self._curType = None
@@ -388,7 +388,7 @@ class SpecParser(object):
                 elif sSectType == 'output':
                     if sTypeId is not None:
                         def validateOutputType(outputType, fileName, fileLine):
-                            if not isinstance(Typedef.baseType(outputType), ActionModel.VALID_OUTPUT_TYPES):
+                            if not isinstance(Typedef.base_type(outputType), ActionModel.VALID_OUTPUT_TYPES):
                                 self._error('Invalid action output type', fileName=fileName, fileLine=fileLine)
                         self._setType(self._curAction, 'outputType', sTypeId, None, typeValidationFn=validateOutputType)
                         self._curType = None
@@ -398,7 +398,7 @@ class SpecParser(object):
                 else:  # sSectType == 'errors':
                     if sTypeId is not None:
                         def validateErrorType(errorType, fileName, fileLine):
-                            if not isinstance(Typedef.baseType(errorType), ActionModel.VALID_ERROR_TYPES):
+                            if not isinstance(Typedef.base_type(errorType), ActionModel.VALID_ERROR_TYPES):
                                 self._error('Invalid action errors type', fileName=fileName, fileLine=fileLine)
                         self._setType(self._curAction, 'errorType', sTypeId, None, typeValidationFn=validateErrorType)
                         self._curType = None
@@ -419,12 +419,12 @@ class SpecParser(object):
                     self._error("Duplicate enumeration value '" + sEnumValue + "'")
 
                 # Add the enum value
-                self._curType.addValue(sEnumValue, doc=self._curDoc)
+                self._curType.add_value(sEnumValue, doc=self._curDoc)
                 self._curDoc = []
 
             # Struct member?
             elif mMember:
-                isOptional = mMember.group('optional') is not None
+                optional = mMember.group('optional') is not None
                 sMemberName = mMember.group('id')
 
                 # Not in a struct scope?
@@ -437,7 +437,7 @@ class SpecParser(object):
                     self._error("Redefinition of member '" + sMemberName + "'")
 
                 # Create the member
-                member = self._curType.addMember(sMemberName, None, isOptional, None, doc=self._curDoc)
+                member = self._curType.add_member(sMemberName, None, optional, None, doc=self._curDoc)
                 self._parseTypedef(member, 'type', 'attr', mMember)
 
                 self._curDoc = []
@@ -451,7 +451,7 @@ class SpecParser(object):
                     self._error("Redefinition of type '" + sTypedefId + "'")
 
                 # Create the typedef
-                typedef = Typedef(None, attr=None, typeName=sTypedefId, doc=self._curDoc)
+                typedef = Typedef(None, attr=None, type_name=sTypedefId, doc=self._curDoc)
                 self._parseTypedef(typedef, 'type', 'attr', mTypedef)
                 self.types[sTypedefId] = typedef
 

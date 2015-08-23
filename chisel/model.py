@@ -172,95 +172,95 @@ class ValidationError(Exception):
         member_syntax = cls.member_syntax(members)
         msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
               ((" for member '" + member_syntax + "'") if member_syntax else '') + \
-              ((", expected type '" + type_.typeName + "'") if type_ else '') + \
+              ((", expected type '" + type_.type_name + "'") if type_ else '') + \
               ((' [' + constraint_syntax + ']') if constraint_syntax else '')
         return ValidationError(msg, member=member_syntax)
 
 
 # Struct member attributes
 class StructMemberAttributes(object):
-    __slots__ = ('eq', 'lt', 'lte', 'gt', 'gte',
-                 'len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte')
+    __slots__ = ('op_eq', 'op_lt', 'op_lte', 'op_gt', 'op_gte',
+                 'op_len_eq', 'op_len_lt', 'op_len_lte', 'op_len_gt', 'op_len_gte')
 
-    def __init__(self, eq=None, lt=None, lte=None, gt=None, gte=None,
-                 len_eq=None, len_lt=None, len_lte=None, len_gt=None, len_gte=None):
+    def __init__(self, op_eq=None, op_lt=None, op_lte=None, op_gt=None, op_gte=None,
+                 op_len_eq=None, op_len_lt=None, op_len_lte=None, op_len_gt=None, op_len_gte=None):
 
-        self.eq = eq
-        self.lt = lt
-        self.lte = lte
-        self.gt = gt
-        self.gte = gte
-        self.len_eq = len_eq
-        self.len_lt = len_lt
-        self.len_lte = len_lte
-        self.len_gt = len_gt
-        self.len_gte = len_gte
+        self.op_eq = op_eq
+        self.op_lt = op_lt
+        self.op_lte = op_lte
+        self.op_gt = op_gt
+        self.op_gte = op_gte
+        self.op_len_eq = op_len_eq
+        self.op_len_lt = op_len_lt
+        self.op_len_lte = op_len_lte
+        self.op_len_gt = op_len_gt
+        self.op_len_gte = op_len_gte
 
     def validate(self, value, _member=()):
-        if self.lt is not None and not value < self.lt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='< ' + repr(JsonFloat(self.lt, 6)))
-        if self.lte is not None and not value <= self.lte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='<= ' + repr(JsonFloat(self.lte, 6)))
-        if self.gt is not None and not value > self.gt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='> ' + repr(JsonFloat(self.gt, 6)))
-        if self.gte is not None and not value >= self.gte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='>= ' + repr(JsonFloat(self.gte, 6)))
-        if self.eq is not None and not value == self.eq:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='== ' + repr(JsonFloat(self.eq, 6)))
-        if self.len_lt is not None and not len(value) < self.len_lt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len < ' + repr(JsonFloat(self.len_lt, 6)))
-        if self.len_lte is not None and not len(value) <= self.len_lte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len <= ' + repr(JsonFloat(self.len_lte, 6)))
-        if self.len_gt is not None and not len(value) > self.len_gt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len > ' + repr(JsonFloat(self.len_gt, 6)))
-        if self.len_gte is not None and not len(value) >= self.len_gte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len >= ' + repr(JsonFloat(self.len_gte, 6)))
-        if self.len_eq is not None and not len(value) == self.len_eq:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len == ' + repr(JsonFloat(self.len_eq, 6)))
+        if self.op_lt is not None and not value < self.op_lt:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='< ' + repr(JsonFloat(self.op_lt, 6)))
+        if self.op_lte is not None and not value <= self.op_lte:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='<= ' + repr(JsonFloat(self.op_lte, 6)))
+        if self.op_gt is not None and not value > self.op_gt:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='> ' + repr(JsonFloat(self.op_gt, 6)))
+        if self.op_gte is not None and not value >= self.op_gte:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='>= ' + repr(JsonFloat(self.op_gte, 6)))
+        if self.op_eq is not None and not value == self.op_eq:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='== ' + repr(JsonFloat(self.op_eq, 6)))
+        if self.op_len_lt is not None and not len(value) < self.op_len_lt:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len < ' + repr(JsonFloat(self.op_len_lt, 6)))
+        if self.op_len_lte is not None and not len(value) <= self.op_len_lte:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len <= ' + repr(JsonFloat(self.op_len_lte, 6)))
+        if self.op_len_gt is not None and not len(value) > self.op_len_gt:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len > ' + repr(JsonFloat(self.op_len_gt, 6)))
+        if self.op_len_gte is not None and not len(value) >= self.op_len_gte:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len >= ' + repr(JsonFloat(self.op_len_gte, 6)))
+        if self.op_len_eq is not None and not len(value) == self.op_len_eq:
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len == ' + repr(JsonFloat(self.op_len_eq, 6)))
 
-    def validateAttr(self, allowValue=False, allowLength=False):
-        if not allowValue:
-            if self.lt is not None:
-                raise AttributeValidationError('< ' + repr(JsonFloat(self.lt, 6)))
-            if self.lte is not None:
-                raise AttributeValidationError('<= ' + repr(JsonFloat(self.lte, 6)))
-            if self.gt is not None:
-                raise AttributeValidationError('> ' + repr(JsonFloat(self.gt, 6)))
-            if self.gte is not None:
-                raise AttributeValidationError('>= ' + repr(JsonFloat(self.gte, 6)))
-            if self.eq is not None:
-                raise AttributeValidationError('== ' + repr(JsonFloat(self.eq, 6)))
-        if not allowLength:
-            if self.len_lt is not None:
-                raise AttributeValidationError('len < ' + repr(JsonFloat(self.len_lt, 6)))
-            if self.len_lte is not None:
-                raise AttributeValidationError('len <= ' + repr(JsonFloat(self.len_lte, 6)))
-            if self.len_gt is not None:
-                raise AttributeValidationError('len > ' + repr(JsonFloat(self.len_gt, 6)))
-            if self.len_gte is not None:
-                raise AttributeValidationError('len >= ' + repr(JsonFloat(self.len_gte, 6)))
-            if self.len_eq is not None:
-                raise AttributeValidationError('len == ' + repr(JsonFloat(self.len_eq, 6)))
+    def validate_attr(self, allow_value=False, allow_length=False):
+        if not allow_value:
+            if self.op_lt is not None:
+                raise AttributeValidationError('< ' + repr(JsonFloat(self.op_lt, 6)))
+            if self.op_lte is not None:
+                raise AttributeValidationError('<= ' + repr(JsonFloat(self.op_lte, 6)))
+            if self.op_gt is not None:
+                raise AttributeValidationError('> ' + repr(JsonFloat(self.op_gt, 6)))
+            if self.op_gte is not None:
+                raise AttributeValidationError('>= ' + repr(JsonFloat(self.op_gte, 6)))
+            if self.op_eq is not None:
+                raise AttributeValidationError('== ' + repr(JsonFloat(self.op_eq, 6)))
+        if not allow_length:
+            if self.op_len_lt is not None:
+                raise AttributeValidationError('len < ' + repr(JsonFloat(self.op_len_lt, 6)))
+            if self.op_len_lte is not None:
+                raise AttributeValidationError('len <= ' + repr(JsonFloat(self.op_len_lte, 6)))
+            if self.op_len_gt is not None:
+                raise AttributeValidationError('len > ' + repr(JsonFloat(self.op_len_gt, 6)))
+            if self.op_len_gte is not None:
+                raise AttributeValidationError('len >= ' + repr(JsonFloat(self.op_len_gte, 6)))
+            if self.op_len_eq is not None:
+                raise AttributeValidationError('len == ' + repr(JsonFloat(self.op_len_eq, 6)))
 
 
 # Typedef type (type plus attributes)
 class Typedef(object):
-    __slots__ = ('typeName', 'type', 'attr', 'doc')
+    __slots__ = ('type_name', 'type', 'attr', 'doc')
 
-    def __init__(self, type_, attr=None, typeName=None, doc=None):
-        self.typeName = 'typedef' if typeName is None else typeName
+    def __init__(self, type_, attr=None, type_name=None, doc=None):
+        self.type_name = 'typedef' if type_name is None else type_name
         self.type = type_
         self.attr = attr
         self.doc = [] if doc is None else doc
 
     @staticmethod
-    def baseType(type_):
+    def base_type(type_):
         while isinstance(type_, Typedef):
             type_ = type_.type
         return type_
 
-    def validateAttr(self, attr):
-        self.type.validateAttr(attr)
+    def validate_attr(self, attr):
+        self.type.validate_attr(attr)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
         result = self.type.validate(value, mode, _member)
@@ -271,174 +271,174 @@ class Typedef(object):
 
 # Struct member
 class StructMember(object):
-    __slots__ = ('name', 'type', 'isOptional', 'attr', 'doc')
+    __slots__ = ('name', 'type', 'optional', 'attr', 'doc')
 
-    def __init__(self, name, type_, isOptional=False, attr=None, doc=None):
+    def __init__(self, name, type_, optional=False, attr=None, doc=None):
         self.name = name
         self.type = type_
-        self.isOptional = isOptional
+        self.optional = optional
         self.attr = attr
         self.doc = [] if doc is None else doc
 
 
 # Struct type
 class TypeStruct(object):
-    __slots__ = ('typeName', 'isUnion', 'members', '_membersDict', 'doc')
+    __slots__ = ('type_name', 'union', 'members', '_members_dict', 'doc')
 
-    def __init__(self, typeName=None, isUnion=False, doc=None):
-        self.typeName = ('union' if isUnion else 'struct') if typeName is None else typeName
-        self.isUnion = isUnion
+    def __init__(self, type_name=None, union=False, doc=None):
+        self.type_name = ('union' if union else 'struct') if type_name is None else type_name
+        self.union = union
         self.members = []
-        self._membersDict = {}
+        self._members_dict = {}
         self.doc = [] if doc is None else doc
 
-    def addMember(self, name, type_, isOptional=False, attr=None, doc=None):
-        member = StructMember(name, type_, isOptional or self.isUnion, attr, doc)
+    def add_member(self, name, type_, optional=False, attr=None, doc=None):
+        member = StructMember(name, type_, optional or self.union, attr, doc)
         self.members.append(member)
-        self._membersDict[name] = member
+        self._members_dict[name] = member
         return member
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
-            valueX = value
+            value_x = value
         elif mode == VALIDATE_QUERY_STRING and value == '':
-            valueX = {}
+            value_x = {}
         else:
             raise ValidationError.member_error(self, value, _member)
 
         # Valid union?
-        if self.isUnion:
-            if len(valueX) != 1:
+        if self.union:
+            if len(value_x) != 1:
                 raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
+        value_copy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate all member values
-        membersDict = self._membersDict
-        for memberName, memberValue in iteritems(valueX):
-            memberPath = (_member, memberName)
-            member = membersDict.get(memberName)
+        members_dict = self._members_dict
+        for member_name, member_value in iteritems(value_x):
+            member_path = (_member, member_name)
+            member = members_dict.get(member_name)
             if member is None:
-                raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, memberName)) + "'")
-            memberValueX = membersDict[memberName].type.validate(memberValue, mode, memberPath)
+                raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, member_name)) + "'")
+            member_value_x = members_dict[member_name].type.validate(member_value, mode, member_path)
             if member.attr is not None:
-                member.attr.validate(memberValueX, memberPath)
-            if valueCopy is not None:
-                valueCopy[memberName] = memberValueX
+                member.attr.validate(member_value_x, member_path)
+            if value_copy is not None:
+                value_copy[member_name] = member_value_x
 
         # Any missing required members?
-        if len(self.members) != len(valueX):
+        if len(self.members) != len(value_x):
             for member in self.members:
-                if not self.isUnion and not member.isOptional and member.name not in valueX:
+                if not self.union and not member.optional and member.name not in value_x:
                     raise ValidationError("Required member '" + ValidationError.member_syntax((_member, member.name)) + "' missing")
 
-        return value if valueCopy is None else valueCopy
+        return value if value_copy is None else value_copy
 
 
 # Array type
 class TypeArray(object):
     __slots__ = ('type', 'attr')
 
-    typeName = 'array'
+    type_name = 'array'
 
     def __init__(self, type_, attr=None):
         self.type = type_
         self.attr = attr
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr(allowLength=True)
+    def validate_attr(attr):
+        attr.validate_attr(allow_length=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, list) or isinstance(value, tuple):
-            valueX = value
+            value_x = value
         elif mode == VALIDATE_QUERY_STRING and value == '':
-            valueX = []
+            value_x = []
         else:
             raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else []
+        value_copy = None if mode in IMMUTABLE_VALIDATION_MODES else []
 
         # Validate the list contents
-        ixArrayValue = 0
-        for arrayValue in valueX:
-            memberPath = (_member, ixArrayValue)
-            arrayValueX = self.type.validate(arrayValue, mode, memberPath)
+        ix_array_value = 0
+        for array_value in value_x:
+            member_path = (_member, ix_array_value)
+            array_value_x = self.type.validate(array_value, mode, member_path)
             if self.attr is not None:
-                self.attr.validate(arrayValueX, memberPath)
-            if valueCopy is not None:
-                valueCopy.append(arrayValueX)
-            ixArrayValue += 1
+                self.attr.validate(array_value_x, member_path)
+            if value_copy is not None:
+                value_copy.append(array_value_x)
+            ix_array_value += 1
 
-        return value if valueCopy is None else valueCopy
+        return value if value_copy is None else value_copy
 
 
 # Dict type
 class TypeDict(object):
-    __slots__ = ('type', 'attr', 'keyType', 'keyAttr')
+    __slots__ = ('type', 'attr', 'key_type', 'key_attr')
 
-    typeName = 'dict'
+    type_name = 'dict'
 
-    def __init__(self, type_, attr=None, keyType=None, keyAttr=None):
+    def __init__(self, type_, attr=None, key_type=None, key_attr=None):
         self.type = type_
         self.attr = attr
-        self.keyType = keyType or TypeString()
-        self.keyAttr = keyAttr
-
-    @classmethod
-    def validKeyType(cls, keyType):
-        keyTypeBase = Typedef.baseType(keyType)
-        return isinstance(keyTypeBase, _TypeString) or isinstance(keyTypeBase, TypeEnum)
-
-    def hasDefaultKeyType(self):
-        return isinstance(self.keyType, _TypeString)
+        self.key_type = key_type or TypeString()
+        self.key_attr = key_attr
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr(allowLength=True)
+    def valid_key_type(key_type):
+        key_type_base = Typedef.base_type(key_type)
+        return isinstance(key_type_base, _TypeString) or isinstance(key_type_base, TypeEnum)
+
+    def has_default_key_type(self):
+        return isinstance(self.key_type, _TypeString)
+
+    @staticmethod
+    def validate_attr(attr):
+        attr.validate_attr(allow_length=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
-            valueX = value
+            value_x = value
         elif mode == VALIDATE_QUERY_STRING and value == '':
-            valueX = {}
+            value_x = {}
         else:
             raise ValidationError.member_error(self, value, _member)
 
         # Result a copy?
-        valueCopy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
+        value_copy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate the dict key/value pairs
-        for dictKey, dictValue in iteritems(valueX):
-            memberPath = (_member, dictKey)
+        for dict_key, dict_value in iteritems(value_x):
+            member_path = (_member, dict_key)
 
             # Validate the key
-            dictKeyX = self.keyType.validate(dictKey, mode, memberPath)
-            if self.keyAttr is not None:
-                self.keyAttr.validate(dictKeyX, memberPath)
+            dict_key_x = self.key_type.validate(dict_key, mode, member_path)
+            if self.key_attr is not None:
+                self.key_attr.validate(dict_key_x, member_path)
 
             # Validate the value
-            dictValueX = self.type.validate(dictValue, mode, memberPath)
+            dict_value_x = self.type.validate(dict_value, mode, member_path)
             if self.attr is not None:
-                self.attr.validate(dictValueX, memberPath)
+                self.attr.validate(dict_value_x, member_path)
 
             # Result a copy?
-            if valueCopy is not None:
-                valueCopy[dictKeyX] = dictValueX
+            if value_copy is not None:
+                value_copy[dict_key_x] = dict_value_x
 
-        return value if valueCopy is None else valueCopy
+        return value if value_copy is None else value_copy
 
 
 # Enumeration type
@@ -454,21 +454,21 @@ class EnumValue(object):
 
 
 class TypeEnum(object):
-    __slots__ = ('typeName', 'values', 'doc')
+    __slots__ = ('type_name', 'values', 'doc')
 
-    def __init__(self, typeName='enum', doc=None):
-        self.typeName = typeName
+    def __init__(self, type_name='enum', doc=None):
+        self.type_name = type_name
         self.values = []
         self.doc = [] if doc is None else doc
 
-    def addValue(self, valueString, doc=None):
-        value = EnumValue(valueString, doc)
+    def add_value(self, string, doc=None):
+        value = EnumValue(string, doc)
         self.values.append(value)
         return value
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
@@ -483,11 +483,11 @@ class TypeEnum(object):
 class _TypeString(object):
     __slots__ = ()
 
-    typeName = 'string'
+    type_name = 'string'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr(allowLength=True)
+    def validate_attr(attr):
+        attr.validate_attr(allow_length=True)
 
     def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
@@ -508,30 +508,30 @@ _TYPE_STRING = _TypeString()
 class _TypeInt(object):
     __slots__ = ()
 
-    typeName = 'int'
+    type_name = 'int'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr(allowValue=True)
+    def validate_attr(attr):
+        attr.validate_attr(allow_value=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
-            valueX = value
+            value_x = value
         elif isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
-            valueX = int(value)
-            if valueX != value:
+            value_x = int(value)
+            if value_x != value:
                 raise ValidationError.member_error(self, value, _member)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
-                valueX = int(value)
+                value_x = int(value)
             except:
                 raise ValidationError.member_error(self, value, _member)
         else:
             raise ValidationError.member_error(self, value, _member)
 
-        return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
+        return value if mode in IMMUTABLE_VALIDATION_MODES else value_x
 
 
 def TypeInt():
@@ -544,28 +544,28 @@ _TYPE_INT = _TypeInt()
 class _TypeFloat(object):
     __slots__ = ()
 
-    typeName = 'float'
+    type_name = 'float'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr(allowValue=True)
+    def validate_attr(attr):
+        attr.validate_attr(allow_value=True)
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
-            valueX = value
+            value_x = value
         elif (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
-            valueX = float(value)
+            value_x = float(value)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
-                valueX = float(value)
+                value_x = float(value)
             except:
                 raise ValidationError.member_error(self, value, _member)
         else:
             raise ValidationError.member_error(self, value, _member)
 
-        return value if mode in IMMUTABLE_VALIDATION_MODES else valueX
+        return value if mode in IMMUTABLE_VALIDATION_MODES else value_x
 
 
 def TypeFloat():
@@ -578,7 +578,7 @@ _TYPE_FLOAT = _TypeFloat()
 class _TypeBool(object):
     __slots__ = ()
 
-    typeName = 'bool'
+    type_name = 'bool'
 
     VALUES = {
         'true': True,
@@ -586,8 +586,8 @@ class _TypeBool(object):
     }
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
@@ -613,11 +613,11 @@ _TYPE_BOOL = _TypeBool()
 class _TypeUuid(object):
     __slots__ = ()
 
-    typeName = 'uuid'
+    type_name = 'uuid'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
@@ -647,11 +647,11 @@ _TYPE_UUID = _TypeUuid()
 class _TypeDate(object):
     __slots__ = ()
 
-    typeName = 'date'
+    type_name = 'date'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
@@ -681,11 +681,11 @@ _TYPE_DATE = _TypeDate()
 class _TypeDatetime(object):
     __slots__ = ()
 
-    typeName = 'datetime'
+    type_name = 'datetime'
 
     @staticmethod
-    def validateAttr(attr):
-        attr.validateAttr()
+    def validate_attr(attr):
+        attr.validate_attr()
 
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
