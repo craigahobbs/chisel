@@ -135,7 +135,7 @@ action myAction2
 
         # Application object
         self.app = chisel.Application()
-        self.app.specs.parseString(self._spec)
+        self.app.specs.parse_string(self._spec)
         self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction1'))
         self.app.add_request(chisel.Action(lambda app, req: {}, name='myAction2'))
         self.app.add_request(chisel.DocAction())

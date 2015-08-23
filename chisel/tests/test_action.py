@@ -33,7 +33,7 @@ class TestAction(unittest.TestCase):
 
         # Application object
         self.app = chisel.Application()
-        self.app.specs.parseString('''\
+        self.app.specs.parse_string('''\
 action myActionDefault
 ''')
 

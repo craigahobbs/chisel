@@ -67,19 +67,19 @@ class TestSpecParseSpec(unittest.TestCase):
 
     # Helper method to assert action properties
     def assertAction(self, parser, actionName, inputMembers, outputMembers, errorValues):
-        self.assertEqual(parser.actions[actionName].inputType.type_name, actionName + '_Input')
-        self.assertEqual(parser.actions[actionName].outputType.type_name, actionName + '_Output')
-        self.assertEqual(parser.actions[actionName].errorType.type_name, actionName + '_Error')
-        self.assertStruct(parser.actions[actionName].inputType, inputMembers)
-        self.assertStruct(parser.actions[actionName].outputType, outputMembers)
-        self.assertEnum(parser.actions[actionName].errorType, errorValues)
+        self.assertEqual(parser.actions[actionName].input_type.type_name, actionName + '_Input')
+        self.assertEqual(parser.actions[actionName].output_type.type_name, actionName + '_Output')
+        self.assertEqual(parser.actions[actionName].error_type.type_name, actionName + '_Error')
+        self.assertStruct(parser.actions[actionName].input_type, inputMembers)
+        self.assertStruct(parser.actions[actionName].output_type, outputMembers)
+        self.assertEnum(parser.actions[actionName].error_type, errorValues)
 
     # Test valid spec parsing
     def test_spec_simple(self):
 
         # Parse the spec
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 # This is an enum
 enum MyEnum
     Foo
@@ -195,8 +195,8 @@ action MyAction4 \\
                            ('bar', chisel.model.TypeArray, False)),
                           (),
                           ())
-        self.assertTrue(isinstance(parser.actions['MyAction2'].inputType.members[1].type.type, chisel.model.TypeStruct))
-        self.assertEqual(parser.actions['MyAction2'].inputType.members[1].type.type.type_name, 'MyStruct2')
+        self.assertTrue(isinstance(parser.actions['MyAction2'].input_type.members[1].type.type, chisel.model.TypeStruct))
+        self.assertEqual(parser.actions['MyAction2'].input_type.members[1].type.type.type_name, 'MyStruct2')
         self.assertAction(parser, 'MyAction3',
                           (),
                           (('a', chisel.model._TypeInt, False),
@@ -213,7 +213,7 @@ action MyAction4 \\
 
         # Parse spec strings
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 enum MyEnum
     A
     B
@@ -230,7 +230,7 @@ struct MyStruct
     MyEnum2 d
     MyStruct2 e
 ''', finalize=False)
-        parser.parseString('''\
+        parser.parse_string('''\
 action MyAction2
     input
         MyStruct d
@@ -274,21 +274,21 @@ enum MyEnum2
                           (('b', chisel.model.TypeStruct, False),
                            ('c', parser.types['MyEnum2'], False)),
                           ())
-        self.assertEqual(parser.actions['MyAction'].inputType.members[0].type.type_name, 'MyStruct2')
-        self.assertEqual(parser.actions['MyAction'].outputType.members[0].type.type_name, 'MyStruct')
+        self.assertEqual(parser.actions['MyAction'].input_type.members[0].type.type_name, 'MyStruct2')
+        self.assertEqual(parser.actions['MyAction'].output_type.members[0].type.type_name, 'MyStruct')
         self.assertAction(parser, 'MyAction2',
                           (('d', chisel.model.TypeStruct, False),),
                           (('e', chisel.model.TypeStruct, False),),
                           ())
-        self.assertEqual(parser.actions['MyAction2'].inputType.members[0].type.type_name, 'MyStruct')
-        self.assertEqual(parser.actions['MyAction2'].outputType.members[0].type.type_name, 'MyStruct2')
+        self.assertEqual(parser.actions['MyAction2'].input_type.members[0].type.type_name, 'MyStruct')
+        self.assertEqual(parser.actions['MyAction2'].output_type.members[0].type.type_name, 'MyStruct2')
 
     # Test multiple finalize
     def test_spec_multiple_finalize(self):
 
         # Parse spec strings
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct MyStruct
     MyEnum a
 
@@ -296,7 +296,7 @@ enum MyEnum
     A
     B
 ''')
-        parser.parseString('''\
+        parser.parse_string('''\
 struct MyStruct2
     int a
     MyEnum b
@@ -326,7 +326,7 @@ enum MyEnum2
     def test_spec_typeref_array_attr(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct MyStruct
     MyStruct2[len > 0] a
 struct MyStruct2
@@ -343,7 +343,7 @@ struct MyStruct2
     def test_spec_typeref_dict_attr(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct MyStruct
     MyEnum : MyStruct2{len > 0} a
 enum MyEnum
@@ -364,7 +364,7 @@ struct MyStruct2
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 struct MyStruct
     MyStruct2(len > 0) a
 struct MyStruct2
@@ -381,7 +381,7 @@ struct MyStruct2
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 struct Foo
     MyBadType a
 
@@ -390,7 +390,7 @@ action MyAction
         MyBadType2 a
     output
         MyBadType b
-''', fileName='foo')
+''', filename='foo')
         except SpecParserError as e:
             self.assertEqual(str(e), """\
 foo:2: error: Unknown member type 'MyBadType'
@@ -416,7 +416,7 @@ foo:8: error: Unknown member type 'MyBadType'""")
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 struct Foo
     int a
 
@@ -447,7 +447,7 @@ enum Foo
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 enum Foo
     A
     B
@@ -479,7 +479,7 @@ struct Foo
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 struct Foo
     int a
 
@@ -513,7 +513,7 @@ typedef int(> 5) Foo
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action MyAction
     input
         int a
@@ -548,7 +548,7 @@ action MyAction
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action MyAction
 
 struct MyStruct
@@ -600,7 +600,7 @@ errors
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action MyAction
     int abc
 
@@ -644,7 +644,7 @@ int cde
         # Parse spec string
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 enum MyEnum
     "abc
     abc"
@@ -707,7 +707,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct MyStruct
     optional int(> 1,<= 10.5) i1
     optional int (>= 1, < 10 ) i2
@@ -726,7 +726,7 @@ struct MyStruct
     string(len > 5){len > 10} ds1
     string(len == 2){len == 3} ds2
     string(len == 1) : string(len == 2){len == 3} ds3
-''', fileName='foo')
+''', filename='foo')
         s = parser.types['MyStruct']
 
         # Check counts
@@ -837,7 +837,7 @@ struct MyStruct
     def _test_spec_error(self, errors, spec):
         parser = SpecParser()
         try:
-            parser.parseString(spec)
+            parser.parse_string(spec)
         except SpecParserError as e:
             self.assertEqual(str(e), '\n'.join(errors))
         else:
@@ -949,7 +949,7 @@ enum MyEnum
 
         # Parse spec string
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 # My enum
 enum MyEnum
 
@@ -1024,19 +1024,19 @@ action MyAction
                          [])
         self.assertEqual(parser.actions['MyAction'].doc,
                          ['My action'])
-        self.assertEqual(parser.actions['MyAction'].inputType.doc,
+        self.assertEqual(parser.actions['MyAction'].input_type.doc,
                          [])
-        self.assertEqual(parser.actions['MyAction'].inputType.members[0].doc,
+        self.assertEqual(parser.actions['MyAction'].input_type.members[0].doc,
                          ['My input member'])
-        self.assertEqual(parser.actions['MyAction'].outputType.doc,
+        self.assertEqual(parser.actions['MyAction'].output_type.doc,
                          [])
-        self.assertEqual(parser.actions['MyAction'].outputType.members[0].doc,
+        self.assertEqual(parser.actions['MyAction'].output_type.members[0].doc,
                          ['My output member'])
 
     def test_spec_typedef(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 typedef MyEnum MyTypedef2
 
 enum MyEnum
@@ -1077,7 +1077,7 @@ struct MyStruct
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 struct Foo
     int : int {} a
 ''')
@@ -1092,7 +1092,7 @@ struct Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action Foo
     input
         int a
@@ -1113,7 +1113,7 @@ action Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action Foo
     output
         int a
@@ -1134,7 +1134,7 @@ action Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action Foo
     errors
         A
@@ -1155,7 +1155,7 @@ action Foo
     def test_spec_action_input_struct(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct Foo
     int a
     int b
@@ -1163,12 +1163,12 @@ struct Foo
 action FooAction
     input Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].input_type, parser.types['Foo'])
 
     def test_spec_action_input_typedef(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct Bar
     int a
     int b
@@ -1178,13 +1178,13 @@ typedef Bar Foo
 action FooAction
     input Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].inputType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].input_type, parser.types['Foo'])
 
     def test_spec_action_input_type_nonStruct(self):
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     input Foo
 
@@ -1203,7 +1203,7 @@ enum Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     input Foo
 
@@ -1223,7 +1223,7 @@ typedef Bar Foo
     def test_spec_action_output_struct(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct Foo
     int a
     int b
@@ -1231,12 +1231,12 @@ struct Foo
 action FooAction
     output Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].output_type, parser.types['Foo'])
 
     def test_spec_action_output_typedef(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 struct Bar
     int a
     int b
@@ -1246,13 +1246,13 @@ typedef Bar Foo
 action FooAction
     output Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].outputType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].output_type, parser.types['Foo'])
 
     def test_spec_action_output_nonStruct(self):
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     output Foo
 
@@ -1271,7 +1271,7 @@ enum Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     output Foo
 
@@ -1291,7 +1291,7 @@ typedef Bar Foo
     def test_spec_action_errors_enum(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 enum Foo
     A
     B
@@ -1299,12 +1299,12 @@ enum Foo
 action FooAction
     errors Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].error_type, parser.types['Foo'])
 
     def test_spec_action_errors_typedef(self):
 
         parser = SpecParser()
-        parser.parseString('''\
+        parser.parse_string('''\
 action FooAction
     errors Foo
 
@@ -1314,13 +1314,13 @@ enum Bar
 
 typedef Bar Foo
 ''')
-        self.assertTrue(parser.actions['FooAction'].errorType, parser.types['Foo'])
+        self.assertTrue(parser.actions['FooAction'].error_type, parser.types['Foo'])
 
     def test_spec_action_errors_nonEnum(self):
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     errors Foo
 
@@ -1339,7 +1339,7 @@ struct Foo
 
         parser = SpecParser()
         try:
-            parser.parseString('''\
+            parser.parse_string('''\
 action FooAction
     errors Foo
 

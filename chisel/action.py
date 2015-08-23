@@ -76,7 +76,7 @@ class Action(Request):
         model = None
         if spec is not None:
             parser = SpecParser()
-            parser.parseString(spec)
+            parser.parse_string(spec)
             if name is not None:
                 model = parser.actions[name]
             else:
@@ -157,7 +157,7 @@ class Action(Request):
 
             # Validate the request
             try:
-                request = self.model.inputType.validate(request, validate_mode)
+                request = self.model.input_type.validate(request, validate_mode)
             except ValidationError as exc:
                 ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal('InvalidInput', str(exc), exc.member)
@@ -181,10 +181,10 @@ class Action(Request):
             if ctx.app.validate_output:
                 if hasattr(response, '__contains__') and 'error' in response:
                     response_type = TypeStruct()
-                    response_type.add_member('error', self.model.errorType)
+                    response_type.add_member('error', self.model.error_type)
                     response_type.add_member('message', TypeString(), optional=True)
                 else:
-                    response_type = self.model.outputType
+                    response_type = self.model.output_type
 
                 try:
                     response_type.validate(response, mode=VALIDATE_JSON_OUTPUT)

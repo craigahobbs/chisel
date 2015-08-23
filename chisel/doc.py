@@ -251,15 +251,15 @@ def _request_html(environ, request, nonav=False):
                 add_type(type_.type)
                 add_type(type_.key_type)
 
-        add_type(request.model.inputType, members_only=True)
+        add_type(request.model.input_type, members_only=True)
         if not request.wsgi_response:
-            add_type(request.model.outputType, members_only=True)
+            add_type(request.model.output_type, members_only=True)
 
         # Request input and output structs
-        _struct_section(body, request.model.inputType, 'h2', 'Input Parameters', 'The action has no input parameters.')
+        _struct_section(body, request.model.input_type, 'h2', 'Input Parameters', 'The action has no input parameters.')
         if not request.wsgi_response:
-            _struct_section(body, request.model.outputType, 'h2', 'Output Parameters', 'The action has no output parameters.')
-            _enum_section(body, request.model.errorType, 'h2', 'Error Codes', 'The action returns no custom error codes.')
+            _struct_section(body, request.model.output_type, 'h2', 'Output Parameters', 'The action has no output parameters.')
+            _enum_section(body, request.model.error_type, 'h2', 'Error Codes', 'The action returns no custom error codes.')
 
         # User types
         if typedef_types:
