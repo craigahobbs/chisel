@@ -155,7 +155,7 @@ class SpecParser(object):
             raise SpecParserError(self.errors)
 
     # Set a type attribute by name
-    def _set_type(self, parent, parent_attr, type_name, type_attr, type_validate_fn=None):
+    def _set_type(self, parent, parent_type_member_name, type_name, type_attr, type_validate_fn=None):
         filename = self._parse_filename
         linenum = self._parse_linenum
 
@@ -166,7 +166,7 @@ class SpecParser(object):
                 if type_validate_fn is not None:
                     type_validate_fn(type_, filename, linenum)
                 self._validate_attr(type_, type_attr, filename=filename, linenum=linenum)
-                setattr(parent, parent_attr, type_)
+                setattr(parent, parent_type_member_name, type_)
             elif error:
                 self._error("Unknown member type '" + type_name + "'", filename=filename, linenum=linenum)
             return type_
@@ -226,56 +226,56 @@ class SpecParser(object):
         return attr
 
     # Construct typedef parts
-    def _parse_typedef(self, parent, parentTypeAttr, parent_attrAttr, match_typedef):
-        sArrayAttr = match_typedef.group('array')
-        sDictAttr = match_typedef.group('dict')
+    def _parse_typedef(self, parent, parent_type_member_name, parent_attr_member_name, match_typedef):
+        array_attrs_string = match_typedef.group('array')
+        dict_attrs_string = match_typedef.group('dict')
 
         # Array member?
-        if sArrayAttr is not None:
-            sValueType = match_typedef.group('type')
-            valueAttr = self._parse_attr(match_typedef.group('attrs'))
-            arrayType = TypeArray(None, attr=valueAttr)
-            self._set_type(arrayType, 'type', sValueType, valueAttr)
+        if array_attrs_string is not None:
+            value_type_name = match_typedef.group('type')
+            value_attr = self._parse_attr(match_typedef.group('attrs'))
+            array_type = TypeArray(None, attr=value_attr)
+            self._set_type(array_type, 'type', value_type_name, value_attr)
 
-            arrayAttr = self._parse_attr(sArrayAttr)
-            self._validate_attr(arrayType, arrayAttr)
+            array_attr = self._parse_attr(array_attrs_string)
+            self._validate_attr(array_type, array_attr)
 
-            setattr(parent, parentTypeAttr, arrayType)
-            setattr(parent, parent_attrAttr, arrayAttr)
+            setattr(parent, parent_type_member_name, array_type)
+            setattr(parent, parent_attr_member_name, array_attr)
 
         # Dictionary member?
-        elif sDictAttr is not None:
-            sValueType = match_typedef.group('dictValueType')
-            if sValueType is not None:
-                valueAttr = self._parse_attr(match_typedef.group('dictValueAttrs'))
-                sKeyType = match_typedef.group('type')
+        elif dict_attrs_string is not None:
+            value_type_name = match_typedef.group('dictValueType')
+            if value_type_name is not None:
+                value_attr = self._parse_attr(match_typedef.group('dictValueAttrs'))
+                key_type_name = match_typedef.group('type')
                 key_attr = self._parse_attr(match_typedef.group('attrs'))
-                dictType = TypeDict(None, attr=valueAttr, key_type=None, key_attr=key_attr)
-                self._set_type(dictType, 'type', sValueType, valueAttr)
+                dict_type = TypeDict(None, attr=value_attr, key_type=None, key_attr=key_attr)
+                self._set_type(dict_type, 'type', value_type_name, value_attr)
 
                 def validate_key_type(key_type, filename, linenum):
                     if not TypeDict.valid_key_type(key_type):
                         self._error('Invalid dictionary key type', filename=filename, linenum=linenum)
-                self._set_type(dictType, 'key_type', sKeyType, key_attr, type_validate_fn=validate_key_type)
+                self._set_type(dict_type, 'key_type', key_type_name, key_attr, type_validate_fn=validate_key_type)
             else:
-                sValueType = match_typedef.group('type')
-                valueAttr = self._parse_attr(match_typedef.group('attrs'))
-                dictType = TypeDict(None, attr=valueAttr)
-                self._set_type(dictType, 'type', sValueType, valueAttr)
+                value_type_name = match_typedef.group('type')
+                value_attr = self._parse_attr(match_typedef.group('attrs'))
+                dict_type = TypeDict(None, attr=value_attr)
+                self._set_type(dict_type, 'type', value_type_name, value_attr)
 
-            dictAttr = self._parse_attr(sDictAttr)
-            self._validate_attr(dictType, dictAttr)
+            dict_attr = self._parse_attr(dict_attrs_string)
+            self._validate_attr(dict_type, dict_attr)
 
-            setattr(parent, parentTypeAttr, dictType)
-            setattr(parent, parent_attrAttr, dictAttr)
+            setattr(parent, parent_type_member_name, dict_type)
+            setattr(parent, parent_attr_member_name, dict_attr)
 
         # Non-container member...
         else:
-            sMemType = match_typedef.group('type')
-            memAttr = self._parse_attr(match_typedef.group('attrs'))
+            member_type_name = match_typedef.group('type')
+            member_attr = self._parse_attr(match_typedef.group('attrs'))
 
-            self._set_type(parent, parentTypeAttr, sMemType, memAttr)
-            setattr(parent, parent_attrAttr, memAttr)
+            self._set_type(parent, parent_type_member_name, member_type_name, member_attr)
+            setattr(parent, parent_attr_member_name, member_attr)
 
     # Parse a specification from a stream
     def _parse(self):
