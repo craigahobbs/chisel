@@ -158,35 +158,35 @@ action MyAction4 \\
 
         # Check struct types
         self.assertStructByName(parser, 'MyStruct',
-                                (('a', chisel.model._TypeString, False),
-                                 ('b', chisel.model._TypeInt, False)))
+                                (('a', type(chisel.model.TYPE_STRING), False),
+                                 ('b', type(chisel.model.TYPE_INT), False)))
         self.assertStructByName(parser, 'MyStruct2',
-                                (('a', chisel.model._TypeInt, False),
-                                 ('b', chisel.model._TypeFloat, True),
-                                 ('c', chisel.model._TypeString, False),
-                                 ('d', chisel.model._TypeBool, False),
+                                (('a', type(chisel.model.TYPE_INT), False),
+                                 ('b', type(chisel.model.TYPE_FLOAT), True),
+                                 ('c', type(chisel.model.TYPE_STRING), False),
+                                 ('d', type(chisel.model.TYPE_BOOL), False),
                                  ('e', chisel.model.TypeArray, False),
                                  ('f', chisel.model.TypeArray, True),
                                  ('g', chisel.model.TypeDict, True),
-                                 ('h', chisel.model._TypeDatetime, True),
-                                 ('i', chisel.model._TypeUuid, True),
+                                 ('h', type(chisel.model.TYPE_DATETIME), True),
+                                 ('i', type(chisel.model.TYPE_UUID), True),
                                  ('j', chisel.model.TypeDict, True),
-                                 ('k', chisel.model._TypeDate, True)))
+                                 ('k', type(chisel.model.TYPE_DATE), True)))
         self.assertStructByName(parser, 'MyUnion',
-                                (('a', chisel.model._TypeInt, True),
-                                 ('b', chisel.model._TypeString, True)))
-        self.assertTrue(isinstance(parser.types['MyStruct2'].members[4].type.type, chisel.model._TypeInt))
+                                (('a', type(chisel.model.TYPE_INT), True),
+                                 ('b', type(chisel.model.TYPE_STRING), True)))
+        self.assertTrue(isinstance(parser.types['MyStruct2'].members[4].type.type, type(chisel.model.TYPE_INT)))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[5].type.type, chisel.model.TypeStruct))
         self.assertEqual(parser.types['MyStruct2'].members[5].type.type.type_name, 'MyStruct')
-        self.assertTrue(isinstance(parser.types['MyStruct2'].members[6].type.type, chisel.model._TypeFloat))
+        self.assertTrue(isinstance(parser.types['MyStruct2'].members[6].type.type, type(chisel.model.TYPE_FLOAT)))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.type, chisel.model.TypeStruct))
         self.assertTrue(isinstance(parser.types['MyStruct2'].members[9].type.key_type, chisel.model.TypeEnum))
 
         # Check actions
         self.assertAction(parser, 'MyAction',
-                          (('a', chisel.model._TypeInt, False),
-                           ('b', chisel.model._TypeString, True)),
-                          (('c', chisel.model._TypeBool, False),),
+                          (('a', type(chisel.model.TYPE_INT), False),
+                           ('b', type(chisel.model.TYPE_STRING), True)),
+                          (('c', type(chisel.model.TYPE_BOOL), False),),
                           ('Error1',
                            'Error2',
                            'Error 3'))
@@ -199,9 +199,9 @@ action MyAction4 \\
         self.assertEqual(parser.actions['MyAction2'].input_type.members[1].type.type.type_name, 'MyStruct2')
         self.assertAction(parser, 'MyAction3',
                           (),
-                          (('a', chisel.model._TypeInt, False),
-                           ('b', chisel.model._TypeDatetime, False),
-                           ('c', chisel.model._TypeDate, False)),
+                          (('a', type(chisel.model.TYPE_INT), False),
+                           ('b', type(chisel.model.TYPE_DATETIME), False),
+                           ('c', type(chisel.model.TYPE_DATE), False)),
                           ())
         self.assertAction(parser, 'MyAction4',
                           (),
@@ -261,11 +261,11 @@ enum MyEnum2
 
         # Check struct types
         self.assertStructByName(parser, 'MyStruct',
-                                (('c', chisel.model._TypeString, False),
+                                (('c', type(chisel.model.TYPE_STRING), False),
                                  ('d', parser.types['MyEnum2'], False),
                                  ('e', parser.types['MyStruct2'], False)))
         self.assertStructByName(parser, 'MyStruct2',
-                                (('f', chisel.model._TypeString, False),
+                                (('f', type(chisel.model.TYPE_STRING), False),
                                  ('g', parser.types['MyEnum2'], False)))
 
         # Check actions
@@ -319,7 +319,7 @@ enum MyEnum2
         self.assertStructByName(parser, 'MyStruct',
                                 (('a', parser.types['MyEnum'], False),))
         self.assertStructByName(parser, 'MyStruct2',
-                                (('a', chisel.model._TypeInt, False),
+                                (('a', type(chisel.model.TYPE_INT), False),
                                  ('b', parser.types['MyEnum'], False),
                                  ('c', parser.types['MyEnum2'], False)))
 
@@ -467,7 +467,7 @@ struct Foo
 
         # Check types
         self.assertStructByName(parser, 'Foo',
-                                (('a', chisel.model._TypeInt, False),))
+                                (('a', type(chisel.model.TYPE_INT), False),))
 
         # Check errors
         self.assertEqual(parser.errors,
@@ -500,7 +500,7 @@ typedef int(> 5) Foo
         self.assertTrue(isinstance(typedef, chisel.model.Typedef))
         self.assertEqual(typedef.type_name, 'Foo')
         self.assertEqual(typedef.doc, [])
-        self.assertTrue(isinstance(typedef.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(typedef.type, type(chisel.model.TYPE_INT)))
         self.assertEqual(self.attrTuple(typedef.attr), self.attrTuple(op_gt=5))
 
         # Check errors
@@ -534,7 +534,7 @@ action MyAction
 
         # Check actions
         self.assertAction(parser, 'MyAction',
-                          (('b', chisel.model._TypeString, False),),
+                          (('b', type(chisel.model.TYPE_STRING), False),),
                           (),
                           ())
 
@@ -580,7 +580,7 @@ errors
 
         # Check types
         self.assertStructByName(parser, 'MyStruct',
-                                (('a', chisel.model._TypeInt, False),))
+                                (('a', type(chisel.model.TYPE_INT), False),))
 
         # Check actions
         self.assertAction(parser, 'MyAction', (), (), ())
@@ -736,16 +736,16 @@ struct MyStruct
 
         # Check struct members
         self.assertStructByName(parser, 'MyStruct',
-                                (('i1', chisel.model._TypeInt, True),
-                                 ('i2', chisel.model._TypeInt, True),
-                                 ('i3', chisel.model._TypeInt, False),
-                                 ('i4', chisel.model._TypeInt, False),
-                                 ('i5', chisel.model._TypeInt, False),
-                                 ('f1', chisel.model._TypeFloat, False),
-                                 ('f2', chisel.model._TypeFloat, False),
-                                 ('s1', chisel.model._TypeString, False),
-                                 ('s2', chisel.model._TypeString, False),
-                                 ('s3', chisel.model._TypeString, False),
+                                (('i1', type(chisel.model.TYPE_INT), True),
+                                 ('i2', type(chisel.model.TYPE_INT), True),
+                                 ('i3', type(chisel.model.TYPE_INT), False),
+                                 ('i4', type(chisel.model.TYPE_INT), False),
+                                 ('i5', type(chisel.model.TYPE_INT), False),
+                                 ('f1', type(chisel.model.TYPE_FLOAT), False),
+                                 ('f2', type(chisel.model.TYPE_FLOAT), False),
+                                 ('s1', type(chisel.model.TYPE_STRING), False),
+                                 ('s2', type(chisel.model.TYPE_STRING), False),
+                                 ('s3', type(chisel.model.TYPE_STRING), False),
                                  ('ai1', chisel.model.TypeArray, False),
                                  ('as1', chisel.model.TypeArray, False),
                                  ('as2', chisel.model.TypeArray, False),

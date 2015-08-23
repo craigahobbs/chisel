@@ -21,8 +21,8 @@
 #
 
 from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
-    TypeBool, TypeDate, TypeDatetime, Typedef, TypeDict, TypeEnum, TypeInt, \
-    TypeFloat, TypeString, TypeStruct, TypeUuid
+    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
+    TYPE_FLOAT, TYPE_STRING, TypeStruct, TYPE_UUID
 
 from itertools import chain
 import re
@@ -100,13 +100,13 @@ class SpecParser(object):
 
     # Built-in types
     _TYPES = {
-        'string': TypeString,
-        'int': TypeInt,
-        'float': TypeFloat,
-        'bool': TypeBool,
-        'date': TypeDate,
-        'datetime': TypeDatetime,
-        'uuid': TypeUuid,
+        'string': TYPE_STRING,
+        'int': TYPE_INT,
+        'float': TYPE_FLOAT,
+        'bool': TYPE_BOOL,
+        'date': TYPE_DATE,
+        'datetime': TYPE_DATETIME,
+        'uuid': TYPE_UUID,
     }
 
     def __init__(self):
@@ -160,8 +160,7 @@ class SpecParser(object):
         linenum = self._parse_linenum
 
         def set_type(error):
-            type_factory = self._TYPES.get(type_name)
-            type_ = self.types.get(type_name) if type_factory is None else type_factory()
+            type_ = self._TYPES.get(type_name) or self.types.get(type_name)
             if type_ is not None:
                 if type_validate_fn is not None:
                     type_validate_fn(type_, filename, linenum)

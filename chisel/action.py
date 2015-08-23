@@ -22,7 +22,7 @@
 
 from .app import Application
 from .compat import func_name, iteritems, itervalues
-from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TypeString
+from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
 from .url import decode_query_string
@@ -182,7 +182,7 @@ class Action(Request):
                 if hasattr(response, '__contains__') and 'error' in response:
                     response_type = TypeStruct()
                     response_type.add_member('error', self.model.error_type)
-                    response_type.add_member('message', TypeString(), optional=True)
+                    response_type.add_member('message', TYPE_STRING, optional=True)
                 else:
                     response_type = self.model.output_type
 

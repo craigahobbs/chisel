@@ -392,7 +392,7 @@ class TypeDict(object):
     def __init__(self, type_, attr=None, key_type=None, key_attr=None):
         self.type = type_
         self.attr = attr
-        self.key_type = key_type or TypeString()
+        self.key_type = key_type or TYPE_STRING
         self.key_attr = key_attr
 
     @staticmethod
@@ -497,11 +497,7 @@ class _TypeString(object):
 
         return value
 
-
-def TypeString():
-    return _TYPE_STRING
-
-_TYPE_STRING = _TypeString()
+TYPE_STRING = _TypeString()
 
 
 # Int type
@@ -533,11 +529,7 @@ class _TypeInt(object):
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else value_x
 
-
-def TypeInt():
-    return _TYPE_INT
-
-_TYPE_INT = _TypeInt()
+TYPE_INT = _TypeInt()
 
 
 # Float type
@@ -567,11 +559,7 @@ class _TypeFloat(object):
 
         return value if mode in IMMUTABLE_VALIDATION_MODES else value_x
 
-
-def TypeFloat():
-    return _TYPE_FLOAT
-
-_TYPE_FLOAT = _TypeFloat()
+TYPE_FLOAT = _TypeFloat()
 
 
 # Bool type
@@ -602,11 +590,7 @@ class _TypeBool(object):
         else:
             raise ValidationError.member_error(self, value, _member)
 
-
-def TypeBool():
-    return _TYPE_BOOL
-
-_TYPE_BOOL = _TypeBool()
+TYPE_BOOL = _TypeBool()
 
 
 # Uuid type
@@ -636,11 +620,7 @@ class _TypeUuid(object):
         else:
             raise ValidationError.member_error(self, value, _member)
 
-
-def TypeUuid():
-    return _TYPE_UUID
-
-_TYPE_UUID = _TypeUuid()
+TYPE_UUID = _TypeUuid()
 
 
 # Date type
@@ -670,11 +650,7 @@ class _TypeDate(object):
         else:
             raise ValidationError.member_error(self, value, _member)
 
-
-def TypeDate():
-    return _TYPE_DATE
-
-_TYPE_DATE = _TypeDate()
+TYPE_DATE = _TypeDate()
 
 
 # Datetime type
@@ -709,8 +685,4 @@ class _TypeDatetime(object):
         else:
             raise ValidationError.member_error(self, value, _member)
 
-
-def TypeDatetime():
-    return _TYPE_DATETIME
-
-_TYPE_DATETIME = _TypeDatetime()
+TYPE_DATETIME = _TypeDatetime()

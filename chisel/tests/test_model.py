@@ -23,8 +23,8 @@
 from chisel.compat import long_, unicode_
 from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \
-    TypeStruct, TypeArray, TypeDict, TypeEnum, TypeString, TypeInt, TypeFloat, TypeBool, \
-    TypeUuid, TypeDate, TypeDatetime, IMMUTABLE_VALIDATION_MODES
+    TypeStruct, TypeArray, TypeDict, TypeEnum, TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, \
+    TYPE_UUID, TYPE_DATE, TYPE_DATETIME, IMMUTABLE_VALIDATION_MODES
 import chisel.model
 from chisel.util import TZUTC, TZLOCAL
 
@@ -227,21 +227,21 @@ class TestModelValidationError(unittest.TestCase):
         self.assertEqual(ValidationError.member_syntax(None), None)
 
     def test_model_member_error_basic(self):
-        e = ValidationError.member_error(TypeInt(), 'abc', ('a',))
+        e = ValidationError.member_error(TYPE_INT, 'abc', ('a',))
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
         self.assertEqual(e.member, 'a')
 
     def test_model_member_error_no_member(self):
-        e = ValidationError.member_error(TypeInt(), 'abc', ())
+        e = ValidationError.member_error(TYPE_INT, 'abc', ())
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
         self.assertEqual(e.member, None)
 
     def test_model_member_error_constraint(self):
-        e = ValidationError.member_error(TypeInt(), 6, ('a',), constraint_syntax='< 5')
+        e = ValidationError.member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
         self.assertTrue(isinstance(e, Exception))
         self.assertTrue(isinstance(e, ValidationError))
         self.assertEqual(str(e), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
@@ -357,22 +357,22 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Test typedef type construction
     def test_model_typedef_init(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gt=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
         self.assertEqual(t.type_name, 'typedef')
-        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
         self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
         self.assertEqual(t.doc, [])
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
         self.assertEqual(t.type_name, 'Foo')
-        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
         self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
         self.assertEqual(t.doc, ['A', 'B'])
 
     # Test typedef attribute validation
     def test_model_typedef_validate_attr(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gt=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
 
         t.validate_attr(chisel.model.StructMemberAttributes())
 
@@ -387,7 +387,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # All validation modes - success
     def test_model_typedef_validate(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gte=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
         o = 5
         for mode in ALL_VALIDATION_MODES:
@@ -397,7 +397,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # All validation modes - success
     def test_model_typedef_validate_no_attr(self):
 
-        t = chisel.model.Typedef(TypeInt())
+        t = chisel.model.Typedef(TYPE_INT)
 
         o = 5
         for mode in ALL_VALIDATION_MODES:
@@ -407,7 +407,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_model_typedef_validate_transformed_value(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gte=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
         o = '5'
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -417,7 +417,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_model_typedef_validate_type_error(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gte=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -431,7 +431,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_model_typedef_validate_attr_error(self):
 
-        t = chisel.model.Typedef(TypeInt(), chisel.model.StructMemberAttributes(op_gte=5))
+        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
         o = 4
         for mode in ALL_VALIDATION_MODES:
@@ -481,8 +481,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString())
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING)
 
         o = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
@@ -498,8 +498,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_union(self):
 
         t = TypeStruct(union=True)
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString())
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING)
 
         o = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -525,8 +525,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_optional_present(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString(), optional=True)
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING, optional=True)
 
         o = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
@@ -542,8 +542,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_optional_missing(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString(), optional=True)
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING, optional=True)
 
         o = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -559,7 +559,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_member_attributes_valid(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = {'a': 4}
         for mode in ALL_VALIDATION_MODES:
@@ -575,7 +575,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_member_attributes_invalid(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -592,7 +592,7 @@ class TestModelStructValidation(unittest.TestCase):
         t = TypeStruct()
         t2 = TypeStruct()
         t.add_member('a', t2)
-        t2.add_member('b', TypeInt())
+        t2.add_member('b', TYPE_INT)
 
         o = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
@@ -611,7 +611,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_query_string_transformed_member(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
+        t.add_member('a', TYPE_INT)
 
         o = {'a': '7'}
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -632,7 +632,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_json_input_transformed_member(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeUuid())
+        t.add_member('a', TYPE_UUID)
 
         o = {'a': '184EAB31-4307-416C-AAC4-3B92B2358677'}
         o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
@@ -643,7 +643,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_invalid_value(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
+        t.add_member('a', TYPE_INT)
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -658,7 +658,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_optional_none_value(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt(), optional=True)
+        t.add_member('a', TYPE_INT, optional=True)
 
         o = {'a': None}
         for mode in ALL_VALIDATION_MODES:
@@ -673,7 +673,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_member_validation(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
+        t.add_member('a', TYPE_INT)
 
         o = {'a': 'abc'}
         for mode in ALL_VALIDATION_MODES:
@@ -690,7 +690,7 @@ class TestModelStructValidation(unittest.TestCase):
         t = TypeStruct()
         t2 = TypeStruct()
         t.add_member('a', t2)
-        t2.add_member('b', TypeInt())
+        t2.add_member('b', TYPE_INT)
 
         o = {'a': {'b': 'abc'}}
         for mode in ALL_VALIDATION_MODES:
@@ -705,7 +705,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_unknown_member(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
+        t.add_member('a', TYPE_INT)
 
         o = {'a': 7, 'b': 8}
         for mode in ALL_VALIDATION_MODES:
@@ -720,7 +720,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_missing_member(self):
 
         t = TypeStruct()
-        t.add_member('a', TypeInt())
+        t.add_member('a', TYPE_INT)
 
         o = {}
         for mode in ALL_VALIDATION_MODES:
@@ -735,8 +735,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_union_multiple_members(self):
 
         t = TypeStruct(union=True)
-        t.add_member('a', TypeInt())
-        t.add_member('bb', TypeString())
+        t.add_member('a', TYPE_INT)
+        t.add_member('bb', TYPE_STRING)
 
         o = {'a': 1, 'bb': 'abcd'}
         for mode in ALL_VALIDATION_MODES:
@@ -752,8 +752,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_union_zero_members(self):
 
         t = TypeStruct(union=True)
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString())
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING)
 
         o = {}
         for mode in ALL_VALIDATION_MODES:
@@ -768,8 +768,8 @@ class TestModelStructValidation(unittest.TestCase):
     def test_model_struct_validation_error_union_unknown_member(self):
 
         t = TypeStruct(union=True)
-        t.add_member('a', TypeInt())
-        t.add_member('b', TypeString())
+        t.add_member('a', TYPE_INT)
+        t.add_member('b', TYPE_STRING)
 
         o = {'c': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -786,15 +786,15 @@ class TestModelArrayValidation(unittest.TestCase):
     # Test array type construction
     def test_model_array_init(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
         self.assertEqual(t.type_name, 'array')
-        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
         self.assertEqual(t.attr, None)
 
     # All validation modes - success
     def test_model_array_validation(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
 
         o = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
@@ -809,7 +809,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - value attributes - success
     def test_model_array_validation_attributes(self):
 
-        t = TypeArray(TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
@@ -824,7 +824,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - value attributes - invalid value
     def test_model_array_validation_attributes_invalid(self):
 
-        t = TypeArray(TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = [1, 7, 3]
         for mode in ALL_VALIDATION_MODES:
@@ -838,7 +838,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - nested
     def test_model_array_validation_nested(self):
 
-        t = TypeArray(TypeArray(TypeInt()))
+        t = TypeArray(TypeArray(TYPE_INT))
 
         o = [[1, 2, 3], [4, 5, 6]]
         for mode in ALL_VALIDATION_MODES:
@@ -853,7 +853,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # Query string validation mode - transformed member
     def test_model_array_validation_query_string_transformed_member(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
 
         o = [1, '2', 3]
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -863,7 +863,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # Query string validation mode - empty string
     def test_model_array_validation_query_string_empty_string(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
 
         o = ''
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -873,7 +873,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # JSON input validation mode - transformed member
     def test_model_array_validation_json_input_transformed_member(self):
 
-        t = TypeArray(TypeUuid())
+        t = TypeArray(TYPE_UUID)
 
         o = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
         o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
@@ -883,7 +883,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_array_validation_error_invalid_value(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -897,7 +897,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - error - member validation
     def test_model_array_validation_error_member_validation(self):
 
-        t = TypeArray(TypeInt())
+        t = TypeArray(TYPE_INT)
 
         o = [1, 'abc', 3]
         for mode in ALL_VALIDATION_MODES:
@@ -911,7 +911,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - error - error nested
     def test_model_array_validation_error_nested(self):
 
-        t = TypeArray(TypeArray(TypeInt()))
+        t = TypeArray(TypeArray(TYPE_INT))
 
         o = [[1, 2, 3], [4, 5, 'abc']]
         for mode in ALL_VALIDATION_MODES:
@@ -928,14 +928,14 @@ class TestModelDictValidation(unittest.TestCase):
     # Test dict type construction
     def test_model_dict_init(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
         self.assertEqual(t.type_name, 'dict')
-        self.assertTrue(isinstance(t.type, chisel.model._TypeInt))
+        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
 
     # All validation modes - success
     def test_model_dict_validation(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = {'a': 7, 'b': 8}
         for mode in ALL_VALIDATION_MODES:
@@ -950,7 +950,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - value attributes - success
     def test_model_dict_validation_value_attributes(self):
 
-        t = TypeDict(TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
@@ -965,7 +965,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - value attributes - invalid value
     def test_model_dict_validation_value_attributes_invalid(self):
 
-        t = TypeDict(TypeInt(), attr=chisel.model.StructMemberAttributes(op_lt=5))
+        t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
         o = {'a': 1, 'b': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -979,7 +979,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - key attributes - success
     def test_model_dict_validation_key_attributes(self):
 
-        t = TypeDict(TypeInt(), key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
+        t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
 
         o = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
@@ -994,7 +994,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - key attributes - invalid key
     def test_model_dict_validation_key_attributes_invalid(self):
 
-        t = TypeDict(TypeInt(), key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
+        t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
 
         o = {'a': 1, 'bc': 2}
         for mode in ALL_VALIDATION_MODES:
@@ -1008,7 +1008,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - nested
     def test_model_dict_validation_nested(self):
 
-        t = TypeDict(TypeDict(TypeInt()))
+        t = TypeDict(TypeDict(TYPE_INT))
 
         o = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
@@ -1023,7 +1023,7 @@ class TestModelDictValidation(unittest.TestCase):
     # Query string validation mode - transformed member
     def test_model_dict_validation_query_string_transformed_member(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = {'a': '7'}
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -1033,7 +1033,7 @@ class TestModelDictValidation(unittest.TestCase):
     # Query string validation mode - empty string
     def test_model_dict_validation_query_string_empty_string(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = ''
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -1043,7 +1043,7 @@ class TestModelDictValidation(unittest.TestCase):
     # JSON input validation mode - transformed member
     def test_model_dict_validation_json_input_transformed_member(self):
 
-        t = TypeDict(TypeUuid())
+        t = TypeDict(TYPE_UUID)
 
         o = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
         o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
@@ -1053,7 +1053,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_dict_validation_error_invalid_value(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1067,7 +1067,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - error - member key validation
     def test_model_dict_validation_error_member_key_validation(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = {7: 7}
         for mode in ALL_VALIDATION_MODES:
@@ -1081,7 +1081,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - error - member validation
     def test_model_dict_validation_error_member_validation(self):
 
-        t = TypeDict(TypeInt())
+        t = TypeDict(TYPE_INT)
 
         o = {'7': 'abc'}
         for mode in ALL_VALIDATION_MODES:
@@ -1095,7 +1095,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - error - nested member validation
     def test_model_dict_validation_error_nested_member_validation(self):
 
-        t = TypeDict(TypeDict(TypeInt()))
+        t = TypeDict(TypeDict(TYPE_INT))
 
         o = {'a': {'b': 'abc'}}
         for mode in ALL_VALIDATION_MODES:
@@ -1157,14 +1157,14 @@ class TestModelStringValidation(unittest.TestCase):
     # Test string type construction
     def test_model_string_init(self):
 
-        t = TypeString()
+        t = TYPE_STRING
 
         self.assertEqual(t.type_name, 'string')
 
     # All validation modes - success
     def test_model_string_validate(self):
 
-        t = TypeString()
+        t = TYPE_STRING
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1174,7 +1174,7 @@ class TestModelStringValidation(unittest.TestCase):
     # All validation modes - unicode
     def test_model_string_validate_unicode(self):
 
-        t = TypeString()
+        t = TYPE_STRING
 
         o = unicode_('abc')
         for mode in ALL_VALIDATION_MODES:
@@ -1184,7 +1184,7 @@ class TestModelStringValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_string_validate_error(self):
 
-        t = TypeString()
+        t = TYPE_STRING
 
         o = 7
         for mode in ALL_VALIDATION_MODES:
@@ -1201,14 +1201,14 @@ class TestModelIntValidation(unittest.TestCase):
     # Test int type construction
     def test_model_int_init(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         self.assertEqual(t.type_name, 'int')
 
     # All validation modes - success
     def test_model_int_validate(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = 7
         for mode in ALL_VALIDATION_MODES:
@@ -1218,7 +1218,7 @@ class TestModelIntValidation(unittest.TestCase):
     # All validation modes - float
     def test_model_int_validate_float(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = 7.
         for mode in ALL_VALIDATION_MODES:
@@ -1233,7 +1233,7 @@ class TestModelIntValidation(unittest.TestCase):
     # Query string validation mode - string
     def test_model_int_query_string(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = '7'
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -1243,7 +1243,7 @@ class TestModelIntValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_int_validate_error(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1257,7 +1257,7 @@ class TestModelIntValidation(unittest.TestCase):
     # All validation modes - error - not-integer float
     def test_model_int_validate_error_float(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = 7.5
         for mode in ALL_VALIDATION_MODES:
@@ -1271,7 +1271,7 @@ class TestModelIntValidation(unittest.TestCase):
     # All validation modes - error - fake JSON float
     def test_model_int_validate_error_fake_float(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
@@ -1285,7 +1285,7 @@ class TestModelIntValidation(unittest.TestCase):
     # All validation modes - error - bool
     def test_model_int_validate_error_bool(self):
 
-        t = TypeInt()
+        t = TYPE_INT
 
         o = True
         for mode in ALL_VALIDATION_MODES:
@@ -1302,14 +1302,14 @@ class TestModelFloatValidation(unittest.TestCase):
     # Test float type construction
     def test_model_float_init(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         self.assertEqual(t.type_name, 'float')
 
     # All validation modes - success
     def test_model_float_validate(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = 7.5
         for mode in ALL_VALIDATION_MODES:
@@ -1319,7 +1319,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # All validation modes - int
     def test_model_float_validate_int(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = 7
         for mode in ALL_VALIDATION_MODES:
@@ -1334,7 +1334,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # All validation modes - long
     def test_model_float_validate_long(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = long_(7)
         for mode in ALL_VALIDATION_MODES:
@@ -1349,7 +1349,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # Query string validation mode - string
     def test_model_float_query_string(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = '7.5'
         o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -1359,7 +1359,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_float_validate_error(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1373,7 +1373,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # All validation modes - error - bool
     def test_model_float_validate_error_bool(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = True
         for mode in ALL_VALIDATION_MODES:
@@ -1387,7 +1387,7 @@ class TestModelFloatValidation(unittest.TestCase):
     # All validation modes - error - fake JSON float
     def test_model_float_validate_error_fake_float(self):
 
-        t = TypeFloat()
+        t = TYPE_FLOAT
 
         o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
@@ -1404,14 +1404,14 @@ class TestModelBoolValidation(unittest.TestCase):
     # Test bool type construction
     def test_model_bool_init(self):
 
-        t = TypeBool()
+        t = TYPE_BOOL
 
         self.assertEqual(t.type_name, 'bool')
 
     # All validation modes - success
     def test_model_bool_validate(self):
 
-        t = TypeBool()
+        t = TYPE_BOOL
 
         o = False
         for mode in ALL_VALIDATION_MODES:
@@ -1421,7 +1421,7 @@ class TestModelBoolValidation(unittest.TestCase):
     # Query string validation mode - string
     def test_model_bool_validate_query_string(self):
 
-        t = TypeBool()
+        t = TYPE_BOOL
 
         for o, expected in (('false', False), ('true', True)):
             o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
@@ -1432,7 +1432,7 @@ class TestModelBoolValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_bool_validate_error(self):
 
-        t = TypeBool()
+        t = TYPE_BOOL
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1449,14 +1449,14 @@ class TestModelUuidValidation(unittest.TestCase):
     # Test uuid type construction
     def test_model_uuid_init(self):
 
-        t = TypeUuid()
+        t = TYPE_UUID
 
         self.assertEqual(t.type_name, 'uuid')
 
     # All validation modes - UUID object
     def test_model_uuid_validate(self):
 
-        t = TypeUuid()
+        t = TYPE_UUID
 
         o = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
         for mode in ALL_VALIDATION_MODES:
@@ -1476,7 +1476,7 @@ class TestModelUuidValidation(unittest.TestCase):
     # All validation modes - JsonUUID object
     def test_model_uuid_validate_JsonUUID(self):
 
-        t = TypeUuid()
+        t = TYPE_UUID
 
         o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
@@ -1496,7 +1496,7 @@ class TestModelUuidValidation(unittest.TestCase):
     # All validation modes - UUID string
     def test_model_uuid_validate_string(self):
 
-        t = TypeUuid()
+        t = TYPE_UUID
 
         o = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
         for mode in ALL_VALIDATION_MODES:
@@ -1516,7 +1516,7 @@ class TestModelUuidValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_uuid_validate_error(self):
 
-        t = TypeUuid()
+        t = TYPE_UUID
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1533,14 +1533,14 @@ class TestModelDateValidation(unittest.TestCase):
     # Test date type construction
     def test_model_date_init(self):
 
-        t = TypeDate()
+        t = TYPE_DATE
 
         self.assertEqual(t.type_name, 'date')
 
     # All validation modes - date object
     def test_model_date_validate(self):
 
-        t = TypeDate()
+        t = TYPE_DATE
 
         o = date(2013, 5, 26)
         for mode in ALL_VALIDATION_MODES:
@@ -1560,7 +1560,7 @@ class TestModelDateValidation(unittest.TestCase):
     # All validation modes - JSONDate object
     def test_model_date_JSONDate(self):
 
-        t = TypeDate()
+        t = TYPE_DATE
 
         o = JsonDate(date(2013, 5, 26))
         for mode in ALL_VALIDATION_MODES:
@@ -1578,7 +1578,7 @@ class TestModelDateValidation(unittest.TestCase):
     # All validation modes - ISO date string
     def test_model_date_validate_query_string(self):
 
-        t = TypeDate()
+        t = TYPE_DATE
 
         o = '2013-05-26'
         for mode in ALL_VALIDATION_MODES:
@@ -1598,7 +1598,7 @@ class TestModelDateValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_date_validate_error(self):
 
-        t = TypeDate()
+        t = TYPE_DATE
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -1615,14 +1615,14 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # Test datetime type construction
     def test_model_datetime_init(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         self.assertEqual(t.type_name, 'datetime')
 
     # All validation modes - datetime object
     def test_model_datetime_validate(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC)
         for mode in ALL_VALIDATION_MODES:
@@ -1642,7 +1642,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - JSONDatetime object
     def test_model_datetime_JSONDatetime(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
         for mode in ALL_VALIDATION_MODES:
@@ -1660,7 +1660,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - datetime object with no timezone
     def test_model_datetime_validate_no_timezone(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = datetime(2013, 5, 26, 11, 1, 0)
         for mode in ALL_VALIDATION_MODES:
@@ -1684,7 +1684,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - ISO datetime string
     def test_model_datetime_validate_query_string(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = '2013-05-26T11:01:00+08:00'
         for mode in ALL_VALIDATION_MODES:
@@ -1704,7 +1704,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - ISO datetime string - zulu
     def test_model_datetime_validate_query_string_zulu(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = '2013-05-26T11:01:00+00:00'
         for mode in ALL_VALIDATION_MODES:
@@ -1724,7 +1724,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - ISO datetime string - fraction second
     def test_model_datetime_validate_query_string_fracsec(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = '2013-05-26T11:01:00.1234+00:00'
         for mode in ALL_VALIDATION_MODES:
@@ -1744,7 +1744,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - ISO datetime string - no seconds
     def test_model_datetime_validate_query_string_no_seconds(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = '2013-05-26T11:01Z'
         for mode in ALL_VALIDATION_MODES:
@@ -1764,7 +1764,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - ISO datetime string - no minutes
     def test_model_datetime_validate_query_string_no_minutes(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = '2013-05-26T11Z'
         for mode in ALL_VALIDATION_MODES:
@@ -1784,7 +1784,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
     # All validation modes - error - invalid value
     def test_model_datetime_validate_error(self):
 
-        t = TypeDatetime()
+        t = TYPE_DATETIME
 
         o = 'abc'
         for mode in ALL_VALIDATION_MODES:
