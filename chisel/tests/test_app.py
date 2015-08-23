@@ -50,13 +50,13 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files'], types.ModuleType))
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
-    def test_load_requests_importError(self):
+    def test_load_requests_error(self):
         sys_path = sys.path
         try:
             sys.path = []
             self.app.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-        except ImportError as e:
-            self.assertTrue(re.search("'.*?' not found on system path", str(e)))
+        except ImportError as exc:
+            self.assertTrue(re.search("'.*?' not found on system path", str(exc)))
         else:
             self.fail()
         finally:
@@ -71,20 +71,20 @@ class TestAppApplication(unittest.TestCase):
             'PATH_INFO': '/my_action',
             'wsgi.errors': StringIO()
             }
-        startResponseData = {
+        start_response_data = {
             'status': [],
             'headers': []
             }
 
-        def startResponse(status, headers):
-            startResponseData['status'].append(status)
-            startResponseData['headers'].append(headers)
+        def start_response(status, headers):
+            start_response_data['status'].append(status)
+            start_response_data['headers'].append(headers)
 
         # Successfully create and call the application
-        responseParts = self.app(environ, startResponse)
-        self.assertEqual(startResponseData['status'], ['200 OK'])
-        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'application/json'), ('Content-Length', '2')]])
-        self.assertEqual(list(responseParts), ['{}'.encode('utf-8')])
+        response_parts = self.app(environ, start_response)
+        self.assertEqual(start_response_data['status'], ['200 OK'])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'application/json'), ('Content-Length', '2')]])
+        self.assertEqual(list(response_parts), ['{}'.encode('utf-8')])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
 
@@ -94,64 +94,64 @@ class TestAppApplication(unittest.TestCase):
         environ = {
             'SCRIPT_FILENAME': os.path.join(__file__),
             'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/generatorResponse',
+            'PATH_INFO': '/generator_response',
             'wsgi.errors': StringIO()
             }
-        startResponseData = {
+        start_response_data = {
             'status': [],
             'headers': []
             }
 
-        def startResponse(status, headers):
-            startResponseData['status'].append(status)
-            startResponseData['headers'].append(headers)
+        def start_response(status, headers):
+            start_response_data['status'].append(status)
+            start_response_data['headers'].append(headers)
 
         # Request that returns a generator
-        def generatorResponse(environ, dummy_startResponse):
+        def generator_response(environ, dummy_start_response):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
             ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', response())
 
-        self.app.add_request(generatorResponse)
+        self.app.add_request(generator_response)
 
         # Successfully create and call the application
-        responseParts = self.app(environ, startResponse)
-        self.assertEqual(startResponseData['status'], ['200 OK'])
-        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain')]])
-        self.assertEqual(list(responseParts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
+        response_parts = self.app(environ, start_response)
+        self.assertEqual(start_response_data['status'], ['200 OK'])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
+        self.assertEqual(list(response_parts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
-    def test_call_stringResponse(self):
+    def test_call_string_response(self):
 
         # Test WSGI environment
         environ = {
             'SCRIPT_FILENAME': os.path.join(__file__),
             'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/stringResponse',
+            'PATH_INFO': '/string_response',
             'wsgi.errors': StringIO()
             }
-        startResponseData = {
+        start_response_data = {
             'status': [],
             'headers': []
             }
 
-        def startResponse(status, headers):
-            startResponseData['status'].append(status)
-            startResponseData['headers'].append(headers)
+        def start_response(status, headers):
+            start_response_data['status'].append(status)
+            start_response_data['headers'].append(headers)
 
         # Request that returns a generator
-        def stringResponse(environ, dummy_startResponse):
+        def string_response(environ, dummy_start_response):
             ctx = environ[Application.ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
-        self.app.add_request(stringResponse)
+        self.app.add_request(string_response)
 
         # Successfully create and call the application
-        responseParts = self.app(environ, startResponse)
-        self.assertEqual(startResponseData['status'], ['500 Internal Server Error'])
-        self.assertEqual(startResponseData['headers'], [[('Content-Type', 'text/plain'), ('Content-Length', '16')]])
-        self.assertEqual(list(responseParts), ['Unexpected Error'.encode('utf-8')])
+        response_parts = self.app(environ, start_response)
+        self.assertEqual(start_response_data['status'], ['500 Internal Server Error'])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain'), ('Content-Length', '16')]])
+        self.assertEqual(list(response_parts), ['Unexpected Error'.encode('utf-8')])
         self.assertTrue('Response content of type str or bytes received' in environ['wsgi.errors'].getvalue())
 
     def test_request(self):
@@ -204,7 +204,7 @@ class TestAppApplication(unittest.TestCase):
 
     def test_log_format_callable(self):
 
-        def myWsgi(environ, start_response):
+        def my_wsgi(environ, start_response):
             ctx = environ[Application.ENVIRON_CTX]
             ctx.log.warning('Hello log')
             start_response('200 OK', [('Content-Type', 'text/plain')])
@@ -219,19 +219,19 @@ class TestAppApplication(unittest.TestCase):
                 return record.getMessage()
 
             @staticmethod
-            def formatTime(record, dummy_datefmt=None):
+            def formatTime(record, dummy_datefmt=None): # pylint: disable=invalid-name
                 return record.getMessage()
 
             @staticmethod
-            def formatException(dummy_exc_info):
+            def formatException(dummy_exc_info): # pylint: disable=invalid-name
                 return 'Bad'
 
         app = Application()
-        app.add_request(myWsgi)
+        app.add_request(my_wsgi)
         app.log_format = MyFormatter
 
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('GET', '/myWsgi', environ=environ)
+        status, headers, response = app.request('GET', '/my_wsgi', environ=environ)
         self.assertEqual(response, 'Hello'.encode('utf-8'))
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
