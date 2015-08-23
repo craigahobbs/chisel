@@ -67,9 +67,9 @@ class TestSpecParseSpec(unittest.TestCase):
 
     # Helper method to assert action properties
     def assertAction(self, parser, actionName, inputMembers, outputMembers, errorValues):
-        self.assertEqual(parser.actions[actionName].input_type.type_name, actionName + '_Input')
-        self.assertEqual(parser.actions[actionName].output_type.type_name, actionName + '_Output')
-        self.assertEqual(parser.actions[actionName].error_type.type_name, actionName + '_Error')
+        self.assertEqual(parser.actions[actionName].input_type.type_name, actionName + '_input')
+        self.assertEqual(parser.actions[actionName].output_type.type_name, actionName + '_output')
+        self.assertEqual(parser.actions[actionName].error_type.type_name, actionName + '_error')
         self.assertStruct(parser.actions[actionName].input_type, inputMembers)
         self.assertStruct(parser.actions[actionName].output_type, outputMembers)
         self.assertEnum(parser.actions[actionName].error_type, errorValues)

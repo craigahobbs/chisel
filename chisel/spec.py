@@ -38,9 +38,9 @@ class ActionModel(object):
 
     def __init__(self, name, doc=None):
         self.name = name
-        self.input_type = TypeStruct(type_name=name + '_Input')
-        self.output_type = TypeStruct(type_name=name + '_Output')
-        self.error_type = TypeEnum(type_name=name + '_Error')
+        self.input_type = TypeStruct(type_name=name + '_input')
+        self.output_type = TypeStruct(type_name=name + '_output')
+        self.error_type = TypeEnum(type_name=name + '_error')
         self.doc = [] if doc is None else doc
 
 

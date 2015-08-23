@@ -369,7 +369,7 @@ action myAction
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
-                         'for member \'error\', expected type \'myAction_Error\'"}')
+                         'for member \'error\', expected type \'myAction_error\'"}')
 
     # Test action query string decode error
     def test_action_error_invalid_query_string(self):
@@ -498,7 +498,7 @@ action myAction
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), '
-                         'expected type \'myAction_Output\'"}')
+                         'expected type \'myAction_output\'"}')
 
     # Test action with unexpected error
     def test_action_error_unexpected(self):

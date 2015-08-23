@@ -44,8 +44,8 @@ class HTMLValidator(HTMLParser):
             self.elements.append(tag)
 
     def handle_endtag(self, tag):
-        expectedTag = self.elements.pop() if self.elements else None
-        assert expectedTag == tag, "Expected '%s' element, got '%s'" % (expectedTag, tag)
+        expected_tag = self.elements.pop() if self.elements else None
+        assert expected_tag == tag, "Expected '%s' element, got '%s'" % (expected_tag, tag)
 
     def close(self):
         assert not self.elements, 'Un-popped HTML elements! %r' % (self.elements,)
@@ -53,9 +53,9 @@ class HTMLValidator(HTMLParser):
 
     @staticmethod
     def validate(html):
-        htmlParser = HTMLValidator()
-        htmlParser.feed(html)
-        htmlParser.close()
+        html_parser = HTMLValidator()
+        html_parser.feed(html)
+        html_parser.close()
 
 
 # Documentation generation tests
@@ -141,14 +141,14 @@ action myAction2
         self.app.add_request(chisel.DocAction())
 
     # Test documentation index HTML generation
-    def test_doc_DocAction_index(self):
+    def test_doc_index(self):
 
         # Validate the HTML
         status, dummy_headers, response = self.app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
@@ -290,10 +290,10 @@ ul.chsl-constraint-list {
     </ul>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
 
     # Test action model HTML generation
-    def test_doc_DocAction_request(self):
+    def test_doc_request(self):
 
         # Validate the first myAction1's HTML
         environ = dict(self._environ)
@@ -301,7 +301,7 @@ ul.chsl-constraint-list {
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
@@ -445,7 +445,7 @@ The request is exposed at the following URL:
         </ul>
       </div>
     </div>
-    <h2 id="myAction1_Input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="myAction1_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -471,13 +471,13 @@ The request is exposed at the following URL:
         </td>
       </tr>
     </table>
-    <h2 id="myAction1_Output"><a class="linktarget">Output Parameters</a></h2>
+    <h2 id="myAction1_output"><a class="linktarget">Output Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no output parameters.
       </p>
     </div>
-    <h2 id="myAction1_Error"><a class="linktarget">Error Codes</a></h2>
+    <h2 id="myAction1_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
       <p>
 The action returns no custom error codes.
@@ -702,7 +702,7 @@ A value
     </table>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
 
         # Validate the myAction2's HTML
         environ = dict(self._environ2)
@@ -710,7 +710,7 @@ A value
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
@@ -854,13 +854,13 @@ The request is exposed at the following URL:
         </ul>
       </div>
     </div>
-    <h2 id="myAction2_Input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="myAction2_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no input parameters.
       </p>
     </div>
-    <h2 id="myAction2_Output"><a class="linktarget">Output Parameters</a></h2>
+    <h2 id="myAction2_output"><a class="linktarget">Output Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -877,7 +877,7 @@ The action has no input parameters.
         </td>
       </tr>
     </table>
-    <h2 id="myAction2_Error"><a class="linktarget">Error Codes</a></h2>
+    <h2 id="myAction2_error"><a class="linktarget">Error Codes</a></h2>
     <table>
       <tr>
         <th>Value</th>
@@ -924,15 +924,15 @@ My Union
     </table>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
 
     # Test doc generation element class
     def test_doc_element(self):
 
         root = Element('a')
-        b = root.add_child('b', inline=True)
-        b.add_child('Hello!', text=True)
-        b.add_child('span').add_child(' There!', text=True)
+        elem_b = root.add_child('b', inline=True)
+        elem_b.add_child('Hello!', text=True)
+        elem_b.add_child('span').add_child(' There!', text=True)
         root.add_child('c', closed=False, foo='bar')
         root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
@@ -979,9 +979,9 @@ My Union
     def test_doc_element_noindent(self):
 
         root = Element('a')
-        b = root.add_child('b', inline=True)
-        b.add_child('Hello!', text=True)
-        b.add_child('span').add_child(' There!', text=True)
+        elem_b = root.add_child('b', inline=True)
+        elem_b.add_child('Hello!', text=True)
+        elem_b.add_child('span').add_child(' There!', text=True)
         root.add_child('c', closed=False, foo='bar')
         root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
@@ -1029,24 +1029,24 @@ My Union
         app = chisel.Application()
 
         @chisel.action(spec='''\
-action myAction
+action my_action
     input
         int a
         int b
     output
         int c
 ''')
-        def myAction(dummy_ctx, req):
+        def my_action(dummy_ctx, req):
             return {'c': req['a'] + req['b']}
 
         app.add_request(chisel.DocAction())
-        app.add_request(chisel.DocPage(myAction))
+        app.add_request(chisel.DocPage(my_action))
 
         status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
@@ -1181,26 +1181,26 @@ ul.chsl-constraint-list {
         <span>Actions</span>
         <ul class="chsl-request-list">
           <li><a href="/doc?name=doc">doc</a></li>
-          <li><a href="/doc?name=doc_action_myAction">doc_action_myAction</a></li>
+          <li><a href="/doc?name=doc_action_my_action">doc_action_my_action</a></li>
         </ul>
       </li>
     </ul>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
 
         environ = dict(self._environ)
-        environ['QUERY_STRING'] = 'name=doc_action_myAction'
+        environ['QUERY_STRING'] = 'name=doc_action_my_action'
         status, dummy_headers, response = app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>doc_action_myAction</title>
+    <title>doc_action_my_action</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -1327,10 +1327,10 @@ ul.chsl-constraint-list {
     <div class="chsl-header">
       <a href="/doc">Back to documentation index</a>
     </div>
-    <h1>doc_action_myAction</h1>
+    <h1>doc_action_my_action</h1>
     <div class="chsl-text">
       <p>
-Documentation page for action myAction.
+Documentation page for action my_action.
       </p>
     </div>
     <div class="chsl-notes">
@@ -1340,7 +1340,7 @@ Documentation page for action myAction.
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/doc/action/myAction">/doc/action/myAction</a></li>
+          <li><a href="/doc/action/my_action">/doc/action/my_action</a></li>
         </ul>
       </div>
       <div class="chsl-note">
@@ -1350,7 +1350,7 @@ The action has a non-default response. See documentation for details.
         </p>
       </div>
     </div>
-    <h2 id="doc_action_myAction_Input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="doc_action_my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no input parameters.
@@ -1358,18 +1358,18 @@ The action has no input parameters.
     </div>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc/action/myAction', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc/action/my_action', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
-        htmlExpected = '''\
+        html_expected = '''\
 <!doctype html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>myAction</title>
+    <title>my_action</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -1493,7 +1493,7 @@ ul.chsl-constraint-list {
     </style>
   </head>
   <body class="chsl-request-body">
-    <h1>myAction</h1>
+    <h1>my_action</h1>
     <div class="chsl-notes">
       <div class="chsl-note">
         <p>
@@ -1501,11 +1501,11 @@ ul.chsl-constraint-list {
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/myAction">/myAction</a></li>
+          <li><a href="/my_action">/my_action</a></li>
         </ul>
       </div>
     </div>
-    <h2 id="myAction_Input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -1531,7 +1531,7 @@ The request is exposed at the following URL:
         </td>
       </tr>
     </table>
-    <h2 id="myAction_Output"><a class="linktarget">Output Parameters</a></h2>
+    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
     <table>
       <tr>
         <th>Name</th>
@@ -1548,7 +1548,7 @@ The request is exposed at the following URL:
         </td>
       </tr>
     </table>
-    <h2 id="myAction_Error"><a class="linktarget">Error Codes</a></h2>
+    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
       <p>
 The action returns no custom error codes.
@@ -1556,4 +1556,4 @@ The action returns no custom error codes.
     </div>
   </body>
 </html>'''
-        self.assertEqual(htmlExpected, html)
+        self.assertEqual(html_expected, html)
