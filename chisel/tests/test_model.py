@@ -33,171 +33,144 @@ import json
 import unittest
 from uuid import UUID
 
+
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)
 
 
 class TestModelJsonDate(unittest.TestCase):
 
-    def test_jsonDate(self):
+    def test(self):
 
         value = date(2013, 6, 30)
-        o = JsonDate(value)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(o.value, value)
-        self.assertEqual(repr(o), '"2013-06-30"')
-        self.assertEqual(str(o), '"2013-06-30"')
-        self.assertEqual(json.dumps({'v': o}), '{"v": "2013-06-30"}')
-
-    # Test built-in float function behavior
-    def test_jsonDate_float(self):
-
-        value = date(2013, 6, 30)
-        o = JsonDate(value)
-        f = float(o)
-        self.assertTrue(f is o)
-        self.assertEqual(repr(o), '"2013-06-30"')
+        obj = JsonDate(value)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertTrue(obj.value is value)
+        self.assertEqual(repr(obj), '"2013-06-30"')
+        self.assertEqual(str(obj), '"2013-06-30"')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": "2013-06-30"}')
 
 
 class TestModelJsonDatetime(unittest.TestCase):
 
-    # Datetime with timezone
-    def test_jsonDatetime(self):
+    def test(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZUTC)
-        o = JsonDatetime(value)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(o.value, value)
-        self.assertTrue(o.value.tzinfo is not None)
-        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
-        self.assertEqual(str(o), '"2013-06-30T17:19:00+00:00"')
-        self.assertEqual(json.dumps({'v': o}), '{"v": "2013-06-30T17:19:00+00:00"}')
+        obj = JsonDatetime(value)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertTrue(obj.value is value)
+        self.assertTrue(obj.value.tzinfo is not None)
+        self.assertEqual(repr(obj), '"2013-06-30T17:19:00+00:00"')
+        self.assertEqual(str(obj), '"2013-06-30T17:19:00+00:00"')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": "2013-06-30T17:19:00+00:00"}')
 
-    # Datetime without timezone
-    def test_jsonDatetime_no_timezone(self):
+    def test_no_timezone(self):
 
         value = datetime(2013, 6, 30, 17, 19, 0)
-        o = JsonDatetime(value)
-        oExpected = JsonDatetime(datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZLOCAL))
-        self.assertTrue(isinstance(o, float))
-        self.assertTrue(isinstance(o.value, datetime))
-        self.assertTrue(o.value.tzinfo is not None)
-        self.assertEqual(repr(o), repr(oExpected))
-        self.assertEqual(str(o), repr(oExpected))
-        self.assertEqual(json.dumps({'v': o}), '{"v": ' + repr(o) + '}')
-
-    # Test built-in float function behavior
-    def test_jsonDatetime_float(self):
-
-        value = datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZUTC)
-        o = JsonDatetime(value)
-        f = float(o)
-        self.assertTrue(f is o)
-        self.assertEqual(repr(o), '"2013-06-30T17:19:00+00:00"')
+        obj = JsonDatetime(value)
+        obj_expected = datetime(2013, 6, 30, 17, 19, 0, tzinfo=TZLOCAL)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertTrue(obj.value is not value)
+        self.assertEqual(obj.value, obj_expected)
+        self.assertTrue(obj.value.tzinfo is not None)
+        self.assertEqual(repr(obj), '"' + obj_expected.isoformat() + '"')
+        self.assertEqual(str(obj), '"' + obj_expected.isoformat() + '"')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": "' + obj_expected.isoformat() + '"}')
 
 
 class TestModelJsonFloat(unittest.TestCase):
 
-    def test_jsonFloat_default(self):
+    def test(self):
 
-        o = JsonFloat(2.1234567)
-        f = float(o)
-        self.assertTrue(f is o)
-        self.assertEqual(repr(o), '2.123457')
-        self.assertEqual(str(o), '2.123457')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.123457}')
+        obj = JsonFloat(2.25, 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.25')
+        self.assertEqual(str(obj), '2.25')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.25}')
 
-    # Basic two decimal places float repr
-    def test_jsonFloat(self):
+    def test_default(self):
 
-        o = JsonFloat(2.25, 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2.25')
-        self.assertEqual(str(o), '2.25')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.25}')
+        obj = JsonFloat(2.1234567)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.123457')
+        self.assertEqual(str(obj), '2.123457')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.123457}')
 
-    # Two decimal places float repr round up
-    def test_jsonFloat_round_up(self):
+    def test_round_up(self):
 
-        o = JsonFloat(2.256, 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2.26')
-        self.assertEqual(str(o), '2.26')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.26}')
+        obj = JsonFloat(2.256, 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.26')
+        self.assertEqual(str(obj), '2.26')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.26}')
 
-    # Two decimal places float repr round down
-    def test_jsonFloat_round_down(self):
+    def test_round_down(self):
 
-        o = JsonFloat(2.254, 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2.25')
-        self.assertEqual(str(o), '2.25')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.25}')
+        obj = JsonFloat(2.254, 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.25')
+        self.assertEqual(str(obj), '2.25')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.25}')
 
     # Two decimal places float repr - ugly in Python 2.6
-    def test_jsonFloat_ugly(self):
+    def test_ugly(self):
 
-        o = JsonFloat(2.03, 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2.03')
-        self.assertEqual(str(o), '2.03')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.03}')
+        obj = JsonFloat(2.03, 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.03')
+        self.assertEqual(str(obj), '2.03')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.03}')
 
     # Two decimal places float repr with end-zero trimming
-    def test_jsonFloat_zero_trim(self):
+    def test_zero_trim(self):
 
-        o = JsonFloat(2.5, 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2.5')
-        self.assertEqual(str(o), '2.5')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2.5}')
+        obj = JsonFloat(2.5, 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2.5')
+        self.assertEqual(str(obj), '2.5')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.5}')
 
     # Two decimal places float repr with end-point trimming
-    def test_jsonFloat_point_trim(self):
+    def test_point_trim(self):
 
-        o = JsonFloat(2., 2)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2')
-        self.assertEqual(str(o), '2')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2}')
+        obj = JsonFloat(2., 2)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2')
+        self.assertEqual(str(obj), '2')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2}')
 
     # Zero decimal places
-    def test_jsonFloat_zero_prec(self):
+    def test_zero_prec(self):
 
-        o = JsonFloat(2.25, 0)
-        self.assertTrue(isinstance(o, float))
-        self.assertEqual(repr(o), '2')
-        self.assertEqual(str(o), '2')
-        self.assertEqual(json.dumps({'v': o}), '{"v": 2}')
-
-    # Test built-in float function behavior
-    def test_jsonFloat_float(self):
-
-        o = JsonFloat(2.25, 2)
-        f = float(o)
-        self.assertTrue(f is o)
-        self.assertEqual(repr(o), '2.25')
+        obj = JsonFloat(2.25, 0)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertEqual(repr(obj), '2')
+        self.assertEqual(str(obj), '2')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": 2}')
 
 
 class TestModelJsonUUID(unittest.TestCase):
 
-    def test_jsonUUID(self):
+    def test(self):
 
         value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
-        o = JsonUUID(value)
-        self.assertTrue(isinstance(o, float))
-        self.assertTrue(o.value is value)
-        self.assertEqual(repr(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
-        self.assertEqual(str(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
-        self.assertEqual(json.dumps({'v': o}), '{"v": "184eab31-4307-416c-aac4-3b92b2358677"}')
-
-    # Test built-in float function behavior
-    def test_jsonUUID_float(self):
-
-        value = UUID('184EAB31-4307-416C-AAC4-3B92B2358677')
-        o = JsonUUID(value)
-        f = float(o)
-        self.assertTrue(f is o)
-        self.assertEqual(repr(o), '"184eab31-4307-416c-aac4-3b92b2358677"')
+        obj = JsonUUID(value)
+        self.assertTrue(isinstance(obj, float))
+        self.assertTrue(float(obj) is obj)
+        self.assertTrue(obj.value is value)
+        self.assertEqual(repr(obj), '"184eab31-4307-416c-aac4-3b92b2358677"')
+        self.assertEqual(str(obj), '"184eab31-4307-416c-aac4-3b92b2358677"')
+        self.assertEqual(json.dumps({'v': obj}), '{"v": "184eab31-4307-416c-aac4-3b92b2358677"}')
 
 
 class TestModelValidationError(unittest.TestCase):
@@ -227,218 +200,220 @@ class TestModelValidationError(unittest.TestCase):
         self.assertEqual(ValidationError.member_syntax(None), None)
 
     def test_member_error_basic(self):
-        e = ValidationError.member_error(TYPE_INT, 'abc', ('a',))
-        self.assertTrue(isinstance(e, Exception))
-        self.assertTrue(isinstance(e, ValidationError))
-        self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
-        self.assertEqual(e.member, 'a')
+
+        exc = ValidationError.member_error(TYPE_INT, 'abc', ('a',))
+        self.assertTrue(isinstance(exc, Exception))
+        self.assertTrue(isinstance(exc, ValidationError))
+        self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+        self.assertEqual(exc.member, 'a')
 
     def test_member_error_no_member(self):
-        e = ValidationError.member_error(TYPE_INT, 'abc', ())
-        self.assertTrue(isinstance(e, Exception))
-        self.assertTrue(isinstance(e, ValidationError))
-        self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
-        self.assertEqual(e.member, None)
+
+        exc = ValidationError.member_error(TYPE_INT, 'abc', ())
+        self.assertTrue(isinstance(exc, Exception))
+        self.assertTrue(isinstance(exc, ValidationError))
+        self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
+        self.assertEqual(exc.member, None)
 
     def test_member_error_constraint(self):
-        e = ValidationError.member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
-        self.assertTrue(isinstance(e, Exception))
-        self.assertTrue(isinstance(e, ValidationError))
-        self.assertEqual(str(e), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
-        self.assertEqual(e.member, 'a')
+
+        exc = ValidationError.member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
+        self.assertTrue(isinstance(exc, Exception))
+        self.assertTrue(isinstance(exc, ValidationError))
+        self.assertEqual(str(exc), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
+        self.assertEqual(exc.member, 'a')
 
 
 class TestStructMemberAttributes(unittest.TestCase):
 
-    def test_StructMemberAttributes_validate_eq(self):
+    def test_validate_eq(self):
         attr = chisel.model.StructMemberAttributes(op_eq=5)
         attr.validate(5)
         try:
             attr.validate(4)
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 4 (type 'int') [== 5]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 4 (type 'int') [== 5]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_lt(self):
+    def test_validate_lt(self):
         attr = chisel.model.StructMemberAttributes(op_lt=5)
         attr.validate(4)
         try:
             attr.validate(5)
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 5 (type 'int') [< 5]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 5 (type 'int') [< 5]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_lte(self):
+    def test_validate_lte(self):
         attr = chisel.model.StructMemberAttributes(op_lte=5)
         attr.validate(5)
         try:
             attr.validate(6)
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 6 (type 'int') [<= 5]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 6 (type 'int') [<= 5]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_gt(self):
+    def test_validate_gt(self):
         attr = chisel.model.StructMemberAttributes(op_gt=5)
         attr.validate(6)
         try:
             attr.validate(5)
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 5 (type 'int') [> 5]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 5 (type 'int') [> 5]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_gte(self):
+    def test_validate_gte(self):
         attr = chisel.model.StructMemberAttributes(op_gte=5)
         attr.validate(5)
         try:
             attr.validate(4)
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 4 (type 'int') [>= 5]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 4 (type 'int') [>= 5]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_len_eq(self):
+    def test_validate_len_eq(self):
         attr = chisel.model.StructMemberAttributes(op_len_eq=3)
         attr.validate('abc')
         try:
             attr.validate('ab')
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 'ab' (type 'str') [len == 3]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len == 3]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_len_lt(self):
+    def test_validate_len_lt(self):
         attr = chisel.model.StructMemberAttributes(op_len_lt=3)
         attr.validate('ab')
         try:
             attr.validate('abc')
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 'abc' (type 'str') [len < 3]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len < 3]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_len_lte(self):
+    def test_validate_len_lte(self):
         attr = chisel.model.StructMemberAttributes(op_len_lte=3)
         attr.validate('abc')
         try:
             attr.validate('abcd')
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 'abcd' (type 'str') [len <= 3]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 'abcd' (type 'str') [len <= 3]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_len_gt(self):
+    def test_validate_len_gt(self):
         attr = chisel.model.StructMemberAttributes(op_len_gt=3)
         attr.validate('abcd')
         try:
             attr.validate('abc')
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 'abc' (type 'str') [len > 3]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len > 3]")
         else:
             self.fail()
 
-    def test_StructMemberAttributes_validate_len_gte(self):
+    def test_validate_len_gte(self):
         attr = chisel.model.StructMemberAttributes(op_len_gte=3)
         attr.validate('abc')
         try:
             attr.validate('ab')
-        except chisel.model.ValidationError as e:
-            self.assertEqual(str(e), "Invalid value 'ab' (type 'str') [len >= 3]")
+        except chisel.model.ValidationError as exc:
+            self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len >= 3]")
         else:
             self.fail()
 
 
-# pylint: disable=protected-access
 class TestModelTypedefValidation(unittest.TestCase):
 
     # Test typedef type construction
-    def test_typedef_init(self):
+    def test_init(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
-        self.assertEqual(t.type_name, 'typedef')
-        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
-        self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
-        self.assertEqual(t.doc, [])
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
+        self.assertEqual(type_.type_name, 'typedef')
+        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
+        self.assertTrue(isinstance(type_.attr, chisel.model.StructMemberAttributes))
+        self.assertEqual(type_.doc, [])
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
-        self.assertEqual(t.type_name, 'Foo')
-        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
-        self.assertTrue(isinstance(t.attr, chisel.model.StructMemberAttributes))
-        self.assertEqual(t.doc, ['A', 'B'])
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
+        self.assertEqual(type_.type_name, 'Foo')
+        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
+        self.assertTrue(isinstance(type_.attr, chisel.model.StructMemberAttributes))
+        self.assertEqual(type_.doc, ['A', 'B'])
 
     # Test typedef attribute validation
-    def test_typedef_validate_attr(self):
+    def test_validate_attr(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
 
-        t.validate_attr(chisel.model.StructMemberAttributes())
+        type_.validate_attr(chisel.model.StructMemberAttributes())
 
-        t.validate_attr(chisel.model.StructMemberAttributes(op_gt=7))
+        type_.validate_attr(chisel.model.StructMemberAttributes(op_gt=7))
 
         try:
-            t.validate_attr(chisel.model.StructMemberAttributes(op_len_gt=7))
+            type_.validate_attr(chisel.model.StructMemberAttributes(op_len_gt=7))
             self.fail()
-        except chisel.model.AttributeValidationError as e:
-            self.assertEqual(str(e), "Invalid attribute 'len > 7'")
+        except chisel.model.AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
-    def test_typedef_validate(self):
+    def test_validate(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
-        o = 5
+        obj = 5
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - success
-    def test_typedef_validate_no_attr(self):
+    def test_validate_no_attr(self):
 
-        t = chisel.model.Typedef(TYPE_INT)
+        type_ = chisel.model.Typedef(TYPE_INT)
 
-        o = 5
+        obj = 5
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # Query string validation mode - transformed value
-    def test_typedef_validate_transformed_value(self):
+    def test_validate_transformed_value(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
-        o = '5'
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, 5)
+        obj = '5'
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, 5)
 
     # Query string validation mode - transformed value
-    def test_typedef_validate_type_error(self):
+    def test_validate_type_error(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
             else:
                 self.fail()
 
     # Query string validation mode - transformed value
-    def test_typedef_validate_attr_error(self):
+    def test_validate_attr_error(self):
 
-        t = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
 
-        o = 4
+        obj = 4
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 4 (type 'int') [>= 5]")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 4 (type 'int') [>= 5]")
             else:
                 self.fail()
 
@@ -446,337 +421,337 @@ class TestModelTypedefValidation(unittest.TestCase):
 class TestModelStructValidation(unittest.TestCase):
 
     # Test struct type construction
-    def test_struct_init(self):
+    def test_init(self):
 
-        t = TypeStruct()
-        self.assertEqual(t.type_name, 'struct')
-        self.assertEqual(t.union, False)
-        self.assertEqual(t.members, [])
-        self.assertEqual(t.doc, [])
+        type_ = TypeStruct()
+        self.assertEqual(type_.type_name, 'struct')
+        self.assertEqual(type_.union, False)
+        self.assertEqual(type_.members, [])
+        self.assertEqual(type_.doc, [])
 
-        t.add_member('a', TypeStruct())
-        self.assertEqual(len(t.members), 1)
-        self.assertEqual(t.members[0].name, 'a')
-        self.assertTrue(isinstance(t.members[0].type, TypeStruct))
-        self.assertEqual(t.members[0].optional, False)
-        self.assertEqual(t.members[0].doc, [])
+        type_.add_member('a', TypeStruct())
+        self.assertEqual(len(type_.members), 1)
+        self.assertEqual(type_.members[0].name, 'a')
+        self.assertTrue(isinstance(type_.members[0].type, TypeStruct))
+        self.assertEqual(type_.members[0].optional, False)
+        self.assertEqual(type_.members[0].doc, [])
 
     # Test union type construction
-    def test_struct_init_union(self):
+    def test_init_union(self):
 
-        t = TypeStruct(union=True)
-        self.assertEqual(t.type_name, 'union')
-        self.assertEqual(t.union, True)
-        self.assertEqual(t.members, [])
-        self.assertEqual(t.doc, [])
+        type_ = TypeStruct(union=True)
+        self.assertEqual(type_.type_name, 'union')
+        self.assertEqual(type_.union, True)
+        self.assertEqual(type_.members, [])
+        self.assertEqual(type_.doc, [])
 
-        t.add_member('a', TypeStruct())
-        self.assertEqual(len(t.members), 1)
-        self.assertEqual(t.members[0].name, 'a')
-        self.assertTrue(isinstance(t.members[0].type, TypeStruct))
-        self.assertEqual(t.members[0].optional, True)
-        self.assertEqual(t.members[0].doc, [])
+        type_.add_member('a', TypeStruct())
+        self.assertEqual(len(type_.members), 1)
+        self.assertEqual(type_.members[0].name, 'a')
+        self.assertTrue(isinstance(type_.members[0].type, TypeStruct))
+        self.assertEqual(type_.members[0].optional, True)
+        self.assertEqual(type_.members[0].doc, [])
 
     # All validation modes - success
-    def test_struct_validation(self):
+    def test_validation(self):
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING)
 
-        o = {'a': 7, 'b': 'abc'}
+        obj = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7, 'b': 'abc'})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - union success
-    def test_struct_validation_union(self):
+    def test_validation_union(self):
 
-        t = TypeStruct(union=True)
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING)
+        type_ = TypeStruct(union=True)
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING)
 
-        o = {'a': 7}
+        obj = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7})
 
-        o = {'b': 'abc'}
+        obj = {'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'b': 'abc'})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'b': 'abc'})
 
     # All validation modes - optional member present
-    def test_struct_validation_optional_present(self):
+    def test_validation_optional_present(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING, optional=True)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING, optional=True)
 
-        o = {'a': 7, 'b': 'abc'}
+        obj = {'a': 7, 'b': 'abc'}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7, 'b': 'abc'})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - optional member missing
-    def test_struct_validation_optional_missing(self):
+    def test_validation_optional_missing(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING, optional=True)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING, optional=True)
 
-        o = {'a': 7}
+        obj = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7})
 
     # All validation modes - member with attributes - valid
-    def test_struct_validation_member_attributes_valid(self):
+    def test_validation_member_attributes_valid(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = {'a': 4}
+        obj = {'a': 4}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 4})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 4})
 
     # All validation modes - member with attributes - invalid
-    def test_struct_validation_member_attributes_invalid(self):
+    def test_validation_member_attributes_invalid(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = {'a': 7}
+        obj = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member 'a' [< 5]")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member 'a' [< 5]")
             else:
                 self.fail()
 
     # All validation modes - nested structure
-    def test_struct_validation_nested(self):
+    def test_validation_nested(self):
 
-        t = TypeStruct()
-        t2 = TypeStruct()
-        t.add_member('a', t2)
-        t2.add_member('b', TYPE_INT)
+        type_ = TypeStruct()
+        type2 = TypeStruct()
+        type_.add_member('a', type2)
+        type2.add_member('b', TYPE_INT)
 
-        o = {'a': {'b': 7}}
+        obj = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
-                self.assertTrue(o['a'] is o2['a'])
+                self.assertTrue(obj is obj2)
+                self.assertTrue(obj['a'] is obj2['a'])
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(o['a'] is not o2['a'])
-                self.assertTrue(isinstance(o2, dict))
-                self.assertTrue(isinstance(o2['a'], dict))
-            self.assertEqual(o2, {'a': {'b': 7}})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(obj['a'] is not obj2['a'])
+                self.assertTrue(isinstance(obj2, dict))
+                self.assertTrue(isinstance(obj2['a'], dict))
+            self.assertEqual(obj2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_struct_validation_query_string_transformed_member(self):
+    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
 
-        o = {'a': '7'}
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': 7})
+        obj = {'a': '7'}
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_struct_validation_query_string_empty_string(self):
+    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
+        type_ = TypeStruct()
 
-        o = ''
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {})
+        obj = ''
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
-    def test_struct_validation_json_input_transformed_member(self):
+    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_UUID)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_UUID)
 
-        o = {'a': '184EAB31-4307-416C-AAC4-3B92B2358677'}
-        o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
+        obj = {'a': '184EAB31-4307-416C-AAC4-3B92B2358677'}
+        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
 
     # All validation modes - error - invalid value
-    def test_struct_validation_error_invalid_value(self):
+    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'struct'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'struct'")
             else:
                 self.fail()
 
     # All validation modes - error - optional none value
-    def test_struct_validation_error_optional_none_value(self):
+    def test_validation_error_optional_none_value(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT, optional=True)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT, optional=True)
 
-        o = {'a': None}
+        obj = {'a': None}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_struct_validation_error_member_validation(self):
+    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
 
-        o = {'a': 'abc'}
+        obj = {'a': 'abc'}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - nested member validation
-    def test_struct_validation_error_nested_member_validation(self):
+    def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t2 = TypeStruct()
-        t.add_member('a', t2)
-        t2.add_member('b', TYPE_INT)
+        type_ = TypeStruct()
+        type2 = TypeStruct()
+        type_.add_member('a', type2)
+        type2.add_member('b', TYPE_INT)
 
-        o = {'a': {'b': 'abc'}}
+        obj = {'a': {'b': 'abc'}}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - unknown member
-    def test_struct_validation_error_unknown_member(self):
+    def test_validation_error_unknown_member(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
 
-        o = {'a': 7, 'b': 8}
+        obj = {'a': 7, 'b': 8}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Unknown member 'b'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Unknown member 'b'")
             else:
                 self.fail()
 
     # All validation modes - error - missing member
-    def test_struct_validation_error_missing_member(self):
+    def test_validation_error_missing_member(self): # pylint: disable=invalid-name
 
-        t = TypeStruct()
-        t.add_member('a', TYPE_INT)
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
 
-        o = {}
+        obj = {}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Required member 'a' missing")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Required member 'a' missing")
             else:
                 self.fail()
 
     # All validation modes - error - union with more than one member
-    def test_struct_validation_error_union_multiple_members(self):
+    def test_validation_error_union_multiple_members(self): # pylint: disable=invalid-name
 
-        t = TypeStruct(union=True)
-        t.add_member('a', TYPE_INT)
-        t.add_member('bb', TYPE_STRING)
+        type_ = TypeStruct(union=True)
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('bb', TYPE_STRING)
 
-        o = {'a': 1, 'bb': 'abcd'}
+        obj = {'a': 1, 'bb': 'abcd'}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertTrue(str(e).startswith('Invalid value {'))
-                self.assertTrue(str(e).endswith("} (type 'dict'), expected type 'union'"))
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertTrue(str(exc).startswith('Invalid value {'))
+                self.assertTrue(str(exc).endswith("} (type 'dict'), expected type 'union'"))
             else:
                 self.fail()
 
     # All validation modes - error - empty union
-    def test_struct_validation_error_union_zero_members(self):
+    def test_validation_error_union_zero_members(self): # pylint: disable=invalid-name
 
-        t = TypeStruct(union=True)
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING)
+        type_ = TypeStruct(union=True)
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING)
 
-        o = {}
+        obj = {}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value {} (type 'dict'), expected type 'union'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value {} (type 'dict'), expected type 'union'")
             else:
                 self.fail()
 
     # All validation modes - error - union unknown member
-    def test_struct_validation_error_union_unknown_member(self):
+    def test_validation_error_union_unknown_member(self): # pylint: disable=invalid-name
 
-        t = TypeStruct(union=True)
-        t.add_member('a', TYPE_INT)
-        t.add_member('b', TYPE_STRING)
+        type_ = TypeStruct(union=True)
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING)
 
-        o = {'c': 7}
+        obj = {'c': 7}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Unknown member 'c'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Unknown member 'c'")
             else:
                 self.fail()
 
@@ -784,141 +759,141 @@ class TestModelStructValidation(unittest.TestCase):
 class TestModelArrayValidation(unittest.TestCase):
 
     # Test array type construction
-    def test_array_init(self):
+    def test_init(self):
 
-        t = TypeArray(TYPE_INT)
-        self.assertEqual(t.type_name, 'array')
-        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
-        self.assertEqual(t.attr, None)
+        type_ = TypeArray(TYPE_INT)
+        self.assertEqual(type_.type_name, 'array')
+        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
+        self.assertEqual(type_.attr, None)
 
     # All validation modes - success
-    def test_array_validation(self):
+    def test_validation(self):
 
-        t = TypeArray(TYPE_INT)
+        type_ = TypeArray(TYPE_INT)
 
-        o = [1, 2, 3]
+        obj = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, list))
-            self.assertEqual(o2, [1, 2, 3])
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, list))
+            self.assertEqual(obj2, [1, 2, 3])
 
     # All validation modes - value attributes - success
-    def test_array_validation_attributes(self):
+    def test_validation_attributes(self):
 
-        t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = [1, 2, 3]
+        obj = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, list))
-            self.assertEqual(o2, [1, 2, 3])
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, list))
+            self.assertEqual(obj2, [1, 2, 3])
 
     # All validation modes - value attributes - invalid value
-    def test_array_validation_attributes_invalid(self):
+    def test_validation_attributes_invalid(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = [1, 7, 3]
+        obj = [1, 7, 3]
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member '[1]' [< 5]")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member '[1]' [< 5]")
             else:
                 self.fail()
 
     # All validation modes - nested
-    def test_array_validation_nested(self):
+    def test_validation_nested(self):
 
-        t = TypeArray(TypeArray(TYPE_INT))
+        type_ = TypeArray(TypeArray(TYPE_INT))
 
-        o = [[1, 2, 3], [4, 5, 6]]
+        obj = [[1, 2, 3], [4, 5, 6]]
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, list))
-            self.assertEqual(o2, [[1, 2, 3], [4, 5, 6]])
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, list))
+            self.assertEqual(obj2, [[1, 2, 3], [4, 5, 6]])
 
     # Query string validation mode - transformed member
-    def test_array_validation_query_string_transformed_member(self):
+    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_INT)
+        type_ = TypeArray(TYPE_INT)
 
-        o = [1, '2', 3]
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, [1, 2, 3])
+        obj = [1, '2', 3]
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, [1, 2, 3])
 
     # Query string validation mode - empty string
-    def test_array_validation_query_string_empty_string(self):
+    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_INT)
+        type_ = TypeArray(TYPE_INT)
 
-        o = ''
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, [])
+        obj = ''
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, [])
 
     # JSON input validation mode - transformed member
-    def test_array_validation_json_input_transformed_member(self):
+    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_UUID)
+        type_ = TypeArray(TYPE_UUID)
 
-        o = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
-        o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
+        obj = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
+        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
 
     # All validation modes - error - invalid value
-    def test_array_validation_error_invalid_value(self):
+    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_INT)
+        type_ = TypeArray(TYPE_INT)
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'array'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'array'")
             else:
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_array_validation_error_member_validation(self):
+    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
 
-        t = TypeArray(TYPE_INT)
+        type_ = TypeArray(TYPE_INT)
 
-        o = [1, 'abc', 3]
+        obj = [1, 'abc', 3]
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '[1]', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '[1]', expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - error nested
-    def test_array_validation_error_nested(self):
+    def test_validation_error_nested(self):
 
-        t = TypeArray(TypeArray(TYPE_INT))
+        type_ = TypeArray(TypeArray(TYPE_INT))
 
-        o = [[1, 2, 3], [4, 5, 'abc']]
+        obj = [[1, 2, 3], [4, 5, 'abc']]
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
             else:
                 self.fail()
 
@@ -926,183 +901,183 @@ class TestModelArrayValidation(unittest.TestCase):
 class TestModelDictValidation(unittest.TestCase):
 
     # Test dict type construction
-    def test_dict_init(self):
+    def test_init(self):
 
-        t = TypeDict(TYPE_INT)
-        self.assertEqual(t.type_name, 'dict')
-        self.assertTrue(isinstance(t.type, type(chisel.model.TYPE_INT)))
+        type_ = TypeDict(TYPE_INT)
+        self.assertEqual(type_.type_name, 'dict')
+        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
 
     # All validation modes - success
-    def test_dict_validation(self):
+    def test_validation(self):
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = {'a': 7, 'b': 8}
+        obj = {'a': 7, 'b': 8}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 7, 'b': 8})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': 8})
 
     # All validation modes - value attributes - success
-    def test_dict_validation_value_attributes(self):
+    def test_validation_value_attributes(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = {'a': 1, 'b': 2}
+        obj = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 1, 'b': 2})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 1, 'b': 2})
 
     # All validation modes - value attributes - invalid value
-    def test_dict_validation_value_attributes_invalid(self):
+    def test_validation_value_attributes_invalid(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
 
-        o = {'a': 1, 'b': 7}
+        obj = {'a': 1, 'b': 7}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member 'b' [< 5]")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member 'b' [< 5]")
             else:
                 self.fail()
 
     # All validation modes - key attributes - success
-    def test_dict_validation_key_attributes(self):
+    def test_validation_key_attributes(self):
 
-        t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
+        type_ = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
 
-        o = {'a': 1, 'b': 2}
+        obj = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': 1, 'b': 2})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 1, 'b': 2})
 
     # All validation modes - key attributes - invalid key
-    def test_dict_validation_key_attributes_invalid(self):
+    def test_validation_key_attributes_invalid(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
+        type_ = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
 
-        o = {'a': 1, 'bc': 2}
+        obj = {'a': 1, 'bc': 2}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'bc' (type 'str') for member 'bc' [len < 2]")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'bc' (type 'str') for member 'bc' [len < 2]")
             else:
                 self.fail()
 
     # All validation modes - nested
-    def test_dict_validation_nested(self):
+    def test_validation_nested(self):
 
-        t = TypeDict(TypeDict(TYPE_INT))
+        type_ = TypeDict(TypeDict(TYPE_INT))
 
-        o = {'a': {'b': 7}}
+        obj = {'a': {'b': 7}}
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, dict))
-            self.assertEqual(o2, {'a': {'b': 7}})
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_dict_validation_query_string_transformed_member(self):
+    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = {'a': '7'}
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': 7})
+        obj = {'a': '7'}
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_dict_validation_query_string_empty_string(self):
+    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = ''
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {})
+        obj = ''
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
-    def test_dict_validation_json_input_transformed_member(self):
+    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_UUID)
+        type_ = TypeDict(TYPE_UUID)
 
-        o = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
-        o2 = t.validate(o, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
+        obj = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
+        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
 
     # All validation modes - error - invalid value
-    def test_dict_validation_error_invalid_value(self):
+    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'dict'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'dict'")
             else:
                 self.fail()
 
     # All validation modes - error - member key validation
-    def test_dict_validation_error_member_key_validation(self):
+    def test_validation_error_member_key_validation(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = {7: 7}
+        obj = {7: 7}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
             else:
                 self.fail()
 
     # All validation modes - error - member validation
-    def test_dict_validation_error_member_validation(self):
+    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TYPE_INT)
+        type_ = TypeDict(TYPE_INT)
 
-        o = {'7': 'abc'}
+        obj = {'7': 'abc'}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - nested member validation
-    def test_dict_validation_error_nested_member_validation(self):
+    def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
 
-        t = TypeDict(TypeDict(TYPE_INT))
+        type_ = TypeDict(TypeDict(TYPE_INT))
 
-        o = {'a': {'b': 'abc'}}
+        obj = {'a': {'b': 'abc'}}
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
             else:
                 self.fail()
 
@@ -1110,44 +1085,44 @@ class TestModelDictValidation(unittest.TestCase):
 class TestModelEnumValidation(unittest.TestCase):
 
     # Test enum type construction
-    def test_enum_init(self):
+    def test_init(self):
 
-        t = TypeEnum()
-        t.add_value('a')
-        t.add_value('b')
+        type_ = TypeEnum()
+        type_.add_value('a')
+        type_.add_value('b')
 
-        self.assertEqual(t.type_name, 'enum')
-        self.assertEqual(t.values[0].value, 'a')
-        self.assertEqual(t.values[0].doc, [])
-        self.assertEqual(t.values[1].value, 'b')
-        self.assertEqual(t.values[1].doc, [])
-        self.assertEqual(t.doc, [])
+        self.assertEqual(type_.type_name, 'enum')
+        self.assertEqual(type_.values[0].value, 'a')
+        self.assertEqual(type_.values[0].doc, [])
+        self.assertEqual(type_.values[1].value, 'b')
+        self.assertEqual(type_.values[1].doc, [])
+        self.assertEqual(type_.doc, [])
 
     # All validation modes - valid enumeration value
-    def test_enum_validate(self):
+    def test_validate(self):
 
-        t = TypeEnum()
-        t.add_value('a')
-        t.add_value('b')
+        type_ = TypeEnum()
+        type_.add_value('a')
+        type_.add_value('b')
 
-        o = 'a'
+        obj = 'a'
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - valid enumeration value
-    def test_enum_validate_error(self):
+    def test_validate_error(self):
 
-        t = TypeEnum()
-        t.add_value('a')
-        t.add_value('b')
+        type_ = TypeEnum()
+        type_.add_value('a')
+        type_.add_value('b')
 
-        o = 'c'
+        obj = 'c'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'c' (type 'str'), expected type 'enum'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'c' (type 'str'), expected type 'enum'")
             else:
                 self.fail()
 
@@ -1155,43 +1130,43 @@ class TestModelEnumValidation(unittest.TestCase):
 class TestModelStringValidation(unittest.TestCase):
 
     # Test string type construction
-    def test_string_init(self):
+    def test_init(self):
 
-        t = TYPE_STRING
+        type_ = TYPE_STRING
 
-        self.assertEqual(t.type_name, 'string')
+        self.assertEqual(type_.type_name, 'string')
 
     # All validation modes - success
-    def test_string_validate(self):
+    def test_validate(self):
 
-        t = TYPE_STRING
+        type_ = TYPE_STRING
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - unicode
-    def test_string_validate_unicode(self):
+    def test_validate_unicode(self):
 
-        t = TYPE_STRING
+        type_ = TYPE_STRING
 
-        o = unicode_('abc')
+        obj = unicode_('abc')
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - error - invalid value
-    def test_string_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_STRING
+        type_ = TYPE_STRING
 
-        o = 7
+        obj = 7
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7 (type 'int'), expected type 'string'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7 (type 'int'), expected type 'string'")
             else:
                 self.fail()
 
@@ -1199,100 +1174,100 @@ class TestModelStringValidation(unittest.TestCase):
 class TestModelIntValidation(unittest.TestCase):
 
     # Test int type construction
-    def test_int_init(self):
+    def test_init(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        self.assertEqual(t.type_name, 'int')
+        self.assertEqual(type_.type_name, 'int')
 
     # All validation modes - success
-    def test_int_validate(self):
+    def test_validate(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = 7
+        obj = 7
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - float
-    def test_int_validate_float(self):
+    def test_validate_float(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = 7.
+        obj = 7.
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, (int, long_)))
-                self.assertEqual(o2, 7)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, (int, long_)))
+                self.assertEqual(obj2, 7)
 
     # Query string validation mode - string
-    def test_int_query_string(self):
+    def test_query_string(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = '7'
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, 7)
+        obj = '7'
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, 7)
 
     # All validation modes - error - invalid value
-    def test_int_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - not-integer float
-    def test_int_validate_error_float(self):
+    def test_validate_error_float(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = 7.5
+        obj = 7.5
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 7.5 (type 'float'), expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 7.5 (type 'float'), expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - fake JSON float
-    def test_int_validate_error_fake_float(self):
+    def test_validate_error_fake_float(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        obj = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'int'")
             else:
                 self.fail()
 
     # All validation modes - error - bool
-    def test_int_validate_error_bool(self):
+    def test_validate_error_bool(self):
 
-        t = TYPE_INT
+        type_ = TYPE_INT
 
-        o = True
+        obj = True
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value True (type 'bool'), expected type 'int'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value True (type 'bool'), expected type 'int'")
             else:
                 self.fail()
 
@@ -1300,101 +1275,102 @@ class TestModelIntValidation(unittest.TestCase):
 class TestModelFloatValidation(unittest.TestCase):
 
     # Test float type construction
-    def test_float_init(self):
+    def test_init(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        self.assertEqual(t.type_name, 'float')
+        self.assertEqual(type_.type_name, 'float')
 
     # All validation modes - success
-    def test_float_validate(self):
+    def test_validate(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = 7.5
+        obj = 7.5
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # All validation modes - int
-    def test_float_validate_int(self):
+    def test_validate_int(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = 7
+        obj = 7
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, float))
-                self.assertEqual(o2, 7.)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, float))
+                self.assertEqual(obj2, 7.)
 
     # All validation modes - long
-    def test_float_validate_long(self):
+    def test_validate_long(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = long_(7)
+        obj = long_(7)
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
+            obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(o is o2)
+                self.assertTrue(obj is obj2)
             else:
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, float))
-                self.assertEqual(o2, 7.)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, float))
+                self.assertEqual(obj2, 7.)
 
     # Query string validation mode - string
-    def test_float_query_string(self):
+    def test_query_string(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = '7.5'
-        o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(o is not o2)
-        self.assertEqual(o2, 7.5)
+        obj = '7.5'
+        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+        self.assertTrue(obj is not obj2)
+        self.assertEqual(obj2, 7.5)
 
     # All validation modes - error - invalid value
-    def test_float_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'float'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'float'")
             else:
                 self.fail()
 
     # All validation modes - error - bool
-    def test_float_validate_error_bool(self):
+    def test_validate_error_bool(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = True
+        obj = True
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value True (type 'bool'), expected type 'float'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value True (type 'bool'), expected type 'float'")
             else:
                 self.fail()
 
     # All validation modes - error - fake JSON float
-    def test_float_validate_error_fake_float(self):
+    def test_validate_error_fake_float(self):
 
-        t = TYPE_FLOAT
+        type_ = TYPE_FLOAT
 
-        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        obj = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'float'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc),
+                                 "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), expected type 'float'")
             else:
                 self.fail()
 
@@ -1402,44 +1378,44 @@ class TestModelFloatValidation(unittest.TestCase):
 class TestModelBoolValidation(unittest.TestCase):
 
     # Test bool type construction
-    def test_bool_init(self):
+    def test_init(self):
 
-        t = TYPE_BOOL
+        type_ = TYPE_BOOL
 
-        self.assertEqual(t.type_name, 'bool')
+        self.assertEqual(type_.type_name, 'bool')
 
     # All validation modes - success
-    def test_bool_validate(self):
+    def test_validate(self):
 
-        t = TYPE_BOOL
+        type_ = TYPE_BOOL
 
-        o = False
+        obj = False
         for mode in ALL_VALIDATION_MODES:
-            o2 = t.validate(o, mode)
-            self.assertTrue(o is o2)
+            obj2 = type_.validate(obj, mode)
+            self.assertTrue(obj is obj2)
 
     # Query string validation mode - string
-    def test_bool_validate_query_string(self):
+    def test_validate_query_string(self):
 
-        t = TYPE_BOOL
+        type_ = TYPE_BOOL
 
-        for o, expected in (('false', False), ('true', True)):
-            o2 = t.validate(o, mode=VALIDATE_QUERY_STRING)
-            self.assertTrue(o is not o2)
-            self.assertTrue(isinstance(o2, bool))
-            self.assertEqual(o2, expected)
+        for obj, expected in (('false', False), ('true', True)):
+            obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
+            self.assertTrue(obj is not obj2)
+            self.assertTrue(isinstance(obj2, bool))
+            self.assertEqual(obj2, expected)
 
     # All validation modes - error - invalid value
-    def test_bool_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_BOOL
+        type_ = TYPE_BOOL
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'bool'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'bool'")
             else:
                 self.fail()
 
@@ -1447,83 +1423,83 @@ class TestModelBoolValidation(unittest.TestCase):
 class TestModelUuidValidation(unittest.TestCase):
 
     # Test uuid type construction
-    def test_uuid_init(self):
+    def test_init(self):
 
-        t = TYPE_UUID
+        type_ = TYPE_UUID
 
-        self.assertEqual(t.type_name, 'uuid')
+        self.assertEqual(type_.type_name, 'uuid')
 
     # All validation modes - UUID object
-    def test_uuid_validate(self):
+    def test_validate(self):
 
-        t = TYPE_UUID
+        type_ = TYPE_UUID
 
-        o = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
+        obj = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
         for mode in ALL_VALIDATION_MODES:
             if mode != VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    o2 = t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e),
+                    obj2 = type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc),
                                      "Invalid value UUID('aed91c7b-dcfd-49b3-a483-dbc9ea2031a3') (type 'UUID'), "
                                      "expected type 'uuid' [JsonUUID object required]")
                 else:
                     pass
 
     # All validation modes - JsonUUID object
-    def test_uuid_validate_JsonUUID(self):
+    def test_validate_jsonuuid(self):
 
-        t = TYPE_UUID
+        type_ = TYPE_UUID
 
-        o = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+        obj = JsonUUID(UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
         for mode in ALL_VALIDATION_MODES:
             if mode == VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    o2 = t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e),
+                    obj2 = type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc),
                                      "Invalid value \"aed91c7b-dcfd-49b3-a483-dbc9ea2031a3\" (type 'JsonUUID'), "
                                      "expected type 'uuid'")
                 else:
                     pass
 
     # All validation modes - UUID string
-    def test_uuid_validate_string(self):
+    def test_validate_string(self):
 
-        t = TYPE_UUID
+        type_ = TYPE_UUID
 
-        o = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
+        obj = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, UUID))
-                self.assertEqual(o2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, UUID))
+                self.assertEqual(obj2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
             else:
                 try:
-                    o2 = t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3' (type 'str'), expected type 'uuid'")
+                    obj2 = type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3' (type 'str'), expected type 'uuid'")
                 else:
                     pass
 
     # All validation modes - error - invalid value
-    def test_uuid_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_UUID
+        type_ = TYPE_UUID
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
             else:
                 self.fail()
 
@@ -1531,81 +1507,81 @@ class TestModelUuidValidation(unittest.TestCase):
 class TestModelDateValidation(unittest.TestCase):
 
     # Test date type construction
-    def test_date_init(self):
+    def test_init(self):
 
-        t = TYPE_DATE
+        type_ = TYPE_DATE
 
-        self.assertEqual(t.type_name, 'date')
+        self.assertEqual(type_.type_name, 'date')
 
     # All validation modes - date object
-    def test_date_validate(self):
+    def test_validate(self):
 
-        t = TYPE_DATE
+        type_ = TYPE_DATE
 
-        o = date(2013, 5, 26)
+        obj = date(2013, 5, 26)
         for mode in ALL_VALIDATION_MODES:
             if mode != VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e),
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc),
                                      "Invalid value datetime.date(2013, 5, 26) (type 'date'), "
                                      "expected type 'date' [JsonDate object required]")
                 else:
                     self.fail()
 
     # All validation modes - JSONDate object
-    def test_date_JSONDate(self):
+    def test_validate_jsondate(self):
 
-        t = TYPE_DATE
+        type_ = TYPE_DATE
 
-        o = JsonDate(date(2013, 5, 26))
+        obj = JsonDate(date(2013, 5, 26))
         for mode in ALL_VALIDATION_MODES:
             if mode == VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value \"2013-05-26\" (type 'JsonDate'), expected type 'date'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value \"2013-05-26\" (type 'JsonDate'), expected type 'date'")
                 else:
                     self.fail()
 
     # All validation modes - ISO date string
-    def test_date_validate_query_string(self):
+    def test_validate_query_string(self):
 
-        t = TYPE_DATE
+        type_ = TYPE_DATE
 
-        o = '2013-05-26'
+        obj = '2013-05-26'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, date))
-                self.assertEqual(o2, date(2013, 5, 26))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, date))
+                self.assertEqual(obj2, date(2013, 5, 26))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26' (type 'str'), expected type 'date'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26' (type 'str'), expected type 'date'")
                 else:
                     self.fail()
 
     # All validation modes - error - invalid value
-    def test_date_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_DATE
+        type_ = TYPE_DATE
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'date'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'date'")
             else:
                 self.fail()
 
@@ -1613,184 +1589,185 @@ class TestModelDateValidation(unittest.TestCase):
 class TestModelDatetimeValidation(unittest.TestCase):
 
     # Test datetime type construction
-    def test_datetime_init(self):
+    def test_init(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        self.assertEqual(t.type_name, 'datetime')
+        self.assertEqual(type_.type_name, 'datetime')
 
     # All validation modes - datetime object
-    def test_datetime_validate(self):
+    def test_validate(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC)
+        obj = datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC)
         for mode in ALL_VALIDATION_MODES:
             if mode != VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertTrue(str(e).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, '
-                                                      'tzinfo=<chisel.util._TZUTC object at '))
-                    self.assertTrue(str(e).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertTrue(str(exc).startswith('Invalid value datetime.datetime(2013, 5, 26, 11, 1, '
+                                                        'tzinfo=<chisel.util._TZUTC object at '))
+                    self.assertTrue(str(exc).endswith(">) (type 'datetime'), expected type 'datetime' [JsonDatetime object required]"))
                 else:
                     self.fail()
 
     # All validation modes - JSONDatetime object
-    def test_datetime_JSONDatetime(self):
+    def test_validate_jsondatetime(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
+        obj = JsonDatetime(datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
         for mode in ALL_VALIDATION_MODES:
             if mode == VALIDATE_JSON_OUTPUT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value \"2013-05-26T11:01:00+00:00\" (type 'JsonDatetime'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc),
+                                     "Invalid value \"2013-05-26T11:01:00+00:00\" (type 'JsonDatetime'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - datetime object with no timezone
-    def test_datetime_validate_no_timezone(self):
+    def test_validate_no_timezone(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = datetime(2013, 5, 26, 11, 1, 0)
+        obj = datetime(2013, 5, 26, 11, 1, 0)
         for mode in ALL_VALIDATION_MODES:
             if mode == VALIDATE_DEFAULT:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is o2)
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
             elif mode not in IMMUTABLE_VALIDATION_MODES:
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZLOCAL))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZLOCAL))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e),
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc),
                                      "Invalid value datetime.datetime(2013, 5, 26, 11, 1) (type 'datetime'), "
                                      "expected type 'datetime' [JsonDatetime object required]")
                 else:
                     self.fail()
 
     # All validation modes - ISO datetime string
-    def test_datetime_validate_query_string(self):
+    def test_validate_query_string(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = '2013-05-26T11:01:00+08:00'
+        obj = '2013-05-26T11:01:00+08:00'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=TZUTC))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, datetime))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=TZUTC))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00+08:00' (type 'str'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00+08:00' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - ISO datetime string - zulu
-    def test_datetime_validate_query_string_zulu(self):
+    def test_validate_query_string_zulu(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = '2013-05-26T11:01:00+00:00'
+        obj = '2013-05-26T11:01:00+00:00'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, datetime))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - ISO datetime string - fraction second
-    def test_datetime_validate_query_string_fracsec(self):
+    def test_validate_query_string_fracsec(self): # pylint: disable=invalid-name
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = '2013-05-26T11:01:00.1234+00:00'
+        obj = '2013-05-26T11:01:00.1234+00:00'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=TZUTC))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, datetime))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=TZUTC))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - ISO datetime string - no seconds
-    def test_datetime_validate_query_string_no_seconds(self):
+    def test_validate_query_string_no_seconds(self): # pylint: disable=invalid-name
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = '2013-05-26T11:01Z'
+        obj = '2013-05-26T11:01Z'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=TZUTC))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, datetime))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=TZUTC))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - ISO datetime string - no minutes
-    def test_datetime_validate_query_string_no_minutes(self):
+    def test_validate_query_string_no_minutes(self): # pylint: disable=invalid-name
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = '2013-05-26T11Z'
+        obj = '2013-05-26T11Z'
         for mode in ALL_VALIDATION_MODES:
             if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
-                o2 = t.validate(o, mode)
-                self.assertTrue(o is not o2)
-                self.assertTrue(isinstance(o2, datetime))
-                self.assertEqual(o2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=TZUTC))
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, datetime))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=TZUTC))
             else:
                 try:
-                    t.validate(o, mode)
-                except ValidationError as e:
-                    self.assertEqual(str(e), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
+                    type_.validate(obj, mode)
+                except ValidationError as exc:
+                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
                 else:
                     self.fail()
 
     # All validation modes - error - invalid value
-    def test_datetime_validate_error(self):
+    def test_validate_error(self):
 
-        t = TYPE_DATETIME
+        type_ = TYPE_DATETIME
 
-        o = 'abc'
+        obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
             try:
-                t.validate(o, mode)
-            except ValidationError as e:
-                self.assertEqual(str(e), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
             else:
                 self.fail()

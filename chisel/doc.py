@@ -493,7 +493,6 @@ def _add_text(parent, texts):
            .add_child(text, text=True)
 
 
-
 def _add_doc_text(parent, doc):
 
     # Group paragraphs
