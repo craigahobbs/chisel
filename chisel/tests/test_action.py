@@ -20,13 +20,14 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 import chisel
 
 import re
 import unittest
 
 
-# Tests for the action decorator
 class TestAction(unittest.TestCase):
 
     def setUp(self):

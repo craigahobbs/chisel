@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 from chisel.compat import long_, unicode_
 from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, \

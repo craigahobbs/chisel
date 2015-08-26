@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 import chisel
 from chisel.compat import HTMLParser
 from chisel.doc import Element
@@ -28,8 +30,10 @@ import sys
 import unittest
 
 
-# Simple HTML validator class
 class HTMLValidator(HTMLParser):
+    """
+    Simple HTML validator class
+    """
 
     def __init__(self):
         # Default value for convert_charrefs (added in Python 3.4) changed in Python 3.5
@@ -58,7 +62,6 @@ class HTMLValidator(HTMLParser):
         html_parser.close()
 
 
-# Documentation generation tests
 class TestDoc(unittest.TestCase):
 
     _spec = '''\

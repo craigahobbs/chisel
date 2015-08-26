@@ -20,12 +20,13 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 import chisel
 
 import unittest
 
 
-# Tests for the request decorator
 class TestRequest(unittest.TestCase):
 
     def setUp(self):

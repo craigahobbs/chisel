@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 from chisel import decode_query_string, encode_query_string, TZUTC
 from chisel.compat import unichr_, unicode_
 
@@ -28,7 +30,6 @@ import unittest
 from uuid import UUID
 
 
-# Tests for URL utilities
 class TestUrl(unittest.TestCase):
 
     def test_decode_query_string(self):

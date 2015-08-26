@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 from chisel import Application
 from chisel.compat import StringIO
 
@@ -31,7 +33,6 @@ import types
 import unittest
 
 
-# Main WSGI application callable-object tests
 class TestAppApplication(unittest.TestCase):
 
     def setUp(self):

@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+# pylint: disable=missing-docstring
+
 from chisel import SpecParser, SpecParserError
 import chisel.compat
 import chisel.model
@@ -27,9 +29,7 @@ import chisel.model
 import unittest
 
 
-# Spec parser unit tests
-# pylint: disable=protected-access
-class TestSpecParseSpec(unittest.TestCase):
+class TestSpecParseSpec(unittest.TestCase): # pylint: disable=protected-access
 
     # Helper method to assert struct type member properties
     def assert_struct(self, struct_type, members):
