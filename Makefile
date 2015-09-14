@@ -31,9 +31,9 @@ COVER := .cover
 
 # Python version support
 PYTHON_URLS := \
-    https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz \
+    https://www.python.org/ftp/python/3.5.0/Python-3.5.0.tgz \
     https://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz \
-    https://www.python.org/ftp/python/3.5.0/Python-3.5.0rc4.tgz \
+    https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz \
     https://www.python.org/ftp/python/3.3.6/Python-3.3.6.tgz \
     https://www.python.org/ftp/python/3.2.6/Python-3.2.6.tgz
 
@@ -54,7 +54,7 @@ test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
 cover: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_cover
 
 .PHONY: doc
-doc: $(call PYTHON_NAME, Python_3_4_3)_doc
+doc: $(call PYTHON_NAME, Python_3_5_0)_doc
 
 .PHONY: pylint
 pylint: $(call PYTHON_NAME, Python_3_4_3)_pylint
