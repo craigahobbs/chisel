@@ -74,6 +74,7 @@ class Action(Request):
 
         # Spec provided?
         model = None
+        doc = None
         if spec is not None:
             parser = SpecParser()
             parser.parse_string(spec)
@@ -82,12 +83,13 @@ class Action(Request):
             else:
                 assert len(parser.actions) == 1, 'Action spec must contain exactly one action definition'
                 model = next(itervalues(parser.actions))
+            doc = model.doc
 
         # Use the action model name, if available
         if name is None:
             name = model.name if model is not None else func_name(action_callback)
 
-        Request.__init__(self, self._wsgi_callback, name=name, urls=urls)
+        Request.__init__(self, self._wsgi_callback, name=name, urls=urls, doc=doc)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
@@ -99,6 +101,7 @@ class Action(Request):
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
             assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
+            self.doc = self.model.doc
 
     def _wsgi_callback(self, environ, dummy_start_response):
         ctx = environ[Application.ENVIRON_CTX]

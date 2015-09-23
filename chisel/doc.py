@@ -206,7 +206,7 @@ def _request_html(environ, request, nonav=False):
     # Request title
     body.add_child('h1', inline=True) \
         .add_child(request.name, text=True)
-    _add_doc_text(body, request.model.doc if isinstance(request, Action) else request.doc)
+    _add_doc_text(body, request.doc)
 
     # Note for request URLs
     notes = body.add_child('div', _class='chsl-notes')
