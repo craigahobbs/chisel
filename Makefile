@@ -86,7 +86,7 @@ superclean: clean
 .PHONY: setup
 setup:
 ifneq "$(OS_MAC)" ""
-	brew install openssl
+	brew install homebrew/dupes/zlib openssl
 else
 	sudo apt-get install -y \
 		build-essential \
@@ -110,7 +110,8 @@ $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
 	$(call WGET_STDOUT, $(1)) | tar xzC '$$(dir $$@)'
 	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && \
-		$(if $(OS_MAC), CPPFLAGS=-I/usr/local/opt/openssl/include LDFLAGS=-L/usr/local/opt/openssl/lib) \
+		$(if $(OS_MAC), CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include") \
+		$(if $(OS_MAC), LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib") \
 			./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && \
 		make && \
 		make install
