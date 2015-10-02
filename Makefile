@@ -85,7 +85,9 @@ superclean: clean
 
 .PHONY: setup
 setup:
-ifeq "$(OS_MAC)" ""
+ifneq "$(OS_MAC)" ""
+	brew install openssl
+else
 	sudo apt-get install -y \
 		build-essential \
 		libbz2-dev \
@@ -107,7 +109,11 @@ PYTHON_$(call PYTHON_NAME, $(1)) := $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/py
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
 	$(call WGET_STDOUT, $(1)) | tar xzC '$$(dir $$@)'
-	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && ./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && make && make install
+	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && \
+		$(if $(OS_MAC), CPPFLAGS=-I/usr/local/opt/openssl/include LDFLAGS=-L/usr/local/opt/openssl/lib) \
+			./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && \
+		make && \
+		make install
 	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip --default-pip; then \
 		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
 	fi
