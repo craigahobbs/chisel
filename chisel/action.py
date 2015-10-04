@@ -70,14 +70,16 @@ class Action(Request):
 
     JSONP = 'jsonp'
 
-    def __init__(self, action_callback, name=None, urls=None, spec=None, wsgi_response=False):
+    def __init__(self, action_callback, name=None, urls=None, parser=None, spec=None, wsgi_response=False):
 
         # Spec provided?
         model = None
         doc = None
-        if spec is not None:
-            parser = SpecParser()
-            parser.parse_string(spec)
+        if spec is not None or parser is not None:
+            if parser is None:
+                parser = SpecParser()
+            if spec is not None:
+                parser.parse_string(spec)
             if name is not None:
                 model = parser.actions[name]
             else:

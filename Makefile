@@ -155,7 +155,7 @@ define COVER_COMMANDS
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage, COVER_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage==4.0, COVER_COMMANDS)))
 
 # Generate doc rule
 HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)

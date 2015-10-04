@@ -85,6 +85,48 @@ action my_action_name
         self.assertEqual(my_action.model.name, 'my_action_name')
         self.assertEqual(my_action.wsgi_response, False)
 
+    # Action decorator with parser
+    def test_decorator_parser(self):
+
+        parser = chisel.SpecParser()
+        parser.parse_string('''\
+action my_action_name
+''')
+        @chisel.action(parser=parser)
+        def my_action(dummy_app, dummy_req):
+            return {}
+        self.assertTrue(isinstance(my_action, chisel.Action))
+        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action_name')
+        self.assertEqual(my_action.urls, ('/my_action_name',))
+        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action_name')
+        self.assertEqual(my_action.wsgi_response, False)
+
+    # Action decorator with parser
+    def test_decorator_spec_parser(self):
+
+        parser = chisel.SpecParser()
+        parser.parse_string('''\
+struct MyStruct
+''')
+        @chisel.action(parser=parser, spec='''\
+action my_action_name
+  input
+    MyStruct a
+''')
+        def my_action(dummy_app, dummy_req):
+            return {}
+        self.assertTrue(isinstance(my_action, chisel.Action))
+        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action_name')
+        self.assertEqual(my_action.urls, ('/my_action_name',))
+        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action_name')
+        self.assertEqual(my_action.wsgi_response, False)
+
     # Action decorator with spec with no actions
     def test_decorator_spec_no_actions(self):
 
