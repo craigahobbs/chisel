@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 from .action import \
     action, \
@@ -28,7 +28,8 @@ from .action import \
     ActionError
 
 from .app import \
-    Application
+    Application, \
+    Context
 
 from .doc import \
     DocAction, \
