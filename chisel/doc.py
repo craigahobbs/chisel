@@ -94,13 +94,14 @@ class Element(object):
     HTML5 DOM element
     """
 
-    __slots__ = ('name', 'text', 'text_raw', 'closed', 'inline', 'attrs', 'children')
+    __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
 
-    def __init__(self, name, text=False, text_raw=False, closed=True, inline=False, **attrs):
+    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, **attrs):
         self.name = name
         self.text = text
         self.text_raw = text_raw
         self.closed = closed
+        self.indent = indent
         self.inline = inline
         self.attrs = attrs
         self.children = []
@@ -117,7 +118,7 @@ class Element(object):
             yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
-        if not inline and indent_index > 0:
+        if not inline and indent_index > 0 and self.indent:
             yield '\n'
             if not self.text and not self.text_raw:
                 yield indent * indent_index
