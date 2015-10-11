@@ -39,7 +39,7 @@ class DocAction(Action):
             name = 'doc'
         Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True,
                         spec='''\
-# Generate a documentation HTML for the requests implemented by the application.
+# Generate the application's documentation HTML page.
 action {name}
   input
     # Generate documentation for the specified request name; generate the
