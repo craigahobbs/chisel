@@ -42,7 +42,7 @@ class TestRequest(unittest.TestCase):
         self.app.add_request(my_request)
         self.assertEqual(my_request({}, lambda x, y: None), [])
         self.assertEqual(my_request.name, 'my_request')
-        self.assertEqual(my_request.urls, ('/my_request',))
+        self.assertEqual(my_request.urls, ((None, '/my_request'),))
 
     # Request decorator with name
     def test_decorator_name(self):
@@ -54,7 +54,7 @@ class TestRequest(unittest.TestCase):
         self.app.add_request(my_request)
         self.assertEqual(my_request({}, lambda x, y: None), [])
         self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, ('/foo',))
+        self.assertEqual(my_request.urls, ((None, '/foo'),))
 
     # Request decorator with URLs
     def test_decorator_urls(self):
@@ -66,7 +66,7 @@ class TestRequest(unittest.TestCase):
         self.app.add_request(my_request)
         self.assertEqual(my_request({}, lambda x, y: None), [])
         self.assertEqual(my_request.name, 'my_request')
-        self.assertEqual(my_request.urls, ('/bar', '/thud'))
+        self.assertEqual(my_request.urls, ((None, '/bar'), (None, '/thud')))
 
     # Decorator with name and URLs
     def test_decorator_name_and_urls(self):
@@ -78,7 +78,7 @@ class TestRequest(unittest.TestCase):
         self.app.add_request(my_request)
         self.assertEqual(my_request({}, lambda x, y: None), [])
         self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, ('/bar', '/thud'))
+        self.assertEqual(my_request.urls, ((None, '/bar'), (None, '/thud')))
 
     # Request headers
     def test_headers(self):

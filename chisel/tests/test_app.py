@@ -270,9 +270,112 @@ class TestAppApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(response, b'Unexpected Error')
 
+    def test_request_url_mix(self):
+
+        @action(urls=['/action/1'],
+                spec='''\
+action my_action1
+  output
+    int number
+''')
+        def my_action1(dummy_ctx, dummy_req):
+            return {'number': 1}
+
+        @action(urls=[('GET', '/action/{dummy_number}')],
+                spec='''\
+action my_action2
+  input
+    int dummy_number
+  output
+    int number
+''')
+        def my_action2(dummy_ctx, dummy_req):
+            return {'number': 2}
+
+        app = Application()
+        app.add_request(my_action1)
+        app.add_request(my_action2)
+
+        status, dummy_headers, response = app.request('GET', '/action/1')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{"number":2}')
+
+        status, dummy_headers, response = app.request('POST', '/action/1', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{"number":1}')
+
+    def test_request_url_method(self):
+
+        @action(urls=[('GET', '/my_action'), ('POST', '/my_action/')],
+                spec='''\
+action my_action
+''')
+        def my_action(dummy_ctx, dummy_req):
+            pass
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, dummy_headers, response = app.request('GET', '/my_action')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{}')
+
+        status, dummy_headers, response = app.request('POST', '/my_action/', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{}')
+
+        status, dummy_headers, response = app.request('GET', '/my_action/')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+        status, dummy_headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+        status, dummy_headers, response = app.request('PUT', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+    def test_request_url_method_arg(self):
+
+        @action(urls=[('GET', '/my_action/{a}/{b}'), ('POST', '/my_action/{a}/{b}/')],
+                spec='''\
+action my_action
+  input
+    int a
+    int b
+  output
+    int sum
+''')
+        def my_action(dummy_ctx, req):
+            return {'sum': req['a'] + req['b']}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, dummy_headers, response = app.request('GET', '/my_action/3/4')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{"sum":7}')
+
+        status, dummy_headers, response = app.request('POST', '/my_action/3/4/', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{"sum":7}')
+
+        status, dummy_headers, response = app.request('GET', '/my_action/3/4/')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+        status, dummy_headers, response = app.request('POST', '/my_action/3/4', wsgi_input=b'{}')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+        status, dummy_headers, response = app.request('PUT', '/my_action/3/4', wsgi_input=b'{}')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
     def test_request_url_arg_underscore(self):
 
-        @action(urls=('/my_action/{number_one}/{number_two}',),
+        @action(urls=['/my_action/{number_one}/{number_two}'],
                 spec='''\
 action my_action
   input

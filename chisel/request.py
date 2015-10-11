@@ -40,7 +40,9 @@ class Request(object):
     def __init__(self, wsgi_callback, name=None, urls=None, doc=None):
         self.wsgi_callback = wsgi_callback
         self.name = name if name is not None else func_name(wsgi_callback)
-        self.urls = urls if urls is not None else ('/' + self.name,)
+        self.urls = tuple(((url[0].upper(), url[1]) if isinstance(url, tuple) else (None, url)) for url in urls) \
+                    if urls is not None \
+                    else ((None, '/' + self.name),)
         self.doc = [] if doc is None else doc
 
     def onload(self, dummy_app):

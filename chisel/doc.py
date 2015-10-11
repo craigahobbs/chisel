@@ -209,10 +209,10 @@ def _request_html(environ, request, nonav=False):
         p_note.add_child('b', inline=True).add_child('Note: ', text=True)
         p_note.add_child('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
         ul_urls = div_note.add_child('ul')
-        for url in request.urls:
+        for method, url in request.urls:
             ul_urls.add_child('li', inline=True) \
                    .add_child('a', href=url) \
-                   .add_child(url, text=True)
+                   .add_child(('' if method is None else method + ' ') + url, text=True)
 
     if isinstance(request, Action):
         # Note for custom response callback

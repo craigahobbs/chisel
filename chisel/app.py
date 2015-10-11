@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote
+from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
 from .request import Request
 from .spec import SpecParser
 from .util import load_modules
@@ -86,20 +86,21 @@ class Application(object):
 
         # Duplicate request name?
         if request.name in self.requests:
-            raise Exception("Redefinition of request '%s'" % (request.name,))
+            raise Exception('Redefinition of request "{0}"'.format(request.name))
         self.requests[request.name] = request
 
         # Add the request URLs
-        for url in request.urls:
+        for method, url in request.urls:
 
             # URL with arguments?
             if RE_URL_ARG.search(url):
                 request_regex = '^' + RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re_escape(url)) + '$'
-                self.__request_regex.append((re.compile(request_regex), request))
+                self.__request_regex.append((method, re.compile(request_regex), request))
             else:
-                if url in self.__request_urls:
-                    raise Exception("Redefinition of request URL '%s'" % (url,))
-                self.__request_urls[url] = request
+                request_key = (method, url)
+                if request_key in self.__request_urls:
+                    raise Exception('Redefinition of request URL "{0}"'.format(url))
+                self.__request_urls[request_key] = request
 
         # Make the request app-aware at load-time
         request.onload(self)
@@ -121,18 +122,23 @@ class Application(object):
 
         # Match the request by exact URL
         path_info = environ['PATH_INFO']
-        request = self.__request_urls.get(path_info)
-
-        # If no request was matched, match by url regular expression
+        request_method = environ['REQUEST_METHOD'].upper()
         url_args = None
-        if request is None:
-            for request_regex, request_ in self.__request_regex:
-                match_request = request_regex.match(path_info)
-                if match_request:
-                    request = request_
-                    url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
-                                for url_arg, url_value in iteritems(match_request.groupdict())}
-                    break
+        for pass_ in xrange_(2):
+            request_key = (request_method if pass_ == 0 else None, path_info)
+            request = self.__request_urls.get(request_key)
+            if request is None:
+                # If no request was matched, match by url regular expression
+                for request_method_, request_regex, request_ in self.__request_regex:
+                    if (pass_ == 0 and request_method_ == request_method) or (pass_ == 1 and request_method_ is None):
+                        match_request = request_regex.match(path_info)
+                        if match_request:
+                            request = request_
+                            url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
+                                        for url_arg, url_value in iteritems(match_request.groupdict())}
+                            break
+            if request is not None:
+                break
 
         # Create the request context
         ctx = Context(self, environ, start_response, url_args)
