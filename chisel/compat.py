@@ -23,6 +23,7 @@
 import sys
 
 PY3 = (sys.version_info >= (3, 0))
+PY3_3 = (sys.version_info >= (3, 3))
 
 # types
 if PY3:
@@ -87,6 +88,59 @@ else: # pragma: no cover
         from cStringIO import StringIO
     except ImportError:
         from StringIO import StringIO # pylint: disable=import-error
+
+# re
+if PY3_3:
+    from re import escape as re_escape # pylint: disable=unused-import
+else: # pragma: no cover
+    # Backport of Python 3.5 re.escape - https://bugs.python.org/issue2650
+
+    # --- BACKPORT BEGIN ---
+
+    # Copyright (C) 1995-2001 Corporation for National Research Initiatives; All Rights Reserved
+
+    # Python 1.6.1 is made available subject to the terms and conditions in
+    # CNRI's License Agreement. This Agreement together with Python 1.6.1 may be
+    # located on the Internet using the following unique, persistent identifier
+    # (known as a handle): 1895.22/1013. This Agreement may also be obtained
+    # from a proxy server on the Internet using the following URL:
+    # http://hdl.handle.net/1895.22/1013.
+
+    _alphanum_str = frozenset( # pylint: disable=invalid-name
+        "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
+    _alphanum_bytes = frozenset( # pylint: disable=invalid-name
+        b"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890")
+
+    def re_escape(pattern):
+        """
+        Escape all the characters in pattern except ASCII letters, numbers and '_'.
+        """
+        if isinstance(pattern, str):
+            alphanum = _alphanum_str
+            s = list(pattern) # pylint: disable=invalid-name
+            for i, c in enumerate(pattern): # pylint: disable=invalid-name
+                if c not in alphanum:
+                    if c == "\000":
+                        s[i] = "\\000"
+                    else:
+                        s[i] = "\\" + c
+            return "".join(s)
+        else:
+            alphanum = _alphanum_bytes
+            s = [] # pylint: disable=invalid-name
+            esc = ord(b"\\")
+            for c in pattern: # pylint: disable=invalid-name
+                if c in alphanum:
+                    s.append(c)
+                else:
+                    if c == 0:
+                        s.extend(b"\\000")
+                    else:
+                        s.append(esc)
+                        s.append(c)
+            return bytes(s)
+
+    # --- BACKPORT END ---
 
 # urllib
 if PY3:

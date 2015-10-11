@@ -22,7 +22,7 @@
 
 # pylint: disable=missing-docstring
 
-from chisel import Application
+from chisel import action, Application
 from chisel.compat import StringIO
 
 import logging
@@ -269,3 +269,24 @@ class TestAppApplication(unittest.TestCase):
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(response, b'Unexpected Error')
+
+    def test_request_url_arg_underscore(self):
+
+        @action(urls=('/my_action/{number_one}/{number_two}',),
+                spec='''\
+action my_action
+  input
+    int number_one
+    int number_two
+  output
+    int sum
+''')
+        def my_action(dummy_ctx, req):
+            return {'sum': req['number_one'] + req['number_two']}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, dummy_headers, response = app.request('GET', '/my_action/3/4')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'{"sum":7}')

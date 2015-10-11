@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, iteritems, urllib_parse_unquote
+from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote
 from .request import Request
 from .spec import SpecParser
 from .util import load_modules
@@ -34,8 +34,8 @@ import re
 
 
 # Regular expression for matching URL arguments
-_RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
-_RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
+RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
+RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 
 class Application(object):
@@ -93,8 +93,8 @@ class Application(object):
         for url in request.urls:
 
             # URL with arguments?
-            if _RE_URL_ARG.search(url):
-                request_regex = '^' + _RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
+            if RE_URL_ARG.search(url):
+                request_regex = '^' + RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re_escape(url)) + '$'
                 self.__request_regex.append((re.compile(request_regex), request))
             else:
                 if url in self.__request_urls:
