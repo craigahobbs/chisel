@@ -118,7 +118,7 @@ $$(BUILD_$(call PYTHON_NAME, $(1))):
 	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip --default-pip; then \
 		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
 	fi
-	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install --no-use-wheel virtualenv
+	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install --no-binary ':all:' virtualenv
 	touch $$@
 endef
 $(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE, $(X))))
@@ -130,7 +130,7 @@ BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1
 
 $$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2))): $$(BUILD_$(call PYTHON_NAME, $(1)))
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m virtualenv '$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))'
-	$(if $(PIP_ARGS)$(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(PIP_ARGS) $(3))
+	$(if $(PIP_ARGS)$(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-binary ':all:' $(PIP_ARGS) $(3))
 	touch $$@
 
 .PHONY: $(call PYTHON_NAME, $(1))_$(strip $(2))
