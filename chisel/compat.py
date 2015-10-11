@@ -22,10 +22,10 @@
 
 import sys
 
-_PY3 = (sys.version_info >= (3, 0))
+PY3 = (sys.version_info >= (3, 0))
 
 # types
-if _PY3:
+if PY3:
     basestring_ = str                   # pylint: disable=invalid-name
     long_ = int                         # pylint: disable=invalid-name
     unichr_ = chr                       # pylint: disable=invalid-name
@@ -39,7 +39,7 @@ else: # pragma: no cover
     xrange_ = xrange                    # pylint: disable=invalid-name, undefined-variable
 
 # dict
-if _PY3:
+if PY3:
     def iteritems(dict_):
         return iter(dict_.items())
 
@@ -53,7 +53,7 @@ else: # pragma: no cover
         return dict_.itervalues()
 
 # function
-if _PY3:
+if PY3:
     def func_name(func):
         return func.__name__
 else: # pragma: no cover
@@ -61,7 +61,7 @@ else: # pragma: no cover
         return func.func_name
 
 # string
-if _PY3:
+if PY3:
     string_isidentifier = str.isidentifier # pylint: disable=invalid-name
 else: # pragma: no cover
     import re as _re
@@ -72,7 +72,7 @@ else: # pragma: no cover
         return _REGEX_IDENTIFIER.search(string) is not None
 
 # html
-if _PY3:
+if PY3:
     from html import escape as html_escape # pylint: disable=unused-import
     from html.parser import HTMLParser # pylint: disable=unused-import
 else: # pragma: no cover
@@ -80,7 +80,7 @@ else: # pragma: no cover
     from HTMLParser import HTMLParser # pylint: disable=import-error
 
 # io
-if _PY3:
+if PY3:
     from io import StringIO # pylint: disable=unused-import
 else: # pragma: no cover
     try:
@@ -89,7 +89,7 @@ else: # pragma: no cover
         from StringIO import StringIO # pylint: disable=import-error
 
 # urllib
-if _PY3:
+if PY3:
     from urllib.parse import quote as urllib_parse_quote, unquote as urllib_parse_unquote # pylint: disable=unused-import
 else: # pragma: no cover
     from urllib import quote as _urllib_quote, unquote as _urllib_unquote # pylint: disable=no-name-in-module
