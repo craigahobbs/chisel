@@ -156,35 +156,27 @@ class Element(object):
 def _index_html(environ, requests):
     doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
 
-    # Index page header
-    root = Element('html')
-    head = root.add_child('head')
-    head.add_child('meta', closed=False, charset='UTF-8')
-    head.add_child('title', inline=True).add_child('Actions', text=True)
-    _add_style(head)
-    body = root.add_child('body', _class='chsl-index-body')
-
     # Index page title
     if 'HTTP_HOST' in environ:
         title = environ['HTTP_HOST']
     else:
         title = environ['SERVER_NAME'] + (':' + environ['SERVER_PORT'] if environ['SERVER_NAME'] != 80 else '')
+
+    # Index page header
+    root = Element('html')
+    head = root.add_child('head')
+    head.add_child('meta', closed=False, charset='UTF-8')
+    head.add_child('title', inline=True).add_child(title, text=True)
+    _add_style(head)
+    body = root.add_child('body', _class='chsl-index-body')
     body.add_child('h1', inline=True).add_child(title, text=True)
 
     # Action and request links
-    ul_sections = body.add_child('ul', _class='chsl-request-section')
-    for section_title, section_requests in \
-        (('Actions', [request for request in requests if isinstance(request, Action)]),
-         ('Other Requests', [request for request in requests if not isinstance(request, Action)])):
-        if section_requests:
-            li_section = ul_sections.add_child('li')
-            li_section.add_child('span', inline=True) \
-                      .add_child(section_title, text=True)
-            ul_requests = li_section.add_child('ul', _class='chsl-request-list')
-            for request in section_requests:
-                li_request = ul_requests.add_child('li', inline=True)
-                li_request.add_child('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name)) \
-                          .add_child(request.name, text=True)
+    ul_requests = body.add_child('ul', _class='chsl-request-list')
+    for request in requests:
+        li_request = ul_requests.add_child('li', inline=True)
+        li_request.add_child('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name)) \
+                  .add_child(request.name, text=True)
 
     return root
 
@@ -360,17 +352,6 @@ a.linktarget {
 }
 a.linktarget:hover {
     text-decoration: none;
-}
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
 }
 ul.chsl-request-list {
     list-style: none;

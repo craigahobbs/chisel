@@ -156,7 +156,7 @@ action my_action2
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Actions</title>
+    <title>localhost:8080</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -234,17 +234,6 @@ a.linktarget {
 a.linktarget:hover {
     text-decoration: none;
 }
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
-}
 ul.chsl-request-list {
     list-style: none;
 }
@@ -281,15 +270,10 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-index-body">
     <h1>localhost:8080</h1>
-    <ul class="chsl-request-section">
-      <li>
-        <span>Actions</span>
-        <ul class="chsl-request-list">
-          <li><a href="/doc?name=doc">doc</a></li>
-          <li><a href="/doc?name=my_action1">my_action1</a></li>
-          <li><a href="/doc?name=my_action2">my_action2</a></li>
-        </ul>
-      </li>
+    <ul class="chsl-request-list">
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=my_action1">my_action1</a></li>
+      <li><a href="/doc?name=my_action2">my_action2</a></li>
     </ul>
   </body>
 </html>'''
@@ -386,17 +370,6 @@ a.linktarget {
 }
 a.linktarget:hover {
     text-decoration: none;
-}
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
 }
 ul.chsl-request-list {
     list-style: none;
@@ -796,17 +769,6 @@ a.linktarget {
 a.linktarget:hover {
     text-decoration: none;
 }
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
-}
 ul.chsl-request-list {
     list-style: none;
 }
@@ -1054,7 +1016,7 @@ action my_action
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Actions</title>
+    <title>localhost:8080</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -1132,17 +1094,6 @@ a.linktarget {
 a.linktarget:hover {
     text-decoration: none;
 }
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
-}
 ul.chsl-request-list {
     list-style: none;
 }
@@ -1179,14 +1130,9 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-index-body">
     <h1>localhost:8080</h1>
-    <ul class="chsl-request-section">
-      <li>
-        <span>Actions</span>
-        <ul class="chsl-request-list">
-          <li><a href="/doc?name=doc">doc</a></li>
-          <li><a href="/doc?name=doc_action_my_action">doc_action_my_action</a></li>
-        </ul>
-      </li>
+    <ul class="chsl-request-list">
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=doc_action_my_action">doc_action_my_action</a></li>
     </ul>
   </body>
 </html>'''
@@ -1280,17 +1226,6 @@ a.linktarget {
 }
 a.linktarget:hover {
     text-decoration: none;
-}
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
 }
 ul.chsl-request-list {
     list-style: none;
@@ -1449,17 +1384,6 @@ a.linktarget {
 }
 a.linktarget:hover {
     text-decoration: none;
-}
-ul.chsl-request-section {
-    list-style: none;
-    margin: 0 0.5em;
-}
-ul.chsl-request-section li {
-    margin: 1.5em 0;
-}
-ul.chsl-request-section li span {
-    font-size: 1.4em;
-    font-weight: bold;
 }
 ul.chsl-request-list {
     list-style: none;
