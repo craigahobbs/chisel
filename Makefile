@@ -86,7 +86,9 @@ superclean: clean
 .PHONY: setup
 setup:
 ifneq "$(OS_MAC)" ""
-	brew install homebrew/dupes/zlib openssl
+	brew install \
+		openssl \
+		homebrew/dupes/zlib
 else
 	sudo apt-get install -y \
 		build-essential \
@@ -95,9 +97,6 @@ else
 		libssl-dev \
 		zlib1g-dev
 endif
-
-# Function to generate a wget to stdout command - url
-WGET_STDOUT = $(if $(OS_MAC), curl -s, wget -O -) '$(strip $(1))'
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE
@@ -108,15 +107,15 @@ PYTHON_$(call PYTHON_NAME, $(1)) := $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/py
 
 $$(BUILD_$(call PYTHON_NAME, $(1))):
 	mkdir -p '$$(dir $$@)'
-	$(call WGET_STDOUT, $(1)) | tar xzC '$$(dir $$@)'
+	$(if $(shell which curl), curl -s, wget -q -O -) "$(strip $(1))" | tar xzC '$$(dir $$@)'
 	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && \
 		$(if $(OS_MAC), CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include") \
 		$(if $(OS_MAC), LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib") \
 			./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && \
-		make && \
+		make -j && \
 		make install
 	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip --default-pip; then \
-		$(call WGET_STDOUT, https://bootstrap.pypa.io/get-pip.py) | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
+		$(if $(shell which curl), curl -s, wget -q -O -) "https://bootstrap.pypa.io/get-pip.py" | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
 	fi
 	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install --no-binary ':all:' virtualenv
 	touch $$@
