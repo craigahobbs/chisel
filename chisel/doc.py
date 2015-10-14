@@ -54,10 +54,12 @@ action {name}
     def _action_callback(ctx, req):
         request_name = req.get('name')
         if request_name is None:
-            content = _index_html(ctx.environ, sorted(itervalues(ctx.app.requests), key=lambda x: x.name.lower())).serialize()
+            root = _index_html(ctx.environ, sorted(itervalues(ctx.app.requests), key=lambda x: x.name.lower()))
+            content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text('200 OK', content, content_type='text/html')
         elif request_name in ctx.app.requests:
-            content = _request_html(ctx.environ, ctx.app.requests[request_name], req.get('nonav')).serialize()
+            root = _request_html(ctx.environ, ctx.app.requests[request_name], req.get('nonav'))
+            content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text('200 OK', content, content_type='text/html')
         else:
             return ctx.response_text('500 Internal Server Error', 'Unknown Request')
@@ -85,7 +87,8 @@ action {name}
         self.request = request
 
     def _action_callback(self, ctx, dummy_req):
-        content = _request_html(ctx.environ, self.request, nonav=True).serialize()
+        root = _request_html(ctx.environ, self.request, nonav=True)
+        content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
         return ctx.response_text('200 OK', content, content_type='text/html')
 
 
@@ -118,9 +121,9 @@ class Element(object):
             yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
-        if not inline and indent_index > 0 and self.indent:
+        if indent is not None and not inline and indent_index > 0 and self.indent:
             yield '\n'
-            if not self.text and not self.text_raw:
+            if indent and not self.text and not self.text_raw:
                 yield indent * indent_index
 
         # Text element?
@@ -145,7 +148,7 @@ class Element(object):
                 yield chunk
 
         # Element close
-        if not inline and not self.inline:
+        if indent is not None and not inline and not self.inline:
             yield '\n' + indent * indent_index
         yield '</' + self.name + '>'
 

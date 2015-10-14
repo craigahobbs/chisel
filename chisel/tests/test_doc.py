@@ -138,6 +138,7 @@ action my_action2
 
         # Application object
         self.app = chisel.Application()
+        self.app.pretty_output = True
         self.app.specs.parse_string(self._spec)
         self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action1'))
         self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action2'))
@@ -940,8 +941,7 @@ My Union
         self.assertEqual(list(root.serialize_chunks()), chunks)
         self.assertEqual(root.serialize(), ''.join(chunks))
 
-    # Test doc generation element class - no indent
-    def test_element_noindent(self):
+    def test_element_indent_empty(self):
 
         root = Element('a')
         elem_b = root.add_child('b', inline=True)
@@ -950,12 +950,13 @@ My Union
         root.add_child('c', closed=False, foo='bar')
         root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
 
-        chunks = [
+        content = root.serialize(indent='')
+        chunks = list(root.serialize_chunks(indent=''))
+        expected_chunks = [
             '<!doctype html>\n',
             '<a',
             '>',
             '\n',
-            '',
             '<b',
             '>',
             'Hello!',
@@ -965,18 +966,15 @@ My Union
             '</span>',
             '</b>',
             '\n',
-            '',
             '<c',
             ' foo="bar"',
             '>',
             '\n',
-            '',
             '<d',
             ' attr1="asdf"',
             ' attr2="sdfg"',
             '>',
             '\n',
-            '',
             '<e',
             '>',
             '\n',
@@ -986,12 +984,52 @@ My Union
             '\n',
             '</a>'
         ]
-        self.assertEqual(list(root.serialize_chunks(indent='')), chunks)
-        self.assertEqual(root.serialize(indent=''), ''.join(chunks))
+        self.assertEqual(chunks, expected_chunks)
+        self.assertEqual(content, ''.join(expected_chunks))
+
+    def test_element_indent_none(self):
+
+        root = Element('a')
+        elem_b = root.add_child('b', inline=True)
+        elem_b.add_child('Hello!', text=True)
+        elem_b.add_child('span').add_child(' There!', text=True)
+        root.add_child('c', closed=False, foo='bar')
+        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
+
+        content = root.serialize(indent=None)
+        chunks = list(root.serialize_chunks(indent=None))
+        expected_chunks = [
+            '<!doctype html>\n',
+            '<a',
+            '>',
+            '<b',
+            '>',
+            'Hello!',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '</b>',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '<e',
+            '>',
+            '</e>',
+            '</d>',
+            '</a>'
+        ]
+        self.assertEqual(chunks, expected_chunks)
+        self.assertEqual(content, ''.join(expected_chunks))
 
     def test_page(self):
 
         app = chisel.Application()
+        app.pretty_output = True
 
         @chisel.action(spec='''\
 action my_action
