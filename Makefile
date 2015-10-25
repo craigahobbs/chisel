@@ -29,6 +29,10 @@ DOC := doc/_build
 ENV := .env
 COVER := .cover
 
+# Helper functions
+LOWER_FN = $(shell echo $(1) | tr '[:upper:]' '[:lower:]')
+UPPER_FN = $(shell echo $(1) | tr '[:lower:]' '[:upper:]')
+
 # Python version support
 PYTHON_URLS := \
     https://www.python.org/ftp/python/3.5.0/Python-3.5.0.tgz \
@@ -36,9 +40,9 @@ PYTHON_URLS := \
     https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz \
     https://www.python.org/ftp/python/3.3.6/Python-3.3.6.tgz \
     https://www.python.org/ftp/python/3.2.6/Python-3.2.6.tgz
-
-# Function to get a python URL's name - python_url
-PYTHON_NAME = $(subst -,_,$(subst .,_,$(basename $(notdir $(1)))))
+PYTHON_NAME_FN = $(call UPPER_FN, $(subst -,_,$(subst .,_,$(basename $(notdir $(1))))))
+PYTHON_NAMES := $(foreach X, $(PYTHON_URLS), $(call LOWER_FN, $(call PYTHON_NAME_FN, $(X))))
+PYTHON_DEFAULT := $(firstword $(PYTHON_NAMES))
 
 # OS helpers
 OS_MAC := $(findstring Darwin, $(shell uname))
@@ -48,19 +52,19 @@ help:
 	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean]"
 
 .PHONY: test
-test: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_test
+test: test_$(PYTHON_DEFAULT)
 
 .PHONY: cover
-cover: $(call PYTHON_NAME, $(firstword $(PYTHON_URLS)))_cover
+cover: cover_$(PYTHON_DEFAULT)
 
 .PHONY: doc
-doc: $(call PYTHON_NAME, Python_3_5_0)_doc
+doc: doc_$(PYTHON_DEFAULT)
 
 .PHONY: pylint
-pylint: $(call PYTHON_NAME, Python_3_4_3)_pylint
+pylint: pylint_python_3_4_3
 
 .PHONY: check
-check: $(foreach X, $(PYTHON_URLS), $(call PYTHON_NAME, $(X))_test) cover doc pylint
+check: $(foreach X, $(PYTHON_NAMES), test_$(X)) cover doc pylint
 
 .PHONY: clean
 clean:
@@ -99,76 +103,74 @@ else
 endif
 
 # Function to generate python source build rules - python_url
-define PYTHON_RULE
-SRC_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(basename $(notdir $(1)))
-INSTALL_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).install
-BUILD_$(call PYTHON_NAME, $(1)) := $$(BUILD)/$(call PYTHON_NAME, $(1)).build
-PYTHON_$(call PYTHON_NAME, $(1)) := $$(INSTALL_$(call PYTHON_NAME, $(1)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
+define PYTHON_RULE_FN
+$(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD)/$(call LOWER_FN, $(basename $(notdir $(1))))
+$(call PYTHON_NAME_FN, $(1))_INSTALL := $$($(call PYTHON_NAME_FN, $(1))_SRC).install
+$(call PYTHON_NAME_FN, $(1))_BUILD := $$($(call PYTHON_NAME_FN, $(1))_SRC).build
+$(call PYTHON_NAME_FN, $(1)) := $$($(call PYTHON_NAME_FN, $(1))_INSTALL)/bin/python$(if $(findstring Python-3.,$(1)),3) -E
 
-$$(BUILD_$(call PYTHON_NAME, $(1))):
+$$($(call PYTHON_NAME_FN, $(1))_BUILD):
 	mkdir -p '$$(dir $$@)'
-	$(if $(shell which curl), curl -s, wget -q -O -) "$(strip $(1))" | tar xzC '$$(dir $$@)'
-	cd '$$(SRC_$(call PYTHON_NAME, $(1)))' && \
+	$(if $(shell which curl),curl -s,wget -q -O -) "$(strip $(1))" | tar xzC '$$(dir $$@)'
+	cd '$$($(call PYTHON_NAME_FN, $(1))_SRC)' && \
 		$(if $(OS_MAC), CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include") \
 		$(if $(OS_MAC), LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib") \
-			./configure --prefix='$$(abspath $$(INSTALL_$(call PYTHON_NAME, $(1))))' && \
+			./configure --prefix='$$(abspath $$($(call PYTHON_NAME_FN, $(1))_INSTALL))' && \
 		make -j && \
 		make install
-	if ! $$(PYTHON_$(call PYTHON_NAME, $(1))) -m ensurepip --default-pip; then \
-		$(if $(shell which curl), curl -s, wget -q -O -) "https://bootstrap.pypa.io/get-pip.py" | $$(PYTHON_$(call PYTHON_NAME, $(1))); \
+	if ! $$($(call PYTHON_NAME_FN, $(1))) -m ensurepip --default-pip; then \
+		$(if $(shell which curl),curl -s,wget -q -O -) "https://bootstrap.pypa.io/get-pip.py" | $$($(call PYTHON_NAME_FN, $(1))); \
 	fi
-	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m pip --disable-pip-version-check install --no-use-wheel virtualenv
+	$$($(call PYTHON_NAME_FN, $(1))) -m pip --disable-pip-version-check install --no-use-wheel virtualenv
 	touch $$@
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE, $(X))))
+$(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE_FN, $(X))))
 
 # Function to generate virtualenv rules - python_url, env_name, pip_args, commands
 define ENV_RULE
-ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1))_$(strip $(2))
-BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)) := $$(ENV)/$(call PYTHON_NAME, $(1))_$(strip $(2)).build
+$(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV := $$(ENV)/$(call LOWER_FN, $(2))-$(call LOWER_FN, $(basename $(notdir $(1))))
+$(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_BUILD := $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV).build
+$(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1)) := $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV)/bin/python -E
 
-$$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2))): $$(BUILD_$(call PYTHON_NAME, $(1)))
-	$$(PYTHON_$(call PYTHON_NAME, $(1))) -m virtualenv '$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))'
-	$(if $(PIP_ARGS)$(strip $(3)), $(call ENV_PYTHON, $(1), $(2)) -m pip --disable-pip-version-check install --no-use-wheel $(PIP_ARGS) $(3))
+$$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_BUILD): $$($(call PYTHON_NAME_FN, $(1))_BUILD)
+	$$($(call PYTHON_NAME_FN, $(1))) -m virtualenv '$$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV)'
+	$(if $(PIP_ARGS)$(strip $(3)),$$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))) -m pip --disable-pip-version-check install --no-use-wheel $(PIP_ARGS) $(3))
 	touch $$@
 
-.PHONY: $(call PYTHON_NAME, $(1))_$(strip $(2))
-$(call PYTHON_NAME, $(1))_$(strip $(2)): $$(BUILD_$(call PYTHON_NAME, $(1))_$(strip $(2)))
-$(call $(4), $(1), $(2))
+.PHONY: $(call LOWER_FN, $(2)_$(call PYTHON_NAME_FN, $(1)))
+$(call LOWER_FN, $(2)_$(call PYTHON_NAME_FN, $(1))): $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_BUILD)
+$(call $(4), $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV), $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))))
 endef
 
-# Function to generate an environment's python interpreter - python_url, env_name
-ENV_PYTHON = $$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/python$(if $(findstring Python-3.,$(1)),3) -E
-
-# Generate test rules
-define TEST_COMMANDS
-	$(call ENV_PYTHON, $(1), $(2)) setup.py test $(if $(TEST),-s $(TEST))
+# Generate test rules - virtualenv, python
+define TEST_COMMANDS_FN
+	$(2) setup.py test $(if $(TEST),-s $(TEST))
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), test, -e . -e .[tests], TEST_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), test, -e . -e .[tests], TEST_COMMANDS_FN)))
 
-# Generate coverage rule
-define COVER_COMMANDS
-	$(call ENV_PYTHON, $(1), $(2)) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
-	$(call ENV_PYTHON, $(1), $(2)) -m coverage html -d $(COVER)
-	$(call ENV_PYTHON, $(1), $(2)) -m coverage report
+# Generate coverage rules - virtualenv, python
+define COVER_COMMANDS_FN
+	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
+	$(2) -m coverage html -d $(COVER)
+	$(2) -m coverage report
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage==4.0, COVER_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), cover, -e . -e .[tests] coverage==4.0, COVER_COMMANDS_FN)))
 
-# Generate doc rule
+# Generate doc rules - virtualenv, python
 HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)
-define DOC_COMMANDS
+define DOC_COMMANDS_FN
 ifneq "$(HAS_DOC)" ""
-	$$(ENV_$(call PYTHON_NAME, $(1))_$(strip $(2)))/bin/sphinx-build -b html -d $(DOC)/doctrees doc $(DOC)/html
+	$(1)/bin/sphinx-build -b html -d $(DOC)/doctrees doc $(DOC)/html
 	@echo
 	@echo Doc index is $(DOC)/html/index.html
 endif
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), doc, $(if $(HAS_DOC), sphinx==1.3.1), DOC_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), doc, $(if $(HAS_DOC), sphinx==1.3.1), DOC_COMMANDS_FN)))
 
-# Generate pyint rule
-define PYLINT_COMMANDS
-	$(call ENV_PYTHON, $(1), $(2)) -m pylint -f parseable $(PYLINT_ARGS) $(PACKAGE_NAME)
+# Generate pyint rules - virtualenv, python
+define PYLINT_COMMANDS_FN
+	$(2) -m pylint -f parseable $(PYLINT_ARGS) $(PACKAGE_NAME)
 endef
-$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pylint, -e . pylint==1.4.4, PYLINT_COMMANDS)))
+$(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, $(X), pylint, -e . pylint==1.4.4, PYLINT_COMMANDS_FN)))
