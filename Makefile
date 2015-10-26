@@ -30,8 +30,18 @@ ENV := .env
 COVER := .cover
 
 # Helper functions
-LOWER_FN = $(shell echo $(1) | tr '[:upper:]' '[:lower:]')
-UPPER_FN = $(shell echo $(1) | tr '[:lower:]' '[:upper:]')
+LOWER_FN = $(eval $(call LOWER_FN_CACHE, $(1)))$(__LOWER_FN__$(strip $(1))__)
+UPPER_FN = $(eval $(call UPPER_FN_CACHE, $(1)))$(__UPPER_FN__$(strip $(1))__)
+define LOWER_FN_CACHE
+ifndef __LOWER_FN__$(strip $(1))__
+__LOWER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:upper:]' '[:lower:]')
+endif
+endef
+define UPPER_FN_CACHE
+ifndef __UPPER_FN__$(strip $(1))__
+__UPPER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:lower:]' '[:upper:]')
+endif
+endef
 
 # Python version support
 PYTHON_URLS := \
@@ -104,7 +114,7 @@ endif
 
 # Function to generate python source build rules - python_url
 define PYTHON_RULE_FN
-$(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD)/$(call LOWER_FN, $(basename $(notdir $(1))))
+$(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD)/$(basename $(notdir $(1)))
 $(call PYTHON_NAME_FN, $(1))_INSTALL := $$($(call PYTHON_NAME_FN, $(1))_SRC).install
 $(call PYTHON_NAME_FN, $(1))_BUILD := $$($(call PYTHON_NAME_FN, $(1))_SRC).build
 $(call PYTHON_NAME_FN, $(1)) := $$($(call PYTHON_NAME_FN, $(1))_INSTALL)/bin/python$(if $(findstring Python-3.,$(1)),3) -E
@@ -116,7 +126,7 @@ $$($(call PYTHON_NAME_FN, $(1))_BUILD):
 		$(if $(OS_MAC), CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include") \
 		$(if $(OS_MAC), LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib") \
 			./configure --prefix='$$(abspath $$($(call PYTHON_NAME_FN, $(1))_INSTALL))' && \
-		make -j && \
+		make && \
 		make install
 	if ! $$($(call PYTHON_NAME_FN, $(1))) -m ensurepip --default-pip; then \
 		$(if $(shell which curl),curl -s,wget -q -O -) "https://bootstrap.pypa.io/get-pip.py" | $$($(call PYTHON_NAME_FN, $(1))); \
@@ -128,7 +138,7 @@ $(foreach X, $(PYTHON_URLS), $(eval $(call PYTHON_RULE_FN, $(X))))
 
 # Function to generate virtualenv rules - python_url, env_name, pip_args, commands
 define ENV_RULE
-$(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV := $$(ENV)/$(call LOWER_FN, $(2))-$(call LOWER_FN, $(basename $(notdir $(1))))
+$(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV := $$(ENV)/$(strip $(2))-$(basename $(notdir $(1)))
 $(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_BUILD := $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV).build
 $(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1)) := $$($(call UPPER_FN, $(2))_$(call PYTHON_NAME_FN, $(1))_ENV)/bin/python -E
 
