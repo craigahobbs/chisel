@@ -58,7 +58,10 @@ PYTHON_DEFAULT := $(firstword $(PYTHON_NAMES))
 OS_MAC := $(findstring Darwin, $(shell uname))
 
 .PHONY: help
-help:
+help: _help
+
+.PHONY: _help
+_help:
 	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean]"
 
 .PHONY: test
@@ -77,7 +80,10 @@ pylint: pylint_python_3_4_3
 check: $(foreach X, $(PYTHON_NAMES), test_$(X)) cover doc pylint
 
 .PHONY: clean
-clean:
+clean: _clean
+
+.PHONY: _clean
+_clean:
 	rm -rf \
 		$(DOC) \
 		$(ENV) \
@@ -93,12 +99,18 @@ clean:
 		*.egg
 
 .PHONY: superclean
-superclean: clean
+superclean: clean _superclean
+
+.PHONY: _superclean
+_superclean:
 	rm -rf \
 		$(BUILD)
 
 .PHONY: setup
-setup:
+setup: _setup
+
+.PHONY: _setup
+_setup:
 ifneq "$(OS_MAC)" ""
 	brew install \
 		openssl \
