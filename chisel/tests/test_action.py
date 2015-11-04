@@ -72,17 +72,17 @@ action my_action_default
     def test_decorator_spec(self):
 
         @chisel.action(spec='''\
-action my_action_name
+action my_action
 ''')
         def my_action(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(my_action, chisel.Action))
         self.assertTrue(isinstance(my_action, chisel.Request))
         self.app.add_request(my_action)
-        self.assertEqual(my_action.name, 'my_action_name')
-        self.assertEqual(my_action.urls, ((None, '/my_action_name'),))
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, ((None, '/my_action'),))
         self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action_name')
+        self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with parser
@@ -90,7 +90,7 @@ action my_action_name
 
         parser = chisel.SpecParser()
         parser.parse_string('''\
-action my_action_name
+action my_action
 ''')
         @chisel.action(parser=parser)
         def my_action(dummy_app, dummy_req):
@@ -98,13 +98,13 @@ action my_action_name
         self.assertTrue(isinstance(my_action, chisel.Action))
         self.assertTrue(isinstance(my_action, chisel.Request))
         self.app.add_request(my_action)
-        self.assertEqual(my_action.name, 'my_action_name')
-        self.assertEqual(my_action.urls, ((None, '/my_action_name'),))
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, ((None, '/my_action'),))
         self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action_name')
+        self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
-    # Action decorator with parser
+    # Action decorator with parser and spec
     def test_decorator_spec_parser(self):
 
         parser = chisel.SpecParser()
@@ -112,7 +112,7 @@ action my_action_name
 struct MyStruct
 ''')
         @chisel.action(parser=parser, spec='''\
-action my_action_name
+action my_action
   input
     MyStruct a
 ''')
@@ -121,36 +121,23 @@ action my_action_name
         self.assertTrue(isinstance(my_action, chisel.Action))
         self.assertTrue(isinstance(my_action, chisel.Request))
         self.app.add_request(my_action)
-        self.assertEqual(my_action.name, 'my_action_name')
-        self.assertEqual(my_action.urls, ((None, '/my_action_name'),))
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, ((None, '/my_action'),))
         self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action_name')
+        self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
-    # Action decorator with spec with no actions
+    # Action decorator with spec with unknown action
     def test_decorator_spec_no_actions(self):
 
         try:
-            @chisel.action(spec='')
-            def dummy_my_action(dummy_app, dummy_req):
-                return {}
-        except AssertionError as exc:
-            self.assertEqual(str(exc), 'Action spec must contain exactly one action definition')
-        else:
-            self.fail()
-
-    # Action decorator with spec with multiple actions
-    def test_decorator_spec_actions(self):
-
-        try:
             @chisel.action(spec='''\
-action theActionOther
-action theAction
+action my_action
 ''')
             def dummy_my_action(dummy_app, dummy_req):
                 return {}
         except AssertionError as exc:
-            self.assertEqual(str(exc), 'Action spec must contain exactly one action definition')
+            self.assertEqual(str(exc), 'Unknown action "dummy_my_action"')
         else:
             self.fail()
 

@@ -33,6 +33,8 @@ from .app import \
 
 from .doc import \
     DocAction, \
+    DocIndexApi, \
+    DocApi, \
     DocPage, \
     Element
 

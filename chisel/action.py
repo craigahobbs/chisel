@@ -21,7 +21,7 @@
 #
 
 from .app import Application
-from .compat import func_name, iteritems, itervalues
+from .compat import func_name, iteritems
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
@@ -72,6 +72,10 @@ class Action(Request):
 
     def __init__(self, action_callback, name=None, urls=None, parser=None, spec=None, wsgi_response=False):
 
+        # Use the action model name, if available
+        if name is None:
+            name = func_name(action_callback)
+
         # Spec provided?
         model = None
         doc = None
@@ -80,16 +84,9 @@ class Action(Request):
                 parser = SpecParser()
             if spec is not None:
                 parser.parse_string(spec)
-            if name is not None:
-                model = parser.actions[name]
-            else:
-                assert len(parser.actions) == 1, 'Action spec must contain exactly one action definition'
-                model = next(itervalues(parser.actions))
+            assert name in parser.actions, 'Unknown action "{0}"'.format(name)
+            model = parser.actions[name]
             doc = model.doc
-
-        # Use the action model name, if available
-        if name is None:
-            name = model.name if model is not None else func_name(action_callback)
 
         Request.__init__(self, self._wsgi_callback, name=name, urls=urls, doc=doc)
         self.action_callback = action_callback

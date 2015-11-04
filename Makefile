@@ -61,7 +61,7 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean]"
+	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean|setup]"
 
 .PHONY: check
 check: test doc cover pylint

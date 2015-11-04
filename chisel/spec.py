@@ -109,7 +109,7 @@ class SpecParser(object):
         'uuid': TYPE_UUID,
     }
 
-    def __init__(self):
+    def __init__(self, spec=None):
         self.types = {}
         self.actions = {}
         self.errors = []
@@ -121,6 +121,8 @@ class SpecParser(object):
         self._parse_lines = None
         self._parse_filename = None
         self._parse_linenum = 0
+        if spec is not None:
+            self.parse_string(spec)
 
     # Parse a specification string
     def parse_string(self, spec, filename='', finalize=True):
