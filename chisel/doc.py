@@ -97,7 +97,6 @@ struct Typedef
     Type type
 
 struct Action
-    optional string[] doc
     string name
     ActionInputOutput input
     optional ActionInputOutput output
@@ -119,6 +118,7 @@ action docApi
     input
         string name
     output
+        optional string[] doc
         string name
         RequestUrl[] urls
         optional Action action
@@ -151,8 +151,8 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
 class DocIndexApi(Action):
     __slots__ = ()
 
-    def __init__(self, urls=None):
-        Action.__init__(self, self.docIndexApi, urls=urls, parser=DOC_PARSER)
+    def __init__(self, name=None, urls=None):
+        Action.__init__(self, self.docIndexApi, name=name, urls=urls, parser=DOC_PARSER)
 
     @staticmethod
     def docIndexApi(ctx, dummy_req): # pylint: disable=invalid-name
@@ -162,8 +162,8 @@ class DocIndexApi(Action):
 class DocApi(Action):
     __slots__ = ()
 
-    def __init__(self, urls=None):
-        Action.__init__(self, self.docApi, urls=urls, parser=DOC_PARSER)
+    def __init__(self, name=None, urls=None):
+        Action.__init__(self, self.docApi, name=name, urls=urls, parser=DOC_PARSER)
 
     @staticmethod
     def docApi(ctx, req): # pylint: disable=invalid-name
@@ -181,6 +181,8 @@ class DocApi(Action):
             'name': request.name,
             'urls': [url_dict(method, url) for method, url in request.urls],
         }
+        if request.doc:
+            response['doc'] = request.doc
 
         def type_dict(type_):
             if isinstance(type_, TypeArray):
@@ -296,8 +298,6 @@ class DocApi(Action):
                 'input': action_input_output(request.model.input_type),
                 'errors': enum_dict(request.model.error_type),
             }
-            if request.model.doc:
-                action_dict['doc'] = request.model.doc
             if not request.wsgi_response:
                 action_dict['output'] = action_input_output(request.model.output_type)
 

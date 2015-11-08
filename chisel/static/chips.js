@@ -102,9 +102,5 @@ var chips = (function () {
         xhr.send();
     };
 
-    module.markdown = function (root) {
-        //!!
-    };
-
     return module;
 }());

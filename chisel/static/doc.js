@@ -6,14 +6,11 @@ chisel.doc = (function () {
     var module = {};
 
     module.index = function (body, params) {
-        // Set the title
-        var title = window.location.host;
-        document.title = title;
-        chips.root(body, []);
-
-        // Build the index
         chips.xhr('get', '/docIndexApi', true, {
             onok: function (index) {
+                var title = window.location.host;
+                document.title = title;
+
                 chips.root(body, [
                     chips.elem('h1', [
                         chips.text(title),
@@ -33,14 +30,11 @@ chisel.doc = (function () {
     };
 
     module.request = function (body, params) {
-        // Set the title
-        document.title = params.name;
-        chips.root(body, []);
-
-        // Get the request info
         chips.xhr('get', '/docApi', true, {
             params: params,
             onok: function (request) {
+                document.title = params.name;
+
                 // Add the nav bar
                 var bodyElems = [];
                 if (params.nonav !== 'true') {
@@ -57,11 +51,14 @@ chisel.doc = (function () {
                 ]));
 
                 // Add the request doc text
-                //!!
+                if (request.doc) {
+                    bodyElems.push(textElem(request.doc));
+                }
 
-                // Add the URLs
+                // Add the URL note
+                var noteElems = [];
                 if (request.urls.length) {
-                    bodyElems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                    noteElems.push(chips.elem('div', {'class': 'chsl-note'}, [
                         chips.elem('p', [
                             chips.elem('b', [
                                 chips.text('Note: '),
@@ -78,6 +75,21 @@ chisel.doc = (function () {
                     ]));
                 }
 
+                // Add the custom action response note
+                if (request.action && !request.action.output) {
+                    noteElems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                        chips.elem('p', [
+                            chips.elem('b', [
+                                chips.text('Note: '),
+                            ]),
+                            chips.text('The action has a non-default response. See documentation for details.'),
+                        ]),
+                    ]));
+                }
+
+                // Add the notes
+                bodyElems.push(chips.elem('div', {'class': 'chsl-notes'}, noteElems));
+
                 // Action?
                 if (request.action) {
                     //!!
@@ -87,6 +99,23 @@ chisel.doc = (function () {
             }
         });
     };
+
+    function textElem(lines) {
+        var divElems = [];
+        var paragraph = [];
+        for (iLine = 0; iLine < lines.length; iLine++) {
+            if (lines[iLine].length) {
+                paragraph.push(lines[iLine]);
+            } else if (paragraph.length) {
+                divElems.push(chips.elem('p', chips.text(paragraph.join('\n'))));
+                paragraph = [];
+            }
+        }
+        if (paragraph.length) {
+            divElems.push(chips.elem('p', [chips.text(paragraph.join('\n'))]));
+        }
+        return chips.elem('div', {'class': 'chsl-text'}, divElems);
+    }
 
     module.main = function (body) {
         // Listen for hash parameter changes
