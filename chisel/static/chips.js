@@ -5,29 +5,35 @@ var chips = (function () {
         if (clear) {
             parent.innerHTML = '';
         }
-        for (iElem = 0; iElem < elems.length; iElem++) {
-            parent.appendChild(module.node(elems[iElem]));
-        }
-        return parent;
+        return appendNodes(parent, elems);
     };
 
     module.node = function (elem) {
         var node = elem.text ? document.createTextNode(elem.text) : document.createElement(elem.tag);
         if (elem.attrs) {
             for (var attr in elem.attrs) {
-                node.setAttribute(attr, elem.attrs[attr]);
+                var value = elem.attrs[attr];
+                if (value) {
+                    node.setAttribute(attr, value);
+                }
             }
         }
-        if (elem.elems) {
-            for (var iElem = 0; iElem < elem.elems.length; iElem++) {
-                node.appendChild(module.node(elem.elems[iElem]));
-            }
-        }
-        return node;
+        return appendNodes(node, elem.elems);
     };
 
+    function appendNodes(parent, elems) {
+        if (module.isArray(elems)) {
+            for (var iElem = 0; iElem < elems.length; iElem++) {
+                appendNodes(parent, elems[iElem]);
+            }
+        } else if (elems) {
+            parent.appendChild(module.node(elems));
+        }
+        return parent;
+    }
+
     module.elem = function (tag, attrsOrElems, elems) {
-        var attrs = (Object.prototype.toString.call(attrsOrElems) === '[object Object]') ? attrsOrElems : undefined;
+        var attrs = module.isObject(attrsOrElems) ? attrsOrElems : undefined;
         return {
             tag: tag,
             attrs: attrs || {},
@@ -102,6 +108,14 @@ var chips = (function () {
             }
         };
         xhr.send();
+    };
+
+    module.isArray = function (obj) {
+        return Object.prototype.toString.call(obj) === '[object Array]';
+    };
+
+    module.isObject = function (obj) {
+        return Object.prototype.toString.call(obj) === '[object Object]';
     };
 
     return module;

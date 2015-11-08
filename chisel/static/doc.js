@@ -51,9 +51,7 @@ chisel.doc = (function () {
                 ]));
 
                 // Add the request doc text
-                if (request.doc) {
-                    bodyElems.push(textElem(request.doc));
-                }
+                bodyElems.push(textElem(request.doc));
 
                 // Add the notes section
                 var notesElem = chips.elem('div', {'class': 'chsl-notes'});
@@ -78,21 +76,22 @@ chisel.doc = (function () {
                     ]));
                 }
 
-                // Add the custom action response note
-                if (request.action && !request.action.output) {
-                    notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
-                        chips.elem('p', [
-                            chips.elem('b', [
-                                chips.text('Note: '),
-                            ]),
-                            chips.text('The action has a non-default response. See documentation for details.'),
-                        ]),
-                    ]));
-                }
-
                 // Action?
                 if (request.action) {
-                    //!!
+                    // Action input and output struct sections
+                    bodyElems.push(actionInputOutputElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'));
+                    if (request.action.output) {
+                        bodyElems.push(actionInputOutputElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.'));
+                    } else {
+                        notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                            chips.elem('p', [
+                                chips.elem('b', [
+                                    chips.text('Note: '),
+                                ]),
+                                chips.text('The action has a non-default response. See documentation for details.'),
+                            ]),
+                        ]));
+                    }
                 }
 
                 // Render
@@ -104,18 +103,64 @@ chisel.doc = (function () {
     function textElem(lines) {
         var divElems = [];
         var paragraph = [];
-        for (iLine = 0; iLine < lines.length; iLine++) {
-            if (lines[iLine].length) {
-                paragraph.push(lines[iLine]);
-            } else if (paragraph.length) {
-                divElems.push(chips.elem('p', chips.text(paragraph.join('\n'))));
-                paragraph = [];
+        if (chips.isArray(lines)) {
+            for (iLine = 0; iLine < lines.length; iLine++) {
+                if (lines[iLine].length) {
+                    paragraph.push(lines[iLine]);
+                } else if (paragraph.length) {
+                    divElems.push(chips.elem('p', chips.text(paragraph.join('\n'))));
+                    paragraph = [];
+                }
             }
+        } else if (lines) {
+            paragraph.push(lines);
         }
         if (paragraph.length) {
             divElems.push(chips.elem('p', [chips.text(paragraph.join('\n'))]));
         }
-        return chips.elem('div', {'class': 'chsl-text'}, divElems);
+        return divElems.length ? chips.elem('div', {'class': 'chsl-text'}, divElems) : null;
+    }
+
+    function typeHref(type) {
+        if (type.typedef && type.typedef.name) {
+            return 'typedef_' + type.typedef.name;
+        } else if (type['enum'] && type['enum'].name) {
+            return 'enum_' + type['enum'].name;
+        } else if (type.struct && type.struct.name) {
+            return 'struct_' + type.struct.name;
+        }
+        return null;
+    }
+
+    function actionInputOutputElem(type, titleTag, title, emptyText) {
+        if (type.dict) {
+            //!!
+        }
+        return structElem(type.struct, titleTag, title, emptyText);
+    }
+
+    function structElem(struct, titleTag, title, emptyText) {
+        titleTag = titleTag || 'h3';
+        title = title || ((struct.union ? 'union ' : 'struct ') + struct.name);
+        emptyText = emptyText || 'The struct is empty.';
+        var elems = [];
+
+        // Section title
+        elems.push(chips.elem(titleTag, {'id': typeHref(struct)}, [
+            chips.elem('a', {'class': 'linktarget'}, [
+                chips.text(title),
+            ]),
+        ]));
+        elems.push(textElem(struct.doc));
+
+        // Struct members
+        if (struct.members.length) {
+            //!!
+        } else {
+            elems.push(textElem(emptyText));
+        }
+
+        return elems;
     }
 
     module.main = function (body) {
