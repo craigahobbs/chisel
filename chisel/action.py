@@ -88,7 +88,7 @@ class Action(Request):
             model = parser.actions[name]
             doc = model.doc
 
-        Request.__init__(self, self._wsgi_callback, name=name, urls=urls, doc=doc)
+        Request.__init__(self, name=name, urls=urls, doc=doc)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
@@ -102,7 +102,7 @@ class Action(Request):
             assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
             self.doc = self.model.doc
 
-    def _wsgi_callback(self, environ, dummy_start_response):
+    def __call__(self, environ, dummy_start_response):
         ctx = environ[Application.ENVIRON_CTX]
 
         # Check the method

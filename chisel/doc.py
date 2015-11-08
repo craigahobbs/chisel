@@ -58,7 +58,7 @@ struct Dict
 
 struct Enum
     optional string[] doc
-    string(len > 0) name
+    string name
     EnumValue[] values
 
 struct EnumValue

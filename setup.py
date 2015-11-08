@@ -45,6 +45,13 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages = ['chisel'],
+    package_data = {
+        'chisel': [
+            'static/*.html',
+            'static/*.css',
+            'static/*.js',
+        ]
+    },
     test_suite='chisel.tests',
     tests_require = tests_require,
     extras_require = {

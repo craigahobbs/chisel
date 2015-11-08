@@ -52,7 +52,8 @@ from .model import \
 
 from .request import \
     request, \
-    Request
+    Request, \
+    StaticRequest
 
 from .spec import \
     SpecParser, \

@@ -63,8 +63,15 @@ help: _help
 _help:
 	@echo "usage: make [test|cover|doc|pylint|check|clean|superclean|setup]"
 
+.PHONY: jshint
+jshint: _jshint
+
+.PHONY: _jshint
+_jshint:
+	jshint --reporter=unix $(PACKAGE_NAME)/static
+
 .PHONY: check
-check: test doc cover pylint
+check: test doc cover pylint jshint
 
 .PHONY: clean
 clean: _clean
@@ -101,7 +108,11 @@ _setup:
 ifneq "$(OS_MAC)" ""
 	brew install \
 		openssl \
-		homebrew/dupes/zlib
+		homebrew/dupes/zlib \
+		node --without-npm
+	curl -L 'https://www.npmjs.com/install.sh' | sh
+	npm install -g \
+		jshint
 else
 	sudo apt-get install -y \
 		build-essential \
