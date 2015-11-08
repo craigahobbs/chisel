@@ -11,7 +11,7 @@ chisel.doc = (function () {
                 var title = window.location.host;
                 document.title = title;
 
-                chips.root(body, [
+                chips.render(body, [
                     chips.elem('h1', [
                         chips.text(title),
                     ]),
@@ -24,7 +24,7 @@ chisel.doc = (function () {
                             ]);
                         })),
                     ]),
-                ]);
+                ], true);
             },
         });
     };
@@ -55,10 +55,13 @@ chisel.doc = (function () {
                     bodyElems.push(textElem(request.doc));
                 }
 
+                // Add the notes section
+                var notesElem = chips.elem('div', {'class': 'chsl-notes'});
+                bodyElems.push(notesElem);
+
                 // Add the URL note
-                var noteElems = [];
                 if (request.urls.length) {
-                    noteElems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                    notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
                         chips.elem('p', [
                             chips.elem('b', [
                                 chips.text('Note: '),
@@ -77,7 +80,7 @@ chisel.doc = (function () {
 
                 // Add the custom action response note
                 if (request.action && !request.action.output) {
-                    noteElems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                    notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
                         chips.elem('p', [
                             chips.elem('b', [
                                 chips.text('Note: '),
@@ -87,15 +90,13 @@ chisel.doc = (function () {
                     ]));
                 }
 
-                // Add the notes
-                bodyElems.push(chips.elem('div', {'class': 'chsl-notes'}, noteElems));
-
                 // Action?
                 if (request.action) {
                     //!!
                 }
 
-                chips.root(body, bodyElems);
+                // Render
+                chips.render(body, bodyElems, true);
             }
         });
     };

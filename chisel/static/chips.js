@@ -1,42 +1,44 @@
 var chips = (function () {
     var module = {};
 
-    module.style = function (href) {
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = href;
-
-        document.head.appendChild(link);
-    };
-
-    module.root = function (parent, children) {
-        parent.innerHTML = '';
-        for (var i = 0; i < children.length; i++) {
-            parent.appendChild(children[i]);
+    module.render = function (parent, elems, clear) {
+        if (clear) {
+            parent.innerHTML = '';
+        }
+        for (iElem = 0; iElem < elems.length; iElem++) {
+            parent.appendChild(module.node(elems[iElem]));
         }
         return parent;
     };
 
-    module.elem = function (tag, attrsOrChildren, children) {
-        var elem = document.createElement(tag);
-        var attrs = (Object.prototype.toString.call(attrsOrChildren) === '[object Object]') ? attrsOrChildren : undefined;
-        children = attrs ? children : attrsOrChildren;
-        if (typeof attrs !== 'undefined') {
-            for	(var attr in attrs) {
-                elem.setAttribute(attr, attrs[attr]);
+    module.node = function (elem) {
+        var node = elem.text ? document.createTextNode(elem.text) : document.createElement(elem.tag);
+        if (elem.attrs) {
+            for (var attr in elem.attrs) {
+                node.setAttribute(attr, elem.attrs[attr]);
             }
         }
-        if (typeof children !== 'undefined') {
-            for (var i = 0; i < children.length; i++) {
-                elem.appendChild(children[i]);
+        if (elem.elems) {
+            for (var iElem = 0; iElem < elem.elems.length; iElem++) {
+                node.appendChild(module.node(elem.elems[iElem]));
             }
         }
-        return elem;
+        return node;
+    };
+
+    module.elem = function (tag, attrsOrElems, elems) {
+        var attrs = (Object.prototype.toString.call(attrsOrElems) === '[object Object]') ? attrsOrElems : undefined;
+        return {
+            tag: tag,
+            attrs: attrs || {},
+            elems: (attrs ? elems : attrsOrElems) || [],
+        };
     };
 
     module.text = function (text) {
-        return document.createTextNode(text);
+        return {
+            text: text,
+        };
     };
 
     module.ref = function (id) {

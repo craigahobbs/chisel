@@ -67,7 +67,13 @@ class StaticRequest(Request):
     }
 
     def __init__(self, package, resource_name, content_type=None, headers=None, name=None, urls=None, doc=None):
-        Request.__init__(self, name=name or resource_name, urls=urls or [('GET', '/' + resource_name)], doc=doc)
+        if name is None:
+            name = resource_name
+        if urls is None:
+            urls = (('GET', '/' + resource_name),)
+        if doc is None:
+            doc = ('The "{0}" package\'s static resource, "{1}".'.format(package, resource_name),)
+        Request.__init__(self, name=name, urls=urls, doc=doc)
         self.package = package
         self.resource_name = resource_name
         self.headers = headers or {}
