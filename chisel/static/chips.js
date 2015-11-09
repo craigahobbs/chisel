@@ -1,6 +1,8 @@
 var chips = (function () {
     var module = {};
 
+    module.nbsp = String.fromCharCode(160);
+
     module.render = function (parent, elems, clear) {
         if (clear) {
             parent.innerHTML = '';

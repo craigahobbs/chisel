@@ -141,19 +141,32 @@ chisel.doc = (function () {
     }
 
     function typeHref(type) {
-        if (type.typedef && type.typedef.name) {
-            return 'typedef_' + type.typedef.name;
-        } else if (type['enum'] && type['enum'].name) {
-            return 'enum_' + type['enum'].name;
-        } else if (type.struct && type.struct.name) {
-            return 'struct_' + type.struct.name;
+        if (type.typedef) {
+            return 'typedef_' + type.typedef;
+        } else if (type['enum']) {
+            return 'enum_' + type['enum'];
+        } else if (type.struct) {
+            return 'struct_' + type.struct;
         }
         return null;
     }
 
     function typeElem(type) {
-        //!!
-        return chips.text('-');
+        if (type.array) {
+            return [typeElem(type.array.type), chips.text(chips.nbsp + '[]')];
+        } else if (type.dict) {
+            return [
+                type.dict.key_type !== 'string' ? null : [typeElem(type.dict.key_type), chips.text(chips.nbsp + ':' + chips.nbsp)],
+                typeElem(type.dict.type), chips.text(chips.nbsp + '{}')
+            ];
+        } else if (type['enum']) {
+            return chips.elem('a', {href: '#' + typeHref(type)}, [chips.text(type['enum'])]);
+        } else if (type.struct) {
+            return chips.elem('a', {href: '#' + typeHref(type)}, [chips.text(type.struct)]);
+        } else if (type.typedef) {
+            return chips.elem('a', {href: '#' + typeHref(type)}, [chips.text(type.typedef)]);
+        }
+        return chips.text(type.builtin);
     }
 
     function attrElem(type, attr, optional) {
