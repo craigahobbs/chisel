@@ -137,9 +137,11 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
         for member in type_.members:
             _referenced_types(struct_types, enum_types, typedef_types, member.type, top_level=False)
     elif isinstance(type_, TypeEnum) and type_.type_name not in enum_types:
-        enum_types[type_.type_name] = type_
+        if not top_level:
+            enum_types[type_.type_name] = type_
     elif isinstance(type_, Typedef) and type_.type_name not in typedef_types:
-        typedef_types[type_.type_name] = type_
+        if not top_level:
+            typedef_types[type_.type_name] = type_
         _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
     elif isinstance(type_, TypeArray):
         _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
