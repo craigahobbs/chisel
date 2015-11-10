@@ -23,7 +23,7 @@
 from .compat import func_name, iteritems
 
 import hashlib
-from pathlib import posixpath
+import posixpath
 from pkg_resources import resource_string
 
 
