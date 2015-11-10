@@ -58,7 +58,7 @@ var chips = (function () {
         params = module.encodeParams(params);
         path = path ? path : window.location.pathname;
         if (hashParams === null && params === null) {
-            return path;
+            return path + '#';
         } else if (hashParams === null && params !== null) {
             return path + '?' + params;
         } else if (hashParams !== null && params === null) {
