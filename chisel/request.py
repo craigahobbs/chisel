@@ -23,7 +23,7 @@
 from .compat import func_name, iteritems
 
 import hashlib
-import os
+from pathlib import posixpath
 from pkg_resources import resource_string
 
 
@@ -71,11 +71,11 @@ class StaticRequest(Request):
         if name is None:
             name = resource_name
         if urls is None:
-            urls = (('GET', '/' + resource_name),)
+            urls = (('GET', '/' + posixpath.join(*posixpath.split(resource_name)[1:])),)
         if doc is None:
             doc = ('The "{0}" package\'s static resource, "{1}".'.format(package, resource_name),)
         if content_type is None:
-            content_type = self.EXT_TO_CONTENT_TYPE.get(os.path.splitext(resource_name)[1].lower(), 'application/octet-stream')
+            content_type = self.EXT_TO_CONTENT_TYPE.get(posixpath.splitext(resource_name)[1].lower(), 'application/octet-stream')
 
         Request.__init__(self, name=name, urls=urls, doc=doc)
 
