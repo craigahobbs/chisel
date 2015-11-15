@@ -89,7 +89,7 @@ class StaticRequest(Request):
     def __call__(self, environ, start_response):
         ctx = environ['chisel.ctx']
 
-        if self.content is None:
+        if ctx.app.validate_output or self.content is None:
             self.content = resource_string(self.package, self.resource_name)
             md5 = hashlib.md5()
             md5.update(self.content)

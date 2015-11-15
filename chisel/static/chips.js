@@ -70,8 +70,16 @@ var chips = (function () {
     module.encodeParams = function(params) {
         var items = [];
         if (undefined !== params) {
-            for (var name in params) {
-                items.push(encodeURIComponent(name) + '=' + encodeURIComponent(params[name]));
+            var name;
+            for (name in params) {
+                if (params[name] !== null) {
+                    items.push(encodeURIComponent(name) + '=' + encodeURIComponent(params[name]));
+                }
+            }
+            for (name in params) {
+                if (params[name] === null) {
+                    items.push(encodeURIComponent(name));
+                }
             }
         }
         return items.length ? items.join('&') : null;

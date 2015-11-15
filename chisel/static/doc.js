@@ -27,7 +27,7 @@ chisel.doc = (function () {
 
     module.request = function (body, params) {
         chips.xhr('get', '/docApi', true, {
-            params: params,
+            params: {name: params.name},
             onok: function (request) {
                 document.title = params.name;
 
@@ -141,14 +141,26 @@ chisel.doc = (function () {
     }
 
     function typeHref(type) {
-        if (type.typedef) {
-            return 'typedef_' + type.typedef;
-        } else if (type['enum']) {
-            return 'enum_' + type['enum'];
-        } else if (type.struct) {
-            return 'struct_' + type.struct;
+        // TODO: avoid decoding params multiple times
+        var paramsOld = chips.decodeParams();
+        var params = {};
+
+        if (paramsOld.name) {
+            params.name = paramsOld.name;
         }
-        return null;
+        if (paramsOld.nonav) {
+            params.nonav = paramsOld.nonav;
+        }
+
+        if (type.typedef) {
+            params['typedef_' + type.typedef] = null;
+        } else if (type['enum']) {
+            params['enum_' + type['enum']] = null;
+        } else if (type.struct) {
+            params['struct_' + type.struct] = null;
+        }
+
+        return chips.encodeParams(params);
     }
 
     function typeElem(type) {
@@ -230,7 +242,7 @@ chisel.doc = (function () {
         titleTag = titleTag || 'h3';
         title = title || 'typedef' + typedef.name;
         return [
-            chips.elem(titleTag, {'id': typeHref(typedef)}, [
+            chips.elem(titleTag, {'id': typeHref({typedef: typedef.name})}, [
                 chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
             ]),
             textElem(typedef.doc),
@@ -254,7 +266,7 @@ chisel.doc = (function () {
         var elems = [];
 
         // Section title
-        elems.push(chips.elem(titleTag, {'id': typeHref(struct)}, [
+        elems.push(chips.elem(titleTag, {'id': typeHref({struct: struct.name})}, [
             chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
         ]));
         elems.push(textElem(struct.doc));
@@ -295,7 +307,7 @@ chisel.doc = (function () {
         var elems = [];
 
         // Section title
-        elems.push(chips.elem(titleTag, {'id': typeHref({'enum': enum_})}, [
+        elems.push(chips.elem(titleTag, {'id': typeHref({'enum': enum_.name})}, [
             chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
         ]));
         elems.push(textElem(enum_.doc));
