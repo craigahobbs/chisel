@@ -87,6 +87,8 @@ class StaticRequest(Request):
         self.etag = None
 
     def __call__(self, environ, start_response):
+        ctx = environ['chisel.ctx']
+
         if self.content is None:
             self.content = resource_string(self.package, self.resource_name)
             md5 = hashlib.md5()
@@ -94,7 +96,7 @@ class StaticRequest(Request):
             self.etag = md5.hexdigest()
 
         etag = environ.get('HTTP_IF_NONE_MATCH')
-        if etag == self.etag:
+        if not ctx.app.validate_output and etag == self.etag:
             start_response('304 Not Modified', [])
             return []
 

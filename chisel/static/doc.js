@@ -169,21 +169,82 @@ chisel.doc = (function () {
         return chips.text(type.builtin);
     }
 
+    function attrParts(typeName, attr) {
+        var parts = [];
+        if (attr && attr.gt) {
+            parts.push({lhs: typeName, op: '>', rhs: attr.gt});
+        }
+        if (attr && attr.gte) {
+            parts.push({lhs: typeName, op: '>=', rhs: attr.gte});
+        }
+        if (attr && attr.lt) {
+            parts.push({lhs: typeName, op: '<', rhs: attr.lt});
+        }
+        if (attr && attr.lte) {
+            parts.push({lhs: typeName, op: '<=', rhs: attr.lte});
+        }
+        if (attr && attr.eq) {
+            parts.push({lhs: typeName, op: '==', rhs: attr.eq});
+        }
+        if (attr && attr.len_gt) {
+            parts.push({lhs: 'len(' + typeName + ')', op: '>', rhs: attr.len_gt});
+        }
+        if (attr && attr.len_gte) {
+            parts.push({lhs: 'len(' + typeName + ')', op: '>=', rhs: attr.len_gte});
+        }
+        if (attr && attr.len_lt) {
+            parts.push({lhs: 'len(' + typeName + ')', op: '<', rhs: attr.len_lt});
+        }
+        if (attr && attr.len_lte) {
+            parts.push({lhs: 'len(' + typeName + ')', op: '<=', rhs: attr.len_lte});
+        }
+        if (attr && attr.len_eq) {
+            parts.push({lhs: 'len(' + typeName + ')', op: '==', rhs: attr.len_eq});
+        }
+        return parts;
+    }
+
+    function attrPartsElem(attrPart) {
+        return chips.elem('li', [
+            chips.elem('span', {'class': 'chsl-emphasis'}, [chips.text(attrPart.lhs)]),
+            attrPart.op ? chips.text(' ' + attrPart.op + ' ' + attrPart.rhs) : null,
+        ]);
+    }
+
     function attrElem(type, attr, optional) {
-        //!!
-        return chips.text('-');
+        return chips.elem('ul', {'class': 'chsl-constraint-list'}, [
+            optional ? attrPartsElem({lhs: 'optional'}) : null,
+            attrParts(type.array ? 'array' : (type.dict ? 'dict' : 'value'), attr).map(attrPartsElem),
+            !optional && !attr ? attrPartsElem({lhs: 'none'}) : null,
+        ]);
     }
 
     function actionInputOutputElem(type, titleTag, title, emptyText) {
         if (type.dict) {
-            //!!
+            return actionInputOutputElem(type, titleTag, title);
         }
         return structElem(type.struct, titleTag, title, emptyText);
     }
 
-    function typedefElem(typedef) {
-        //!!
-        return null;
+    function typedefElem(typedef, titleTag, title) {
+        titleTag = titleTag || 'h3';
+        title = title || 'typedef' + typedef.name;
+        return [
+            chips.elem(titleTag, {'id': typeHref(typedef)}, [
+                chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
+            ]),
+            textElem(typedef.doc),
+            chips.elem('table', [
+                chips.elem('tr', [
+                    chips.elem('th', [chips.text('Type')]),
+                    chips.elem('th', [chips.text('Attributes')]),
+                ]),
+                chips.elem('tr', [
+                    chips.elem('td', [typeElem(typedef.type)]),
+                    chips.elem('td', [attrElem(typedef.type, typedef.attr, typedef.optional)]),
+                ]),
+            ]),
+        ];
     }
 
     function structElem(struct, titleTag, title, emptyText) {
