@@ -31,90 +31,73 @@ chisel.doc = (function () {
             onok: function (request) {
                 document.title = params.name;
 
-                // Add the nav bar
-                var bodyElems = [];
-                if (params.nonav !== 'true') {
-                    bodyElems.push(chips.elem('div', {'class': 'chsl-header'}, [
+                chips.render(body, [
+                    // Navigation bar
+                    (params.nonav === 'true' ? null : chips.elem('div', {'class': 'chsl-header'}, [
                         chips.elem('a', {'href': chips.href()}, [chips.text('Back to documentation index')]),
-                    ]));
-                }
+                    ])),
 
-                // Add the title
-                bodyElems.push(chips.elem('h1', [
-                    chips.text(request.name),
-                ]));
+                    // Title
+                    chips.elem('h1', [
+                        chips.text(request.name),
+                    ]),
+                    textElem(request.doc),
 
-                // Add the request doc text
-                bodyElems.push(textElem(request.doc));
+                    // Notes
+                    chips.elem('div', {'class': 'chsl-notes'}, [
+                        // Request URLs note
+                        (!request.urls.length ? null : chips.elem('div', {'class': 'chsl-note'}, [
+                            chips.elem('p', [
+                                chips.elem('b', [chips.text('Note: ')]),
+                                chips.text('The request is exposed at the following URL' + (request.urls.length > 1 ? 's:' : ':')),
+                                chips.elem('ul', request.urls.map(function (url) {
+                                    return chips.elem('li', [
+                                        chips.elem('a', {'href': url.url}, [chips.text(url.method ? url.method + ' ' + url.url : url.url)]),
+                                    ]);
+                                })),
+                            ]),
+                        ])),
 
-                // Add the notes section
-                var notesElem = chips.elem('div', {'class': 'chsl-notes'});
-                bodyElems.push(notesElem);
-
-                // Add the URL note
-                if (request.urls.length) {
-                    notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
-                        chips.elem('p', [
-                            chips.elem('b', [chips.text('Note: ')]),
-                            chips.text('The request is exposed at the following URL' + (request.urls.length > 1 ? 's:' : ':')),
-                            chips.elem('ul', request.urls.map(function (url) {
-                                return chips.elem('li', [
-                                    chips.elem('a', {'href': url.url}, [chips.text(url.method ? url.method + ' ' + url.url : url.url)]),
-                                ]);
-                            })),
-                        ]),
-                    ]));
-                }
-
-                // Action?
-                if (request.action) {
-                    // Action input and output struct sections
-                    bodyElems.push(actionInputOutputElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'));
-                    if (request.action.output) {
-                        bodyElems.push(actionInputOutputElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.'));
-                    } else {
-                        notesElem.elems.push(chips.elem('div', {'class': 'chsl-note'}, [
+                        // Action non-default response note
+                        (!request.action || request.action.output ? null : chips.elem('div', {'class': 'chsl-note'}, [
                             chips.elem('p', [
                                 chips.elem('b', [chips.text('Note: ')]),
                                 chips.text('The action has a non-default response. See documentation for details.'),
                             ]),
-                        ]));
-                    }
-                    bodyElems.push(enumElem(request.action.errors, 'h2', 'Error Codes', 'The action returns no custom error codes.'));
+                        ])),
 
-                    // Typedefs
-                    if (request.typedefs.length) {
-                        bodyElems.push([
-                            chips.elem('h2', [chips.text('Typedefs')]),
-                            request.typedefs.map(function (typedef) {
-                                return typedefElem(typedef);
-                            }),
-                        ]);
-                    }
+                        // Action?
+                        (!request.action ? null : [
+                            actionInputOutputElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'),
+                            actionInputOutputElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.'),
+                            enumElem(request.action.errors, 'h2', 'Error Codes', 'The action returns no custom error codes.'),
 
-                    // Structs
-                    if (request.structs.length) {
-                        bodyElems.push([
-                            chips.elem('h2', chips.text('Struct Types')),
-                            request.structs.map(function (struct) {
-                                return structElem(struct);
-                            }),
-                        ]);
-                    }
+                            // Typedefs
+                            (!request.typedefs.length ? null : [
+                                chips.elem('h2', [chips.text('Typedefs')]),
+                                request.typedefs.map(function (typedef) {
+                                    return typedefElem(typedef);
+                                }),
+                            ]),
 
-                    // Enums
-                    if (request.enums.length) {
-                        bodyElems.push([
-                            chips.elem('h2', chips.text('Enum Types')),
-                            request.enums.map(function (enum_) {
-                                return enumElem(enum_);
-                            }),
-                        ]);
-                    }
-                }
+                            // Structs
+                            (!request.structs.length ? null : [
+                                chips.elem('h2', chips.text('Struct Types')),
+                                request.structs.map(function (struct) {
+                                    return structElem(struct);
+                                }),
+                            ]),
 
-                // Render
-                chips.render(body, bodyElems, true);
+                            // Enums
+                            (!request.enums.length ? null : [
+                                chips.elem('h2', chips.text('Enum Types')),
+                                request.enums.map(function (enum_) {
+                                    return enumElem(enum_);
+                                }),
+                            ]),
+                        ]),
+                    ]),
+                ], true);
             }
         });
     };
@@ -232,7 +215,9 @@ chisel.doc = (function () {
     }
 
     function actionInputOutputElem(type, titleTag, title, emptyText) {
-        if (type.dict) {
+        if (!type) {
+            return null;
+        } else if (type.dict) {
             return actionInputOutputElem(type, titleTag, title);
         }
         return structElem(type.struct, titleTag, title, emptyText);
@@ -241,6 +226,7 @@ chisel.doc = (function () {
     function typedefElem(typedef, titleTag, title) {
         titleTag = titleTag || 'h3';
         title = title || 'typedef' + typedef.name;
+
         return [
             chips.elem(titleTag, {'id': typeHref({typedef: typedef.name})}, [
                 chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
@@ -263,78 +249,70 @@ chisel.doc = (function () {
         titleTag = titleTag || 'h3';
         title = title || ((struct.union ? 'union ' : 'struct ') + struct.name);
         emptyText = emptyText || 'The struct is empty.';
-        var elems = [];
+        var hasDescription = struct.members.reduce(function (prevValue, curValue, index, array) {
+            return prevValue || !!curValue.doc;
+        }, false);
 
-        // Section title
-        elems.push(chips.elem(titleTag, {'id': typeHref({struct: struct.name})}, [
-            chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
-        ]));
-        elems.push(textElem(struct.doc));
+        return [
+            // Section title
+            chips.elem(titleTag, {'id': typeHref({struct: struct.name})}, [
+                chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
+            ]),
+            textElem(struct.doc),
 
-        // Struct members
-        if (struct.members.length) {
-            var hasDescription = struct.members.reduce(function (prevValue, curValue, index, array) {
-                return prevValue || !!curValue.doc;
-            }, false);
-
-            elems.push(chips.elem('table', [
-                chips.elem('tr', [
-                    chips.elem('th', [chips.text('Name')]),
-                    chips.elem('th', [chips.text('Type')]),
-                    chips.elem('th', [chips.text('Attributes')]),
-                    hasDescription ? chips.elem('th', [chips.text('Description')]) : null,
-                ]),
-                struct.members.map(function (member) {
-                    return chips.elem('tr', [
-                        chips.elem('td', [chips.text(member.name)]),
-                        chips.elem('td', [typeElem(member.type)]),
-                        chips.elem('td', [attrElem(member.type, member.attr, member.optional)]),
-                        hasDescription ? chips.elem('td', [textElem(member.doc)]) : null,
-                    ]);
-                }),
-            ]));
-        } else {
-            elems.push(textElem(emptyText));
-        }
-
-        return elems;
+            // Struct members
+            (!struct.members.length ? textElem(emptyText) : [
+                chips.elem('table', [
+                    chips.elem('tr', [
+                        chips.elem('th', [chips.text('Name')]),
+                        chips.elem('th', [chips.text('Type')]),
+                        chips.elem('th', [chips.text('Attributes')]),
+                        hasDescription ? chips.elem('th', [chips.text('Description')]) : null,
+                    ]),
+                    struct.members.map(function (member) {
+                        return chips.elem('tr', [
+                            chips.elem('td', [chips.text(member.name)]),
+                            chips.elem('td', [typeElem(member.type)]),
+                            chips.elem('td', [attrElem(member.type, member.attr, member.optional)]),
+                            hasDescription ? chips.elem('td', [textElem(member.doc)]) : null,
+                        ]);
+                    }),
+                ])
+            ]),
+        ];
     }
 
     function enumElem(enum_, titleTag, title, emptyText) {
         titleTag = titleTag || 'h3';
         title = title || ('enum ' + enum_.name);
         emptyText = emptyText || 'The enum is empty.';
-        var elems = [];
+        var hasDescription = enum_.values.reduce(function (prevValue, curValue, index, array) {
+            return prevValue || !!curValue.doc;
+        }, false);
 
-        // Section title
-        elems.push(chips.elem(titleTag, {'id': typeHref({'enum': enum_.name})}, [
-            chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
-        ]));
-        elems.push(textElem(enum_.doc));
+        return [
+            // Section title
+            chips.elem(titleTag, {'id': typeHref({'enum': enum_.name})}, [
+                chips.elem('a', {'class': 'linktarget'}, [chips.text(title)]),
+            ]),
+            textElem(enum_.doc),
 
-        // Enum values
-        if (enum_.values.length) {
-            var hasDescription = enum_.values.reduce(function (prevValue, curValue, index, array) {
-                return prevValue || !!curValue.doc;
-            }, false);
-
-            elems.push(chips.elem('table', [
-                chips.elem('tr', [
-                    chips.elem('th', [chips.text('Value')]),
-                    hasDescription ? chips.elem('th', [chips.text('Description')]) : null,
+            // Enum values
+            (!enum_.values.length ? textElem(emptyText) : [
+                chips.elem('table', [
+                    chips.elem('tr', [
+                        chips.elem('th', [chips.text('Value')]),
+                        hasDescription ? chips.elem('th', [chips.text('Description')]) : null,
+                    ]),
+                    enum_.values.map(function (value) {
+                        return chips.elem('tr', [
+                            chips.elem('td', [chips.text(value.value)]),
+                            hasDescription ? chips.elem('td', [textElem(value.doc)]) : null,
+                        ]);
+                    }),
                 ]),
-                enum_.values.map(function (value) {
-                    return chips.elem('tr', [
-                        chips.elem('td', [chips.text(value.value)]),
-                        hasDescription ? chips.elem('td', [textElem(value.doc)]) : null,
-                    ]);
-                }),
-            ]));
-        } else {
-            elems.push(textElem(emptyText));
-        }
-
-        return elems;
+            ]),
+        ];
     }
 
     module.main = function (body) {
