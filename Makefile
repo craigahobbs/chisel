@@ -30,14 +30,10 @@ STATIC_SRC := static
 STATIC_BUILD := $(PACKAGE_NAME)/static
 
 # Create static copy rules
-STATICS = \
-    static/*.js \
-    static/*.html \
-    static/doc/*.css \
-    static/doc/*.js \
-    static/image/*.png
-
-$(foreach F, $(wildcard $(STATICS)), $(eval $(call COPY_RULE, $(F), $(PACKAGE_NAME)/$(F))))
+STATIC_EXTS = css html js png
+$(foreach F, \
+    $(shell find static -name "*.$(firstword $(STATIC_EXTS))" $(foreach X, $(wordlist 2, 100, $(STATIC_EXTS)),-o -name "*.$(X)")), \
+    $(eval $(call COPY_RULE, $(F), $(PACKAGE_NAME)/$(F))))
 
 clean:
 	rm -rf "$(STATIC_BUILD)"
