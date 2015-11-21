@@ -27,13 +27,13 @@ from wsgiref.simple_server import make_server
 def main():
 
     # Command line arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='python -m chisel')
     parser.add_argument('file',
-                        help='a Python file that contains the WSGI application object')
-    parser.add_argument('-a', dest='app', default='application',
+                        help='a Python file that contains the WSGI application callable')
+    parser.add_argument('-a', dest='application', metavar='NAME', default='application',
                         help='the name of the WSGI application callable (default is "application")')
     parser.add_argument('-p', type=int, dest='port', default=8080,
-                        help='WSGI service port (default is 8080)')
+                        help='the WSGI service port (default is 8080)')
     args = parser.parse_args()
 
     # Execute WSGI application file
@@ -43,7 +43,7 @@ def main():
 
     # Serve the WSGI application
     print('serving on port {0}...'.format(args.port))
-    make_server('', args.port, application_globals[args.app]).serve_forever()
+    make_server('', args.port, application_globals[args.application]).serve_forever()
 
 
 if __name__ == '__main__':
