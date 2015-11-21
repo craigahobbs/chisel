@@ -32,7 +32,7 @@ tests_require = []
 
 setup(
     name = 'chisel',
-    version = '0.9.6',
+    version = chisel.__version__,
     author = 'Craig Hobbs',
     author_email = 'craigahobbs@gmail.com',
     description = ('JSON web APIs made dirt simple'),
