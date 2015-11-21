@@ -20,15 +20,19 @@
 # SOFTWARE.
 #
 
+import os
 from setuptools import setup
+from subprocess import check_call
 
 import chisel
+
+check_call(['make', '-C', os.path.dirname(__file__) or '.', 'build'])
 
 tests_require = []
 
 setup(
     name = 'chisel',
-    version = chisel.__version__,
+    version = '0.9.6',
     author = 'Craig Hobbs',
     author_email = 'craigahobbs@gmail.com',
     description = ('JSON web APIs made dirt simple'),
@@ -48,9 +52,20 @@ setup(
     package_data = {
         'chisel': [
             'static/*.html',
-            'static/*.css',
             'static/*.js',
-        ]
+            'static/doc/*.css',
+            'static/doc/*.js',
+
+            #
+            # The logo and favicon PNGs were generated with the following imagemagick commands:
+            #
+            # convert "http://www.toolstop.co.uk/components/com_virtuemart/shop_image/product/Stanley-1-16-788-Sweetheart-Socket-Chisel-25mm-2.jpg" \
+            #    -flop -bordercolor white -border 150x150 -resize 200x200 -charcoal 4 -transparent white logo.png
+            #
+            # convert logo.png -resize 32x32 favicon.png
+            #
+            'static/image/*.png',
+        ],
     },
     test_suite='chisel.tests',
     tests_require = tests_require,

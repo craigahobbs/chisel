@@ -110,11 +110,11 @@ struct RequestUrl
     optional string method
     string url
 
-action docIndexApi
+action doc_index
     output
         string[] names
 
-action docApi
+action doc_request
     input
         string name
     output
@@ -150,25 +150,25 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
         _referenced_types(struct_types, enum_types, typedef_types, type_.key_type, top_level=False)
 
 
-class DocIndexApi(Action):
+class DocIndex(Action):
     __slots__ = ()
 
     def __init__(self, name=None, urls=None):
-        Action.__init__(self, self.docIndexApi, name=name, urls=urls, parser=DOC_PARSER)
+        Action.__init__(self, self.doc_index, name=name, urls=urls, parser=DOC_PARSER)
 
     @staticmethod
-    def docIndexApi(ctx, dummy_req): # pylint: disable=invalid-name
+    def doc_index(ctx, dummy_req):
         return {'names': sorted((request.name for request in itervalues(ctx.app.requests)), key=lambda x: x.lower())}
 
 
-class DocApi(Action):
+class DocRequest(Action):
     __slots__ = ()
 
     def __init__(self, name=None, urls=None):
-        Action.__init__(self, self.docApi, name=name, urls=urls, parser=DOC_PARSER)
+        Action.__init__(self, self.doc_request, name=name, urls=urls, parser=DOC_PARSER)
 
     @staticmethod
-    def docApi(ctx, req): # pylint: disable=invalid-name
+    def doc_request(ctx, req):
         request = ctx.app.requests.get(req['name'])
         if request is None:
             raise ActionError('UnknownName')

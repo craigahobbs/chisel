@@ -6,13 +6,16 @@ chisel.doc = (function () {
     var module = {};
 
     module.index = function (body, params) {
-        chips.xhr('get', '/docIndexApi', true, {
+        chips.xhr('get', '/doc_index', true, {
             onok: function (index) {
                 var title = window.location.host;
                 document.title = title;
 
                 chips.render(body, [
+                    // Title
                     chips.elem('h1', [chips.text(title)]),
+
+                    // Request link unordered-list
                     chips.elem('ul', {'class': 'chsl-request-list'}, [
                         chips.elem('li', index.names.map(function (name) {
                             return chips.elem('li', [
@@ -26,7 +29,7 @@ chisel.doc = (function () {
     };
 
     module.request = function (body, params) {
-        chips.xhr('get', '/docApi', true, {
+        chips.xhr('get', '/doc_request', true, {
             params: {name: params.name},
             onok: function (request) {
                 document.title = params.name;

@@ -64,6 +64,7 @@ class StaticRequest(Request):
         '.css': 'text/css',
         '.html': 'text/html',
         '.js': 'application/javascript',
+        '.png': 'image/png',
         '.txt': 'text/plain',
     }
 
@@ -71,7 +72,7 @@ class StaticRequest(Request):
         if name is None:
             name = resource_name
         if urls is None:
-            urls = (('GET', '/' + posixpath.join(*posixpath.split(resource_name)[1:])),)
+            urls = (('GET', '/' + posixpath.join(*resource_name.split(posixpath.sep)[1:])),)
         if doc is None:
             doc = ('The "{0}" package\'s static resource, "{1}".'.format(package, resource_name),)
         if content_type is None:

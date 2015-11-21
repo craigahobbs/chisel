@@ -20,8 +20,6 @@
 # SOFTWARE.
 #
 
-__version__ = '0.9.6'
-
 from .action import \
     action, \
     Action, \
@@ -33,8 +31,8 @@ from .app import \
 
 from .doc import \
     DocAction, \
-    DocIndexApi, \
-    DocApi, \
+    DocIndex, \
+    DocRequest, \
     DocPage, \
     Element
 
