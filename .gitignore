@@ -7,5 +7,6 @@
 .cover/
 .coverage
 build/
-doc/_build
+chisel/static/
+doc/_build/
 dist/

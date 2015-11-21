@@ -1,3 +1,5 @@
+.. image:: https://raw.githubusercontent.com/craigahobbs/chisel/master/static/image/logo.png
+
 Overview
 ========
 
