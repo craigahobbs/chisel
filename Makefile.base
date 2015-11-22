@@ -91,7 +91,6 @@ clean: _clean
 .PHONY: _clean
 _clean:
 	rm -rf \
-		$$(find build ! -name python -depth 1) \
 		$(DOC) \
 		$(ENV) \
 		$(COVER) \
