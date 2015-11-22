@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+from .app_defs import ENVIRON_CTX
 from .compat import func_name, iteritems
 
 import hashlib
@@ -88,7 +89,7 @@ class StaticRequest(Request):
         self.etag = None
 
     def __call__(self, environ, start_response):
-        ctx = environ['chisel.ctx']
+        ctx = environ[ENVIRON_CTX]
 
         if ctx.app.validate_output or self.content is None:
             self.content = resource_string(self.package, self.resource_name)

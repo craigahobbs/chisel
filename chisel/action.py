@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from .app import Application
+from .app_defs import ENVIRON_CTX
 from .compat import func_name, iteritems
 from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
@@ -103,7 +103,7 @@ class Action(Request):
             self.doc = self.model.doc
 
     def __call__(self, environ, dummy_start_response):
-        ctx = environ[Application.ENVIRON_CTX]
+        ctx = environ[ENVIRON_CTX]
 
         # Check the method
         is_get = (environ['REQUEST_METHOD'] == 'GET')

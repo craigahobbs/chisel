@@ -85,7 +85,7 @@ class TestRequest(unittest.TestCase):
 
         @chisel.request(name='foo')
         def my_request(environ, start_response):
-            ctx = environ[chisel.Application.ENVIRON_CTX]
+            ctx = environ[chisel.ENVIRON_CTX]
             ctx.add_header('OtherHeader', 'Other Value')
             start_response('200 OK', (('MyHeader', 'MyValue'),))
             return ['OK'.encode('utf-8')]

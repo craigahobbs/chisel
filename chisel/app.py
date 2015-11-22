@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+from .app_defs import ENVIRON_CTX
 from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
 from .request import Request
 from .spec import SpecParser
@@ -44,8 +45,6 @@ class Application(object):
     """
 
     __slots__ = ('log_level', 'log_format', 'pretty_output', 'validate_output', 'specs', 'requests', '__request_urls', '__request_regex')
-
-    ENVIRON_CTX = 'chisel.ctx'
 
     def __init__(self):
         self.log_level = logging.WARNING
@@ -142,7 +141,7 @@ class Application(object):
 
         # Create the request context
         ctx = Context(self, environ, start_response, url_args)
-        environ[self.ENVIRON_CTX] = ctx
+        environ[ENVIRON_CTX] = ctx
 
         # Request not found?
         if request is None:

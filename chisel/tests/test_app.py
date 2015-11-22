@@ -22,7 +22,7 @@
 
 # pylint: disable=missing-docstring
 
-from chisel import action, Application
+from chisel import action, Application, ENVIRON_CTX
 from chisel.compat import StringIO
 
 import logging
@@ -112,7 +112,7 @@ class TestAppApplication(unittest.TestCase):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
-            ctx = environ[Application.ENVIRON_CTX]
+            ctx = environ[ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', response())
 
         self.app.add_request(generator_response)
@@ -143,7 +143,7 @@ class TestAppApplication(unittest.TestCase):
 
         # Request that returns a generator
         def string_response(environ, dummy_start_response):
-            ctx = environ[Application.ENVIRON_CTX]
+            ctx = environ[ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
         self.app.add_request(string_response)
@@ -206,7 +206,7 @@ class TestAppApplication(unittest.TestCase):
     def test_log_format_callable(self):
 
         def my_wsgi(environ, start_response):
-            ctx = environ[Application.ENVIRON_CTX]
+            ctx = environ[ENVIRON_CTX]
             ctx.log.warning('Hello log')
             start_response('200 OK', [('Content-Type', 'text/plain')])
             return ['Hello'.encode('utf-8')]
@@ -241,11 +241,11 @@ class TestAppApplication(unittest.TestCase):
     def test_nested_requests(self):
 
         def request1(environ, dummy_start_response):
-            ctx = environ[Application.ENVIRON_CTX]
+            ctx = environ[ENVIRON_CTX]
             return ctx.response_text('200 OK', '7')
 
         def request2(environ, dummy_start_response):
-            ctx = environ[Application.ENVIRON_CTX]
+            ctx = environ[ENVIRON_CTX]
             dummy_status, dummy_headers, response = ctx.app.request('GET', '/request1')
             return ctx.response_text('200 OK', str(5 + int(response)))
 
