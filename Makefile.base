@@ -45,11 +45,11 @@ __UPPER_FN__$(strip $(1))__ := $$(shell echo "$(strip $(1))" | tr "[:lower:]" "[
 endif
 endef
 
-# Function to generate copy rules - src, dst
+# Function to generate copy rules - src, dst, *command
 define COPY_RULE
 $(strip $(2)): $(strip $(1))
 	mkdir -p "$(dir $(2))"
-	cp "$$<" "$$@"
+	$(if $(3), $(3), cp "$$<" "$$@")
 
 .PHONY: copy
 copy: $(strip $(2))
@@ -75,15 +75,8 @@ help: _help
 _help:
 	@echo "usage: make [build|test|cover|doc|pylint|check|clean|superclean|setup]"
 
-.PHONY: jshint
-jshint: _jshint
-
-.PHONY: _jshint
-_jshint:
-	jshint --reporter=unix $(PACKAGE_NAME)/static
-
 .PHONY: check
-check: test doc cover pylint jshint
+check: test doc cover pylint
 
 .PHONY: clean
 clean: _clean
@@ -119,11 +112,12 @@ setup: _setup
 _setup:
 ifneq "$(OS_MAC)" ""
 	brew install \
+		node \
 		openssl \
-		homebrew/dupes/zlib \
-		node --without-npm
-	curl -L "https://www.npmjs.com/install.sh" | sh
-	npm install -g \
+		homebrew/dupes/zlib
+	npm update -g npm
+	npm update -g \
+		babel-cli \
 		jshint
 else
 	sudo apt-get install -y \
