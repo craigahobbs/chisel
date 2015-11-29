@@ -33,9 +33,7 @@ STATIC_BUILD := $(PACKAGE_NAME)/static
 FIND_EXTS_FN = $(shell find $(1) -name "*.$(firstword $(2))" $(foreach X, $(wordlist 2, 100, $(2)),-o -name "*.$(X)"))
 
 # Create the js compile rules
-JS_EXTS := js
-$(foreach F, $(call FIND_EXTS_FN, $(STATIC_SRC), $(JS_EXTS)), \
-    $(eval $(call COPY_RULE, $(F), $(PACKAGE_NAME)/$(F), babel "$$<" -o "$$@")))
+$(eval $(call COPY_RULE, $(STATIC_SRC)/doc/doc.js, $(STATIC_BUILD)/doc/doc.js, cd $(STATIC_SRC) && webpack))
 
 # Create static copy rules
 STATIC_EXTS = css html png
@@ -43,7 +41,7 @@ $(foreach F, $(call FIND_EXTS_FN, $(STATIC_SRC), $(STATIC_EXTS)), \
     $(eval $(call COPY_RULE, $(F), $(PACKAGE_NAME)/$(F))))
 
 build:
-	jshint --reporter=unix "$(STATIC_SRC)"
+	jshint --reporter=unix --config="$(STATIC_SRC)/.jshint" "$(STATIC_SRC)"
 
 clean:
 	rm -rf "$(STATIC_BUILD)"
