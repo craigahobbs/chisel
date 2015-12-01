@@ -60,14 +60,16 @@ confidence=
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 disable= locally-disabled,
+ duplicate-code,
  missing-docstring,
- too-many-arguments,
  too-few-public-methods,
- too-many-locals,
+ too-many-arguments,
  too-many-branches,
- too-many-public-methods,
- too-many-lines,
  too-many-instance-attributes,
+ too-many-lines,
+ too-many-locals,
+ too-many-nested-blocks,
+ too-many-public-methods,
  too-many-statements
 
 
