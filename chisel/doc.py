@@ -20,12 +20,12 @@
 # SOFTWARE.
 #
 
+from xml.sax.saxutils import quoteattr as saxutils_quoteattr
+
 from .action import Action, ActionError
 from .compat import html_escape, iteritems, itervalues, urllib_parse_quote
 from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 from .spec import SpecParser
-
-from xml.sax.saxutils import quoteattr as saxutils_quoteattr
 
 
 DOC_PARSER = SpecParser(spec='''\
@@ -427,7 +427,7 @@ class Element(object):
 
         # Text element?
         if self.text:
-            yield html_escape(self.name)
+            yield html_escape(self.name) # pylint: disable=deprecated-method
             return
         elif self.text_raw:
             yield self.name

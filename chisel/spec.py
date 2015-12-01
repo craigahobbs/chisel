@@ -20,12 +20,12 @@
 # SOFTWARE.
 #
 
+from itertools import chain
+import re
+
 from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
     TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
     TYPE_FLOAT, TYPE_STRING, TypeStruct, TYPE_UUID
-
-from itertools import chain
-import re
 
 
 # Action model
@@ -213,7 +213,7 @@ class SpecParser(object):
                     else:  # ==
                         attr.op_eq = attr_value
                 else:  # attr_length_op is not None:
-                    attr_value = int(match_attr.group('lopnum'))
+                    attr_value = int(match_attr.group('lopnum')) # pylint: disable=redefined-variable-type
                     if attr_length_op == '<':
                         attr.op_len_lt = attr_value
                     elif attr_length_op == '<=':
@@ -354,7 +354,7 @@ class SpecParser(object):
 
                     # Create the new enum type
                     self._action = None
-                    self._type = TypeEnum(type_name=definition_id, doc=self._doc)
+                    self._type = TypeEnum(type_name=definition_id, doc=self._doc) # pylint: disable=redefined-variable-type
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 

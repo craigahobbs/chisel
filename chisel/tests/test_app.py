@@ -20,17 +20,15 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
-
-from chisel import action, Application, ENVIRON_CTX
-from chisel.compat import StringIO
-
 import logging
 import os
 import re
 import sys
 import types
 import unittest
+
+from chisel import action, Application, ENVIRON_CTX
+from chisel.compat import StringIO
 
 
 class TestAppApplication(unittest.TestCase):

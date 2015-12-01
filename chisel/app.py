@@ -20,18 +20,18 @@
 # SOFTWARE.
 #
 
-from .app_defs import ENVIRON_CTX
-from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
-from .request import Request
-from .spec import SpecParser
-from .util import load_modules
-
 from io import BytesIO
 import itertools
 import json
 import logging
 import os
 import re
+
+from .app_defs import ENVIRON_CTX
+from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
+from .request import Request
+from .spec import SpecParser
+from .util import load_modules
 
 
 # Regular expression for matching URL arguments
@@ -204,7 +204,7 @@ class Context(object):
         if wsgi_errors is None:
             handler = logging.NullHandler()
         else:
-            handler = logging.StreamHandler(wsgi_errors)
+            handler = logging.StreamHandler(wsgi_errors) # pylint: disable=redefined-variable-type
         if hasattr(self.app.log_format, '__call__'):
             handler.setFormatter(self.app.log_format(self))
         else:
@@ -255,7 +255,7 @@ class Context(object):
                              indent=2 if self.app.pretty_output else None,
                              separators=(', ', ': ') if self.app.pretty_output else (',', ':'))
         if self.jsonp:
-            content = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
+            content_list = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
         else:
-            content = [content.encode('utf-8')]
-        return self.response(status, 'application/json', content, headers=headers)
+            content_list = [content.encode('utf-8')]
+        return self.response(status, 'application/json', content_list, headers=headers)

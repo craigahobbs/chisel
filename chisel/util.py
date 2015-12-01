@@ -20,8 +20,6 @@
 # SOFTWARE.
 #
 
-from .compat import string_isidentifier, xrange_
-
 from datetime import date, datetime, timedelta, tzinfo
 from time import altzone as time_altzone, daylight as time_daylight, localtime as time_localtime, \
     mktime as time_mktime, timezone as time_timezone, tzname as time_tzname
@@ -29,6 +27,8 @@ import itertools
 import os
 import re
 import sys
+
+from .compat import string_isidentifier, xrange_
 
 
 class _TZUTC(tzinfo):

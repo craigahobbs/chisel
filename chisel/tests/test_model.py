@@ -20,7 +20,10 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
+from datetime import date, datetime
+import json
+import unittest
+from uuid import UUID
 
 from chisel.compat import long_, unicode_
 from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, ValidationError, \
@@ -29,11 +32,6 @@ from chisel.model import JsonDate, JsonDatetime, JsonFloat, JsonUUID, Validation
     TYPE_UUID, TYPE_DATE, TYPE_DATETIME, IMMUTABLE_VALIDATION_MODES
 import chisel.model
 from chisel.util import TZUTC, TZLOCAL
-
-from datetime import date, datetime
-import json
-import unittest
-from uuid import UUID
 
 
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT)

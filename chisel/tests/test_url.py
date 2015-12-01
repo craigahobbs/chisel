@@ -20,14 +20,12 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
-
-from chisel import decode_query_string, encode_query_string, TZUTC
-from chisel.compat import unichr_, unicode_
-
 from datetime import date, datetime
 import unittest
 from uuid import UUID
+
+from chisel import decode_query_string, encode_query_string, TZUTC
+from chisel.compat import unichr_, unicode_
 
 
 class TestUrl(unittest.TestCase):
@@ -46,7 +44,7 @@ class TestUrl(unittest.TestCase):
 
         # Top-level array
         query_string = '0=1&1=2&2=3'
-        obj = ['1', '2', '3']
+        obj = ['1', '2', '3'] # pylint: disable=redefined-variable-type
         self.assertEqual(decode_query_string(query_string), obj)
 
         # Empty query string
@@ -189,7 +187,7 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encode_query_string(obj), query_string)
 
         # Top-level array
-        obj = [1, 2, 3]
+        obj = [1, 2, 3] # pylint: disable=redefined-variable-type
         query_string = '0=1&1=2&2=3'
         self.assertEqual(encode_query_string(obj), query_string)
 

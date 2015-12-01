@@ -20,13 +20,11 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
+import unittest
 
 from chisel import SpecParser, SpecParserError
 import chisel.compat
 import chisel.model
-
-import unittest
 
 
 class TestSpecParseSpec(unittest.TestCase): # pylint: disable=protected-access

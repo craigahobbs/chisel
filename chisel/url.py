@@ -20,11 +20,11 @@
 # SOFTWARE.
 #
 
-from .compat import basestring_, urllib_parse_quote, urllib_parse_unquote, xrange_
-from .model import JsonDate, JsonDatetime, JsonUUID
-
 from datetime import date, datetime
 from uuid import UUID
+
+from .compat import basestring_, urllib_parse_quote, urllib_parse_unquote, xrange_
+from .model import JsonDate, JsonDatetime, JsonUUID
 
 
 # Encode an object as a URL query string
@@ -106,7 +106,7 @@ def decode_query_string(query_string, encoding='utf-8'):
 
                 # Create this key's container, if necessary
                 if obj is None:
-                    obj = parent[key_parent] = {}
+                    obj = parent[key_parent] = {} # pylint: disable=redefined-variable-type
 
                 # Create the index for this key
                 if obj.get(key) is None:

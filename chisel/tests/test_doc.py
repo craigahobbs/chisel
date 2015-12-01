@@ -20,14 +20,12 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
+import sys
+import unittest
 
 import chisel
 from chisel.compat import HTMLParser
 from chisel.doc import Element
-
-import sys
-import unittest
 
 
 class HTMLValidator(HTMLParser):
@@ -42,6 +40,9 @@ class HTMLValidator(HTMLParser):
         else:
             HTMLParser.__init__(self)
         self.elements = []
+
+    def error(self, message):
+        return HTMLParser.error(self)
 
     def handle_starttag(self, tag, attrs):
         if tag not in ('br', 'img', 'link', 'meta'):

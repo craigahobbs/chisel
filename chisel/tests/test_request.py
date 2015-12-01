@@ -20,11 +20,9 @@
 # SOFTWARE.
 #
 
-# pylint: disable=missing-docstring
+import unittest
 
 import chisel
-
-import unittest
 
 
 class TestRequest(unittest.TestCase):

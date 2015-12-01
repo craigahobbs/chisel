@@ -20,12 +20,12 @@
 # SOFTWARE.
 #
 
-from .app_defs import ENVIRON_CTX
-from .compat import func_name, iteritems
-
 import hashlib
 import posixpath
 from pkg_resources import resource_string
+
+from .app_defs import ENVIRON_CTX
+from .compat import func_name, iteritems
 
 
 def request(_wsgi_callback=None, **kwargs):
