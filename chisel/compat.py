@@ -21,6 +21,7 @@
 #
 
 # pylint: disable=ungrouped-imports
+# pylint: disable=unused-import
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 
@@ -78,15 +79,15 @@ else: # pragma: no cover
 
 # html
 if PY3:
-    from html import escape as html_escape # pylint: disable=unused-import
-    from html.parser import HTMLParser # pylint: disable=unused-import
+    from html import escape as html_escape
+    from html.parser import HTMLParser
 else: # pragma: no cover
     from cgi import escape as html_escape
     from HTMLParser import HTMLParser # pylint: disable=import-error
 
 # io
 if PY3:
-    from io import StringIO # pylint: disable=unused-import
+    from io import StringIO
 else: # pragma: no cover
     try:
         from cStringIO import StringIO
@@ -95,7 +96,7 @@ else: # pragma: no cover
 
 # re
 if PY3_3:
-    from re import escape as re_escape # pylint: disable=unused-import
+    from re import escape as re_escape
 else: # pragma: no cover
     # Backport of Python 3.5 re.escape - https://bugs.python.org/issue2650
 
@@ -148,7 +149,7 @@ else: # pragma: no cover
 
 # urllib
 if PY3:
-    from urllib.parse import quote as urllib_parse_quote, unquote as urllib_parse_unquote # pylint: disable=unused-import
+    from urllib.parse import quote as urllib_parse_quote, unquote as urllib_parse_unquote
 else: # pragma: no cover
     from urllib import quote as _urllib_quote, unquote as _urllib_unquote # pylint: disable=no-name-in-module
 
