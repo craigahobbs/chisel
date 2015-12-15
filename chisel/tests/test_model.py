@@ -1345,6 +1345,34 @@ class TestModelFloatValidation(unittest.TestCase):
             else:
                 self.fail()
 
+    # All validation modes - error - invalid value "nan"
+    def test_validate_error_nan(self):
+
+        type_ = TYPE_FLOAT
+
+        obj = 'nan'
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'nan' (type 'str'), expected type 'float'")
+            else:
+                self.fail()
+
+    # All validation modes - error - invalid value "inf"
+    def test_validate_error_inf(self):
+
+        type_ = TYPE_FLOAT
+
+        obj = 'inf'
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'inf' (type 'str'), expected type 'float'")
+            else:
+                self.fail()
+
     # All validation modes - error - bool
     def test_validate_error_bool(self):
 

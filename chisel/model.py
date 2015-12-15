@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime
+from math import isnan, isinf
 from uuid import UUID
 
 from .compat import basestring_, iteritems, long_
@@ -552,6 +553,8 @@ class _TypeFloat(object):
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
             try:
                 value_x = float(value)
+                if isnan(value_x) or isinf(value_x):
+                    raise ValueError()
             except:
                 raise ValidationError.member_error(self, value, _member)
         else:
