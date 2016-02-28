@@ -26,8 +26,6 @@ from subprocess import check_call
 
 import chisel
 
-check_call(['make', '-C', os.path.dirname(__file__) or '.', 'build'])
-
 tests_require = []
 
 setup(

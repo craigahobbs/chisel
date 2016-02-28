@@ -163,6 +163,7 @@ _$(strip $(1)): $(strip $(1))$(call LOWER_FN, _$(call PYTHON_NAME_FN, $(if $(str
 endef
 
 # Overridable build rule
+.PHONY: build
 build:
 
 # Generate test rules

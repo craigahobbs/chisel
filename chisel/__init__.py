@@ -22,7 +22,7 @@
 
 # pylint: disable=wrong-import-position
 
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 
 from .action import \
     action, \
