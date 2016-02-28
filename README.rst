@@ -1,14 +1,7 @@
-.. image:: https://raw.githubusercontent.com/craigahobbs/chisel/master/static/image/logo.png
-
-Overview
-========
-
-TODO
-
 License
 =======
 
-Copyright (C) 2012-2015 Craig Hobbs
+Copyright (C) 2012-2016 Craig Hobbs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

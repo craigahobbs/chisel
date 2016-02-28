@@ -32,7 +32,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'chisel'
-copyright = '2012-2015, Craig Hobbs'
+copyright = '2012-2016, Craig Hobbs'
 author = 'Craig Hobbs'
 
 # The short X.Y version.

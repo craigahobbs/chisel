@@ -1,6 +1,6 @@
 # -*- makefile-gmake -*-
 #
-# Copyright (C) 2012-2015 Craig Hobbs
+# Copyright (C) 2012-2016 Craig Hobbs
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,4 +44,4 @@ build:
 	jshint --reporter=unix --config="$(STATIC_SRC)/.jshint" "$(STATIC_SRC)"
 
 clean:
-	rm -rf "$(STATIC_BUILD)"
+	rm -rf "$(STATIC_BUILD)" node_modules
