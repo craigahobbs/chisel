@@ -45,16 +45,6 @@ __UPPER_FN__$(strip $(1))__ := $$(shell echo "$(strip $(1))" | tr "[:lower:]" "[
 endif
 endef
 
-# Function to generate copy rules - src, dst, *command
-define COPY_RULE
-$(strip $(2)): $(strip $(1))
-	mkdir -p "$(dir $(2))"
-	$(if $(3), $(3), cp "$$<" "$$@")
-
-.PHONY: copy
-copy: $(strip $(2))
-endef
-
 # Python version support
 PYTHON_URLS := \
     https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz \
@@ -111,15 +101,8 @@ setup: _setup
 _setup:
 ifneq "$(OS_MAC)" ""
 	brew install \
-		node \
 		openssl \
 		homebrew/dupes/zlib
-	npm install -g \
-		jshint \
-		webpack \
-	npm install \
-		babel-loader \
-		babel-preset-es2015
 else
 	sudo apt-get install -y \
 		build-essential \
@@ -168,9 +151,7 @@ $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(first
 	touch $$@
 
 .PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS)))))
-ifneq "$(strip $(1))" "build"
-    $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))): build
-endif
+$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))): build
 $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))_BUILD)
 $(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))_ENV), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))))
 
@@ -181,10 +162,8 @@ $(strip $(1)): _$(strip $(1))
 _$(strip $(1)): $(strip $(1))$(call LOWER_FN, _$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS)))))
 endef
 
-# Generate build rule
-$(eval $(call ENV_RULE, build, $(BUILD_PIP_ARGS), BUILD_COMMANDS_FN))
-.PHONY: copy
-build: copy
+# Overridable build rule
+build:
 
 # Generate test rules
 define TEST_COMMANDS_FN

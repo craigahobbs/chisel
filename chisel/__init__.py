@@ -22,7 +22,7 @@
 
 # pylint: disable=wrong-import-position
 
-__version__ = '0.9.6'
+__version__ = '0.9.7'
 
 from .action import \
     action, \
@@ -38,8 +38,6 @@ from .app_defs import \
 
 from .doc import \
     DocAction, \
-    DocIndex, \
-    DocRequest, \
     DocPage, \
     Element
 
@@ -57,8 +55,7 @@ from .model import \
 
 from .request import \
     request, \
-    Request, \
-    StaticRequest
+    Request
 
 from .spec import \
     SpecParser, \

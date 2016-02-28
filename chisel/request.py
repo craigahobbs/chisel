@@ -20,12 +20,7 @@
 # SOFTWARE.
 #
 
-import hashlib
-import posixpath
-from pkg_resources import resource_string
-
-from .app_defs import ENVIRON_CTX
-from .compat import func_name, iteritems
+from .compat import func_name
 
 
 def request(_wsgi_callback=None, **kwargs):
@@ -56,53 +51,3 @@ class Request(object):
     def __call__(self, environ, start_response):
         assert self.wsgi_callback is not None, 'must specify wsgi_callback when using Request directly'
         return self.wsgi_callback(environ, start_response)
-
-
-class StaticRequest(Request):
-    __slots__ = ('package', 'resource_name', 'content_type', 'headers', 'content', 'etag')
-
-    EXT_TO_CONTENT_TYPE = {
-        '.css': 'text/css',
-        '.html': 'text/html',
-        '.js': 'application/javascript',
-        '.png': 'image/png',
-        '.txt': 'text/plain',
-    }
-
-    def __init__(self, package, resource_name, content_type=None, headers=None, name=None, urls=None, doc=None):
-        if name is None:
-            name = resource_name
-        if urls is None:
-            urls = (('GET', '/' + posixpath.join(*resource_name.split(posixpath.sep)[1:])),)
-        if doc is None:
-            doc = ('The "{0}" package\'s static resource, "{1}".'.format(package, resource_name),)
-        if content_type is None:
-            content_type = self.EXT_TO_CONTENT_TYPE.get(posixpath.splitext(resource_name)[1].lower(), 'application/octet-stream')
-
-        Request.__init__(self, name=name, urls=urls, doc=doc)
-
-        self.package = package
-        self.resource_name = resource_name
-        self.headers = [(k, v) for k, v in iteritems(headers)] if (headers is not None) else []
-        self.headers.append(('Content-Type', content_type))
-        self.content = None
-        self.etag = None
-
-    def __call__(self, environ, start_response):
-        ctx = environ[ENVIRON_CTX]
-
-        if ctx.app.validate_output or self.content is None:
-            self.content = resource_string(self.package, self.resource_name)
-            md5 = hashlib.md5()
-            md5.update(self.content)
-            self.etag = md5.hexdigest()
-
-        etag = environ.get('HTTP_IF_NONE_MATCH')
-        if not ctx.app.validate_output and etag == self.etag:
-            start_response('304 Not Modified', [])
-            return []
-
-        headers = list(self.headers)
-        headers.append(('ETag', self.etag))
-        start_response('200 OK', headers)
-        return [self.content]

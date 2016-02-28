@@ -24,24 +24,3 @@
 PACKAGE_NAME := chisel
 
 include Makefile.base
-
-# Static source/build dirs
-STATIC_SRC := static
-STATIC_BUILD := $(PACKAGE_NAME)/static
-
-# Helper function to recursively find files from a set of file extensions
-FIND_EXTS_FN = $(shell find $(1) -name "*.$(firstword $(2))" $(foreach X, $(wordlist 2, 100, $(2)),-o -name "*.$(X)"))
-
-# Create the js compile rules
-$(eval $(call COPY_RULE, $(STATIC_SRC)/doc/doc.js, $(STATIC_BUILD)/doc/doc.js, cd $(STATIC_SRC) && webpack))
-
-# Create static copy rules
-STATIC_EXTS = css html png
-$(foreach F, $(call FIND_EXTS_FN, $(STATIC_SRC), $(STATIC_EXTS)), \
-    $(eval $(call COPY_RULE, $(F), $(PACKAGE_NAME)/$(F))))
-
-build:
-	jshint --reporter=unix --config="$(STATIC_SRC)/.jshint" "$(STATIC_SRC)"
-
-clean:
-	rm -rf "$(STATIC_BUILD)" node_modules

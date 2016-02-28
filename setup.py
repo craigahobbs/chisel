@@ -36,37 +36,18 @@ setup(
     author = 'Craig Hobbs',
     author_email = 'craigahobbs@gmail.com',
     description = ('JSON web APIs made dirt simple'),
-    keywords = 'json api server framework',
+    keywords = 'json api wsgi framework',
     url = 'https://github.com/craigahobbs/chisel',
     license = 'MIT',
     classifiers = [
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
     packages = ['chisel'],
-    package_data = {
-        'chisel': [
-            'static/*.html',
-            'static/*.js',
-            'static/doc/*.css',
-            'static/doc/*.js',
-
-            #
-            # The logo and favicon PNGs were generated with the following imagemagick commands:
-            #
-            # convert "http://www.toolstop.co.uk/components/com_virtuemart/shop_image/product/Stanley-1-16-788-Sweetheart-Socket-Chisel-25mm-2.jpg" \
-            #    -flop -bordercolor white -border 150x150 -resize 200x200 -charcoal 4 -transparent white logo.png
-            #
-            # convert logo.png -resize 32x32 favicon.png
-            #
-            'static/image/*.png',
-        ],
-    },
     test_suite='chisel.tests',
     tests_require = tests_require,
     extras_require = {
