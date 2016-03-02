@@ -38,14 +38,15 @@ class Request(object):
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc')
 
     def __init__(self, wsgi_callback=None, name=None, urls=None, doc=None):
+        assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
         self.wsgi_callback = wsgi_callback
         self.name = name if name is not None else func_name(wsgi_callback)
-        self.urls = tuple(((url[0].upper(), url[1]) if isinstance(url, tuple) else (None, url)) for url in urls) \
+        self.urls = tuple(((url[0] and url[0].upper(), url[1]) if isinstance(url, tuple) else (None, url)) for url in urls) \
                     if urls is not None \
                     else ((None, '/' + self.name),)
-        self.doc = [] if doc is None else doc
+        self.doc = () if doc is None else doc
 
-    def onload(self, dummy_app):
+    def onload(self, app):
         pass
 
     def __call__(self, environ, start_response):

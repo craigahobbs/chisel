@@ -22,73 +22,119 @@
 
 import unittest
 
-import chisel
+from chisel import request, Request
 
 
 class TestRequest(unittest.TestCase):
 
-    def setUp(self):
-        self.app = chisel.Application()
+    def test_reqeust(self):
 
-    # Default request decorator
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request)
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, ((None, '/my_request'),))
+        self.assertEqual(req.doc, ())
+        req.onload(None) # called by application
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_name(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, name='foo')
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'foo')
+        self.assertEqual(req.urls, ((None, '/foo'),))
+        self.assertEqual(req.doc, ())
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_urls(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, urls=(('GET', '/bar'), (None, '/bonk'), '/thud'))
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.doc, ())
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_name_and_urls(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, name='foo', urls=(('GET', '/bar'), (None, '/bonk'), '/thud'))
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'foo')
+        self.assertEqual(req.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.doc, ())
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_decorator_doc(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, doc=('doc line 1', 'doc line 2'))
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, ((None, '/my_request'),))
+        self.assertEqual(req.doc, ('doc line 1', 'doc line 2'))
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_none(self):
+
+        try:
+            Request()
+        except AssertionError as exc:
+            self.assertEqual(str(exc), 'must specify either wsgi_callback and/or name')
+        else:
+            self.fail()
+
+        req = Request(name='my_request')
+        self.assertEqual(req.wsgi_callback, None)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, ((None, '/my_request'),))
+        self.assertEqual(req.doc, ())
+        req.onload(None) # called by application
+        try:
+            req({}, lambda status, headers: None)
+        except AssertionError as exc:
+            self.assertEqual(str(exc), 'must specify wsgi_callback when using Request directly')
+        else:
+            self.fail()
+
     def test_decorator(self):
 
-        @chisel.request
+        @request
         def my_request(dummy_environ, dummy_start_response):
-            return []
-        self.assertTrue(isinstance(my_request, chisel.Request))
-        self.app.add_request(my_request)
-        self.assertEqual(my_request({}, lambda x, y: None), [])
+            return ['ok']
+        self.assertTrue(isinstance(my_request, Request))
+        self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
         self.assertEqual(my_request.name, 'my_request')
         self.assertEqual(my_request.urls, ((None, '/my_request'),))
+        self.assertEqual(my_request.doc, ())
 
-    # Request decorator with name
-    def test_decorator_name(self):
+    def test_decorator_complete(self):
 
-        @chisel.request(name='foo')
-        def my_request(dummy_environ, dummy_start_response):
-            return []
-        self.assertTrue(isinstance(my_request, chisel.Request))
-        self.app.add_request(my_request)
-        self.assertEqual(my_request({}, lambda x, y: None), [])
-        self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, ((None, '/foo'),))
-
-    # Request decorator with URLs
-    def test_decorator_urls(self):
-
-        @chisel.request(urls=('/bar', '/thud',))
-        def my_request(dummy_environ, dummy_start_response):
-            return []
-        self.assertTrue(isinstance(my_request, chisel.Request))
-        self.app.add_request(my_request)
-        self.assertEqual(my_request({}, lambda x, y: None), [])
-        self.assertEqual(my_request.name, 'my_request')
-        self.assertEqual(my_request.urls, ((None, '/bar'), (None, '/thud')))
-
-    # Decorator with name and URLs
-    def test_decorator_name_and_urls(self):
-
-        @chisel.request(name='foo', urls=('/bar', '/thud'))
-        def my_request(dummy_environ, dummy_start_response):
-            return []
-        self.assertTrue(isinstance(my_request, chisel.Request))
-        self.app.add_request(my_request)
-        self.assertEqual(my_request({}, lambda x, y: None), [])
-        self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, ((None, '/bar'), (None, '/thud')))
-
-    # Request headers
-    def test_headers(self):
-
-        @chisel.request(name='foo')
+        @request(name='foo', urls=(('GET', '/bar'), (None, '/bonk'), '/thud'), doc=('doc line 1', 'doc line 2'))
         def my_request(environ, start_response):
-            ctx = environ[chisel.ENVIRON_CTX]
-            ctx.add_header('OtherHeader', 'Other Value')
-            start_response('200 OK', (('MyHeader', 'MyValue'),))
-            return ['OK'.encode('utf-8')]
-        self.app.add_request(my_request)
-        status, headers, response = self.app.request('GET', '/foo')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(headers, [('MyHeader', 'MyValue'), ('OtherHeader', 'Other Value')])
-        self.assertEqual(response.decode('utf-8'), 'OK')
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        self.assertTrue(isinstance(my_request, Request))
+        self.assertEqual(my_request.name, 'foo')
+        self.assertEqual(my_request.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(my_request.doc, ('doc line 1', 'doc line 2'))
+        self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
