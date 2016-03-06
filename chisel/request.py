@@ -44,7 +44,7 @@ class Request(object):
         self.urls = tuple(((url[0] and url[0].upper(), url[1]) if isinstance(url, tuple) else (None, url)) for url in urls) \
                     if urls is not None \
                     else ((None, '/' + self.name),)
-        self.doc = () if doc is None else doc
+        self.doc = () if doc is None else tuple(doc)
 
     def onload(self, app):
         pass

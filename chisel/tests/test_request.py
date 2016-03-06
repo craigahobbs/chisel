@@ -60,10 +60,10 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert hasattr(start_response, '__call__')
             return ['ok']
-        req = Request(my_request, urls=(('GET', '/bar'), (None, '/bonk'), '/thud'))
+        req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
         self.assertEqual(req.doc, ())
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 
@@ -73,20 +73,20 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert hasattr(start_response, '__call__')
             return ['ok']
-        req = Request(my_request, name='foo', urls=(('GET', '/bar'), (None, '/bonk'), '/thud'))
+        req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'foo')
-        self.assertEqual(req.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
         self.assertEqual(req.doc, ())
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 
-    def test_decorator_doc(self):
+    def test_request_doc(self):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert hasattr(start_response, '__call__')
             return ['ok']
-        req = Request(my_request, doc=('doc line 1', 'doc line 2'))
+        req = Request(my_request, doc=['doc line 1', 'doc line 2'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, ((None, '/my_request'),))
@@ -118,7 +118,9 @@ class TestRequest(unittest.TestCase):
     def test_decorator(self):
 
         @request
-        def my_request(dummy_environ, dummy_start_response):
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
             return ['ok']
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
@@ -126,15 +128,39 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(my_request.urls, ((None, '/my_request'),))
         self.assertEqual(my_request.doc, ())
 
+    def test_request_subclass(self):
+
+        class MyRequest(Request):
+            __slots__ = ('index',)
+
+            def __init__(self, index):
+                Request.__init__(self, name='MyRequest{0}'.format(index),
+                                 urls=[('GET', '/my-request-{0}'.format(index))],
+                                 doc=['My request number {0}.'.format(index)])
+                self.index = index
+
+            def __call__(self, environ, start_response):
+                # Note: Do NOT call Request __call__ method in a subclass
+                start_response('200 OK', [('Content-Type', 'text/plain')])
+                return ['This is request # {0}'.format(self.index)]
+
+        req = MyRequest(1)
+        self.assertTrue(isinstance(req, Request))
+        self.assertEqual(req.name, 'MyRequest1')
+        self.assertEqual(req.urls, (('GET', '/my-request-1'),))
+        self.assertEqual(req.doc, ('My request number 1.',))
+        req.onload(None) # called by application
+        self.assertEqual(req({}, lambda status, headers: None), ['This is request # 1'])
+
     def test_decorator_complete(self):
 
-        @request(name='foo', urls=(('GET', '/bar'), (None, '/bonk'), '/thud'), doc=('doc line 1', 'doc line 2'))
+        @request(name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'], doc=['doc line 1', 'doc line 2'])
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert hasattr(start_response, '__call__')
             return ['ok']
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, (('GET', '/bar'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(my_request.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
         self.assertEqual(my_request.doc, ('doc line 1', 'doc line 2'))
         self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
