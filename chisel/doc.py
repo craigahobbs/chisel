@@ -155,12 +155,12 @@ class Element(object):
 
     @classmethod
     def _iterate_children_helper(cls, children):
-        if isinstance(children, (list, tuple)):
+        if isinstance(children, Element):
+            yield children
+        elif children is not None:
             for child in children:
                 for subchild in cls._iterate_children_helper(child):
                     yield subchild
-        elif children is not None:
-            yield children
 
 
 def _index_html(environ, requests):
