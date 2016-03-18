@@ -42,8 +42,7 @@ class DocAction(Action):
 # Generate the application's documentation HTML page.
 action {name}
   input
-    # Generate documentation for the specified request name; generate the
-    # documentation index if the request name is not specified.
+    # The request name. If the name is not specified the documentation index is generated.
     optional string name
 
     # Remove navigation links.
@@ -99,7 +98,7 @@ class Element(object):
 
     __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
 
-    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, **attrs):
+    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
         self.name = name
         self.text = text
         self.text_raw = text_raw
@@ -107,12 +106,10 @@ class Element(object):
         self.indent = indent
         self.inline = inline
         self.attrs = attrs
-        self.children = []
+        self.children = children or []
 
-    def add_child(self, name, **kwargs):
-        child = Element(name, **kwargs)
-        self.children.append(child)
-        return child
+    def serialize(self, indent='  '):
+        return ''.join(self.serialize_chunks(indent=indent))
 
     def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
 
@@ -142,8 +139,8 @@ class Element(object):
         if not self.closed and not self.children:
             return
 
-        # Children elements
-        for child in self.children:
+        # Child elements
+        for child in self.iterate_children():
             for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
                 yield chunk
 
@@ -152,8 +149,18 @@ class Element(object):
             yield '\n' + indent * indent_index
         yield '</' + self.name + '>'
 
-    def serialize(self, indent='  '):
-        return ''.join(self.serialize_chunks(indent=indent))
+    def iterate_children(self):
+        for child in self._iterate_children_helper(self.children):
+            yield child
+
+    @classmethod
+    def _iterate_children_helper(cls, children):
+        if isinstance(children, (list, tuple)):
+            for child in children:
+                for subchild in cls._iterate_children_helper(child):
+                    yield subchild
+        elif children is not None:
+            yield children
 
 
 def _index_html(environ, requests):
@@ -165,23 +172,97 @@ def _index_html(environ, requests):
     else:
         title = environ['SERVER_NAME'] + (':' + environ['SERVER_PORT'] if environ['SERVER_NAME'] != 80 else '')
 
-    # Index page header
-    root = Element('html')
-    head = root.add_child('head')
-    head.add_child('meta', closed=False, charset='UTF-8')
-    head.add_child('title', inline=True).add_child(title, text=True)
-    _add_style(head)
-    body = root.add_child('body', _class='chsl-index-body')
-    body.add_child('h1', inline=True).add_child(title, text=True)
+    return Element('html', children=[
+        Element('head', children=[
+            Element('meta', closed=False, charset='UTF-8'),
+            Element('title', inline=True, children=Element(title, text=True)),
+            _style_element()
+        ]),
+        Element('body', _class='chsl-index-body', children=[
+            Element('h1', inline=True, children=Element(title, text=True)),
+            Element('ul', _class='chsl-request-list', children=[
+                Element('li', inline=True, children=[
+                    Element('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name), children=Element(request.name, text=True))
+                ]) for request in requests
+            ])
+        ])
+    ])
 
-    # Action and request links
-    ul_requests = body.add_child('ul', _class='chsl-request-list')
-    for request in requests:
-        li_request = ul_requests.add_child('li', inline=True)
-        li_request.add_child('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name)) \
-                  .add_child(request.name, text=True)
 
-    return root
+def _request_html(environ, request, nonav=False):
+    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+
+    # Find all user types referenced by the action
+    struct_types = {}
+    enum_types = {}
+    typedef_types = {}
+    if isinstance(request, Action):
+        _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
+        _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
+
+    return Element('html', children=[
+        Element('head', children=[
+            Element('meta', closed=False, charset='UTF-8'),
+            Element('title', inline=True, children=Element(request.name, text=True)),
+            _style_element()
+        ]),
+        Element('body', _class='chsl-request-body', children=[
+
+            # Request page header
+            None if nonav else Element('div', _class='chsl-header', children=[
+                Element('a', inline=True, href=doc_root_url, children=Element('Back to documentation index', text=True))
+            ]),
+            Element('h1', inline=True, children=Element(request.name, text=True)),
+            _doc_text(request.doc),
+
+            # Notes
+            Element('div', _class='chsl-notes', children=[
+
+                # Request URLs
+                Element('div', _class='chsl-note', children=[
+                    Element('p', children=[
+                        Element('b', inline=True, children=Element('Note: ', text=True)),
+                        Element('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
+                    ]),
+                    Element('ul', children=[
+                        Element('li', inline=True, children=
+                                Element('a', href=url, children=Element(url if method is None else method + ' ' + url, text=True)))
+                        for method, url in request.urls
+                    ])
+                ]),
+
+                # Non-default response
+                None if not request.wsgi_response else Element('div', _class='chsl-note', children=Element('p', children=[
+                    Element('b', inline=True, children=Element('Note: ', text=True)),
+                    Element('The action has a non-default response. See documentation for details.', text=True)
+                ]))
+            ]),
+
+            # Request input and output structs
+            _struct_section(request.model.input_type, 'h2', 'Input Parameters', 'The action has no input parameters.'),
+            None if request.wsgi_response else [
+                _struct_section(request.model.output_type, 'h2', 'Output Parameters', 'The action has no output parameters.'),
+                _enum_section(request.model.error_type, 'h2', 'Error Codes', 'The action returns no custom error codes.')
+            ],
+
+            # User types
+            None if not typedef_types else [
+                Element('h2', inline=True, children=Element('Typedefs', text=True)),
+                [_typedef_section(typedef_type)
+                 for typedef_type in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower())]
+            ],
+            None if not struct_types else [
+                Element('h2', inline=True, children=Element('Struct Types', text=True)),
+                [_struct_section(struct_type)
+                 for struct_type in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower())]
+            ],
+            None if not enum_types else [
+                Element('h2', inline=True, children=Element('Enum Types', text=True)),
+                [_enum_section(enum_type)
+                 for enum_type in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower())]
+            ]
+        ])
+    ])
 
 
 def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=True):
@@ -204,83 +285,9 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
         _referenced_types(struct_types, enum_types, typedef_types, type_.key_type, top_level=False)
 
 
-def _request_html(environ, request, nonav=False):
-    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
-
-    # Request page header
-    root = Element('html')
-    head = root.add_child('head')
-    head.add_child('meta', closed=False, charset='UTF-8')
-    head.add_child('title', inline=True).add_child(request.name, text=True)
-    _add_style(head)
-    body = root.add_child('body', _class='chsl-request-body')
-    if not nonav:
-        header = body.add_child('div', _class='chsl-header')
-        header.add_child('a', inline=True, href=doc_root_url) \
-              .add_child('Back to documentation index', text=True)
-
-    # Request title
-    body.add_child('h1', inline=True) \
-        .add_child(request.name, text=True)
-    _add_doc_text(body, request.doc)
-
-    # Note for request URLs
-    notes = body.add_child('div', _class='chsl-notes')
-    if request.urls:
-        div_note = notes.add_child('div', _class='chsl-note')
-        p_note = div_note.add_child('p')
-        p_note.add_child('b', inline=True).add_child('Note: ', text=True)
-        p_note.add_child('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
-        ul_urls = div_note.add_child('ul')
-        for method, url in request.urls:
-            ul_urls.add_child('li', inline=True) \
-                   .add_child('a', href=url) \
-                   .add_child(('' if method is None else method + ' ') + url, text=True)
-
-    if isinstance(request, Action):
-        # Note for custom response callback
-        if request.wsgi_response:
-            div_note_response = notes.add_child('div', _class='chsl-note')
-            p_note_response = div_note_response.add_child('p')
-            p_note_response.add_child('b', inline=True).add_child('Note: ', text=True)
-            p_note_response.add_child('The action has a non-default response. See documentation for details.', text=True)
-
-        # Find all user types referenced by the action
-        struct_types = {}
-        enum_types = {}
-        typedef_types = {}
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
-
-        # Request input and output structs
-        _struct_section(body, request.model.input_type, 'h2', 'Input Parameters', 'The action has no input parameters.')
-        if not request.wsgi_response:
-            _struct_section(body, request.model.output_type, 'h2', 'Output Parameters', 'The action has no output parameters.')
-            _enum_section(body, request.model.error_type, 'h2', 'Error Codes', 'The action returns no custom error codes.')
-
-        # User types
-        if typedef_types:
-            body.add_child('h2', inline=True) \
-                .add_child('Typedefs', text=True)
-            for typedef_type in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower()):
-                _typedef_section(body, typedef_type)
-        if struct_types:
-            body.add_child('h2', inline=True) \
-                .add_child('Struct Types', text=True)
-            for struct_type in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower()):
-                _struct_section(body, struct_type)
-        if enum_types:
-            body.add_child('h2', inline=True) \
-                .add_child('Enum Types', text=True)
-            for enum_type in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower()):
-                _enum_section(body, enum_type)
-
-    return root
-
-
-def _add_style(parent):
-    parent.add_child('style', _type='text/css') \
-        .add_child('''\
+def _style_element():
+    return Element('style', _type='text/css', children=[
+        Element('''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
     padding: 0;
@@ -389,37 +396,28 @@ ul.chsl-constraint-list {
 .chsl-emphasis {
     font-style:italic;
 }''', text_raw=True)
+    ])
 
 
-def _user_type_href(type_):
-    return type_.type_name
+def _type_name(type_):
+    text_elem = Element(type_.type_name, text=True, inline=True)
+    return text_elem if not isinstance(type_, (Typedef, TypeStruct, TypeEnum)) else \
+        Element('a', inline=True, href='#' + type_.type_name, children=text_elem)
 
 
-_USER_TYPES = (Typedef, TypeStruct, TypeEnum)
-
-
-def _add_type_name_helper(parent, type_):
-    if isinstance(type_, _USER_TYPES):
-        parent = parent.add_child('a', inline=True, href='#' + _user_type_href(type_))
-    parent.add_child(type_.type_name, text=True, inline=True)
-
-
-def _add_type_name(parent, type_):
+def _type_decl(type_):
     if isinstance(type_, TypeArray):
-        _add_type_name_helper(parent, type_.type)
-        parent.add_child('&nbsp;[]', text_raw=True)
+        return [_type_name(type_.type), Element('&nbsp;[]', text_raw=True)]
     elif isinstance(type_, TypeDict):
-        if not type_.has_default_key_type():
-            _add_type_name_helper(parent, type_.key_type)
-            parent.add_child('&nbsp;:&nbsp;', text_raw=True)
-        _add_type_name_helper(parent, type_.type)
-        parent.add_child('&nbsp;{}', text_raw=True)
+        return [
+            None if type_.has_default_key_type() else [_type_name(type_.key_type), Element('&nbsp;:&nbsp;', text_raw=True)],
+            _type_name(type_.type), Element('&nbsp;{}', text_raw=True)
+        ]
     else:
-        _add_type_name_helper(parent, type_)
+        return _type_name(type_)
 
 
-# Get attribute list - [(lhs, operator, rhs), ...]
-def _attribute_list(attr, value_name, len_name):
+def _type_attributes(attr, value_name, len_name):
     if attr is None:
         return
     if attr.op_gt is not None:
@@ -444,44 +442,32 @@ def _attribute_list(attr, value_name, len_name):
         yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
 
 
-def _add_type_attr_helper(ul_type_attr, lhs, operator, rhs):
-    li_type_attr = ul_type_attr.add_child('li', inline=True)
-    li_type_attr.add_child('span', _class='chsl-emphasis').add_child(lhs, text=True)
-    if operator is not None and rhs is not None:
-        li_type_attr.add_child(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
+def _type_attr_helper(lhs, operator, rhs):
+    return Element('li', inline=True, children=[
+        Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
+        None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
+    ])
 
 
-def _add_type_attr(parent, type_, attr, optional):
-    ul_type_attr = parent.add_child('ul', _class='chsl-constraint-list')
-    if optional:
-        _add_type_attr_helper(ul_type_attr, 'optional', None, None)
+def _type_attr(type_, attr, optional):
     type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
-    for lhs, operator, rhs in _attribute_list(attr, type_name, 'len(' + type_name + ')'):
-        _add_type_attr_helper(ul_type_attr, lhs, operator, rhs)
+    type_attrs = []
+    if optional:
+        type_attrs.append(('optional', None, None))
+    type_attrs.extend(_type_attributes(attr, type_name, 'len(' + type_name + ')'))
     if hasattr(type_, 'key_type'):
-        for lhs, operator, rhs in _attribute_list(type_.key_attr, 'key', 'len(key)'):
-            _add_type_attr_helper(ul_type_attr, lhs, operator, rhs)
+        type_attrs.extend(_type_attributes(type_.key_attr, 'key', 'len(key)'))
     if hasattr(type_, 'type'):
-        for lhs, operator, rhs in _attribute_list(type_.attr, 'elem', 'len(elem)'):
-            _add_type_attr_helper(ul_type_attr, lhs, operator, rhs)
+        type_attrs.extend(_type_attributes(type_.attr, 'elem', 'len(elem)'))
+    if not type_attrs:
+        type_attrs.append(('none', None, None))
 
-    # No constraints?
-    if not ul_type_attr.children:
-        _add_type_attr_helper(ul_type_attr, 'none', None, None)
-
-
-def _add_text(parent, texts):
-    div = None
-    for text in texts:
-        if div is None:
-            div = parent.add_child('div', _class='chsl-text')
-        div.add_child('p') \
-           .add_child(text, text=True)
+    return Element('ul', _class='chsl-constraint-list', children=[
+        _type_attr_helper(lhs, operator, rhs) for lhs, operator, rhs in type_attrs
+    ])
 
 
-def _add_doc_text(parent, doc):
-
-    # Group paragraphs
+def _doc_text(doc):
     paragraphs = []
     lines = []
     for line in doc if isinstance(doc, (list, tuple)) else (line.strip() for line in doc.splitlines()):
@@ -489,106 +475,93 @@ def _add_doc_text(parent, doc):
             lines.append(line)
         else:
             if lines:
-                paragraphs.append(lines)
+                paragraphs.append('\n'.join(lines))
                 lines = []
     if lines:
-        paragraphs.append(lines)
+        paragraphs.append('\n'.join(lines))
 
-    # Add the text DOM elements
-    _add_text(parent, ('\n'.join(lines) for lines in paragraphs))
-
-
-def _typedef_section(parent, type_):
-
-    # Section title
-    parent.add_child('h3', inline=True, _id=_user_type_href(type_)) \
-        .add_child('a', _class='linktarget') \
-        .add_child('typedef ' + type_.type_name, text=True)
-    _add_doc_text(parent, type_.doc)
-
-    # Table header
-    table = parent.add_child('table')
-    tr_header = table.add_child('tr')
-    tr_header.add_child('th', inline=True).add_child('Type', text=True)
-    tr_header.add_child('th', inline=True).add_child('Attributes', text=True)
-
-    # Typedef type/attr rows
-    tr_type = table.add_child('tr')
-    _add_type_name(tr_type.add_child('td', inline=True), type_.type)
-    _add_type_attr(tr_type.add_child('td'), type_.type, type_.attr, False)
+    return None if not paragraphs else Element('div', _class='chsl-text', children=[
+        Element('p', children=Element(paragraph, text=True)) for paragraph in paragraphs
+    ])
 
 
-def _struct_section(parent, type_, title_tag=None, title=None, empty_message=None):
+def _typedef_section(type_):
+    return [
+        Element('h3', inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element('typedef ' + type_.type_name, text=True))),
+        _doc_text(type_.doc),
+        Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Type', text=True)),
+                Element('th', inline=True, children=Element('Attributes', text=True))
+            ]),
+            Element('tr', children=[
+                Element('td', inline=True, children=_type_decl(type_.type)),
+                Element('td', children=_type_attr(type_.type, type_.attr, False))
+            ])
+        ])
+    ]
+
+
+def _struct_section(type_, title_tag=None, title=None, empty_message=None):
     if title_tag is None:
         title_tag = 'h3'
     if title is None:
         title = ('union ' if type_.union else 'struct ') + type_.type_name
     if empty_message is None:
         empty_message = 'The struct is empty.'
+    no_description = not any(member.doc for member in type_.members)
 
-    # Section title
-    parent.add_child(title_tag, inline=True, _id=_user_type_href(type_)) \
-        .add_child('a', _class='linktarget') \
-        .add_child(title, text=True)
-    _add_doc_text(parent, type_.doc)
-
-    # Empty struct?
-    if not type_.members:
-        _add_text(parent, (empty_message,))
-    else:
-        # Has description header?
-        has_description = any(member.doc for member in type_.members)
-
-        # Table header
-        table = parent.add_child('table')
-        tr_header = table.add_child('tr')
-        tr_header.add_child('th', inline=True).add_child('Name', text=True)
-        tr_header.add_child('th', inline=True).add_child('Type', text=True)
-        tr_header.add_child('th', inline=True).add_child('Attributes', text=True)
-        if has_description:
-            tr_header.add_child('th', inline=True).add_child('Description', text=True)
-
-        # Struct member rows
-        for member in type_.members:
-            tr_member = table.add_child('tr')
-            tr_member.add_child('td', inline=True).add_child(member.name, text=True)
-            _add_type_name(tr_member.add_child('td', inline=True), member.type)
-            _add_type_attr(tr_member.add_child('td'), member.type, member.attr, member.optional)
-            if has_description:
-                _add_doc_text(tr_member.add_child('td'), member.doc)
+    return [
+        Element(title_tag, inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element(title, text=True))),
+        _doc_text(type_.doc),
+        _doc_text(empty_message) if not type_.members else [
+            Element('table', children=[
+                Element('tr', children=[
+                    Element('th', inline=True, children=Element('Name', text=True)),
+                    Element('th', inline=True, children=Element('Type', text=True)),
+                    Element('th', inline=True, children=Element('Attributes', text=True)),
+                    None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+                ]),
+                [
+                    Element('tr', children=[
+                        Element('td', inline=True, children=Element(member.name, text=True)),
+                        Element('td', inline=True, children=_type_decl(member.type)),
+                        Element('td', children=_type_attr(member.type, member.attr, member.optional)),
+                        None if no_description else Element('td', children=_doc_text(member.doc))
+                    ]) for member in type_.members
+                ]
+            ])
+        ]
+    ]
 
 
-def _enum_section(parent, type_, title_tag=None, title=None, empty_message=None):
+def _enum_section(type_, title_tag=None, title=None, empty_message=None):
     if title_tag is None:
         title_tag = 'h3'
     if title is None:
         title = 'enum ' + type_.type_name
     if empty_message is None:
         empty_message = 'The enum is empty.'
+    no_description = not any(value.doc for value in type_.values)
 
-    # Section title
-    parent.add_child(title_tag, inline=True, _id=_user_type_href(type_)) \
-        .add_child('a', _class='linktarget') \
-        .add_child(title, text=True)
-    _add_doc_text(parent, type_.doc)
-
-    # Empty enum?
-    if not type_.values:
-        _add_text(parent, (empty_message,))
-    else:
-        # Has description header?
-        has_description = any(value.doc for value in type_.values)
-
-        # Table header
-        table = parent.add_child('table')
-        tr_header = table.add_child('tr')
-        tr_header.add_child('th', inline=True).add_child('Value', text=True)
-        if has_description:
-            tr_header.add_child('th', inline=True).add_child('Description', text=True)
-
-        # Enum value rows
-        for value in type_.values:
-            tr_value = table.add_child('tr')
-            tr_value.add_child('td', inline=True).add_child(value.value, text=True)
-            if has_description:
-                _add_doc_text(tr_value.add_child('td'), value.doc)
+    return [
+        Element(title_tag, inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element(title, text=True))),
+        _doc_text(type_.doc),
+        _doc_text(empty_message) if not type_.values else [
+            Element('table', children=[
+                Element('tr', children=[
+                    Element('th', inline=True, children=Element('Value', text=True)),
+                    None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+                ]),
+                [
+                    Element('tr', children=[
+                        Element('td', inline=True, children=Element(value.value, text=True)),
+                        None if no_description else Element('td', children=_doc_text(value.doc))
+                    ]) for value in type_.values
+                ]
+            ])
+        ]
+    ]

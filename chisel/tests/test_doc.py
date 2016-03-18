@@ -896,12 +896,14 @@ My Union
     # Test doc generation element class
     def test_element(self):
 
-        root = Element('a')
-        elem_b = root.add_child('b', inline=True)
-        elem_b.add_child('Hello!', text=True)
-        elem_b.add_child('span').add_child(' There!', text=True)
-        root.add_child('c', closed=False, foo='bar')
-        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
+        root = Element('a', children=[
+            Element('b', inline=True, children=[
+                Element('Hello!', text=True),
+                Element('span', children=Element(' There!', text=True))
+            ]),
+            Element('c', closed=False, foo='bar'),
+            Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
+        ])
 
         chunks = [
             '<!doctype html>\n',
@@ -944,12 +946,14 @@ My Union
 
     def test_element_indent_empty(self):
 
-        root = Element('a')
-        elem_b = root.add_child('b', inline=True)
-        elem_b.add_child('Hello!', text=True)
-        elem_b.add_child('span').add_child(' There!', text=True)
-        root.add_child('c', closed=False, foo='bar')
-        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
+        root = Element('a', children=[
+            Element('b', inline=True, children=[
+                Element('Hello!', text=True),
+                Element('span', children=Element(' There!', text=True))
+            ]),
+            Element('c', closed=False, foo='bar'),
+            Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
+        ])
 
         content = root.serialize(indent='')
         chunks = list(root.serialize_chunks(indent=''))
@@ -990,12 +994,14 @@ My Union
 
     def test_element_indent_none(self):
 
-        root = Element('a')
-        elem_b = root.add_child('b', inline=True)
-        elem_b.add_child('Hello!', text=True)
-        elem_b.add_child('span').add_child(' There!', text=True)
-        root.add_child('c', closed=False, foo='bar')
-        root.add_child('d', attr1='asdf', _attr2='sdfg').add_child('e')
+        root = Element('a', children=[
+            Element('b', inline=True, children=[
+                Element('Hello!', text=True),
+                Element('span', children=Element(' There!', text=True))
+            ]),
+            Element('c', closed=False, foo='bar'),
+            Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
+        ])
 
         content = root.serialize(indent=None)
         chunks = list(root.serialize_chunks(indent=None))
