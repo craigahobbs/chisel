@@ -106,7 +106,7 @@ class Element(object):
         self.indent = indent
         self.inline = inline
         self.attrs = attrs
-        self.children = children or []
+        self.children = children or None
 
     def serialize(self, indent='  '):
         return ''.join(self.serialize_chunks(indent=indent))
@@ -150,27 +150,25 @@ class Element(object):
         yield '</' + self.name + '>'
 
     def iterate_children(self):
-        for child in self._iterate_children_helper(self.children):
-            yield child
+        if isinstance(self.children, Element):
+            yield self.children
+        elif self.children is not None:
+            for child in self._iterate_children_helper(self.children):
+                yield child
 
     @classmethod
     def _iterate_children_helper(cls, children):
-        if isinstance(children, Element):
-            yield children
-        elif children is not None:
-            for child in children:
+        for child in children:
+            if isinstance(child, Element):
+                yield child
+            elif child is not None:
                 for subchild in cls._iterate_children_helper(child):
                     yield subchild
 
 
 def _index_html(environ, requests):
-    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
-
-    # Index page title
-    if 'HTTP_HOST' in environ:
-        title = environ['HTTP_HOST']
-    else:
-        title = environ['SERVER_NAME'] + (':' + environ['SERVER_PORT'] if environ['SERVER_NAME'] != 80 else '')
+    doc_root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
+    title = environ.get('HTTP_HOST') or environ.get('SERVER_NAME', '-') + ':' + environ.get('SERVER_PORT', '80')
 
     return Element('html', children=[
         Element('head', children=[
@@ -190,7 +188,7 @@ def _index_html(environ, requests):
 
 
 def _request_html(environ, request, nonav=False):
-    doc_root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+    doc_root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
 
     # Find all user types referenced by the action
     struct_types = {}
