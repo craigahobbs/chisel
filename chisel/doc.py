@@ -112,9 +112,7 @@ class Element(object):
         return ''.join(self.serialize_chunks(indent=indent))
 
     def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
-
-        # HTML5
-        if indent_index <= 0:
+        if indent_index == 0:
             yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
@@ -140,21 +138,18 @@ class Element(object):
             return
 
         # Child elements
-        for child in self.iterate_children():
-            for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
+        if isinstance(self.children, Element):
+            for chunk in self.children.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
                 yield chunk
+        elif self.children is not None:
+            for child in self._iterate_children_helper(self.children):
+                for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
+                    yield chunk
 
         # Element close
         if indent is not None and not inline and not self.inline:
             yield '\n' + indent * indent_index
         yield '</' + self.name + '>'
-
-    def iterate_children(self):
-        if isinstance(self.children, Element):
-            yield self.children
-        elif self.children is not None:
-            for child in self._iterate_children_helper(self.children):
-                yield child
 
     @classmethod
     def _iterate_children_helper(cls, children):
