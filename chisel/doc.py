@@ -435,13 +435,6 @@ def _type_attributes(attr, value_name, len_name):
         yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
 
 
-def _type_attr_helper(lhs, operator, rhs):
-    return Element('li', inline=True, children=[
-        Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
-        None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
-    ])
-
-
 def _type_attr(type_, attr, optional):
     type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
     type_attrs = []
@@ -456,7 +449,10 @@ def _type_attr(type_, attr, optional):
         type_attrs.append(('none', None, None))
 
     return Element('ul', _class='chsl-constraint-list', children=[
-        _type_attr_helper(lhs, operator, rhs) for lhs, operator, rhs in type_attrs
+        Element('li', inline=True, children=[
+            Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
+            None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
+        ]) for lhs, operator, rhs in type_attrs
     ])
 
 
@@ -466,10 +462,9 @@ def _doc_text(doc):
     for line in doc if isinstance(doc, (list, tuple)) else (line.strip() for line in doc.splitlines()):
         if line:
             lines.append(line)
-        else:
-            if lines:
-                paragraphs.append('\n'.join(lines))
-                lines = []
+        elif lines:
+            paragraphs.append('\n'.join(lines))
+            lines = []
     if lines:
         paragraphs.append('\n'.join(lines))
 
