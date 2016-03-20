@@ -279,8 +279,7 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
 
 
 def _style_element():
-    return Element('style', _type='text/css', children=[
-        Element('''\
+    return Element('style', _type='text/css', children=Element('''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
     padding: 0;
@@ -388,8 +387,7 @@ ul.chsl-constraint-list {
 }
 .chsl-emphasis {
     font-style:italic;
-}''', text_raw=True)
-    ])
+}''', text_raw=True))
 
 
 def _type_name(type_):
