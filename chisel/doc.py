@@ -509,24 +509,22 @@ def _struct_section(type_, title_tag=None, title=None, empty_message=None):
         Element(title_tag, inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element(title, text=True))),
         _doc_text(type_.doc),
-        _doc_text(empty_message) if not type_.members else [
-            Element('table', children=[
+        _doc_text(empty_message) if not type_.members else Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Name', text=True)),
+                Element('th', inline=True, children=Element('Type', text=True)),
+                Element('th', inline=True, children=Element('Attributes', text=True)),
+                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+            ]),
+            [
                 Element('tr', children=[
-                    Element('th', inline=True, children=Element('Name', text=True)),
-                    Element('th', inline=True, children=Element('Type', text=True)),
-                    Element('th', inline=True, children=Element('Attributes', text=True)),
-                    None if no_description else Element('th', inline=True, children=Element('Description', text=True))
-                ]),
-                [
-                    Element('tr', children=[
-                        Element('td', inline=True, children=Element(member.name, text=True)),
-                        Element('td', inline=True, children=_type_decl(member.type)),
-                        Element('td', children=_type_attr(member.type, member.attr, member.optional)),
-                        None if no_description else Element('td', children=_doc_text(member.doc))
-                    ]) for member in type_.members
-                ]
-            ])
-        ]
+                    Element('td', inline=True, children=Element(member.name, text=True)),
+                    Element('td', inline=True, children=_type_decl(member.type)),
+                    Element('td', children=_type_attr(member.type, member.attr, member.optional)),
+                    None if no_description else Element('td', children=_doc_text(member.doc))
+                ]) for member in type_.members
+            ]
+        ])
     ]
 
 
@@ -543,18 +541,16 @@ def _enum_section(type_, title_tag=None, title=None, empty_message=None):
         Element(title_tag, inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element(title, text=True))),
         _doc_text(type_.doc),
-        _doc_text(empty_message) if not type_.values else [
-            Element('table', children=[
+        _doc_text(empty_message) if not type_.values else Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Value', text=True)),
+                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+            ]),
+            [
                 Element('tr', children=[
-                    Element('th', inline=True, children=Element('Value', text=True)),
-                    None if no_description else Element('th', inline=True, children=Element('Description', text=True))
-                ]),
-                [
-                    Element('tr', children=[
-                        Element('td', inline=True, children=Element(value.value, text=True)),
-                        None if no_description else Element('td', children=_doc_text(value.doc))
-                    ]) for value in type_.values
-                ]
-            ])
-        ]
+                    Element('td', inline=True, children=Element(value.value, text=True)),
+                    None if no_description else Element('td', children=_doc_text(value.doc))
+                ]) for value in type_.values
+            ]
+        ])
     ]
