@@ -106,7 +106,7 @@ class Element(object):
         self.indent = indent
         self.inline = inline
         self.attrs = attrs
-        self.children = children or None
+        self.children = children
 
     def serialize(self, indent='  '):
         return ''.join(self.serialize_chunks(indent=indent))
@@ -232,27 +232,27 @@ def _request_html(environ, request, nonav=False):
             ]),
 
             # Request input and output structs
-            _struct_section(request.model.input_type, 'h2', 'Input Parameters', 'The action has no input parameters.'),
+            _struct_section(request.model.input_type, 'h2', 'Input Parameters', ['The action has no input parameters.']),
             None if request.wsgi_response else [
-                _struct_section(request.model.output_type, 'h2', 'Output Parameters', 'The action has no output parameters.'),
-                _enum_section(request.model.error_type, 'h2', 'Error Codes', 'The action returns no custom error codes.')
+                _struct_section(request.model.output_type, 'h2', 'Output Parameters', ['The action has no output parameters.']),
+                _enum_section(request.model.error_type, 'h2', 'Error Codes', ['The action returns no custom error codes.'])
             ],
 
             # User types
             None if not typedef_types else [
                 Element('h2', inline=True, children=Element('Typedefs', text=True)),
-                [_typedef_section(typedef_type)
-                 for typedef_type in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower())]
+                [_typedef_section(type_)
+                 for type_ in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower())]
             ],
             None if not struct_types else [
                 Element('h2', inline=True, children=Element('Struct Types', text=True)),
-                [_struct_section(struct_type)
-                 for struct_type in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower())]
+                [_struct_section(type_, 'h3', ('union ' if type_.union else 'struct ') + type_.type_name, ['The struct is empty.'])
+                 for type_ in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower())]
             ],
             None if not enum_types else [
                 Element('h2', inline=True, children=Element('Enum Types', text=True)),
-                [_enum_section(enum_type)
-                 for enum_type in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower())]
+                [_enum_section(type_, 'h3', 'enum ' + type_.type_name, ['The enum is empty.'])
+                 for type_ in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower())]
             ]
         ])
     ])
@@ -276,6 +276,157 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
     elif isinstance(type_, TypeDict):
         _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
         _referenced_types(struct_types, enum_types, typedef_types, type_.key_type, top_level=False)
+
+
+def _doc_text(doc):
+    if doc is None:
+        return None
+    elif isinstance(doc, str):
+        doc = (line.strip() for line in doc.splitlines())
+
+    # Join lines separated by one or more blank lines into paragraphs
+    paragraphs = []
+    lines = []
+    for line in doc:
+        if line:
+            lines.append(line)
+        elif lines:
+            paragraphs.append('\n'.join(lines))
+            lines = []
+    if lines:
+        paragraphs.append('\n'.join(lines))
+
+    return None if not paragraphs else Element('div', _class='chsl-text', children=[
+        Element('p', children=Element(paragraph, text=True)) for paragraph in paragraphs
+    ])
+
+
+def _type_name(type_):
+    text_elem = Element(type_.type_name, text=True, inline=True)
+    return text_elem if not isinstance(type_, (Typedef, TypeStruct, TypeEnum)) else \
+        Element('a', inline=True, href='#' + type_.type_name, children=text_elem)
+
+
+def _type_decl(type_):
+    if isinstance(type_, TypeArray):
+        return [_type_name(type_.type), Element('&nbsp;[]', text_raw=True)]
+    elif isinstance(type_, TypeDict):
+        return [
+            None if type_.has_default_key_type() else [_type_name(type_.key_type), Element('&nbsp;:&nbsp;', text_raw=True)],
+            _type_name(type_.type), Element('&nbsp;{}', text_raw=True)
+        ]
+    else:
+        return _type_name(type_)
+
+
+def _type_attr_helper(attr, value_name, len_name):
+    if attr is None:
+        return
+    if attr.op_gt is not None:
+        yield (value_name, '>', str(JsonFloat(attr.op_gt, 6)))
+    if attr.op_gte is not None:
+        yield (value_name, '>=', str(JsonFloat(attr.op_gte, 6)))
+    if attr.op_lt is not None:
+        yield (value_name, '<', str(JsonFloat(attr.op_lt, 6)))
+    if attr.op_lte is not None:
+        yield (value_name, '<=', str(JsonFloat(attr.op_lte, 6)))
+    if attr.op_eq is not None:
+        yield (value_name, '==', str(JsonFloat(attr.op_eq, 6)))
+    if attr.op_len_gt is not None:
+        yield (len_name, '>', str(JsonFloat(attr.op_len_gt, 6)))
+    if attr.op_len_gte is not None:
+        yield (len_name, '>=', str(JsonFloat(attr.op_len_gte, 6)))
+    if attr.op_len_lt is not None:
+        yield (len_name, '<', str(JsonFloat(attr.op_len_lt, 6)))
+    if attr.op_len_lte is not None:
+        yield (len_name, '<=', str(JsonFloat(attr.op_len_lte, 6)))
+    if attr.op_len_eq is not None:
+        yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
+
+
+def _type_attr(type_, attr, optional):
+    type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
+    type_attrs = []
+    if optional:
+        type_attrs.append(('optional', None, None))
+    type_attrs.extend(_type_attr_helper(attr, type_name, 'len(' + type_name + ')'))
+    if hasattr(type_, 'key_type'):
+        type_attrs.extend(_type_attr_helper(type_.key_attr, 'key', 'len(key)'))
+    if hasattr(type_, 'type'):
+        type_attrs.extend(_type_attr_helper(type_.attr, 'elem', 'len(elem)'))
+    if not type_attrs:
+        type_attrs.append(('none', None, None))
+
+    return Element('ul', _class='chsl-constraint-list', children=[
+        Element('li', inline=True, children=[
+            Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
+            None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
+        ]) for lhs, operator, rhs in type_attrs
+    ])
+
+
+def _typedef_section(type_):
+    return [
+        Element('h3', inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element('typedef ' + type_.type_name, text=True))),
+        _doc_text(type_.doc),
+        Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Type', text=True)),
+                Element('th', inline=True, children=Element('Attributes', text=True))
+            ]),
+            Element('tr', children=[
+                Element('td', inline=True, children=_type_decl(type_.type)),
+                Element('td', children=_type_attr(type_.type, type_.attr, False))
+            ])
+        ])
+    ]
+
+
+def _struct_section(type_, title_tag, title, empty_doc):
+    no_description = not any(member.doc for member in type_.members)
+    return [
+        Element(title_tag, inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element(title, text=True))),
+        _doc_text(type_.doc),
+        _doc_text(empty_doc) if not type_.members else Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Name', text=True)),
+                Element('th', inline=True, children=Element('Type', text=True)),
+                Element('th', inline=True, children=Element('Attributes', text=True)),
+                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+            ]),
+            [
+                Element('tr', children=[
+                    Element('td', inline=True, children=Element(member.name, text=True)),
+                    Element('td', inline=True, children=_type_decl(member.type)),
+                    Element('td', children=_type_attr(member.type, member.attr, member.optional)),
+                    None if no_description else Element('td', children=_doc_text(member.doc))
+                ]) for member in type_.members
+            ]
+        ])
+    ]
+
+
+def _enum_section(type_, title_tag, title, empty_doc):
+    no_description = not any(value.doc for value in type_.values)
+    return [
+        Element(title_tag, inline=True, _id=type_.type_name,
+                children=Element('a', _class='linktarget', children=Element(title, text=True))),
+        _doc_text(type_.doc),
+        _doc_text(empty_doc) if not type_.values else Element('table', children=[
+            Element('tr', children=[
+                Element('th', inline=True, children=Element('Value', text=True)),
+                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
+            ]),
+            [
+                Element('tr', children=[
+                    Element('td', inline=True, children=Element(value.value, text=True)),
+                    None if no_description else Element('td', children=_doc_text(value.doc))
+                ]) for value in type_.values
+            ]
+        ])
+    ]
 
 
 def _style_element():
@@ -388,162 +539,3 @@ ul.chsl-constraint-list {
 .chsl-emphasis {
     font-style:italic;
 }''', text_raw=True))
-
-
-def _type_name(type_):
-    text_elem = Element(type_.type_name, text=True, inline=True)
-    return text_elem if not isinstance(type_, (Typedef, TypeStruct, TypeEnum)) else \
-        Element('a', inline=True, href='#' + type_.type_name, children=text_elem)
-
-
-def _type_decl(type_):
-    if isinstance(type_, TypeArray):
-        return [_type_name(type_.type), Element('&nbsp;[]', text_raw=True)]
-    elif isinstance(type_, TypeDict):
-        return [
-            None if type_.has_default_key_type() else [_type_name(type_.key_type), Element('&nbsp;:&nbsp;', text_raw=True)],
-            _type_name(type_.type), Element('&nbsp;{}', text_raw=True)
-        ]
-    else:
-        return _type_name(type_)
-
-
-def _type_attributes(attr, value_name, len_name):
-    if attr is None:
-        return
-    if attr.op_gt is not None:
-        yield (value_name, '>', str(JsonFloat(attr.op_gt, 6)))
-    if attr.op_gte is not None:
-        yield (value_name, '>=', str(JsonFloat(attr.op_gte, 6)))
-    if attr.op_lt is not None:
-        yield (value_name, '<', str(JsonFloat(attr.op_lt, 6)))
-    if attr.op_lte is not None:
-        yield (value_name, '<=', str(JsonFloat(attr.op_lte, 6)))
-    if attr.op_eq is not None:
-        yield (value_name, '==', str(JsonFloat(attr.op_eq, 6)))
-    if attr.op_len_gt is not None:
-        yield (len_name, '>', str(JsonFloat(attr.op_len_gt, 6)))
-    if attr.op_len_gte is not None:
-        yield (len_name, '>=', str(JsonFloat(attr.op_len_gte, 6)))
-    if attr.op_len_lt is not None:
-        yield (len_name, '<', str(JsonFloat(attr.op_len_lt, 6)))
-    if attr.op_len_lte is not None:
-        yield (len_name, '<=', str(JsonFloat(attr.op_len_lte, 6)))
-    if attr.op_len_eq is not None:
-        yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
-
-
-def _type_attr(type_, attr, optional):
-    type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
-    type_attrs = []
-    if optional:
-        type_attrs.append(('optional', None, None))
-    type_attrs.extend(_type_attributes(attr, type_name, 'len(' + type_name + ')'))
-    if hasattr(type_, 'key_type'):
-        type_attrs.extend(_type_attributes(type_.key_attr, 'key', 'len(key)'))
-    if hasattr(type_, 'type'):
-        type_attrs.extend(_type_attributes(type_.attr, 'elem', 'len(elem)'))
-    if not type_attrs:
-        type_attrs.append(('none', None, None))
-
-    return Element('ul', _class='chsl-constraint-list', children=[
-        Element('li', inline=True, children=[
-            Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
-            None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
-        ]) for lhs, operator, rhs in type_attrs
-    ])
-
-
-def _doc_text(doc):
-    paragraphs = []
-    lines = []
-    for line in doc if isinstance(doc, (list, tuple)) else (line.strip() for line in doc.splitlines()):
-        if line:
-            lines.append(line)
-        elif lines:
-            paragraphs.append('\n'.join(lines))
-            lines = []
-    if lines:
-        paragraphs.append('\n'.join(lines))
-
-    return None if not paragraphs else Element('div', _class='chsl-text', children=[
-        Element('p', children=Element(paragraph, text=True)) for paragraph in paragraphs
-    ])
-
-
-def _typedef_section(type_):
-    return [
-        Element('h3', inline=True, _id=type_.type_name,
-                children=Element('a', _class='linktarget', children=Element('typedef ' + type_.type_name, text=True))),
-        _doc_text(type_.doc),
-        Element('table', children=[
-            Element('tr', children=[
-                Element('th', inline=True, children=Element('Type', text=True)),
-                Element('th', inline=True, children=Element('Attributes', text=True))
-            ]),
-            Element('tr', children=[
-                Element('td', inline=True, children=_type_decl(type_.type)),
-                Element('td', children=_type_attr(type_.type, type_.attr, False))
-            ])
-        ])
-    ]
-
-
-def _struct_section(type_, title_tag=None, title=None, empty_message=None):
-    if title_tag is None:
-        title_tag = 'h3'
-    if title is None:
-        title = ('union ' if type_.union else 'struct ') + type_.type_name
-    if empty_message is None:
-        empty_message = 'The struct is empty.'
-    no_description = not any(member.doc for member in type_.members)
-
-    return [
-        Element(title_tag, inline=True, _id=type_.type_name,
-                children=Element('a', _class='linktarget', children=Element(title, text=True))),
-        _doc_text(type_.doc),
-        _doc_text(empty_message) if not type_.members else Element('table', children=[
-            Element('tr', children=[
-                Element('th', inline=True, children=Element('Name', text=True)),
-                Element('th', inline=True, children=Element('Type', text=True)),
-                Element('th', inline=True, children=Element('Attributes', text=True)),
-                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
-            ]),
-            [
-                Element('tr', children=[
-                    Element('td', inline=True, children=Element(member.name, text=True)),
-                    Element('td', inline=True, children=_type_decl(member.type)),
-                    Element('td', children=_type_attr(member.type, member.attr, member.optional)),
-                    None if no_description else Element('td', children=_doc_text(member.doc))
-                ]) for member in type_.members
-            ]
-        ])
-    ]
-
-
-def _enum_section(type_, title_tag=None, title=None, empty_message=None):
-    if title_tag is None:
-        title_tag = 'h3'
-    if title is None:
-        title = 'enum ' + type_.type_name
-    if empty_message is None:
-        empty_message = 'The enum is empty.'
-    no_description = not any(value.doc for value in type_.values)
-
-    return [
-        Element(title_tag, inline=True, _id=type_.type_name,
-                children=Element('a', _class='linktarget', children=Element(title, text=True))),
-        _doc_text(type_.doc),
-        _doc_text(empty_message) if not type_.values else Element('table', children=[
-            Element('tr', children=[
-                Element('th', inline=True, children=Element('Value', text=True)),
-                None if no_description else Element('th', inline=True, children=Element('Description', text=True))
-            ]),
-            [
-                Element('tr', children=[
-                    Element('td', inline=True, children=Element(value.value, text=True)),
-                    None if no_description else Element('td', children=_doc_text(value.doc))
-                ]) for value in type_.values
-            ]
-        ])
-    ]
