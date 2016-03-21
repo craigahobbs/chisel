@@ -34,11 +34,10 @@ class DocAction(Action):
 
     __slots__ = ()
 
-    def __init__(self, name=None, urls=None):
-        if name is None:
-            name = 'doc'
-        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True,
-                        spec='''\
+    def __init__(self, name='doc', urls=None):
+        if urls is None:
+            urls = (('GET', '/' + name),)
+        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
   input
@@ -72,17 +71,15 @@ class DocPage(Action):
     __slots__ = ('request')
 
     def __init__(self, request, name=None, urls=None):
-        request_desc = 'action' if isinstance(request, Action) else 'request'
         request_name = request.name
         if name is None:
-            name = 'doc_' + request_desc + '_' + request_name
+            name = 'doc_' + request_name
         if urls is None:
-            urls = ('/doc/' + request_desc + '/' + request_name,)
-        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True,
-                        spec='''\
-# Documentation page for {request_desc} {request_name}.
+            urls = (('GET', '/doc/' + request_name),)
+        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True, spec='''\
+# Documentation page for {request_name}.
 action {name}
-'''.format(name=name, request_desc=request_desc, request_name=request_name))
+'''.format(name=name, request_name=request_name))
         self.request = request
 
     def _action_callback(self, ctx, dummy_req):
@@ -162,7 +159,7 @@ class Element(object):
 
 
 def _index_html(environ, requests):
-    doc_root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
+    root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
     title = environ.get('HTTP_HOST') or environ.get('SERVER_NAME', '-') + ':' + environ.get('SERVER_PORT', '80')
 
     return Element('html', children=[
@@ -174,16 +171,17 @@ def _index_html(environ, requests):
         Element('body', _class='chsl-index-body', children=[
             Element('h1', inline=True, children=Element(title, text=True)),
             Element('ul', _class='chsl-request-list', children=[
-                Element('li', inline=True, children=[
-                    Element('a', href=doc_root_url + '?name=' + urllib_parse_quote(request.name), children=Element(request.name, text=True))
-                ]) for request in requests
+                Element('li', inline=True, children=
+                        Element('a', href=root_url + '?name=' + urllib_parse_quote(request.name), children=
+                                Element(request.name, text=True)))
+                for request in requests
             ])
         ])
     ])
 
 
 def _request_html(environ, request, nonav=False):
-    doc_root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
+    root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
 
     # Find all user types referenced by the action
     struct_types = {}
@@ -203,7 +201,7 @@ def _request_html(environ, request, nonav=False):
 
             # Request page header
             None if nonav else Element('div', _class='chsl-header', children=[
-                Element('a', inline=True, href=doc_root_url, children=Element('Back to documentation index', text=True))
+                Element('a', inline=True, href=root_url, children=Element('Back to documentation index', text=True))
             ]),
             Element('h1', inline=True, children=Element(request.name, text=True)),
             _doc_text(request.doc),
@@ -232,10 +230,10 @@ def _request_html(environ, request, nonav=False):
             ]),
 
             # Request input and output structs
-            _struct_section(request.model.input_type, 'h2', 'Input Parameters', ['The action has no input parameters.']),
+            _struct_section(request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
             None if request.wsgi_response else [
-                _struct_section(request.model.output_type, 'h2', 'Output Parameters', ['The action has no output parameters.']),
-                _enum_section(request.model.error_type, 'h2', 'Error Codes', ['The action returns no custom error codes.'])
+                _struct_section(request.model.output_type, 'h2', 'Output Parameters', ('The action has no output parameters.',)),
+                _enum_section(request.model.error_type, 'h2', 'Error Codes', ('The action returns no custom error codes.',))
             ],
 
             # User types
@@ -246,12 +244,12 @@ def _request_html(environ, request, nonav=False):
             ],
             None if not struct_types else [
                 Element('h2', inline=True, children=Element('Struct Types', text=True)),
-                [_struct_section(type_, 'h3', ('union ' if type_.union else 'struct ') + type_.type_name, ['The struct is empty.'])
+                [_struct_section(type_, 'h3', ('union ' if type_.union else 'struct ') + type_.type_name, ('The struct is empty.',))
                  for type_ in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower())]
             ],
             None if not enum_types else [
                 Element('h2', inline=True, children=Element('Enum Types', text=True)),
-                [_enum_section(type_, 'h3', 'enum ' + type_.type_name, ['The enum is empty.'])
+                [_enum_section(type_, 'h3', 'enum ' + type_.type_name, ('The enum is empty.',))
                  for type_ in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower())]
             ]
         ])

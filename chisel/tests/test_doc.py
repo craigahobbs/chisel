@@ -1177,14 +1177,14 @@ ul.chsl-constraint-list {
     <h1>localhost:8080</h1>
     <ul class="chsl-request-list">
       <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=doc_action_my_action">doc_action_my_action</a></li>
+      <li><a href="/doc?name=doc_my_action">doc_my_action</a></li>
     </ul>
   </body>
 </html>'''
         self.assertEqual(html_expected, html)
 
         environ = dict(self._environ)
-        environ['QUERY_STRING'] = 'name=doc_action_my_action'
+        environ['QUERY_STRING'] = 'name=doc_my_action'
         status, dummy_headers, response = app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
@@ -1194,7 +1194,7 @@ ul.chsl-constraint-list {
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>doc_action_my_action</title>
+    <title>doc_my_action</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -1310,10 +1310,10 @@ ul.chsl-constraint-list {
     <div class="chsl-header">
       <a href="/doc">Back to documentation index</a>
     </div>
-    <h1>doc_action_my_action</h1>
+    <h1>doc_my_action</h1>
     <div class="chsl-text">
       <p>
-Documentation page for action my_action.
+Documentation page for my_action.
       </p>
     </div>
     <div class="chsl-notes">
@@ -1323,7 +1323,7 @@ Documentation page for action my_action.
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/doc/action/my_action">/doc/action/my_action</a></li>
+          <li><a href="/doc/my_action">GET /doc/my_action</a></li>
         </ul>
       </div>
       <div class="chsl-note">
@@ -1333,7 +1333,7 @@ The action has a non-default response. See documentation for details.
         </p>
       </div>
     </div>
-    <h2 id="doc_action_my_action_input"><a class="linktarget">Input Parameters</a></h2>
+    <h2 id="doc_my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
       <p>
 The action has no input parameters.
@@ -1343,7 +1343,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc/action/my_action', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc/my_action', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)
