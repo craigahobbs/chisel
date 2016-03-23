@@ -258,3 +258,10 @@ class TestUrl(unittest.TestCase):
         obj = {'a': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e')}
         query_string = 'a=7da81f83-a656-42f1-aeb3-ab207809fb0e'
         self.assertEqual(encode_query_string(obj), query_string)
+
+    # Test bool query string encoding
+    def test_encode_query_string_null(self):
+
+        obj = {'a': None}
+        query_string = 'a=null'
+        self.assertEqual(encode_query_string(obj), query_string)

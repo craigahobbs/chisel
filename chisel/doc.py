@@ -342,11 +342,13 @@ def _type_attr_helper(attr, value_name, len_name):
         yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
 
 
-def _type_attr(type_, attr, optional):
+def _type_attr(type_, attr, optional, nullable):
     type_name = 'array' if isinstance(type_, TypeArray) else ('dict' if isinstance(type_, TypeDict) else 'value')
     type_attrs = []
     if optional:
         type_attrs.append(('optional', None, None))
+    if nullable:
+        type_attrs.append(('nullable', None, None))
     type_attrs.extend(_type_attr_helper(attr, type_name, 'len(' + type_name + ')'))
     if hasattr(type_, 'key_type'):
         type_attrs.extend(_type_attr_helper(type_.key_attr, 'key', 'len(key)'))
@@ -375,7 +377,7 @@ def _typedef_section(type_):
             ]),
             Element('tr', children=[
                 Element('td', inline=True, children=_type_decl(type_.type)),
-                Element('td', children=_type_attr(type_.type, type_.attr, False))
+                Element('td', children=_type_attr(type_.type, type_.attr, False, False))
             ])
         ])
     ]
@@ -398,7 +400,7 @@ def _struct_section(type_, title_tag, title, empty_doc):
                 Element('tr', children=[
                     Element('td', inline=True, children=Element(member.name, text=True)),
                     Element('td', inline=True, children=_type_decl(member.type)),
-                    Element('td', children=_type_attr(member.type, member.attr, member.optional)),
+                    Element('td', children=_type_attr(member.type, member.attr, member.optional, member.nullable)),
                     None if no_description else Element('td', children=_doc_text(member.doc))
                 ]) for member in type_.members
             ]

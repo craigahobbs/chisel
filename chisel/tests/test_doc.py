@@ -84,12 +84,12 @@ struct MyStruct
     #
     # Another paragraph
     #
-    int(> 5) member1
+    optional int(> 5) member1
 
     # My float member
-    float(< 6.5) member2
+    nullable float(< 6.5) member2
 
-    bool member3
+    optional nullable bool member3
     string(len > 0) member4
     datetime member5
     MyEnum member6
@@ -506,6 +506,7 @@ Another paragraph
         <td>int</td>
         <td>
           <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">optional</span></li>
             <li><span class="chsl-emphasis">value</span> &gt; 5</li>
           </ul>
         </td>
@@ -526,6 +527,7 @@ Another paragraph
         <td>float</td>
         <td>
           <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">nullable</span></li>
             <li><span class="chsl-emphasis">value</span> &lt; 6.5</li>
           </ul>
         </td>
@@ -542,7 +544,8 @@ My float member
         <td>bool</td>
         <td>
           <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
+            <li><span class="chsl-emphasis">optional</span></li>
+            <li><span class="chsl-emphasis">nullable</span></li>
           </ul>
         </td>
         <td>

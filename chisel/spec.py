@@ -95,7 +95,7 @@ class SpecParser(object):
                        r')' \
                        r'\s+(?P<id>' + _RE_PART_ID + r')'
     _RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
-    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
+    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
     _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 
     # Built-in types
@@ -426,6 +426,7 @@ class SpecParser(object):
             # Struct member?
             elif match_member:
                 optional = match_member.group('optional') is not None
+                nullable = match_member.group('nullable') is not None
                 member_name = match_member.group('id')
 
                 # Not in a struct scope?
@@ -438,7 +439,7 @@ class SpecParser(object):
                     self._error("Redefinition of member '" + member_name + "'")
 
                 # Create the member
-                member = self._type.add_member(member_name, None, optional, None, doc=self._doc)
+                member = self._type.add_member(member_name, None, optional=optional, nullable=nullable, attr=None, doc=self._doc)
                 self._parse_typedef(member, 'type', 'attr', match_member)
 
                 self._doc = []

@@ -272,12 +272,13 @@ class Typedef(object):
 
 # Struct member
 class StructMember(object):
-    __slots__ = ('name', 'type', 'optional', 'attr', 'doc')
+    __slots__ = ('name', 'type', 'optional', 'nullable', 'attr', 'doc')
 
-    def __init__(self, name, type_, optional=False, attr=None, doc=None):
+    def __init__(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
         self.name = name
         self.type = type_
         self.optional = optional
+        self.nullable = nullable
         self.attr = attr
         self.doc = [] if doc is None else doc
 
@@ -293,8 +294,8 @@ class TypeStruct(object):
         self._members_dict = {}
         self.doc = [] if doc is None else doc
 
-    def add_member(self, name, type_, optional=False, attr=None, doc=None):
-        member = StructMember(name, type_, optional or self.union, attr, doc)
+    def add_member(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
+        member = StructMember(name, type_, optional or self.union, nullable, attr, doc)
         self.members.append(member)
         self._members_dict[name] = member
         return member
@@ -328,9 +329,13 @@ class TypeStruct(object):
             member = members_dict.get(member_name)
             if member is None:
                 raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, member_name)) + "'")
-            member_value_x = members_dict[member_name].type.validate(member_value, mode, member_path)
-            if member.attr is not None:
-                member.attr.validate(member_value_x, member_path)
+            if member.nullable and (member_value is None or \
+                    (mode == VALIDATE_QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
+                member_value_x = None
+            else:
+                member_value_x = member.type.validate(member_value, mode, member_path)
+                if member.attr is not None:
+                    member.attr.validate(member_value_x, member_path)
             if value_copy is not None:
                 value_copy[member_name] = member_value_x
 
