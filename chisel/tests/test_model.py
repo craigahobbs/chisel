@@ -566,6 +566,42 @@ class TestModelStructValidation(unittest.TestCase):
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': None})
 
+    # All validation modes - nullable member with attributes present
+    def test_validation_nullable_attr(self):
+
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_INT, nullable=True, attr=chisel.model.StructMemberAttributes(op_lt=5))
+
+        obj = {'a': 7, 'b': 4}
+        for mode in ALL_VALIDATION_MODES:
+            obj2 = type_.validate(obj, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(obj is obj2)
+            else:
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': 4})
+
+        obj = {'a': 7, 'b': 5}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 5 (type 'int') for member 'b' [< 5]")
+            else:
+                self.fail()
+
+        obj = {'a': 7, 'b': None}
+        for mode in ALL_VALIDATION_MODES:
+            obj2 = type_.validate(obj, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(obj is obj2)
+            else:
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': None})
+
     # All validation modes - nullable member present and 'null' string for non-string member
     def test_validation_nullable_present_null_string(self): # pylint: disable=invalid-name
 
