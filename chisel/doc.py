@@ -223,17 +223,21 @@ def _request_html(environ, request, nonav=False):
                 ]),
 
                 # Non-default response
-                None if not request.wsgi_response else Element('div', _class='chsl-note', children=Element('p', children=[
-                    Element('b', inline=True, children=Element('Note: ', text=True)),
-                    Element('The action has a non-default response. See documentation for details.', text=True)
-                ]))
+                None if not (isinstance(request, Action) and request.wsgi_response) else [
+                    Element('div', _class='chsl-note', children=Element('p', children=[
+                        Element('b', inline=True, children=Element('Note: ', text=True)),
+                        Element('The action has a non-default response. See documentation for details.', text=True)
+                    ]))
+                ]
             ]),
 
             # Request input and output structs
-            _struct_section(request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
-            None if request.wsgi_response else [
-                _struct_section(request.model.output_type, 'h2', 'Output Parameters', ('The action has no output parameters.',)),
-                _enum_section(request.model.error_type, 'h2', 'Error Codes', ('The action returns no custom error codes.',))
+            None if not isinstance(request, Action) else [
+                _struct_section(request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
+                None if request.wsgi_response else [
+                    _struct_section(request.model.output_type, 'h2', 'Output Parameters', ('The action has no output parameters.',)),
+                    _enum_section(request.model.error_type, 'h2', 'Error Codes', ('The action returns no custom error codes.',))
+                ]
             ],
 
             # User types

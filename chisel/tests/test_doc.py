@@ -23,9 +23,8 @@
 import sys
 import unittest
 
-import chisel
+from chisel import action, request, Action, Application, DocAction, DocPage, Element
 from chisel.compat import HTMLParser
-from chisel.doc import Element
 
 
 class HTMLValidator(HTMLParser):
@@ -138,12 +137,12 @@ action my_action2
     def setUp(self):
 
         # Application object
-        self.app = chisel.Application()
+        self.app = Application()
         self.app.pretty_output = True
         self.app.specs.parse_string(self._spec)
-        self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action1'))
-        self.app.add_request(chisel.Action(lambda app, req: {}, name='my_action2'))
-        self.app.add_request(chisel.DocAction())
+        self.app.add_request(Action(lambda app, req: {}, name='my_action1'))
+        self.app.add_request(Action(lambda app, req: {}, name='my_action2'))
+        self.app.add_request(DocAction())
 
     # Test documentation index HTML generation
     def test_index(self):
@@ -282,7 +281,7 @@ ul.chsl-constraint-list {
         self.assertEqual(html_expected, html)
 
     # Test action model HTML generation
-    def test_request(self):
+    def test_action(self):
 
         # Validate the first my_action1's HTML
         environ = dict(self._environ)
@@ -896,6 +895,168 @@ My Union
 </html>'''
         self.assertEqual(html_expected, html)
 
+    def test_request(self):
+
+        @request(doc='''
+This is the request documentation.
+
+And some other important information.
+''')
+        def my_request(dummy_environ, dummy_start_response):
+            pass
+        application = Application()
+        application.add_request(DocAction())
+        application.add_request(my_request)
+
+        dummy_status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_request')
+        html = response.decode('utf-8')
+        HTMLValidator.validate(html)
+        html_expected = '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>my_request</title>
+<style type="text/css">
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}
+</style>
+</head>
+<body class="chsl-request-body">
+<div class="chsl-header">
+<a href="/doc">Back to documentation index</a>
+</div>
+<h1>my_request</h1>
+<div class="chsl-text">
+<p>
+This is the request documentation.
+</p>
+<p>
+And some other important information.
+</p>
+</div>
+<div class="chsl-notes">
+<div class="chsl-note">
+<p>
+<b>Note: </b>
+The request is exposed at the following URL:
+</p>
+<ul>
+<li><a href="/my_request">/my_request</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>'''
+        self.assertEqual(html_expected, html)
+
+
     # Test doc generation element class
     def test_element(self):
 
@@ -1038,10 +1199,10 @@ My Union
 
     def test_page(self):
 
-        app = chisel.Application()
+        app = Application()
         app.pretty_output = True
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
     input
         int a
@@ -1052,8 +1213,8 @@ action my_action
         def my_action(dummy_ctx, req):
             return {'c': req['a'] + req['b']}
 
-        app.add_request(chisel.DocAction())
-        app.add_request(chisel.DocPage(my_action))
+        app.add_request(DocAction())
+        app.add_request(DocPage(my_action))
 
         status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
