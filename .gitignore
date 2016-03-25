@@ -2,10 +2,9 @@
 *.pyc
 *.so
 *.egg-info
-.build/
-.env/
-.cover/
+.build
+.env
+.cover
 .coverage
-build/
-doc/_build/
-dist/
+build
+dist
