@@ -8,3 +8,4 @@
 .coverage
 build
 dist
+doc/_build
