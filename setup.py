@@ -20,9 +20,7 @@
 # SOFTWARE.
 #
 
-import os
 from setuptools import setup
-from subprocess import check_call
 
 import chisel
 
