@@ -230,7 +230,7 @@ action my_action
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
-        @chisel.action(spec='''\
+        @chisel.action(jsonp='jsonp', spec='''\
 action my_action
   input
     int a

@@ -66,11 +66,9 @@ class Action(Request):
     Chisel action request
     """
 
-    __slots__ = ('action_callback', 'model', 'wsgi_response')
+    __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    JSONP = 'jsonp'
-
-    def __init__(self, action_callback, name=None, urls=None, parser=None, spec=None, wsgi_response=False):
+    def __init__(self, action_callback, name=None, urls=None, parser=None, spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
         if name is None:
@@ -92,6 +90,7 @@ class Action(Request):
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
+        self.jsonp = jsonp
 
     def onload(self, app):
         Request.onload(self, app)
@@ -154,9 +153,9 @@ class Action(Request):
                     request[url_arg] = url_value
 
             # JSONP?
-            if is_get and self.JSONP in request:
-                jsonp = str(request[self.JSONP])
-                del request[self.JSONP]
+            if is_get and self.jsonp and self.jsonp in request:
+                jsonp = str(request[self.jsonp])
+                del request[self.jsonp]
 
             # Validate the request
             try:
