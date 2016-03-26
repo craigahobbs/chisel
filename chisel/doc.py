@@ -24,7 +24,7 @@ from xml.sax.saxutils import quoteattr as saxutils_quoteattr
 
 from .action import Action
 from .compat import html_escape, iteritems, itervalues, urllib_parse_quote
-from .model import JsonFloat, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
+from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 
 class DocAction(Action):
@@ -321,29 +321,33 @@ def _type_decl(type_):
         return _type_name(type_)
 
 
+def _format_float(value):
+    return '{0:.6f}'.format(value).rstrip('0').rstrip('.')
+
+
 def _type_attr_helper(attr, value_name, len_name):
     if attr is None:
         return
     if attr.op_gt is not None:
-        yield (value_name, '>', str(JsonFloat(attr.op_gt, 6)))
+        yield (value_name, '>', _format_float(attr.op_gt))
     if attr.op_gte is not None:
-        yield (value_name, '>=', str(JsonFloat(attr.op_gte, 6)))
+        yield (value_name, '>=', _format_float(attr.op_gte))
     if attr.op_lt is not None:
-        yield (value_name, '<', str(JsonFloat(attr.op_lt, 6)))
+        yield (value_name, '<', _format_float(attr.op_lt))
     if attr.op_lte is not None:
-        yield (value_name, '<=', str(JsonFloat(attr.op_lte, 6)))
+        yield (value_name, '<=', _format_float(attr.op_lte))
     if attr.op_eq is not None:
-        yield (value_name, '==', str(JsonFloat(attr.op_eq, 6)))
+        yield (value_name, '==', _format_float(attr.op_eq))
     if attr.op_len_gt is not None:
-        yield (len_name, '>', str(JsonFloat(attr.op_len_gt, 6)))
+        yield (len_name, '>', _format_float(attr.op_len_gt))
     if attr.op_len_gte is not None:
-        yield (len_name, '>=', str(JsonFloat(attr.op_len_gte, 6)))
+        yield (len_name, '>=', _format_float(attr.op_len_gte))
     if attr.op_len_lt is not None:
-        yield (len_name, '<', str(JsonFloat(attr.op_len_lt, 6)))
+        yield (len_name, '<', _format_float(attr.op_len_lt))
     if attr.op_len_lte is not None:
-        yield (len_name, '<=', str(JsonFloat(attr.op_len_lte, 6)))
+        yield (len_name, '<=', _format_float(attr.op_len_lte))
     if attr.op_len_eq is not None:
-        yield (len_name, '==', str(JsonFloat(attr.op_len_eq, 6)))
+        yield (len_name, '==', _format_float(attr.op_len_eq))
 
 
 def _type_attr(type_, attr, optional, nullable):

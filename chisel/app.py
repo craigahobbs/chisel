@@ -22,13 +22,13 @@
 
 from io import BytesIO
 from itertools import chain
-import json
 import logging
 import os
 import re
 
 from .app_defs import ENVIRON_CTX
 from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
+from .model import JSONEncoder
 from .request import Request
 from .spec import SpecParser
 from .util import load_modules
@@ -249,8 +249,12 @@ class Context(object):
         """
         Send a JSON response
         """
-        content = json.dumps(response, sort_keys=True, indent=2 if self.app.pretty_output else None,
-                             separators=(', ', ': ') if self.app.pretty_output else (',', ':'))
+        encoder = JSONEncoder(check_circular=self.app.validate_output,
+                              allow_nan=False,
+                              sort_keys=True,
+                              indent=2 if self.app.pretty_output else None,
+                              separators=(',', ': ') if self.app.pretty_output else (',', ':'))
+        content = encoder.encode(response)
         if jsonp:
             content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
         else:

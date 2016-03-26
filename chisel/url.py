@@ -24,7 +24,7 @@ from datetime import date, datetime
 from uuid import UUID
 
 from .compat import basestring_, urllib_parse_quote, urllib_parse_unquote, xrange_
-from .model import JsonDate, JsonDatetime, JsonUUID
+from .util import TZLOCAL
 
 
 # Encode an object as a URL query string
@@ -45,11 +45,11 @@ def _encode_query_string_flatten(obj, parent, encoding):
             yield (parent, '')
     else:
         if isinstance(obj, date):
-            ostr = str(JsonDate(obj)).strip('"')
+            ostr = obj.isoformat()
         elif isinstance(obj, datetime):
-            ostr = str(JsonDatetime(obj)).strip('"')
+            ostr = (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
         elif isinstance(obj, UUID):
-            ostr = str(JsonUUID(obj)).strip('"')
+            ostr = str(obj)
         elif isinstance(obj, bool):
             ostr = 'true' if obj else 'false'
         elif obj is None:

@@ -25,7 +25,7 @@ import json
 
 from .app_defs import ENVIRON_CTX
 from .compat import func_name, iteritems
-from .model import VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, VALIDATE_JSON_OUTPUT, ValidationError, TypeStruct, TYPE_STRING
+from .model import VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
 from .url import decode_query_string
@@ -189,7 +189,7 @@ class Action(Request):
                     response_type = self.model.output_type
 
                 try:
-                    response_type.validate(response, mode=VALIDATE_JSON_OUTPUT)
+                    response_type.validate(response, mode=VALIDATE_DEFAULT)
                 except ValidationError as exc:
                     ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
                     raise _ActionErrorInternal('InvalidOutput', str(exc), exc.member)

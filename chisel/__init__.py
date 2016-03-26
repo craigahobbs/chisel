@@ -42,16 +42,13 @@ from .doc import \
     Element
 
 from .model import \
-    JsonDate, \
-    JsonDatetime, \
-    JsonFloat, \
-    JsonUUID, \
+    JSONEncoder, \
+    JSONFloat, \
     AttributeValidationError, \
     ValidationError, \
     VALIDATE_DEFAULT, \
     VALIDATE_QUERY_STRING, \
-    VALIDATE_JSON_INPUT, \
-    VALIDATE_JSON_OUTPUT
+    VALIDATE_JSON_INPUT
 
 from .request import \
     request, \

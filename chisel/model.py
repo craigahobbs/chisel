@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime
+from json import JSONEncoder as json_JSONEncoder
 from math import isnan, isinf
 from uuid import UUID
 
@@ -28,56 +29,26 @@ from .compat import basestring_, iteritems, long_
 from .util import TZLOCAL, parse_iso8601_date, parse_iso8601_datetime
 
 
-# JSON encoding for date objects
-class JsonDate(float):
-    __slots__ = ('value', 'json')
+class JSONEncoder(json_JSONEncoder):
+    """
+    JSON encoder class with support for encoding date, datetime, and UUID.
+    """
 
-    def __new__(cls, dummy_value):
-        return float.__new__(cls, 0)
-
-    def __init__(self, value):
-        float.__init__(self)
-        if value is not self:
-            self.value = value
-            self.json = '"' + value.isoformat() + '"'
-
-    def __repr__(self):
-        return self.json
-
-    def __str__(self):
-        return self.json
-
-    def __float__(self):
-        return self
+    def default(self, obj): # pylint: disable=method-hidden
+        if isinstance(obj, date):
+            return obj.isoformat()
+        elif isinstance(obj, datetime):
+            return (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
+        elif isinstance(obj, UUID):
+            return str(obj)
+        return json_JSONEncoder.default(self, obj)
 
 
-# JSON encoding for datetime objects
-class JsonDatetime(float):
-    __slots__ = ('value', 'json')
+class JSONFloat(float):
+    """
+    Floating point number with precision for JSON encoding.
+    """
 
-    def __new__(cls, dummy_value):
-        return float.__new__(cls, 0)
-
-    def __init__(self, value):
-        float.__init__(self)
-        if value is not self:
-            if value.tzinfo is None:
-                value = value.replace(tzinfo=TZLOCAL)
-            self.value = value
-            self.json = '"' + value.isoformat() + '"'
-
-    def __repr__(self):
-        return self.json
-
-    def __str__(self):
-        return self.json
-
-    def __float__(self):
-        return self
-
-
-# Floating point number with precision for JSON encoding
-class JsonFloat(float):
     __slots__ = ('json',)
 
     def __new__(cls, value, dummy_prec=6):
@@ -98,41 +69,13 @@ class JsonFloat(float):
         return self
 
 
-# JSON encoding for UUID objects
-class JsonUUID(float):
-    __slots__ = ('value', 'json')
-
-    def __new__(cls, dummy_value):
-        return float.__new__(cls, 0)
-
-    def __init__(self, value):
-        float.__init__(self)
-        if value is not self:
-            self.value = value
-            self.json = '"' + str(value) + '"'
-
-    def __repr__(self):
-        return self.json
-
-    def __str__(self):
-        return self.json
-
-    def __float__(self):
-        return self
-
-
-# Fake JSON float types
-FAKE_FLOAT_TYPES = (JsonDate, JsonDatetime, JsonUUID)
-
-
 # Validation mode
 VALIDATE_DEFAULT = 0
 VALIDATE_QUERY_STRING = 1
 VALIDATE_JSON_INPUT = 2
-VALIDATE_JSON_OUTPUT = 3
 
 # Immutable validation modes
-IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_JSON_OUTPUT)
+IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT,)
 
 
 # Type attribute exception
@@ -197,51 +140,55 @@ class StructMemberAttributes(object):
         self.op_len_gt = op_len_gt
         self.op_len_gte = op_len_gte
 
+    @staticmethod
+    def _format_float(value):
+        return '{0:.6f}'.format(value).rstrip('0').rstrip('.')
+
     def validate(self, value, _member=()):
         if self.op_lt is not None and value >= self.op_lt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='< ' + repr(JsonFloat(self.op_lt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='< ' + self._format_float(self.op_lt))
         if self.op_lte is not None and value > self.op_lte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='<= ' + repr(JsonFloat(self.op_lte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='<= ' + self._format_float(self.op_lte))
         if self.op_gt is not None and value <= self.op_gt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='> ' + repr(JsonFloat(self.op_gt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='> ' + self._format_float(self.op_gt))
         if self.op_gte is not None and value < self.op_gte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='>= ' + repr(JsonFloat(self.op_gte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='>= ' + self._format_float(self.op_gte))
         if self.op_eq is not None and value != self.op_eq:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='== ' + repr(JsonFloat(self.op_eq, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='== ' + self._format_float(self.op_eq))
         if self.op_len_lt is not None and len(value) >= self.op_len_lt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len < ' + repr(JsonFloat(self.op_len_lt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len < ' + self._format_float(self.op_len_lt))
         if self.op_len_lte is not None and len(value) > self.op_len_lte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len <= ' + repr(JsonFloat(self.op_len_lte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len <= ' + self._format_float(self.op_len_lte))
         if self.op_len_gt is not None and len(value) <= self.op_len_gt:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len > ' + repr(JsonFloat(self.op_len_gt, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len > ' + self._format_float(self.op_len_gt))
         if self.op_len_gte is not None and len(value) < self.op_len_gte:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len >= ' + repr(JsonFloat(self.op_len_gte, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len >= ' + self._format_float(self.op_len_gte))
         if self.op_len_eq is not None and len(value) != self.op_len_eq:
-            raise ValidationError.member_error(None, value, _member, constraint_syntax='len == ' + repr(JsonFloat(self.op_len_eq, 6)))
+            raise ValidationError.member_error(None, value, _member, constraint_syntax='len == ' + self._format_float(self.op_len_eq))
 
     def validate_attr(self, allow_value=False, allow_length=False):
         if not allow_value:
             if self.op_lt is not None:
-                raise AttributeValidationError('< ' + repr(JsonFloat(self.op_lt, 6)))
+                raise AttributeValidationError('< ' + self._format_float(self.op_lt))
             if self.op_lte is not None:
-                raise AttributeValidationError('<= ' + repr(JsonFloat(self.op_lte, 6)))
+                raise AttributeValidationError('<= ' + self._format_float(self.op_lte))
             if self.op_gt is not None:
-                raise AttributeValidationError('> ' + repr(JsonFloat(self.op_gt, 6)))
+                raise AttributeValidationError('> ' + self._format_float(self.op_gt))
             if self.op_gte is not None:
-                raise AttributeValidationError('>= ' + repr(JsonFloat(self.op_gte, 6)))
+                raise AttributeValidationError('>= ' + self._format_float(self.op_gte))
             if self.op_eq is not None:
-                raise AttributeValidationError('== ' + repr(JsonFloat(self.op_eq, 6)))
+                raise AttributeValidationError('== ' + self._format_float(self.op_eq))
         if not allow_length:
             if self.op_len_lt is not None:
-                raise AttributeValidationError('len < ' + repr(JsonFloat(self.op_len_lt, 6)))
+                raise AttributeValidationError('len < ' + self._format_float(self.op_len_lt))
             if self.op_len_lte is not None:
-                raise AttributeValidationError('len <= ' + repr(JsonFloat(self.op_len_lte, 6)))
+                raise AttributeValidationError('len <= ' + self._format_float(self.op_len_lte))
             if self.op_len_gt is not None:
-                raise AttributeValidationError('len > ' + repr(JsonFloat(self.op_len_gt, 6)))
+                raise AttributeValidationError('len > ' + self._format_float(self.op_len_gt))
             if self.op_len_gte is not None:
-                raise AttributeValidationError('len >= ' + repr(JsonFloat(self.op_len_gte, 6)))
+                raise AttributeValidationError('len >= ' + self._format_float(self.op_len_gte))
             if self.op_len_eq is not None:
-                raise AttributeValidationError('len == ' + repr(JsonFloat(self.op_len_eq, 6)))
+                raise AttributeValidationError('len == ' + self._format_float(self.op_len_eq))
 
 
 # Typedef type (type plus attributes)
@@ -521,7 +468,7 @@ class _TypeInt(object):
         # Validate and translate the value
         if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             value_x = value
-        elif isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
+        elif isinstance(value, float):
             value_x = int(value)
             if value_x != value:
                 raise ValidationError.member_error(self, value, _member)
@@ -551,7 +498,7 @@ class _TypeFloat(object):
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
-        if isinstance(value, float) and not isinstance(value, FAKE_FLOAT_TYPES):
+        if isinstance(value, float):
             value_x = value
         elif (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
             value_x = float(value)
@@ -615,10 +562,6 @@ class _TypeUuid(object):
 
         # Validate and translate the value
         if isinstance(value, UUID):
-            if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonUUID object required')
-            return value
-        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonUUID):
             return value
         elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
             try:
@@ -645,10 +588,6 @@ class _TypeDate(object):
 
         # Validate and translate the value
         if isinstance(value, date):
-            if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonDate object required')
-            return value
-        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDate):
             return value
         elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
             try:
@@ -675,15 +614,9 @@ class _TypeDatetime(object):
 
         # Validate and translate the value
         if isinstance(value, datetime):
-            if mode == VALIDATE_JSON_OUTPUT:
-                raise ValidationError.member_error(self, value, _member, constraint_syntax='JsonDatetime object required')
-
             # Set a time zone, if necessary
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
                 return value.replace(tzinfo=TZLOCAL)
-
-            return value
-        elif mode == VALIDATE_JSON_OUTPUT and isinstance(value, JsonDatetime):
             return value
         elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
             try:
