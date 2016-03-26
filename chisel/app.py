@@ -21,7 +21,7 @@
 #
 
 from io import BytesIO
-import itertools
+from itertools import chain
 import json
 import logging
 import os
@@ -187,14 +187,13 @@ class Context(object):
     Chisel request context
     """
 
-    __slots__ = ('app', 'environ', '_start_response', 'url_args', 'jsonp', 'log', 'headers')
+    __slots__ = ('app', 'environ', '_start_response', 'url_args', 'log', 'headers')
 
-    def __init__(self, app, environ, start_response, url_args):
+    def __init__(self, app, environ=None, start_response=None, url_args=None):
         self.app = app
-        self.environ = environ
+        self.environ = environ or {}
         self._start_response = start_response
         self.url_args = url_args
-        self.jsonp = None
         self.headers = []
 
         # Create the logger
@@ -212,7 +211,8 @@ class Context(object):
         self.log.addHandler(handler)
 
     def start_response(self, status, headers):
-        return self._start_response(status, list(itertools.chain(headers, self.headers)))
+        if self._start_response is not None:
+            self._start_response(status, list(chain(headers, self.headers)))
 
     def add_header(self, key, value):
         """
@@ -245,17 +245,14 @@ class Context(object):
         """
         return self.response(status, content_type, [text.encode(encoding)], headers=headers)
 
-    def response_json(self, response, status=None, headers=None, is_error=False):
+    def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None, jsonp=None):
         """
         Send a JSON response
         """
-        if status is None:
-            status = '200 OK' if not is_error or self.jsonp is not None else '500 Internal Server Error'
-        content = json.dumps(response, sort_keys=True,
-                             indent=2 if self.app.pretty_output else None,
+        content = json.dumps(response, sort_keys=True, indent=2 if self.app.pretty_output else None,
                              separators=(', ', ': ') if self.app.pretty_output else (',', ':'))
-        if self.jsonp:
-            content_list = [self.jsonp.encode('utf-8'), b'(', content.encode('utf-8'), b');']
+        if jsonp:
+            content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
         else:
-            content_list = [content.encode('utf-8')]
-        return self.response(status, 'application/json', content_list, headers=headers)
+            content_list = [content.encode(encoding)]
+        return self.response(status, content_type, content_list, headers=headers)

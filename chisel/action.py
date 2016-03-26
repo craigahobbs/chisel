@@ -111,6 +111,7 @@ class Action(Request):
             return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
 
         # Handle the action
+        jsonp = None
         try:
             # Get the input dict
             if is_get:
@@ -143,19 +144,19 @@ class Action(Request):
                     ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
                     raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
 
-            # JSONP?
-            if is_get and self.JSONP in request:
-                ctx.jsonp = str(request[self.JSONP])
-                del request[self.JSONP]
-
             # Add url arguments
             if ctx.url_args is not None:
                 validate_mode = VALIDATE_QUERY_STRING
                 for url_arg, url_value in iteritems(ctx.url_args):
-                    if url_arg in request or url_arg == self.JSONP:
+                    if url_arg in request:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
                         raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (url_arg,))
                     request[url_arg] = url_value
+
+            # JSONP?
+            if is_get and self.JSONP in request:
+                jsonp = str(request[self.JSONP])
+                del request[self.JSONP]
 
             # Validate the request
             try:
@@ -202,4 +203,5 @@ class Action(Request):
                 response['member'] = exc.member
 
         # Serialize the response as JSON
-        return ctx.response_json(response, is_error='error' in response)
+        status = '200 OK' if 'error' not in response or jsonp else '500 Internal Server Error'
+        return ctx.response_json(status, response, jsonp=jsonp)
