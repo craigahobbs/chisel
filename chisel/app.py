@@ -28,10 +28,9 @@ import re
 
 from .app_defs import ENVIRON_CTX
 from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
-from .model import JSONEncoder
 from .request import Request
 from .spec import SpecParser
-from .util import load_modules
+from .util import JSONEncoder, load_modules
 
 
 # Regular expression for matching URL arguments

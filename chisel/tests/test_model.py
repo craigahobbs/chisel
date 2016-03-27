@@ -26,12 +26,11 @@ import unittest
 from uuid import UUID
 
 from chisel.compat import long_, unicode_
-from chisel.model import JSONFloat, ValidationError, \
+from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, IMMUTABLE_VALIDATION_MODES, \
-    TypeStruct, TypeArray, TypeDict, TypeEnum, TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, \
-    TYPE_UUID, TYPE_DATE, TYPE_DATETIME
-import chisel.model
-from chisel.util import TZUTC, TZLOCAL
+    Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
+    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME
+from chisel.util import JSONFloat, TZUTC, TZLOCAL
 
 
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT)
@@ -170,101 +169,101 @@ class TestModelValidationError(unittest.TestCase):
 class TestStructMemberAttributes(unittest.TestCase):
 
     def test_validate_eq(self):
-        attr = chisel.model.StructMemberAttributes(op_eq=5)
+        attr = StructMemberAttributes(op_eq=5)
         attr.validate(5)
         try:
             attr.validate(4)
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 4 (type 'int') [== 5]")
         else:
             self.fail()
 
     def test_validate_lt(self):
-        attr = chisel.model.StructMemberAttributes(op_lt=5)
+        attr = StructMemberAttributes(op_lt=5)
         attr.validate(4)
         try:
             attr.validate(5)
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 5 (type 'int') [< 5]")
         else:
             self.fail()
 
     def test_validate_lte(self):
-        attr = chisel.model.StructMemberAttributes(op_lte=5)
+        attr = StructMemberAttributes(op_lte=5)
         attr.validate(5)
         try:
             attr.validate(6)
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 6 (type 'int') [<= 5]")
         else:
             self.fail()
 
     def test_validate_gt(self):
-        attr = chisel.model.StructMemberAttributes(op_gt=5)
+        attr = StructMemberAttributes(op_gt=5)
         attr.validate(6)
         try:
             attr.validate(5)
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 5 (type 'int') [> 5]")
         else:
             self.fail()
 
     def test_validate_gte(self):
-        attr = chisel.model.StructMemberAttributes(op_gte=5)
+        attr = StructMemberAttributes(op_gte=5)
         attr.validate(5)
         try:
             attr.validate(4)
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 4 (type 'int') [>= 5]")
         else:
             self.fail()
 
     def test_validate_len_eq(self):
-        attr = chisel.model.StructMemberAttributes(op_len_eq=3)
+        attr = StructMemberAttributes(op_len_eq=3)
         attr.validate('abc')
         try:
             attr.validate('ab')
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len == 3]")
         else:
             self.fail()
 
     def test_validate_len_lt(self):
-        attr = chisel.model.StructMemberAttributes(op_len_lt=3)
+        attr = StructMemberAttributes(op_len_lt=3)
         attr.validate('ab')
         try:
             attr.validate('abc')
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len < 3]")
         else:
             self.fail()
 
     def test_validate_len_lte(self):
-        attr = chisel.model.StructMemberAttributes(op_len_lte=3)
+        attr = StructMemberAttributes(op_len_lte=3)
         attr.validate('abc')
         try:
             attr.validate('abcd')
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 'abcd' (type 'str') [len <= 3]")
         else:
             self.fail()
 
     def test_validate_len_gt(self):
-        attr = chisel.model.StructMemberAttributes(op_len_gt=3)
+        attr = StructMemberAttributes(op_len_gt=3)
         attr.validate('abcd')
         try:
             attr.validate('abc')
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len > 3]")
         else:
             self.fail()
 
     def test_validate_len_gte(self):
-        attr = chisel.model.StructMemberAttributes(op_len_gte=3)
+        attr = StructMemberAttributes(op_len_gte=3)
         attr.validate('abc')
         try:
             attr.validate('ab')
-        except chisel.model.ValidationError as exc:
+        except ValidationError as exc:
             self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len >= 3]")
         else:
             self.fail()
@@ -275,37 +274,37 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Test typedef type construction
     def test_init(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
         self.assertEqual(type_.type_name, 'typedef')
-        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
-        self.assertTrue(isinstance(type_.attr, chisel.model.StructMemberAttributes))
+        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
         self.assertEqual(type_.doc, [])
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
         self.assertEqual(type_.type_name, 'Foo')
-        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
-        self.assertTrue(isinstance(type_.attr, chisel.model.StructMemberAttributes))
+        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
         self.assertEqual(type_.doc, ['A', 'B'])
 
     # Test typedef attribute validation
     def test_validate_attr(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gt=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
 
-        type_.validate_attr(chisel.model.StructMemberAttributes())
+        type_.validate_attr(StructMemberAttributes())
 
-        type_.validate_attr(chisel.model.StructMemberAttributes(op_gt=7))
+        type_.validate_attr(StructMemberAttributes(op_gt=7))
 
         try:
-            type_.validate_attr(chisel.model.StructMemberAttributes(op_len_gt=7))
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
             self.fail()
-        except chisel.model.AttributeValidationError as exc:
+        except AttributeValidationError as exc:
             self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
     def test_validate(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 5
         for mode in ALL_VALIDATION_MODES:
@@ -315,7 +314,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # All validation modes - success
     def test_validate_no_attr(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT)
+        type_ = Typedef(TYPE_INT)
 
         obj = 5
         for mode in ALL_VALIDATION_MODES:
@@ -325,7 +324,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_validate_transformed_value(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = '5'
         obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
@@ -335,7 +334,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_validate_type_error(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 'abc'
         for mode in ALL_VALIDATION_MODES:
@@ -349,7 +348,7 @@ class TestModelTypedefValidation(unittest.TestCase):
     # Query string validation mode - transformed value
     def test_validate_attr_error(self):
 
-        type_ = chisel.model.Typedef(TYPE_INT, chisel.model.StructMemberAttributes(op_gte=5))
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 4
         for mode in ALL_VALIDATION_MODES:
@@ -514,7 +513,7 @@ class TestModelStructValidation(unittest.TestCase):
 
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
-        type_.add_member('b', TYPE_INT, nullable=True, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_.add_member('b', TYPE_INT, nullable=True, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 7, 'b': 4}
         for mode in ALL_VALIDATION_MODES:
@@ -604,7 +603,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_validation_member_attributes_valid(self): # pylint: disable=invalid-name
 
         type_ = TypeStruct()
-        type_.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 4}
         for mode in ALL_VALIDATION_MODES:
@@ -620,7 +619,7 @@ class TestModelStructValidation(unittest.TestCase):
     def test_validation_member_attributes_invalid(self): # pylint: disable=invalid-name
 
         type_ = TypeStruct()
-        type_.add_member('a', TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -833,7 +832,7 @@ class TestModelArrayValidation(unittest.TestCase):
 
         type_ = TypeArray(TYPE_INT)
         self.assertEqual(type_.type_name, 'array')
-        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
         self.assertEqual(type_.attr, None)
 
     # All validation modes - success
@@ -854,7 +853,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - value attributes - success
     def test_validation_attributes(self):
 
-        type_ = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 2, 3]
         for mode in ALL_VALIDATION_MODES:
@@ -869,7 +868,7 @@ class TestModelArrayValidation(unittest.TestCase):
     # All validation modes - value attributes - invalid value
     def test_validation_attributes_invalid(self): # pylint: disable=invalid-name
 
-        type_ = TypeArray(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 7, 3]
         for mode in ALL_VALIDATION_MODES:
@@ -975,7 +974,7 @@ class TestModelDictValidation(unittest.TestCase):
 
         type_ = TypeDict(TYPE_INT)
         self.assertEqual(type_.type_name, 'dict')
-        self.assertTrue(isinstance(type_.type, type(chisel.model.TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
 
     # All validation modes - success
     def test_validation(self):
@@ -995,7 +994,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - value attributes - success
     def test_validation_value_attributes(self): # pylint: disable=invalid-name
 
-        type_ = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
@@ -1010,7 +1009,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - value attributes - invalid value
     def test_validation_value_attributes_invalid(self): # pylint: disable=invalid-name
 
-        type_ = TypeDict(TYPE_INT, attr=chisel.model.StructMemberAttributes(op_lt=5))
+        type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 7}
         for mode in ALL_VALIDATION_MODES:
@@ -1024,7 +1023,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - key attributes - success
     def test_validation_key_attributes(self):
 
-        type_ = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=5))
+        type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=5))
 
         obj = {'a': 1, 'b': 2}
         for mode in ALL_VALIDATION_MODES:
@@ -1039,7 +1038,7 @@ class TestModelDictValidation(unittest.TestCase):
     # All validation modes - key attributes - invalid key
     def test_validation_key_attributes_invalid(self): # pylint: disable=invalid-name
 
-        type_ = TypeDict(TYPE_INT, key_attr=chisel.model.StructMemberAttributes(op_len_lt=2))
+        type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=2))
 
         obj = {'a': 1, 'bc': 2}
         for mode in ALL_VALIDATION_MODES:

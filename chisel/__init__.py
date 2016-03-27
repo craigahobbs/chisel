@@ -42,8 +42,6 @@ from .doc import \
     Element
 
 from .model import \
-    JSONEncoder, \
-    JSONFloat, \
     ValidationError, \
     VALIDATE_DEFAULT, \
     VALIDATE_QUERY_STRING, \
@@ -62,5 +60,7 @@ from .url import \
     encode_query_string
 
 from .util import \
+    JSONEncoder, \
+    JSONFloat, \
     TZLOCAL, \
     TZUTC
