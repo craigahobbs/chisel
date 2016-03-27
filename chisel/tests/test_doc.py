@@ -1487,7 +1487,7 @@ Documentation page for my_action.
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/doc/my_action">GET /doc/my_action</a></li>
+          <li><a href="/doc_my_action">GET /doc_my_action</a></li>
         </ul>
       </div>
       <div class="chsl-note">
@@ -1507,7 +1507,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc/my_action', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc_my_action', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         HTMLValidator.validate(html)

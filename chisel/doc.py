@@ -35,9 +35,7 @@ class DocAction(Action):
     __slots__ = ()
 
     def __init__(self, name='doc', urls=None):
-        if urls is None:
-            urls = (('GET', '/' + name),)
-        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True, spec='''\
+        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
   input
@@ -74,9 +72,7 @@ class DocPage(Action):
         request_name = request.name
         if name is None:
             name = 'doc_' + request_name
-        if urls is None:
-            urls = (('GET', '/doc/' + request_name),)
-        Action.__init__(self, self._action_callback, name=name, urls=urls, wsgi_response=True, spec='''\
+        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, wsgi_response=True, spec='''\
 # Documentation page for {request_name}.
 action {name}
 '''.format(name=name, request_name=request_name))

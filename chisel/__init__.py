@@ -44,7 +44,6 @@ from .doc import \
 from .model import \
     JSONEncoder, \
     JSONFloat, \
-    AttributeValidationError, \
     ValidationError, \
     VALIDATE_DEFAULT, \
     VALIDATE_QUERY_STRING, \

@@ -54,6 +54,19 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 
+    def test_request_method(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, method='Get')
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, (('GET', '/my_request'),))
+        self.assertEqual(req.doc, None)
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
     def test_request_urls(self):
 
         def my_request(environ, start_response):
@@ -64,6 +77,19 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.doc, None)
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_method_urls(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert hasattr(start_response, '__call__')
+            return ['ok']
+        req = Request(my_request, method='Get', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), ('GET', '/bonk'), ('GET', '/thud')))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 

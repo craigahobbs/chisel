@@ -68,7 +68,7 @@ class Action(Request):
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, urls=None, parser=None, spec=None, wsgi_response=False, jsonp=None):
+    def __init__(self, action_callback, name=None, method=None, urls=None, parser=None, spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
         if name is None:
@@ -86,7 +86,7 @@ class Action(Request):
             model = parser.actions[name]
             doc = model.doc
 
-        Request.__init__(self, name=name, urls=urls, doc=doc)
+        Request.__init__(self, name=name, method=method, urls=urls, doc=doc)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
