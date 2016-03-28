@@ -168,7 +168,10 @@ class Application(object):
         if 'QUERY_STRING' not in environ:
             environ['QUERY_STRING'] = '' if query_string is None else query_string
         if wsgi_input is not None:
+            assert 'wsgi.input' not in environ
             environ['wsgi.input'] = BytesIO(wsgi_input)
+        elif 'wsgi.input' not in environ:
+            environ['wsgi.input'] = BytesIO()
 
         # Capture the response status and headers
         start_response_args = {}
