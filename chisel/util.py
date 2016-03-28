@@ -221,7 +221,7 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
     ix_module_name = find_module_name_index()
 
     # Recursively find module files
-    excluded_submodules_dot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
+    exclude_submodules_dot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
     for dirpath, dummy_dirnames, filenames in os.walk(module_path):
 
         # Skip Python 3.x cache directories
@@ -232,7 +232,7 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
         subpackage_parts = dirpath.split(os.sep)
         subpackage_name = '.'.join(itertools.islice(subpackage_parts, ix_module_name, None))
         if exclude_submodules is not None and \
-           (subpackage_name in exclude_submodules or any(subpackage_name.startswith(x) for x in excluded_submodules_dot)):
+           (subpackage_name in exclude_submodules or any(subpackage_name.startswith(x) for x in exclude_submodules_dot)):
             continue
 
         # Load each sub-module file in the directory
