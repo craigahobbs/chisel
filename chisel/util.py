@@ -39,10 +39,10 @@ class JSONEncoder(json_JSONEncoder):
     """
 
     def default(self, obj): # pylint: disable=method-hidden
-        if isinstance(obj, date):
-            return obj.isoformat()
-        elif isinstance(obj, datetime):
+        if isinstance(obj, datetime):
             return (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
+        elif isinstance(obj, date):
+            return obj.isoformat()
         elif isinstance(obj, UUID):
             return str(obj)
         return json_JSONEncoder.default(self, obj)
