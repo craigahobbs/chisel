@@ -121,21 +121,21 @@ class Application(object):
         # Match the request by exact URL
         path_info = environ['PATH_INFO']
         request_method = environ['REQUEST_METHOD'].upper()
-        url_args = None
-        for pass_ in range(2):
-            request_key = (request_method if pass_ == 0 else None, path_info)
-            request = self.__request_urls.get(request_key)
+        request, url_args = self.__request_urls.get((request_method, path_info)), None
+        if request is None:
+            request, url_args = next((
+                (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
+                for request, request_match in
+                ((request, regex.match(path_info)) for method, regex, request in self.__request_regex if method == request_method)
+                if request_match), (None, None))
             if request is None:
-                # If no request was matched, match by url regular expression
-                for request_method_, request_regex, request_ in self.__request_regex:
-                    if (pass_ == 0 and request_method_ == request_method) or (pass_ == 1 and request_method_ is None):
-                        match_request = request_regex.match(path_info)
-                        if match_request:
-                            request = request_
-                            url_args = {unquote(url_arg): unquote(url_value) for url_arg, url_value in match_request.groupdict().items()}
-                            break
-            if request is not None:
-                break
+                request, url_args = self.__request_urls.get((None, path_info)), None
+                if request is None:
+                    request, url_args = next((
+                        (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
+                        for request, request_match in
+                        ((request, regex.match(path_info)) for method, regex, request in self.__request_regex if method is None)
+                        if request_match), (None, None))
 
         # Create the request context
         ctx = Context(self, environ, start_response, url_args)
@@ -143,6 +143,9 @@ class Application(object):
 
         # Request not found?
         if request is None:
+            if next((True for _, path in self.__request_urls.keys() if path == path_info), False) or \
+               next((True for _, regex, _ in self.__request_regex if regex.match(path_info)), False):
+                return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
             return ctx.response_text('404 Not Found', 'Not Found')
 
         # Handle the request

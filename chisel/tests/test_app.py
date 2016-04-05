@@ -323,16 +323,16 @@ action my_action
         self.assertEqual(response, b'{}')
 
         status, dummy_headers, response = app.request('GET', '/my_action/')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
         status, dummy_headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
         status, dummy_headers, response = app.request('PUT', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
     def test_request_url_method_arg(self):
 
@@ -360,16 +360,16 @@ action my_action
         self.assertEqual(response, b'{"sum":7}')
 
         status, dummy_headers, response = app.request('GET', '/my_action/3/4/')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
         status, dummy_headers, response = app.request('POST', '/my_action/3/4', wsgi_input=b'{}')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
         status, dummy_headers, response = app.request('PUT', '/my_action/3/4', wsgi_input=b'{}')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Not Found')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
 
     def test_request_url_arg_underscore(self):
 
