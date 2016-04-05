@@ -20,10 +20,11 @@
 # SOFTWARE.
 #
 
-from xml.sax.saxutils import quoteattr as saxutils_quoteattr
+from html import escape
+from urllib.parse import quote
+from xml.sax.saxutils import quoteattr
 
 from .action import Action
-from .compat import html_escape, iteritems, itervalues, urllib_parse_quote
 from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 
@@ -50,7 +51,7 @@ action {name}
     def _action_callback(ctx, req):
         request_name = req.get('name')
         if request_name is None:
-            root = _index_html(ctx.environ, sorted(itervalues(ctx.app.requests), key=lambda x: x.name.lower()))
+            root = _index_html(ctx.environ, sorted(ctx.app.requests.values(), key=lambda x: x.name.lower()))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text('200 OK', content, content_type='text/html')
         elif request_name in ctx.app.requests:
@@ -116,7 +117,7 @@ class Element(object):
 
         # Text element?
         if self.text:
-            yield html_escape(self.name) # pylint: disable=deprecated-method
+            yield escape(self.name)
             return
         elif self.text_raw:
             yield self.name
@@ -124,20 +125,18 @@ class Element(object):
 
         # Element open
         yield '<' + self.name
-        for attr_key, attr_value in sorted(iteritems(self.attrs), key=lambda x: x[0].lstrip('_')):
-            yield ' ' + attr_key.lstrip('_') + '=' + saxutils_quoteattr(attr_value)
+        for attr_key, attr_value in sorted(self.attrs.items(), key=lambda x: x[0].lstrip('_')):
+            yield ' ' + attr_key.lstrip('_') + '=' + quoteattr(attr_value)
         yield '>'
         if not self.closed and not self.children:
             return
 
         # Child elements
         if isinstance(self.children, Element):
-            for chunk in self.children.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
-                yield chunk
+            yield from self.children.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
         elif self.children is not None:
             for child in self._iterate_children_helper(self.children):
-                for chunk in child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline):
-                    yield chunk
+                yield from child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
 
         # Element close
         if indent is not None and not inline and not self.inline:
@@ -150,8 +149,7 @@ class Element(object):
             if isinstance(child, Element):
                 yield child
             elif child is not None:
-                for subchild in cls._iterate_children_helper(child):
-                    yield subchild
+                yield from cls._iterate_children_helper(child)
 
 
 def _index_html(environ, requests):
@@ -168,7 +166,7 @@ def _index_html(environ, requests):
             Element('h1', inline=True, children=Element(title, text=True)),
             Element('ul', _class='chsl-request-list', children=[
                 Element('li', inline=True, children=
-                        Element('a', href=root_url + '?name=' + urllib_parse_quote(request.name), children=
+                        Element('a', href=root_url + '?name=' + quote(request.name), children=
                                 Element(request.name, text=True)))
                 for request in requests
             ])
@@ -240,17 +238,17 @@ def _request_html(environ, request, nonav=False):
             None if not typedef_types else [
                 Element('h2', inline=True, children=Element('Typedefs', text=True)),
                 [_typedef_section(type_)
-                 for type_ in sorted(itervalues(typedef_types), key=lambda x: x.type_name.lower())]
+                 for type_ in sorted(typedef_types.values(), key=lambda x: x.type_name.lower())]
             ],
             None if not struct_types else [
                 Element('h2', inline=True, children=Element('Struct Types', text=True)),
                 [_struct_section(type_, 'h3', ('union ' if type_.union else 'struct ') + type_.type_name, ('The struct is empty.',))
-                 for type_ in sorted(itervalues(struct_types), key=lambda x: x.type_name.lower())]
+                 for type_ in sorted(struct_types.values(), key=lambda x: x.type_name.lower())]
             ],
             None if not enum_types else [
                 Element('h2', inline=True, children=Element('Enum Types', text=True)),
                 [_enum_section(type_, 'h3', 'enum ' + type_.type_name, ('The enum is empty.',))
-                 for type_ in sorted(itervalues(enum_types), key=lambda x: x.type_name.lower())]
+                 for type_ in sorted(enum_types.values(), key=lambda x: x.type_name.lower())]
             ]
         ])
     ])

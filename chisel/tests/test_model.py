@@ -25,7 +25,6 @@ import json
 import unittest
 from uuid import UUID
 
-from chisel.compat import long_, unicode_
 from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, IMMUTABLE_VALIDATION_MODES, \
     Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
@@ -1215,16 +1214,6 @@ class TestModelStringValidation(unittest.TestCase):
             obj2 = type_.validate(obj, mode)
             self.assertTrue(obj is obj2)
 
-    # All validation modes - unicode
-    def test_validate_unicode(self):
-
-        type_ = TYPE_STRING
-
-        obj = unicode_('abc')
-        for mode in ALL_VALIDATION_MODES:
-            obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
-
     # All validation modes - error - invalid value
     def test_validate_error(self):
 
@@ -1271,7 +1260,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.assertTrue(obj is obj2)
             else:
                 self.assertTrue(obj is not obj2)
-                self.assertTrue(isinstance(obj2, (int, long_)))
+                self.assertTrue(isinstance(obj2, int))
                 self.assertEqual(obj2, 7)
 
     # Query string validation mode - string
@@ -1352,21 +1341,6 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 7
-        for mode in ALL_VALIDATION_MODES:
-            obj2 = type_.validate(obj, mode)
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
-            else:
-                self.assertTrue(obj is not obj2)
-                self.assertTrue(isinstance(obj2, float))
-                self.assertEqual(obj2, 7.)
-
-    # All validation modes - long
-    def test_validate_long(self):
-
-        type_ = TYPE_FLOAT
-
-        obj = long_(7)
         for mode in ALL_VALIDATION_MODES:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:

@@ -21,7 +21,7 @@
 #
 
 from datetime import date, datetime, timedelta, tzinfo
-import itertools
+from itertools import islice
 from json import JSONEncoder as json_JSONEncoder
 import os
 import re
@@ -29,8 +29,6 @@ import sys
 from time import altzone as time_altzone, daylight as time_daylight, localtime as time_localtime, \
     mktime as time_mktime, timezone as time_timezone, tzname as time_tzname
 from uuid import UUID
-
-from .compat import string_isidentifier, xrange_
 
 
 class JSONEncoder(json_JSONEncoder):
@@ -204,9 +202,9 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
 
     def find_module_name_index():
         for sys_path in sys.path:
-            for ix_module_part in xrange_(len(module_dir_parts) - 1, 0, -1):
+            for ix_module_part in range(len(module_dir_parts) - 1, 0, -1):
                 module_name_parts = module_dir_parts[ix_module_part:]
-                if not any(not string_isidentifier(part) for part in module_name_parts):
+                if not any(not part.isidentifier() for part in module_name_parts):
                     sys_module_path = os.path.join(sys_path, *module_name_parts)
                     if os.path.isdir(sys_module_path) and os.path.samefile(module_path, sys_module_path):
                         # Make sure the module package is import-able
@@ -230,7 +228,7 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
 
         # Is the sub-package excluded?
         subpackage_parts = dirpath.split(os.sep)
-        subpackage_name = '.'.join(itertools.islice(subpackage_parts, ix_module_name, None))
+        subpackage_name = '.'.join(islice(subpackage_parts, ix_module_name, None))
         if exclude_submodules is not None and \
            (subpackage_name in exclude_submodules or any(subpackage_name.startswith(x) for x in exclude_submodules_dot)):
             continue

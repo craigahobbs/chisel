@@ -24,7 +24,6 @@ from datetime import date, datetime
 from math import isnan, isinf
 from uuid import UUID
 
-from .compat import basestring_, iteritems, long_
 from .util import TZLOCAL, parse_iso8601_date, parse_iso8601_datetime
 
 
@@ -56,17 +55,16 @@ class ValidationError(Exception):
 
     @classmethod
     def _flatten_members(cls, members):
-        for member2 in members:
-            if isinstance(member2, tuple):
-                for member3 in cls._flatten_members(member2):
-                    yield member3
+        for submember in members:
+            if isinstance(submember, tuple):
+                yield from cls._flatten_members(submember)
             else:
-                yield member2
+                yield submember
 
     @classmethod
     def member_syntax(cls, members):
         if members:
-            return ''.join((('.' + x) if isinstance(x, basestring_) else ('[' + repr(x) + ']'))
+            return ''.join((('.' + x) if isinstance(x, str) else ('[' + repr(x) + ']'))
                            for x in cls._flatten_members(members)).lstrip('.')
         return None
 
@@ -230,7 +228,7 @@ class TypeStruct(object):
 
         # Validate all member values
         members_dict = self._members_dict
-        for member_name, member_value in iteritems(value_x):
+        for member_name, member_value in value_x.items():
             member_path = (_member, member_name)
             member = members_dict.get(member_name)
             if member is None:
@@ -333,7 +331,7 @@ class TypeDict(object):
         value_copy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate the dict key/value pairs
-        for dict_key, dict_value in iteritems(value_x):
+        for dict_key, dict_value in value_x.items():
             member_path = (_member, dict_key)
 
             # Validate the key
@@ -404,7 +402,7 @@ class _TypeString(object):
     def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
-        if not isinstance(value, basestring_):
+        if not isinstance(value, str):
             raise ValidationError.member_error(self, value, _member)
 
         return value
@@ -425,13 +423,13 @@ class _TypeInt(object):
     def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate and translate the value
-        if (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
+        if isinstance(value, int) and not isinstance(value, bool):
             value_x = value
         elif isinstance(value, float):
             value_x = int(value)
             if value_x != value:
                 raise ValidationError.member_error(self, value, _member)
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
             try:
                 value_x = int(value)
             except:
@@ -459,9 +457,9 @@ class _TypeFloat(object):
         # Validate and translate the value
         if isinstance(value, float):
             value_x = value
-        elif (isinstance(value, int) or isinstance(value, long_)) and not isinstance(value, bool):
+        elif isinstance(value, int) and not isinstance(value, bool):
             value_x = float(value)
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
             try:
                 value_x = float(value)
                 if isnan(value_x) or isinf(value_x):
@@ -496,7 +494,7 @@ class _TypeBool(object):
         # Validate and translate the value
         if isinstance(value, bool):
             return value
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, basestring_):
+        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
             try:
                 return self.VALUES[value]
             except:
@@ -522,7 +520,7 @@ class _TypeUuid(object):
         # Validate and translate the value
         if isinstance(value, UUID):
             return value
-        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:
                 return UUID(value)
             except:
@@ -548,7 +546,7 @@ class _TypeDate(object):
         # Validate and translate the value
         if isinstance(value, date):
             return value
-        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:
                 return parse_iso8601_date(value)
             except:
@@ -577,7 +575,7 @@ class _TypeDatetime(object):
             if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
                 return value.replace(tzinfo=TZLOCAL)
             return value
-        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, basestring_):
+        elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:
                 return parse_iso8601_datetime(value)
             except:

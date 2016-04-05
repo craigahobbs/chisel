@@ -25,9 +25,9 @@ from itertools import chain
 import logging
 import os
 import re
+from urllib.parse import unquote
 
 from .app_defs import ENVIRON_CTX
-from .compat import basestring_, iteritems, re_escape, urllib_parse_unquote, xrange_
 from .request import Request
 from .spec import SpecParser
 from .util import JSONEncoder, load_modules
@@ -92,7 +92,7 @@ class Application(object):
 
             # URL with arguments?
             if RE_URL_ARG.search(url):
-                request_regex = '^' + RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re_escape(url)) + '$'
+                request_regex = '^' + RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
                 self.__request_regex.append((method, re.compile(request_regex), request))
             else:
                 request_key = (method, url)
@@ -122,7 +122,7 @@ class Application(object):
         path_info = environ['PATH_INFO']
         request_method = environ['REQUEST_METHOD'].upper()
         url_args = None
-        for pass_ in xrange_(2):
+        for pass_ in range(2):
             request_key = (request_method if pass_ == 0 else None, path_info)
             request = self.__request_urls.get(request_key)
             if request is None:
@@ -132,8 +132,7 @@ class Application(object):
                         match_request = request_regex.match(path_info)
                         if match_request:
                             request = request_
-                            url_args = {urllib_parse_unquote(url_arg): urllib_parse_unquote(url_value)
-                                        for url_arg, url_value in iteritems(match_request.groupdict())}
+                            url_args = {unquote(url_arg): unquote(url_value) for url_arg, url_value in match_request.groupdict().items()}
                             break
             if request is not None:
                 break
@@ -226,7 +225,7 @@ class Context(object):
         """
         Send an HTTP response
         """
-        assert not isinstance(content, basestring_) and not isinstance(content, bytes), \
+        assert not isinstance(content, str) and not isinstance(content, bytes), \
             'Response content of type str or bytes received'
 
         # Build the headers array

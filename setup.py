@@ -24,29 +24,28 @@ from setuptools import setup
 
 import chisel
 
-tests_require = []
+TESTS_REQUIRE = []
 
 setup(
-    name = 'chisel',
-    version = chisel.__version__,
-    author = 'Craig Hobbs',
-    author_email = 'craigahobbs@gmail.com',
-    description = ('JSON web APIs made dirt simple'),
-    keywords = 'json api wsgi framework',
-    url = 'https://github.com/craigahobbs/chisel',
-    license = 'MIT',
-    classifiers = [
+    name='chisel',
+    version=chisel.__version__,
+    author='Craig Hobbs',
+    author_email='craigahobbs@gmail.com',
+    description=('JSON web APIs made dirt simple'),
+    keywords='json api wsgi framework',
+    url='https://github.com/craigahobbs/chisel',
+    license='MIT',
+    classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    packages = ['chisel'],
+    packages=['chisel'],
     test_suite='chisel.tests',
-    tests_require = tests_require,
-    extras_require = {
-        'tests': tests_require,
+    tests_require=TESTS_REQUIRE,
+    extras_require={
+        'tests': TESTS_REQUIRE,
     },
 )

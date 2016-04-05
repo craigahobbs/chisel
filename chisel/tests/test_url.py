@@ -25,7 +25,6 @@ import unittest
 from uuid import UUID
 
 from chisel import decode_query_string, encode_query_string, TZUTC
-from chisel.compat import unichr_, unicode_
 
 
 class TestUrl(unittest.TestCase):
@@ -79,7 +78,7 @@ class TestUrl(unittest.TestCase):
 
         # Decode unicode string
         query_string = 'a=abc%EA%80%80&b.0=c&b.1=d'
-        obj = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
+        obj = {'a': 'abc' + chr(40960), 'b': ['c', 'd']}
         self.assertEqual(decode_query_string(query_string), obj)
 
         # Keys and values with special characters
@@ -227,7 +226,7 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encode_query_string(obj), query_string)
 
         # Unicode keys and values
-        obj = {unicode_('a'): unicode_('abc') + unichr_(40960), unicode_('b'): [unicode_('c'), 'd']}
+        obj = {'a': 'abc' + chr(40960), 'b': ['c', 'd']}
         query_string = 'a=abc%EA%80%80&b.0=c&b.1=d'
         self.assertEqual(encode_query_string(obj), query_string)
 

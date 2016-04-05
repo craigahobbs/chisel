@@ -20,11 +20,10 @@
 # SOFTWARE.
 #
 
-import cgi
-import json
+from cgi import parse_header
+from json import loads as json_loads
 
 from .app_defs import ENVIRON_CTX
-from .compat import func_name, iteritems
 from .model import VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
@@ -72,7 +71,7 @@ class Action(Request):
 
         # Use the action model name, if available
         if name is None:
-            name = func_name(action_callback)
+            name = action_callback.__name__
 
         # Spec provided?
         model = None
@@ -136,9 +135,8 @@ class Action(Request):
                 validate_mode = VALIDATE_JSON_INPUT
                 try:
                     content_type = environ.get('CONTENT_TYPE')
-                    content_charset = ('utf-8' if content_type is None else
-                                       cgi.parse_header(content_type)[1].get('charset', 'utf-8'))
-                    request = json.loads(content.decode(content_charset))
+                    content_charset = ('utf-8' if content_type is None else parse_header(content_type)[1].get('charset', 'utf-8'))
+                    request = json_loads(content.decode(content_charset))
                 except Exception as exc:
                     ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
                     raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
@@ -146,7 +144,7 @@ class Action(Request):
             # Add url arguments
             if ctx.url_args is not None:
                 validate_mode = VALIDATE_QUERY_STRING
-                for url_arg, url_value in iteritems(ctx.url_args):
+                for url_arg, url_value in ctx.url_args.items():
                     if url_arg in request:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
                         raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (url_arg,))

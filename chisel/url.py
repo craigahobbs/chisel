@@ -21,9 +21,9 @@
 #
 
 from datetime import date, datetime
+from urllib.parse import quote, unquote
 from uuid import UUID
 
-from .compat import basestring_, urllib_parse_quote, urllib_parse_unquote, xrange_
 from .util import TZLOCAL
 
 
@@ -32,15 +32,13 @@ def _encode_query_string_flatten(obj, parent, encoding):
     if isinstance(obj, dict):
         if obj:
             for member in obj:
-                for child in _encode_query_string_flatten(obj[member], parent + (urllib_parse_quote(member, encoding=encoding),), encoding):
-                    yield child
+                yield from _encode_query_string_flatten(obj[member], parent + (quote(member, encoding=encoding),), encoding)
         elif parent:
             yield (parent, '')
-    elif isinstance(obj, list) or isinstance(obj, tuple):
+    elif isinstance(obj, (list, tuple)):
         if obj:
-            for i in xrange_(len(obj)):
-                for child in _encode_query_string_flatten(obj[i], parent + (urllib_parse_quote(str(i), encoding=encoding),), encoding):
-                    yield child
+            for idx, value in enumerate(obj):
+                yield from _encode_query_string_flatten(value, parent + (quote(str(idx), encoding=encoding),), encoding)
         elif parent:
             yield (parent, '')
     else:
@@ -55,8 +53,8 @@ def _encode_query_string_flatten(obj, parent, encoding):
         elif obj is None:
             ostr = 'null'
         else:
-            ostr = obj if isinstance(obj, basestring_) else str(obj)
-        yield (parent, urllib_parse_quote(ostr, encoding=encoding))
+            ostr = obj if isinstance(obj, str) else str(obj)
+        yield (parent, quote(ostr, encoding=encoding))
 
 def encode_query_string(obj, encoding='utf-8'):
     return '&'.join('='.join(('.'.join(k), v)) for k, v in
@@ -78,12 +76,12 @@ def decode_query_string(query_string, encoding='utf-8'):
         key_value = key_value_str.split('=')
         if len(key_value) != 2:
             raise ValueError("Invalid key/value pair '" + key_value_str + "'")
-        value = urllib_parse_unquote(key_value[1], encoding=encoding)
+        value = unquote(key_value[1], encoding=encoding)
 
         # Find/create the object on which to set the value
         parent = result
         key_parent = 0
-        for key in (urllib_parse_unquote(key, encoding=encoding) for key in key_value[0].split('.')):
+        for key in (unquote(key, encoding=encoding) for key in key_value[0].split('.')):
             obj = parent[key_parent]
 
             # Array key?  First "key" of an array must start with "0".

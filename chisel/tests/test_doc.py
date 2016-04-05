@@ -20,46 +20,9 @@
 # SOFTWARE.
 #
 
-import sys
 import unittest
 
 from chisel import action, request, Action, Application, DocAction, DocPage, Element
-from chisel.compat import HTMLParser
-
-
-class HTMLValidator(HTMLParser):
-    """
-    Simple HTML validator class
-    """
-
-    def __init__(self):
-        # Default value for convert_charrefs (added in Python 3.4) changed in Python 3.5
-        if sys.version_info >= (3, 4):
-            HTMLParser.__init__(self, convert_charrefs=True)
-        else:
-            HTMLParser.__init__(self)
-        self.elements = []
-
-    def error(self, message):
-        return HTMLParser.error(self)
-
-    def handle_starttag(self, tag, attrs):
-        if tag not in ('br', 'img', 'link', 'meta'):
-            self.elements.append(tag)
-
-    def handle_endtag(self, tag):
-        expected_tag = self.elements.pop() if self.elements else None
-        assert expected_tag == tag, "Expected '%s' element, got '%s'" % (expected_tag, tag)
-
-    def close(self):
-        assert not self.elements, 'Un-popped HTML elements! %r' % (self.elements,)
-        HTMLParser.close(self)
-
-    @staticmethod
-    def validate(html):
-        html_parser = HTMLValidator()
-        html_parser.feed(html)
-        html_parser.close()
 
 
 class TestDoc(unittest.TestCase):
@@ -151,7 +114,6 @@ action my_action2
         status, dummy_headers, response = self.app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -288,7 +250,6 @@ ul.chsl-constraint-list {
         environ['QUERY_STRING'] = 'name=my_action1'
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -689,7 +650,6 @@ A value
         environ['QUERY_STRING'] = 'name=my_action2'
         dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -910,7 +870,6 @@ And some other important information.
 
         dummy_status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_request')
         html = response.decode('utf-8')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -1219,7 +1178,6 @@ action my_action
         status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -1352,7 +1310,6 @@ ul.chsl-constraint-list {
         status, dummy_headers, response = app.request('GET', '/doc', environ=environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>
@@ -1510,7 +1467,6 @@ The action has no input parameters.
         status, dummy_headers, response = app.request('GET', '/doc_my_action', environ=self._environ)
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
-        HTMLValidator.validate(html)
         html_expected = '''\
 <!doctype html>
 <html>

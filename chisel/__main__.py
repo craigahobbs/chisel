@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-import argparse
+from argparse import ArgumentParser
 from wsgiref.simple_server import make_server
 
 from chisel import Application, DocAction
@@ -33,7 +33,7 @@ except ImportError:
 def main():
 
     # Command line arguments
-    parser = argparse.ArgumentParser(prog='python -m chisel')
+    parser = ArgumentParser(prog='python -m chisel')
     parser.add_argument('file', nargs='?',
                         help='a Python file that contains the WSGI application callable')
     parser.add_argument('-a', dest='application', metavar='NAME', default='application',

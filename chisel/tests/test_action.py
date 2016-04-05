@@ -23,7 +23,8 @@
 import re
 import unittest
 
-import chisel
+from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
+from chisel.spec import ActionModel
 
 
 class TestAction(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestAction(unittest.TestCase):
     def setUp(self):
 
         # Application object
-        self.app = chisel.Application()
+        self.app = Application()
         self.app.specs.parse_string('''\
 action my_action_default
 ''')
@@ -39,26 +40,26 @@ action my_action_default
     # Default action decorator
     def test_decorator(self):
 
-        @chisel.action
+        @action
         def my_action_default(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action_default, chisel.Action))
-        self.assertTrue(isinstance(my_action_default, chisel.Request))
+        self.assertTrue(isinstance(my_action_default, Action))
+        self.assertTrue(isinstance(my_action_default, Request))
         self.app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
         self.assertEqual(my_action_default.urls, ((None, '/my_action_default'),))
-        self.assertTrue(isinstance(my_action_default.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, False)
 
     # Default action decorator with missing spec
     def test_decorator_unknown_action(self):
 
-        @chisel.action
+        @action
         def my_action(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action, chisel.Action))
-        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
         try:
             self.app.add_request(my_action)
         except AssertionError as exc:
@@ -69,59 +70,59 @@ action my_action_default
     # Action decorator with spec
     def test_decorator_spec(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action, chisel.Action))
-        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, ((None, '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with parser
     def test_decorator_parser(self):
 
-        parser = chisel.SpecParser()
+        parser = SpecParser()
         parser.parse_string('''\
 action my_action
 ''')
-        @chisel.action(parser=parser)
+        @action(parser=parser)
         def my_action(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action, chisel.Action))
-        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, ((None, '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with parser and spec
     def test_decorator_spec_parser(self):
 
-        parser = chisel.SpecParser()
+        parser = SpecParser()
         parser.parse_string('''\
 struct MyStruct
 ''')
-        @chisel.action(parser=parser, spec='''\
+        @action(parser=parser, spec='''\
 action my_action
   input
     MyStruct a
 ''')
         def my_action(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action, chisel.Action))
-        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, ((None, '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
@@ -129,7 +130,7 @@ action my_action
     def test_decorator_spec_no_actions(self):
 
         try:
-            @chisel.action(spec='''\
+            @action(spec='''\
 action my_action
 ''')
             def dummy_my_action(dummy_app, dummy_req):
@@ -142,12 +143,12 @@ action my_action
     # Action decorator with spec with syntax errors
     def test_decorator_spec_error(self):
         try:
-            @chisel.action(spec='''\
+            @action(spec='''\
 asdfasdf
 ''')
             def dummy_my_action(dummy_app, dummy_req):
                 return {}
-        except chisel.SpecParserError as exc:
+        except SpecParserError as exc:
             self.assertEqual(str(exc), ':1: error: Syntax error')
         else:
             self.fail()
@@ -155,18 +156,18 @@ asdfasdf
     # Action decorator with name and spec
     def test_decorator_named_spec(self):
 
-        @chisel.action(name='theAction', spec='''\
+        @action(name='theAction', spec='''\
 action theActionOther
 action theAction
 ''')
         def my_action(dummy_app, dummy_req):
             return {}
-        self.assertTrue(isinstance(my_action, chisel.Action))
-        self.assertTrue(isinstance(my_action, chisel.Request))
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'theAction')
         self.assertEqual(my_action.urls, ((None, '/theAction'),))
-        self.assertTrue(isinstance(my_action.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'theAction')
         self.assertEqual(my_action.wsgi_response, False)
 
@@ -174,20 +175,20 @@ action theAction
     def test_decorator_other(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
-        @chisel.action(urls=('/foo',), wsgi_response=True)
+        @action(urls=('/foo',), wsgi_response=True)
         def my_action_default(app, dummy_req):
             return app.response_text('200 OK', 'OK')
         self.app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
         self.assertEqual(my_action_default.urls, ((None, '/foo'),))
-        self.assertTrue(isinstance(my_action_default.model, chisel.spec.ActionModel))
+        self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, True)
 
     # Test successful action get
     def test_get(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -208,7 +209,7 @@ action my_action
     # Test successful action get
     def test_get_no_validate_output(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -230,7 +231,7 @@ action my_action
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
-        @chisel.action(jsonp='jsonp', spec='''\
+        @action(jsonp='jsonp', spec='''\
 action my_action
   input
     int a
@@ -251,7 +252,7 @@ action my_action
     # Test successful action post
     def test_post(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -272,7 +273,7 @@ action my_action
     # Test successful action get with headers
     def test_headers(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(app, dummy_req):
@@ -290,7 +291,7 @@ action my_action
     # Test successful action with custom response
     def test_custom_response(self):
 
-        @chisel.action(wsgi_response=True, spec='''\
+        @action(wsgi_response=True, spec='''\
 action my_action
   input
     string a
@@ -310,7 +311,7 @@ action my_action
     # Test action error response
     def test_error(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   errors
     MyError
@@ -328,7 +329,7 @@ action my_action
     # Test action error response with message
     def test_error_message(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   errors
     MyError
@@ -346,13 +347,13 @@ action my_action
     # Test action raised-error response
     def test_error_raised(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   errors
     MyError
 ''')
         def my_action(dummy_app, dummy_req):
-            raise chisel.ActionError('MyError')
+            raise ActionError('MyError')
         self.app.add_request(my_action)
 
         status, headers, response = self.app.request('POST', '/my_action', wsgi_input=b'{}')
@@ -364,13 +365,13 @@ action my_action
     # Test action raised-error response with message
     def test_error_message_raised(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   errors
     MyError
 ''')
         def my_action(dummy_app, dummy_req):
-            raise chisel.ActionError('MyError', 'My message')
+            raise ActionError('MyError', 'My message')
         self.app.add_request(my_action)
 
         status, headers, response = self.app.request('POST', '/my_action', wsgi_input=b'{}')
@@ -382,7 +383,7 @@ action my_action
     # Test action returning bad error enum value
     def test_error_bad_error(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   errors
     MyError
@@ -402,7 +403,7 @@ action my_action
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -420,7 +421,7 @@ action my_action
     # Test action with invalid json content
     def test_error_invalid_json(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -439,7 +440,7 @@ action my_action
     # Test action with invalid HTTP method
     def test_error_invalid_method(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     int a
@@ -457,7 +458,7 @@ action my_action
     # Test action with invalid input
     def test_error_invalid_input(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   input
     string a
@@ -477,7 +478,7 @@ action my_action
     # Test action with invalid output
     def test_error_invalid_output(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   output
     int a
@@ -497,7 +498,7 @@ action my_action
     # Test action with invalid None output
     def test_error_none_output(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):
@@ -513,7 +514,7 @@ action my_action
     # Test action with invalid array output
     def test_error_array_output(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):
@@ -531,7 +532,7 @@ action my_action
     # Test action with unexpected error
     def test_error_unexpected(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):
@@ -547,7 +548,7 @@ action my_action
     # Test action HTTP post IO error handling
     def test_error_io(self):
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):
@@ -572,7 +573,7 @@ action my_action
         class MyClass(object):
             pass
 
-        @chisel.action(spec='''\
+        @action(spec='''\
 action my_action
   output
     float a
@@ -591,7 +592,7 @@ action my_action
     # Test action unexpected error response with custom response
     def test_error_unexpected_custom(self):
 
-        @chisel.action(wsgi_response=True, spec='''\
+        @action(wsgi_response=True, spec='''\
 action my_action
 ''')
         def my_action(dummy_app, dummy_req):

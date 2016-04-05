@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+from io import StringIO
 import logging
 import os
 import re
@@ -28,7 +29,6 @@ import types
 import unittest
 
 from chisel import action, Application, ENVIRON_CTX
-from chisel.compat import StringIO
 
 
 class TestAppApplication(unittest.TestCase):
