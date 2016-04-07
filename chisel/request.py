@@ -20,6 +20,8 @@
 # SOFTWARE.
 #
 
+from itertools import chain
+
 
 def request(_wsgi_callback=None, **kwargs):
     """
@@ -37,12 +39,19 @@ class Request(object):
 
     def __init__(self, wsgi_callback=None, name=None, method=None, urls=None, doc=None):
         assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
-        method = method and method.upper()
+
+        methods = (method and method.upper(),) if method is None or isinstance(method, str) else \
+                  tuple(method.upper() for method in method)
+
         self.wsgi_callback = wsgi_callback
         self.name = name if name is not None else wsgi_callback.__name__
-        self.urls = ((method, '/' + self.name),) if urls is None else \
-                    tuple((method, url) if isinstance(url, str) else ((url[0] and url[0].upper()) or method, url[1])
-                          for url in urls)
+        self.urls = tuple((method, '/' + self.name) for method in methods) if urls is None else \
+               tuple((method, urls) for method in methods) if isinstance(urls, str) else \
+               tuple(chain.from_iterable(
+                   ((method, '/' + self.name) for method in methods) if url is None else \
+                   ((method, url) for method in methods) if isinstance(url, str) else \
+                   ((url[0] and url[0].upper(), url[1] or '/' + self.name),)
+                   for url in urls))
         self.doc = doc
 
     def onload(self, app):
