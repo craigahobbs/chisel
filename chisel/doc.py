@@ -153,8 +153,8 @@ class Element(object):
 
 
 def _index_html(environ, requests):
-    root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
-    title = environ.get('HTTP_HOST') or environ.get('SERVER_NAME', '-') + ':' + environ.get('SERVER_PORT', '80')
+    root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
+    title = environ.get('HTTP_HOST') or (environ['SERVER_NAME'] + ':' + environ['SERVER_PORT'])
 
     return Element('html', children=[
         Element('head', children=[

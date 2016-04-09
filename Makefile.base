@@ -197,7 +197,6 @@ $(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.3.6), DOC_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
-	$(2) -m pylint $(PYLINT_ARGS) setup.py
-	$(2) -m pylint $(PYLINT_ARGS) $(PACKAGE_NAME)
+	$(2) -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
 $(eval $(call ENV_RULE, pylint, -e . pylint==1.5.5, PYLINT_COMMANDS_FN))

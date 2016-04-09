@@ -44,7 +44,7 @@ class Request(object):
                   tuple(method.upper() for method in method)
 
         self.wsgi_callback = wsgi_callback
-        self.name = name if name is not None else wsgi_callback.__name__
+        self.name = name or wsgi_callback.__name__
         self.urls = tuple((method, '/' + self.name) for method in methods) if urls is None else \
                tuple((method, urls) for method in methods) if isinstance(urls, str) else \
                tuple(chain.from_iterable(

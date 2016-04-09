@@ -155,7 +155,7 @@ class Application(object):
             ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
             return ctx.response_text('500 Internal Server Error', 'Unexpected Error')
 
-    def request(self, request_method, path_info, query_string=None, wsgi_input=None, environ=None):
+    def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
         """
         Make an HTTP request on this application
         """
@@ -165,25 +165,22 @@ class Application(object):
             environ = {}
         environ['REQUEST_METHOD'] = request_method
         environ['PATH_INFO'] = path_info
-        if 'SCRIPT_NAME' not in environ:
-            environ['SCRIPT_NAME'] = ''
-        if 'QUERY_STRING' not in environ:
-            environ['QUERY_STRING'] = '' if query_string is None else query_string
-        if wsgi_input is not None:
-            assert 'wsgi.input' not in environ
+        environ.setdefault('SCRIPT_NAME', '')
+        environ.setdefault('QUERY_STRING', query_string)
+        environ.setdefault('SERVER_NAME', 'localhost')
+        environ.setdefault('SERVER_PORT', '80')
+        if 'wsgi.input' not in environ:
             environ['wsgi.input'] = BytesIO(wsgi_input)
-        elif 'wsgi.input' not in environ:
-            environ['wsgi.input'] = BytesIO()
 
         # Capture the response status and headers
-        start_response_args = {}
-        def start_response(status, response_headers):
-            start_response_args['status'] = status
-            start_response_args['response_headers'] = response_headers
+        status, headers = '', []
+        def start_response(status_, headers_):
+            nonlocal status, headers
+            status, headers = status_, headers_ # pylint: disable=unused-variable
 
         # Make the request
         response = self(environ, start_response)
-        return start_response_args['status'], start_response_args['response_headers'], b''.join(response)
+        return status, headers, b''.join(response)
 
 
 class Context(object):
