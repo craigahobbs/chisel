@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-from io import StringIO
+from io import BytesIO, StringIO
 import logging
 import os
 import re
@@ -68,6 +68,7 @@ class TestAppApplication(unittest.TestCase):
             'SCRIPT_FILENAME': os.path.join(__file__),
             'REQUEST_METHOD': 'GET',
             'PATH_INFO': '/my_action',
+            'wsgi.input': BytesIO(),
             'wsgi.errors': StringIO()
             }
         start_response_data = {

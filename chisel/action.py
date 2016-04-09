@@ -101,38 +101,43 @@ class Action(Request):
         ctx = environ[ENVIRON_CTX]
 
         # Handle the action
-        is_get = (environ['REQUEST_METHOD'] == 'GET')
         jsonp = None
         try:
-            # Get the input dict
-            if is_get:
+            # Read the request content
+            try:
+                content = environ['wsgi.input'].read()
+            except:
+                ctx.log.warning("I/O error reading input for action '%s'", self.name)
+                raise _ActionErrorInternal('IOError', 'Error reading request content')
 
-                # Decode the query string
+            # De-serialize the JSON content
+            validate_mode = VALIDATE_JSON_INPUT
+            try:
+                if content:
+                    content_type = environ.get('CONTENT_TYPE')
+                    content_charset = ('utf-8' if content_type is None else parse_header(content_type)[1].get('charset', 'utf-8'))
+                    request = json_loads(content.decode(content_charset))
+                else:
+                    request = {}
+            except Exception as exc:
+                ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
+                raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
+
+            # Decode the query string
+            query_string = environ.get('QUERY_STRING')
+            if query_string:
                 validate_mode = VALIDATE_QUERY_STRING
                 try:
-                    request = decode_query_string(environ.get('QUERY_STRING', ''))
+                    request_query_string = decode_query_string(query_string)
                 except Exception as exc:
                     ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
                     raise _ActionErrorInternal('InvalidInput', str(exc))
 
-            else:
-
-                # Read the request content
-                try:
-                    content = environ['wsgi.input'].read()
-                except:
-                    ctx.log.warning("I/O error reading input for action '%s'", self.name)
-                    raise _ActionErrorInternal('IOError', 'Error reading request content')
-
-                # De-serialize the JSON request
-                validate_mode = VALIDATE_JSON_INPUT
-                try:
-                    content_type = environ.get('CONTENT_TYPE')
-                    content_charset = ('utf-8' if content_type is None else parse_header(content_type)[1].get('charset', 'utf-8'))
-                    request = json_loads(content.decode(content_charset))
-                except Exception as exc:
-                    ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
-                    raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
+                for request_key, request_value in request_query_string.items():
+                    if request_key in request:
+                        ctx.log.warning("Duplicate query string argument member '%s' for action '%s'", request_key, self.name)
+                        raise _ActionErrorInternal('InvalidInput', "Duplicate query string argument member '%s'" % (request_key,))
+                    request[request_key] = request_value
 
             # Add url arguments
             if ctx.url_args is not None:
@@ -144,7 +149,7 @@ class Action(Request):
                     request[url_arg] = url_value
 
             # JSONP?
-            if is_get and self.jsonp and self.jsonp in request:
+            if self.jsonp and self.jsonp in request and environ['REQUEST_METHOD'] == 'GET':
                 jsonp = str(request[self.jsonp])
                 del request[self.jsonp]
 
