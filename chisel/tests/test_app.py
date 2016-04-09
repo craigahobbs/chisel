@@ -28,7 +28,7 @@ import sys
 import types
 import unittest
 
-from chisel import action, Application, ENVIRON_CTX
+from chisel import action, Application, ENVIRON_CTX, Request
 
 
 class TestAppApplication(unittest.TestCase):
@@ -113,7 +113,7 @@ class TestAppApplication(unittest.TestCase):
             ctx = environ[ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', response())
 
-        self.app.add_request(generator_response)
+        self.app.add_request(Request(generator_response))
 
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
@@ -144,7 +144,7 @@ class TestAppApplication(unittest.TestCase):
             ctx = environ[ENVIRON_CTX]
             return ctx.response('200 OK', 'text/plain', 'Hello World')
 
-        self.app.add_request(string_response)
+        self.app.add_request(Request(string_response))
 
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
@@ -226,7 +226,7 @@ class TestAppApplication(unittest.TestCase):
                 return 'Bad'
 
         app = Application()
-        app.add_request(my_wsgi)
+        app.add_request(Request(my_wsgi))
         app.log_format = MyFormatter
 
         environ = {'wsgi.errors': StringIO()}
@@ -248,8 +248,8 @@ class TestAppApplication(unittest.TestCase):
             return ctx.response_text('200 OK', str(5 + int(response)))
 
         app = Application()
-        app.add_request(request1)
-        app.add_request(request2)
+        app.add_request(Request(request1))
+        app.add_request(Request(request2))
 
         status, dummy_headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
@@ -261,7 +261,7 @@ class TestAppApplication(unittest.TestCase):
             raise Exception('')
 
         app = Application()
-        app.add_request(request1)
+        app.add_request(Request(request1))
 
         status, headers, response = app.request('GET', '/request1')
         self.assertEqual(status, '500 Internal Server Error')
@@ -270,7 +270,7 @@ class TestAppApplication(unittest.TestCase):
 
     def test_request_url_mix(self):
 
-        @action(urls=['/action/1'],
+        @action(urls=[(None, '/action/1')],
                 spec='''\
 action my_action1
   output

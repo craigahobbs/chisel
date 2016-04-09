@@ -47,7 +47,7 @@ action my_action_default
         self.assertTrue(isinstance(my_action_default, Request))
         self.app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
-        self.assertEqual(my_action_default.urls, ((None, '/my_action_default'),))
+        self.assertEqual(my_action_default.urls, (('GET', '/my_action_default'), ('POST', '/my_action_default')))
         self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, False)
@@ -79,7 +79,7 @@ action my_action
         self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, ((None, '/my_action'),))
+        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('POST', '/my_action')))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
@@ -91,37 +91,14 @@ action my_action
         parser.parse_string('''\
 action my_action
 ''')
-        @action(parser=parser)
+        @action(spec=parser)
         def my_action(dummy_app, dummy_req):
             return {}
         self.assertTrue(isinstance(my_action, Action))
         self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, ((None, '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
-        self.assertEqual(my_action.wsgi_response, False)
-
-    # Action decorator with parser and spec
-    def test_decorator_spec_parser(self):
-
-        parser = SpecParser()
-        parser.parse_string('''\
-struct MyStruct
-''')
-        @action(parser=parser, spec='''\
-action my_action
-  input
-    MyStruct a
-''')
-        def my_action(dummy_app, dummy_req):
-            return {}
-        self.assertTrue(isinstance(my_action, Action))
-        self.assertTrue(isinstance(my_action, Request))
-        self.app.add_request(my_action)
-        self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, ((None, '/my_action'),))
+        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('POST', '/my_action')))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
@@ -166,7 +143,7 @@ action theAction
         self.assertTrue(isinstance(my_action, Request))
         self.app.add_request(my_action)
         self.assertEqual(my_action.name, 'theAction')
-        self.assertEqual(my_action.urls, ((None, '/theAction'),))
+        self.assertEqual(my_action.urls, (('GET', '/theAction'), ('POST', '/theAction')))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'theAction')
         self.assertEqual(my_action.wsgi_response, False)
@@ -180,7 +157,7 @@ action theAction
             return app.response_text('200 OK', 'OK')
         self.app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
-        self.assertEqual(my_action_default.urls, ((None, '/foo'),))
+        self.assertEqual(my_action_default.urls, (('GET', '/foo'), ('POST', '/foo')))
         self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, True)

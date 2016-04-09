@@ -78,10 +78,6 @@ class Application(object):
         Add a request object
         """
 
-        # Wrap bare functions in a request decorator
-        if not isinstance(request, Request):
-            request = Request(request)
-
         # Duplicate request name?
         if request.name in self.requests:
             raise Exception('Redefinition of request "{0}"'.format(request.name))
@@ -92,7 +88,7 @@ class Application(object):
 
             # URL with arguments?
             if RE_URL_ARG.search(url):
-                request_regex = '^' + RE_URL_ARG_ESC.sub('/(?P<\\1>[^/]+)', re.escape(url)) + '$'
+                request_regex = '^' + RE_URL_ARG_ESC.sub(r'/(?P<\1>[^/]+)', re.escape(url)) + '$'
                 self.__request_regex.append((method, re.compile(request_regex), request))
             else:
                 request_key = (method, url)

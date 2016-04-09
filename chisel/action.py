@@ -67,7 +67,7 @@ class Action(Request):
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, method=None, urls=None, parser=None, spec=None, wsgi_response=False, jsonp=None):
+    def __init__(self, action_callback, name=None, method=('GET', 'POST'), urls=None, spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
         if name is None:
@@ -76,11 +76,8 @@ class Action(Request):
         # Spec provided?
         model = None
         doc = None
-        if spec is not None or parser is not None:
-            if parser is None:
-                parser = SpecParser()
-            if spec is not None:
-                parser.parse_string(spec)
+        if spec is not None:
+            parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
             assert name in parser.actions, 'Unknown action "{0}"'.format(name)
             model = parser.actions[name]
             doc = model.doc
@@ -103,12 +100,8 @@ class Action(Request):
     def __call__(self, environ, dummy_start_response):
         ctx = environ[ENVIRON_CTX]
 
-        # Check the method
-        is_get = (environ['REQUEST_METHOD'] == 'GET')
-        if not is_get and environ['REQUEST_METHOD'] != 'POST':
-            return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
-
         # Handle the action
+        is_get = (environ['REQUEST_METHOD'] == 'GET')
         jsonp = None
         try:
             # Get the input dict

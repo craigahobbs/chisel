@@ -376,10 +376,11 @@ ul.chsl-constraint-list {
       <div class="chsl-note">
         <p>
           <b>Note: </b>
-The request is exposed at the following URL:
+The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action1">/my_action1</a></li>
+          <li><a href="/my_action1">GET /my_action1</a></li>
+          <li><a href="/my_action1">POST /my_action1</a></li>
         </ul>
       </div>
     </div>
@@ -776,10 +777,11 @@ ul.chsl-constraint-list {
       <div class="chsl-note">
         <p>
           <b>Note: </b>
-The request is exposed at the following URL:
+The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action2">/my_action2</a></li>
+          <li><a href="/my_action2">GET /my_action2</a></li>
+          <li><a href="/my_action2">POST /my_action2</a></li>
         </ul>
       </div>
     </div>
@@ -1590,10 +1592,11 @@ ul.chsl-constraint-list {
       <div class="chsl-note">
         <p>
           <b>Note: </b>
-The request is exposed at the following URL:
+The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action">/my_action</a></li>
+          <li><a href="/my_action">GET /my_action</a></li>
+          <li><a href="/my_action">POST /my_action</a></li>
         </ul>
       </div>
     </div>
