@@ -101,11 +101,12 @@ class Action(Request):
         ctx = environ[ENVIRON_CTX]
 
         # Handle the action
+        is_get = (environ['REQUEST_METHOD'] == 'GET')
         jsonp = None
         try:
             # Read the request content
             try:
-                content = environ['wsgi.input'].read()
+                content = None if is_get else environ['wsgi.input'].read()
             except:
                 ctx.log.warning("I/O error reading input for action '%s'", self.name)
                 raise _ActionErrorInternal('IOError', 'Error reading request content')
@@ -149,7 +150,7 @@ class Action(Request):
                     request[url_arg] = url_value
 
             # JSONP?
-            if self.jsonp and self.jsonp in request and environ['REQUEST_METHOD'] == 'GET':
+            if is_get and self.jsonp and self.jsonp in request:
                 jsonp = str(request[self.jsonp])
                 del request[self.jsonp]
 
