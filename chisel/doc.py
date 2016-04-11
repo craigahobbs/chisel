@@ -258,7 +258,7 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
     if isinstance(type_, TypeStruct) and type_.type_name not in struct_types:
         if not top_level:
             struct_types[type_.type_name] = type_
-        for member in type_.members:
+        for member in type_.members():
             _referenced_types(struct_types, enum_types, typedef_types, member.type, top_level=False)
     elif isinstance(type_, TypeEnum) and type_.type_name not in enum_types:
         if not top_level:
@@ -386,12 +386,12 @@ def _typedef_section(type_):
 
 
 def _struct_section(type_, title_tag, title, empty_doc):
-    no_description = not any(member.doc for member in type_.members)
+    no_description = not any(member.doc for member in type_.members())
     return [
         Element(title_tag, inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element(title, text=True))),
         _doc_text(type_.doc),
-        _doc_text(empty_doc) if not type_.members else Element('table', children=[
+        _doc_text(empty_doc) if not any(type_.members()) else Element('table', children=[
             Element('tr', children=[
                 Element('th', inline=True, children=Element('Name', text=True)),
                 Element('th', inline=True, children=Element('Type', text=True)),
@@ -404,19 +404,19 @@ def _struct_section(type_, title_tag, title, empty_doc):
                     Element('td', inline=True, children=_type_decl(member.type)),
                     Element('td', children=_type_attr(member.type, member.attr, member.optional, member.nullable)),
                     None if no_description else Element('td', children=_doc_text(member.doc))
-                ]) for member in type_.members
+                ]) for member in type_.members()
             ]
         ])
     ]
 
 
 def _enum_section(type_, title_tag, title, empty_doc):
-    no_description = not any(value.doc for value in type_.values)
+    no_description = not any(value.doc for value in type_.values())
     return [
         Element(title_tag, inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element(title, text=True))),
         _doc_text(type_.doc),
-        _doc_text(empty_doc) if not type_.values else Element('table', children=[
+        _doc_text(empty_doc) if not any(type_.values()) else Element('table', children=[
             Element('tr', children=[
                 Element('th', inline=True, children=Element('Value', text=True)),
                 None if no_description else Element('th', inline=True, children=Element('Description', text=True))
@@ -425,7 +425,7 @@ def _enum_section(type_, title_tag, title, empty_doc):
                 Element('tr', children=[
                     Element('td', inline=True, children=Element(value.value, text=True)),
                     None if no_description else Element('td', children=_doc_text(value.doc))
-                ]) for value in type_.values
+                ]) for value in type_.values()
             ]
         ])
     ]

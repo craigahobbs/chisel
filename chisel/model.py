@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime
+from itertools import chain
 from math import isnan, isinf
 from uuid import UUID
 
@@ -189,19 +190,22 @@ class StructMember(object):
 
 # Struct type
 class TypeStruct(object):
-    __slots__ = ('type_name', 'union', 'members', '_members_dict', 'doc')
+    __slots__ = ('type_name', 'union', 'base_types', '_members', 'doc')
 
-    def __init__(self, type_name=None, union=False, doc=None):
+    def __init__(self, type_name=None, union=False, base_types=None, doc=None):
         self.type_name = ('union' if union else 'struct') if type_name is None else type_name
         self.union = union
-        self.members = []
-        self._members_dict = {}
+        self.base_types = base_types
+        self._members = []
         self.doc = [] if doc is None else doc
+
+    def members(self, include_base_types=True):
+        return iter(self._members) if self.base_types is None or not include_base_types else \
+            chain(chain.from_iterable(Typedef.base_type(base_type).members() for base_type in self.base_types if base_type), self._members)
 
     def add_member(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
         member = StructMember(name, type_, optional or self.union, nullable, attr, doc)
-        self.members.append(member)
-        self._members_dict[name] = member
+        self._members.append(member)
         return member
 
     @staticmethod
@@ -227,27 +231,32 @@ class TypeStruct(object):
         value_copy = None if mode in IMMUTABLE_VALIDATION_MODES else {}
 
         # Validate all member values
-        members_dict = self._members_dict
-        for member_name, member_value in value_x.items():
-            member_path = (_member, member_name)
-            member = members_dict.get(member_name)
-            if member is None:
-                raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, member_name)) + "'")
+        member_count = 0
+        for member in self.members():
+            member_name = member.name
+            if member_name not in value_x:
+                if not member.optional:
+                    raise ValidationError("Required member '" + ValidationError.member_syntax((_member, member_name)) + "' missing")
+                continue
+            member_count += 1
+            member_value = value_x[member_name]
             if member.nullable and (member_value is None or \
                     (mode == VALIDATE_QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
                 member_value_x = None
             else:
+                member_path = (_member, member_name)
                 member_value_x = member.type.validate(member_value, mode, member_path)
                 if member.attr is not None:
                     member.attr.validate(member_value_x, member_path)
             if value_copy is not None:
                 value_copy[member_name] = member_value_x
 
-        # Any missing required members?
-        if len(self.members) != len(value_x):
-            for member in self.members:
-                if not self.union and not member.optional and member.name not in value_x:
-                    raise ValidationError("Required member '" + ValidationError.member_syntax((_member, member.name)) + "' missing")
+        # Any unknown members?
+        if member_count != len(value_x):
+            member_set = set(member.name for member in self.members())
+            for value_name in value_x.keys():
+                if value_name not in member_set:
+                    raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, value_name)) + "'")
 
         return value if value_copy is None else value_copy
 
@@ -364,16 +373,21 @@ class EnumValue(object):
 
 
 class TypeEnum(object):
-    __slots__ = ('type_name', 'values', 'doc')
+    __slots__ = ('type_name', 'base_types', '_values', 'doc')
 
-    def __init__(self, type_name='enum', doc=None):
+    def __init__(self, type_name='enum', base_types=None, doc=None):
         self.type_name = type_name
-        self.values = []
+        self.base_types = base_types
+        self._values = []
         self.doc = [] if doc is None else doc
+
+    def values(self, include_base_types=True):
+        return iter(self._values) if self.base_types is None or not include_base_types else \
+            chain(chain.from_iterable(Typedef.base_type(base_type).values() for base_type in self.base_types if base_type), self._values)
 
     def add_value(self, string, doc=None):
         value = EnumValue(string, doc)
-        self.values.append(value)
+        self._values.append(value)
         return value
 
     @staticmethod
@@ -383,7 +397,7 @@ class TypeEnum(object):
     def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
 
         # Validate the value
-        if value not in self.values:
+        if value not in self.values():
             raise ValidationError.member_error(self, value, _member)
 
         return value

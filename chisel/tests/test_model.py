@@ -365,35 +365,67 @@ class TestModelStructValidation(unittest.TestCase):
     def test_init(self):
 
         type_ = TypeStruct()
+        type_members = list(type_.members())
         self.assertEqual(type_.type_name, 'struct')
         self.assertEqual(type_.union, False)
-        self.assertEqual(type_.members, [])
+        self.assertEqual(type_members, [])
         self.assertEqual(type_.doc, [])
 
         type_.add_member('a', TypeStruct())
-        self.assertEqual(len(type_.members), 1)
-        self.assertEqual(type_.members[0].name, 'a')
-        self.assertTrue(isinstance(type_.members[0].type, TypeStruct))
-        self.assertEqual(type_.members[0].optional, False)
-        self.assertEqual(type_.members[0].nullable, False)
-        self.assertEqual(type_.members[0].doc, [])
+        type_members = list(type_.members())
+        self.assertEqual(len(type_members), 1)
+        self.assertEqual(type_members[0].name, 'a')
+        self.assertTrue(isinstance(type_members[0].type, TypeStruct))
+        self.assertEqual(type_members[0].optional, False)
+        self.assertEqual(type_members[0].nullable, False)
+        self.assertEqual(type_members[0].doc, [])
 
     # Test union type construction
     def test_init_union(self):
 
         type_ = TypeStruct(union=True)
+        type_members = list(type_.members())
         self.assertEqual(type_.type_name, 'union')
         self.assertEqual(type_.union, True)
-        self.assertEqual(type_.members, [])
+        self.assertEqual(type_members, [])
         self.assertEqual(type_.doc, [])
 
         type_.add_member('a', TypeStruct())
-        self.assertEqual(len(type_.members), 1)
-        self.assertEqual(type_.members[0].name, 'a')
-        self.assertTrue(isinstance(type_.members[0].type, TypeStruct))
-        self.assertEqual(type_.members[0].optional, True)
-        self.assertEqual(type_.members[0].nullable, False)
-        self.assertEqual(type_.members[0].doc, [])
+        type_members = list(type_.members())
+        self.assertEqual(len(type_members), 1)
+        self.assertEqual(type_members[0].name, 'a')
+        self.assertTrue(isinstance(type_members[0].type, TypeStruct))
+        self.assertEqual(type_members[0].optional, True)
+        self.assertEqual(type_members[0].nullable, False)
+        self.assertEqual(type_members[0].doc, [])
+
+    # Test struct with base types
+    def test_base_types(self):
+
+        base_type = TypeStruct()
+        base_type.add_member('a', TYPE_INT)
+        base_type.add_member('b', TYPE_FLOAT)
+
+        base_type2 = TypeStruct()
+        base_type2.add_member('c', TYPE_STRING)
+        base_type2.add_member('d', TYPE_BOOL)
+
+        type_ = TypeStruct(base_types=[base_type, base_type2])
+        type_.add_member('e', TYPE_UUID)
+        type_.add_member('f', TYPE_DATETIME)
+
+        self.assertEqual([(m.name, m.type.type_name, m.optional, m.nullable, m.doc) for m in type_.members()], [
+            ('a', 'int', False, False, []),
+            ('b', 'float', False, False, []),
+            ('c', 'string', False, False, []),
+            ('d', 'bool', False, False, []),
+            ('e', 'uuid', False, False, []),
+            ('f', 'datetime', False, False, [])
+        ])
+        self.assertEqual([(m.name, m.type.type_name, m.optional, m.nullable, m.doc) for m in type_.members(include_base_types=False)], [
+            ('e', 'uuid', False, False, []),
+            ('f', 'datetime', False, False, [])
+        ])
 
     # All validation modes - success
     def test_validation(self):
@@ -438,6 +470,28 @@ class TestModelStructValidation(unittest.TestCase):
                 self.assertTrue(obj is not obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'b': 'abc'})
+
+    # All validation modes - struct with base types success
+    def test_validation_base_types(self):
+
+        base_type = TypeStruct()
+        base_type.add_member('a', TYPE_INT)
+
+        base_type2 = TypeStruct()
+        base_type2.add_member('b', TYPE_STRING)
+
+        type_ = TypeStruct(base_types=[base_type, base_type2])
+        type_.add_member('c', TYPE_BOOL)
+
+        obj = {'a': 7, 'b': 'abc', 'c': True}
+        for mode in ALL_VALIDATION_MODES:
+            obj2 = type_.validate(obj, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(obj is obj2)
+            else:
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, dict))
+            self.assertEqual(obj2, {'a': 7, 'b': 'abc', 'c': True})
 
     # All validation modes - optional member present
     def test_validation_optional_present(self): # pylint: disable=invalid-name
@@ -724,6 +778,33 @@ class TestModelStructValidation(unittest.TestCase):
                 type_.validate(obj, mode)
             except ValidationError as exc:
                 self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - struct with base type member validation
+    def test_validation_error_member_validation_base_types(self): # pylint: disable=invalid-name
+
+        base_type = TypeStruct()
+        base_type.add_member('a', TYPE_INT)
+
+        type_ = TypeStruct(base_types=[base_type])
+        type_.add_member('b', TYPE_STRING)
+
+        obj = {'a': 'abc', 'b': 'def'}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
+            else:
+                self.fail()
+
+        obj = {'a': 7, 'b': 8}
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 8 (type 'int') for member 'b', expected type 'string'")
             else:
                 self.fail()
 
@@ -1158,13 +1239,42 @@ class TestModelEnumValidation(unittest.TestCase):
         type_ = TypeEnum()
         type_.add_value('a')
         type_.add_value('b')
+        type_values = list(type_.values())
 
         self.assertEqual(type_.type_name, 'enum')
-        self.assertEqual(type_.values[0].value, 'a')
-        self.assertEqual(type_.values[0].doc, [])
-        self.assertEqual(type_.values[1].value, 'b')
-        self.assertEqual(type_.values[1].doc, [])
+        self.assertEqual(type_values[0].value, 'a')
+        self.assertEqual(type_values[0].doc, [])
+        self.assertEqual(type_values[1].value, 'b')
+        self.assertEqual(type_values[1].doc, [])
         self.assertEqual(type_.doc, [])
+
+    # Test enum type construction
+    def test_base_types(self):
+
+        base_type = TypeEnum()
+        base_type.add_value('a')
+        base_type.add_value('b')
+
+        base_type2 = TypeEnum()
+        base_type2.add_value('a')
+        base_type2.add_value('b')
+
+        type_ = TypeEnum(base_types=[base_type, base_type2])
+        type_.add_value('e')
+        type_.add_value('f')
+
+        self.assertEqual([(v.value, v.doc) for v in type_.values()], [
+            ('a', []),
+            ('b', []),
+            ('a', []),
+            ('b', []),
+            ('e', []),
+            ('f', [])
+        ])
+        self.assertEqual([(v.value, v.doc) for v in type_.values(include_base_types=False)], [
+            ('e', []),
+            ('f', [])
+        ])
 
     # All validation modes - valid enumeration value
     def test_validate(self):
@@ -1178,11 +1288,46 @@ class TestModelEnumValidation(unittest.TestCase):
             obj2 = type_.validate(obj, mode)
             self.assertTrue(obj is obj2)
 
+    # All validation modes - valid enumeration value with base types
+    def test_validate_base_types(self):
+
+        base_type = TypeEnum()
+        base_type.add_value('a')
+
+        base_type2 = TypeEnum()
+        base_type2.add_value('b')
+
+        type_ = TypeEnum(base_types=[base_type, base_type2])
+        type_.add_value('c')
+
+        for obj in ('a', 'b', 'c'):
+            for mode in ALL_VALIDATION_MODES:
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
+
     # All validation modes - valid enumeration value
     def test_validate_error(self):
 
         type_ = TypeEnum()
         type_.add_value('a')
+        type_.add_value('b')
+
+        obj = 'c'
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value 'c' (type 'str'), expected type 'enum'")
+            else:
+                self.fail()
+
+    # All validation modes - valid enumeration value
+    def test_validate_error_base_types(self):
+
+        base_type = TypeEnum()
+        base_type.add_value('a')
+
+        type_ = TypeEnum(base_types=[base_type])
         type_.add_value('b')
 
         obj = 'c'

@@ -32,10 +32,6 @@ from .model import AttributeValidationError, StructMemberAttributes, TypeArray, 
 class ActionModel(object):
     __slots__ = ('name', 'input_type', 'output_type', 'error_type', 'doc')
 
-    VALID_INPUT_TYPES = (TypeStruct, TypeDict)
-    VALID_OUTPUT_TYPES = (TypeStruct, TypeDict)
-    VALID_ERROR_TYPES = (TypeEnum,)
-
     def __init__(self, name, doc=None):
         self.name = name
         self.input_type = TypeStruct(type_name=name + '_input')
@@ -68,6 +64,7 @@ class SpecParser(object):
         '_type',
         '_doc',
         '_typerefs',
+        '_finalize_checks'
     )
 
     # Spec language regex
@@ -80,8 +77,11 @@ class SpecParser(object):
     _RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
     _RE_LINE_CONT = re.compile(r'\\s*$')
     _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
-    _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')\s*$')
-    _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)(?:\s+(?P<id>' + _RE_PART_ID + r'))?\s*$')
+    _RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
+    _RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
+    _RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
+    _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
+    _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
     _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
                        r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
                        r'(?:' \
@@ -114,6 +114,7 @@ class SpecParser(object):
         self.actions = {}
         self.errors = []
         self._typerefs = []
+        self._finalize_checks = []
         self._action = None
         self._action_sections = None
         self._type = None
@@ -152,28 +153,107 @@ class SpecParser(object):
             typeref(True)
         self._typerefs = []
 
+        # Additional finalization checks
+        for finalize_check in self._finalize_checks:
+            finalize_check()
+        self._finalize_checks = []
+
         # Raise a parser exception if there are any errors
         if self.errors:
             raise SpecParserError(self.errors)
 
     # Set a type attribute by name
-    def _set_type(self, parent, parent_type_member_name, type_name, type_attr, type_validate_fn=None):
+    def _set_type(self, parent_type, parent_object, parent_type_attr, type_name, type_attr, validate_fn=None):
         filename = self._parse_filename
         linenum = self._parse_linenum
 
         def set_type(error):
             type_ = self._TYPES.get(type_name) or self.types.get(type_name)
             if type_ is not None:
-                if type_validate_fn is not None:
-                    type_validate_fn(type_, filename, linenum)
-                self._validate_attr(type_, type_attr, filename=filename, linenum=linenum)
-                setattr(parent, parent_type_member_name, type_)
+                error_count = len(self.errors)
+                if validate_fn is not None:
+                    validate_fn(parent_type, type_, filename, linenum)
+                self._validate_attr(type_, type_attr, filename, linenum)
+                if error_count == len(self.errors):
+                    if isinstance(parent_type_attr, int):
+                        parent_object[parent_type_attr] = type_
+                    else:
+                        setattr(parent_object, parent_type_attr, type_)
             elif error:
-                self._error("Unknown member type '" + type_name + "'", filename=filename, linenum=linenum)
+                self._error("Unknown member type '" + type_name + "'", filename, linenum)
             return type_
+
         type_ = set_type(False)
         if type_ is None:
             self._typerefs.append(set_type)
+
+    def _validate_dict_key_type(self, dict_type, key_type, filename, linenum):
+        if not dict_type.valid_key_type(key_type):
+            self._error('Invalid dictionary key type', filename, linenum)
+
+    def _validate_struct_base_type(self, struct_type, base_type, filename, linenum, def_type=None):
+        base_type_base = Typedef.base_type(base_type)
+        if not isinstance(base_type_base, TypeStruct) or base_type_base.union != struct_type.union:
+            if def_type is None:
+                def_type = 'union' if struct_type.union else 'struct'
+            self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
+
+    def _validate_enum_base_type(self, dummy_enum_type, base_type, filename, linenum, def_type=None):
+        if not isinstance(Typedef.base_type(base_type), TypeEnum):
+            if def_type is None:
+                def_type = 'enum'
+            self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
+
+    def _validate_input_base_type(self, *args):
+        self._validate_struct_base_type(*args, def_type='action input')
+
+    def _validate_output_base_type(self, *args):
+        self._validate_struct_base_type(*args, def_type='action output')
+
+    def _validate_errors_base_type(self, *args):
+        self._validate_enum_base_type(*args, def_type='action errors')
+
+    def _set_finalize(self, type_, finalize_fn):
+        filename = self._parse_filename
+        linenum = self._parse_linenum
+
+        def finalize_check():
+            finalize_fn(type_, filename, linenum)
+
+        self._finalize_checks.append(finalize_check)
+
+    def _finalize_circular_base_type(self, type_, filename, linenum):
+        is_circular = False
+        base_types = {}
+        def traverse_base_types(type_):
+            if type_.base_types:
+                for base_type in (base_type for base_type in type_.base_types if base_type):
+                    base_type_name = Typedef.base_type(base_type).type_name
+                    base_type_count = base_types[base_type_name] = base_types.get(base_type_name, 0) + 1
+                    if base_type_count == 1:
+                        traverse_base_types(Typedef.base_type(base_type))
+        traverse_base_types(type_)
+        for base_type_name, base_type_count in base_types.items():
+            if base_type_count != 1:
+                is_circular = True
+                self._error("Circular base type detected for type '" + base_type_name + "'", filename, linenum)
+        return is_circular
+
+    def _finalize_struct_base_type(self, struct_type, filename, linenum):
+        if struct_type.base_types is not None and not self._finalize_circular_base_type(struct_type, filename, linenum):
+            members = {}
+            for member in struct_type.members():
+                member_count = members[member.name] = members.get(member.name, 0) + 1
+                if member_count == 2:
+                    self._error("Redefinition of member '" + member.name + "' from base type", filename, linenum)
+
+    def _finalize_enum_base_type(self, enum_type, filename, linenum):
+        if enum_type.base_types is not None and not self._finalize_circular_base_type(enum_type, filename, linenum):
+            values = {}
+            for value in enum_type.values():
+                value_count = values[value.value] = values.get(value.value, 0) + 1
+                if value_count == 2:
+                    self._error("Redefinition of enumeration value '" + value.value + "' from base type", filename, linenum)
 
     # Record an error
     def _error(self, msg, filename=None, linenum=None):
@@ -185,7 +265,7 @@ class SpecParser(object):
             if attr is not None:
                 type_.validate_attr(attr)
         except AttributeValidationError as exc:
-            self._error("Invalid attribute '" + exc.attr + "'", filename=filename, linenum=linenum)
+            self._error("Invalid attribute '" + exc.attr + "'", filename, linenum)
 
     # Parse an attributes string
     @classmethod
@@ -227,7 +307,7 @@ class SpecParser(object):
         return attr
 
     # Construct typedef parts
-    def _parse_typedef(self, parent, parent_type_member_name, parent_attr_member_name, match_typedef):
+    def _parse_typedef(self, parent, parent_type_attr, parent_attr_attr, match_typedef):
         array_attrs_string = match_typedef.group('array')
         dict_attrs_string = match_typedef.group('dict')
 
@@ -236,13 +316,13 @@ class SpecParser(object):
             value_type_name = match_typedef.group('type')
             value_attr = self._parse_attr(match_typedef.group('attrs'))
             array_type = TypeArray(None, attr=value_attr)
-            self._set_type(array_type, 'type', value_type_name, value_attr)
+            self._set_type(array_type, array_type, 'type', value_type_name, value_attr)
 
             array_attr = self._parse_attr(array_attrs_string)
             self._validate_attr(array_type, array_attr)
 
-            setattr(parent, parent_type_member_name, array_type)
-            setattr(parent, parent_attr_member_name, array_attr)
+            setattr(parent, parent_type_attr, array_type)
+            setattr(parent, parent_attr_attr, array_attr)
 
         # Dictionary member?
         elif dict_attrs_string is not None:
@@ -252,31 +332,27 @@ class SpecParser(object):
                 key_type_name = match_typedef.group('type')
                 key_attr = self._parse_attr(match_typedef.group('attrs'))
                 dict_type = TypeDict(None, attr=value_attr, key_type=None, key_attr=key_attr)
-                self._set_type(dict_type, 'type', value_type_name, value_attr)
-
-                def validate_key_type(key_type, filename, linenum):
-                    if not TypeDict.valid_key_type(key_type):
-                        self._error('Invalid dictionary key type', filename=filename, linenum=linenum)
-                self._set_type(dict_type, 'key_type', key_type_name, key_attr, type_validate_fn=validate_key_type)
+                self._set_type(dict_type, dict_type, 'type', value_type_name, value_attr)
+                self._set_type(dict_type, dict_type, 'key_type', key_type_name, key_attr, self._validate_dict_key_type)
             else:
                 value_type_name = match_typedef.group('type')
                 value_attr = self._parse_attr(match_typedef.group('attrs'))
                 dict_type = TypeDict(None, attr=value_attr)
-                self._set_type(dict_type, 'type', value_type_name, value_attr)
+                self._set_type(dict_type, dict_type, 'type', value_type_name, value_attr)
 
             dict_attr = self._parse_attr(dict_attrs_string)
             self._validate_attr(dict_type, dict_attr)
 
-            setattr(parent, parent_type_member_name, dict_type)
-            setattr(parent, parent_attr_member_name, dict_attr)
+            setattr(parent, parent_type_attr, dict_type)
+            setattr(parent, parent_attr_attr, dict_attr)
 
         # Non-container member...
         else:
             member_type_name = match_typedef.group('type')
             member_attr = self._parse_attr(match_typedef.group('attrs'))
 
-            self._set_type(parent, parent_type_member_name, member_type_name, member_attr)
-            setattr(parent, parent_attr_member_name, member_attr)
+            self._set_type(parent, parent, parent_type_attr, member_type_name, member_attr)
+            setattr(parent, parent_attr_attr, member_attr)
 
     # Parse a specification from a stream
     def _parse(self):
@@ -301,7 +377,8 @@ class SpecParser(object):
 
             # Match line syntax
             match_comment = self._RE_COMMENT.search(line)
-            match_definition = self._RE_DEFINITION.search(line) if match_comment is None else None
+            match_action = self._RE_ACTION.search(line) if match_comment is None else None
+            match_definition = self._RE_DEFINITION.search(line) if match_action is None else None
             match_section = self._RE_SECTION.search(line) if match_definition is None else None
             match_value = self._RE_VALUE.search(line) if match_section is None else None
             match_member = self._RE_MEMBER.search(line) if match_value is None else None
@@ -313,27 +390,31 @@ class SpecParser(object):
                 if doc_string is not None:
                     self._doc.append(doc_string.strip())
 
+            # Action?
+            elif match_action:
+                action_id = match_action.group('id')
+
+                # Action already defined?
+                if action_id in self.actions:
+                    self._error("Redefinition of action '" + action_id + "'")
+
+                # Create the new action
+                self._action = ActionModel(action_id, doc=self._doc)
+                self._action_sections = set()
+                self._type = None
+                self._doc = []
+                self.actions[self._action.name] = self._action
+
             # Definition?
             elif match_definition:
                 definition_string = match_definition.group('type')
                 definition_id = match_definition.group('id')
-
-                # Action definition
-                if definition_string == 'action':
-
-                    # Action already defined?
-                    if definition_id in self.actions:
-                        self._error("Redefinition of action '" + definition_id + "'")
-
-                    # Create the new action
-                    self._action = ActionModel(definition_id, doc=self._doc)
-                    self._action_sections = set()
-                    self._type = None
-                    self._doc = []
-                    self.actions[self._action.name] = self._action
+                definition_base_ids = match_definition.group('base_ids')
+                if definition_base_ids is not None:
+                    definition_base_ids = self._RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
                 # Struct definition
-                elif definition_string == 'struct' or definition_string == 'union':
+                if definition_string == 'struct' or definition_string == 'union':
 
                     # Type already defined?
                     if definition_id in self._TYPES or definition_id in self.types:
@@ -342,6 +423,11 @@ class SpecParser(object):
                     # Create the new struct type
                     self._action = None
                     self._type = TypeStruct(type_name=definition_id, union=(definition_string == 'union'), doc=self._doc)
+                    if definition_base_ids is not None:
+                        self._type.base_types = [None for _ in definition_base_ids]
+                        for base_index, base_id in enumerate(definition_base_ids):
+                            self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_struct_base_type)
+                        self._set_finalize(self._type, self._finalize_struct_base_type)
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
@@ -355,13 +441,20 @@ class SpecParser(object):
                     # Create the new enum type
                     self._action = None
                     self._type = TypeEnum(type_name=definition_id, doc=self._doc) # pylint: disable=redefined-variable-type
+                    if definition_base_ids is not None:
+                        self._type.base_types = [None for _ in definition_base_ids]
+                        for base_index, base_id in enumerate(definition_base_ids):
+                            self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_enum_base_type)
+                        self._set_finalize(self._type, self._finalize_enum_base_type)
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
             # Section?
             elif match_section:
                 section_string = match_section.group('type')
-                section_id = match_section.group('id')
+                section_base_ids = match_section.group('base_ids')
+                if section_base_ids is not None:
+                    section_base_ids = self._RE_BASE_IDS_SPLIT.split(section_base_ids)
 
                 # Not in an action scope?
                 if self._action is None:
@@ -377,34 +470,31 @@ class SpecParser(object):
 
                 # Set the action section type
                 if section_string == 'input':
-                    if section_id is not None:
-                        def validate_input_type(input_type, filename, linenum):
-                            if not isinstance(Typedef.base_type(input_type), ActionModel.VALID_INPUT_TYPES):
-                                self._error('Invalid action input type', filename=filename, linenum=linenum)
-                        self._set_type(self._action, 'input_type', section_id, None, type_validate_fn=validate_input_type)
-                        self._type = None
-                    else:
-                        self._type = self._action.input_type
+                    self._type = self._action.input_type
+                    if section_base_ids is not None:
+                        self._type.base_types = [None for _ in section_base_ids]
+                        for base_index, base_id in enumerate(section_base_ids):
+                            self._set_type(self._action.input_type, self._action.input_type.base_types, base_index, base_id,
+                                           None, self._validate_input_base_type)
+                        self._set_finalize(self._type, self._finalize_struct_base_type)
 
                 elif section_string == 'output':
-                    if section_id is not None:
-                        def validate_output_type(output_type, filename, linenum):
-                            if not isinstance(Typedef.base_type(output_type), ActionModel.VALID_OUTPUT_TYPES):
-                                self._error('Invalid action output type', filename=filename, linenum=linenum)
-                        self._set_type(self._action, 'output_type', section_id, None, type_validate_fn=validate_output_type)
-                        self._type = None
-                    else:
-                        self._type = self._action.output_type
+                    self._type = self._action.output_type
+                    if section_base_ids is not None:
+                        self._type.base_types = [None for _ in section_base_ids]
+                        for base_index, base_id in enumerate(section_base_ids):
+                            self._set_type(self._action.output_type, self._action.output_type.base_types, base_index, base_id,
+                                           None, self._validate_output_base_type)
+                        self._set_finalize(self._type, self._finalize_struct_base_type)
 
                 else:  # section_string == 'errors':
-                    if section_id is not None:
-                        def validate_error_type(error_type, filename, linenum):
-                            if not isinstance(Typedef.base_type(error_type), ActionModel.VALID_ERROR_TYPES):
-                                self._error('Invalid action errors type', filename=filename, linenum=linenum)
-                        self._set_type(self._action, 'error_type', section_id, None, type_validate_fn=validate_error_type)
-                        self._type = None
-                    else:
-                        self._type = self._action.error_type
+                    self._type = self._action.error_type
+                    if section_base_ids is not None:
+                        self._type.base_types = [None for _ in section_base_ids]
+                        for base_index, base_id in enumerate(section_base_ids):
+                            self._set_type(self._action.error_type, self._action.error_type.base_types, base_index, base_id,
+                                           None, self._validate_errors_base_type)
+                        self._set_finalize(self._type, self._finalize_enum_base_type)
 
             # Enum value?
             elif match_value:
@@ -415,9 +505,9 @@ class SpecParser(object):
                     self._error('Enumeration value outside of enum scope')
                     continue
 
-                # Duplicate enum value?
-                if value_string in self._type.values:
-                    self._error("Duplicate enumeration value '" + value_string + "'")
+                # Redefinition of enum value?
+                if value_string in self._type.values(include_base_types=False):
+                    self._error("Redefinition of enumeration value '" + value_string + "'")
 
                 # Add the enum value
                 self._type.add_value(value_string, doc=self._doc)
@@ -435,7 +525,7 @@ class SpecParser(object):
                     continue
 
                 # Member name already defined?
-                if any(m.name == member_name for m in self._type.members):
+                if any(member.name == member_name for member in self._type.members(include_base_types=False)):
                     self._error("Redefinition of member '" + member_name + "'")
 
                 # Create the member
