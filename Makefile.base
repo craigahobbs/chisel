@@ -193,7 +193,7 @@ ifneq "$(HAS_DOC)" ""
 	@echo Doc index is $(DOC)/html/index.html
 endif
 endef
-$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.3.6), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.4.1), DOC_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
