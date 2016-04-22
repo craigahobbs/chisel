@@ -395,9 +395,6 @@ The request is exposed at the following URLs:
         <td>struct</td>
         <td><a href="#MyStruct">MyStruct</a></td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
       </tr>
       <tr>
@@ -527,9 +524,6 @@ My float member
         <td>member5</td>
         <td>datetime</td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
         <td>
         </td>
@@ -538,9 +532,6 @@ My float member
         <td>member6</td>
         <td><a href="#MyEnum">MyEnum</a></td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
         <td>
         </td>
@@ -549,9 +540,6 @@ My float member
         <td>member7</td>
         <td><a href="#MyStruct">MyStruct</a></td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
         <td>
         </td>
@@ -571,9 +559,6 @@ My float member
         <td>member9</td>
         <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
         <td>
         </td>
@@ -606,9 +591,6 @@ My float member
         <td>member12</td>
         <td>date</td>
         <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
         </td>
         <td>
         </td>
@@ -796,16 +778,10 @@ The action has no input parameters.
       <tr>
         <th>Name</th>
         <th>Type</th>
-        <th>Attributes</th>
       </tr>
       <tr>
         <td>union</td>
         <td><a href="#MyUnion">MyUnion</a></td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
-        </td>
       </tr>
     </table>
     <h2 id="my_action2_error"><a class="linktarget">Error Codes</a></h2>
@@ -1603,25 +1579,14 @@ The request is exposed at the following URLs:
       <tr>
         <th>Name</th>
         <th>Type</th>
-        <th>Attributes</th>
       </tr>
       <tr>
         <td>a</td>
         <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
-        </td>
       </tr>
       <tr>
         <td>b</td>
         <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
-        </td>
       </tr>
     </table>
     <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
@@ -1629,16 +1594,10 @@ The request is exposed at the following URLs:
       <tr>
         <th>Name</th>
         <th>Type</th>
-        <th>Attributes</th>
       </tr>
       <tr>
         <td>c</td>
         <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">none</span></li>
-          </ul>
-        </td>
       </tr>
     </table>
     <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>

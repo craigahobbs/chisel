@@ -355,10 +355,8 @@ def _type_attr(type_, attr, optional, nullable):
         type_attrs.extend(_type_attr_helper(type_.key_attr, 'key', 'len(key)'))
     if hasattr(type_, 'type'):
         type_attrs.extend(_type_attr_helper(type_.attr, 'elem', 'len(elem)'))
-    if not type_attrs:
-        type_attrs.append(('none', None, None))
 
-    return Element('ul', _class='chsl-constraint-list', children=[
+    return None if not type_attrs else Element('ul', _class='chsl-constraint-list', children=[
         Element('li', inline=True, children=[
             Element('span', _class='chsl-emphasis', children=Element(lhs, text=True)),
             None if operator is None else Element(' ' + operator + ' ' + repr(float(rhs)).rstrip('0').rstrip('.'), text=True)
@@ -367,6 +365,8 @@ def _type_attr(type_, attr, optional, nullable):
 
 
 def _typedef_section(type_):
+    attrs_element = _type_attr(type_.type, type_.attr, False, False)
+    no_attrs = not attrs_element
     return [
         Element('h3', inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element('typedef ' + type_.type_name, text=True))),
@@ -374,17 +374,19 @@ def _typedef_section(type_):
         Element('table', children=[
             Element('tr', children=[
                 Element('th', inline=True, children=Element('Type', text=True)),
-                Element('th', inline=True, children=Element('Attributes', text=True))
+                None if no_attrs else Element('th', inline=True, children=Element('Attributes', text=True))
             ]),
             Element('tr', children=[
                 Element('td', inline=True, children=_type_decl(type_.type)),
-                Element('td', children=_type_attr(type_.type, type_.attr, False, False))
+                None if no_attrs else Element('td', children=attrs_element)
             ])
         ])
     ]
 
 
 def _struct_section(type_, title_tag, title, empty_doc):
+    attrs_elements = {member.name: _type_attr(member.type, member.attr, member.optional, member.nullable) for member in type_.members()}
+    no_attrs = not any(attrs_elements.values())
     no_description = not any(member.doc for member in type_.members())
     return [
         Element(title_tag, inline=True, _id=type_.type_name,
@@ -394,14 +396,14 @@ def _struct_section(type_, title_tag, title, empty_doc):
             Element('tr', children=[
                 Element('th', inline=True, children=Element('Name', text=True)),
                 Element('th', inline=True, children=Element('Type', text=True)),
-                Element('th', inline=True, children=Element('Attributes', text=True)),
+                None if no_attrs else Element('th', inline=True, children=Element('Attributes', text=True)),
                 None if no_description else Element('th', inline=True, children=Element('Description', text=True))
             ]),
             [
                 Element('tr', children=[
                     Element('td', inline=True, children=Element(member.name, text=True)),
                     Element('td', inline=True, children=_type_decl(member.type)),
-                    Element('td', children=_type_attr(member.type, member.attr, member.optional, member.nullable)),
+                    None if no_attrs else Element('td', children=attrs_elements[member.name]),
                     None if no_description else Element('td', children=_doc_text(member.doc))
                 ]) for member in type_.members()
             ]
