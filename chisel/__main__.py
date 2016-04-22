@@ -23,7 +23,7 @@
 from argparse import ArgumentParser
 from wsgiref.simple_server import make_server
 
-from chisel import Application, DocAction
+from chisel import Application, DocAction, __version__ as chisel_version
 try:
     from repoze.profile import ProfileMiddleware
 except ImportError:
@@ -36,13 +36,20 @@ def main():
     parser = ArgumentParser(prog='python -m chisel')
     parser.add_argument('file', nargs='?',
                         help='a Python file that contains the WSGI application callable')
-    parser.add_argument('-a', dest='application', metavar='NAME', default='application',
+    parser.add_argument('-c', dest='application', metavar='NAME', default='application',
                         help='the name of the WSGI application callable (default is "application")')
     parser.add_argument('-p', type=int, dest='port', default=8080,
                         help='the WSGI service port (default is 8080)')
     parser.add_argument('--profile', action='store_true', dest='profile',
                         help='enable the profiler at /__profile__')
+    parser.add_argument('-v', '--version', action='store_true', dest='version',
+                        help='print the chisel version')
     args = parser.parse_args()
+
+    # Version?
+    if args.version:
+        print(chisel_version)
+        return
 
     # Execute WSGI application file
     if args.file:
