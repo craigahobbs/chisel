@@ -21,6 +21,7 @@
 #
 
 from html import escape
+from itertools import chain
 from urllib.parse import quote
 from xml.sax.saxutils import quoteattr
 
@@ -102,12 +103,10 @@ class Element(object):
         self.attrs = attrs
         self.children = children
 
-    def serialize(self, indent='  '):
-        return ''.join(self.serialize_chunks(indent=indent))
+    def serialize(self, indent='  ', html=True):
+        return ''.join(chain(['<!doctype html>\n'] if html else [], self.serialize_chunks(indent=indent)))
 
     def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
-        if indent_index == 0:
-            yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
         if indent is not None and not inline and indent_index > 0 and self.indent:

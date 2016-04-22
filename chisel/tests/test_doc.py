@@ -1031,7 +1031,6 @@ The request is exposed at the following URL:
         ])
 
         chunks = [
-            '<!doctype html>\n',
             '<a',
             '>',
             '\n',
@@ -1067,7 +1066,8 @@ The request is exposed at the following URL:
             '</a>'
         ]
         self.assertEqual(list(root.serialize_chunks()), chunks)
-        self.assertEqual(root.serialize(), ''.join(chunks))
+        self.assertEqual(root.serialize(), '<!doctype html>\n' + ''.join(chunks))
+        self.assertEqual(root.serialize(html=False), ''.join(chunks))
 
     def test_element_indent_empty(self):
 
@@ -1080,10 +1080,8 @@ The request is exposed at the following URL:
             Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
         ])
 
-        content = root.serialize(indent='')
         chunks = list(root.serialize_chunks(indent=''))
         expected_chunks = [
-            '<!doctype html>\n',
             '<a',
             '>',
             '\n',
@@ -1115,7 +1113,8 @@ The request is exposed at the following URL:
             '</a>'
         ]
         self.assertEqual(chunks, expected_chunks)
-        self.assertEqual(content, ''.join(expected_chunks))
+        self.assertEqual(root.serialize(indent=''), '<!doctype html>\n' + ''.join(expected_chunks))
+        self.assertEqual(root.serialize(indent='', html=False), ''.join(expected_chunks))
 
     def test_element_indent_none(self):
 
@@ -1128,10 +1127,8 @@ The request is exposed at the following URL:
             Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
         ])
 
-        content = root.serialize(indent=None)
         chunks = list(root.serialize_chunks(indent=None))
         expected_chunks = [
-            '<!doctype html>\n',
             '<a',
             '>',
             '<b',
@@ -1156,7 +1153,8 @@ The request is exposed at the following URL:
             '</a>'
         ]
         self.assertEqual(chunks, expected_chunks)
-        self.assertEqual(content, ''.join(expected_chunks))
+        self.assertEqual(root.serialize(indent=None), '<!doctype html>\n' + ''.join(expected_chunks))
+        self.assertEqual(root.serialize(indent=None, html=False), ''.join(expected_chunks))
 
     def test_page(self):
 
