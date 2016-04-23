@@ -394,8 +394,7 @@ The request is exposed at the following URLs:
       <tr>
         <td>struct</td>
         <td><a href="#MyStruct">MyStruct</a></td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>typedef</td>
@@ -506,8 +505,7 @@ My float member
             <li><span class="chsl-emphasis">nullable</span></li>
           </ul>
         </td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>member4</td>
@@ -517,32 +515,25 @@ My float member
             <li><span class="chsl-emphasis">len(value)</span> &gt; 0</li>
           </ul>
         </td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>member5</td>
         <td>datetime</td>
-        <td>
-        </td>
-        <td>
-        </td>
+        <td />
+        <td />
       </tr>
       <tr>
         <td>member6</td>
         <td><a href="#MyEnum">MyEnum</a></td>
-        <td>
-        </td>
-        <td>
-        </td>
+        <td />
+        <td />
       </tr>
       <tr>
         <td>member7</td>
         <td><a href="#MyStruct">MyStruct</a></td>
-        <td>
-        </td>
-        <td>
-        </td>
+        <td />
+        <td />
       </tr>
       <tr>
         <td>member8</td>
@@ -552,16 +543,13 @@ My float member
             <li><span class="chsl-emphasis">len(array)</span> &gt; 0</li>
           </ul>
         </td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>member9</td>
         <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
-        <td>
-        </td>
-        <td>
-        </td>
+        <td />
+        <td />
       </tr>
       <tr>
         <td>member10</td>
@@ -571,8 +559,7 @@ My float member
             <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
           </ul>
         </td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>member11</td>
@@ -584,16 +571,13 @@ My float member
             <li><span class="chsl-emphasis">elem</span> &gt; 5</li>
           </ul>
         </td>
-        <td>
-        </td>
+        <td />
       </tr>
       <tr>
         <td>member12</td>
         <td>date</td>
-        <td>
-        </td>
-        <td>
-        </td>
+        <td />
+        <td />
       </tr>
     </table>
     <h2>Enum Types</h2>
@@ -620,8 +604,7 @@ A value
       </tr>
       <tr>
         <td>Value2</td>
-        <td>
-        </td>
+        <td />
       </tr>
     </table>
   </body>
@@ -1033,9 +1016,7 @@ The request is exposed at the following URL:
             '\n',
             '    ',
             '<e',
-            '>',
-            '\n    ',
-            '</e>',
+            ' />',
             '\n  ',
             '</d>',
             '\n',
@@ -1080,9 +1061,7 @@ The request is exposed at the following URL:
             '>',
             '\n',
             '<e',
-            '>',
-            '\n',
-            '</e>',
+            ' />',
             '\n',
             '</d>',
             '\n',
@@ -1123,8 +1102,7 @@ The request is exposed at the following URL:
             ' attr2="sdfg"',
             '>',
             '<e',
-            '>',
-            '</e>',
+            ' />',
             '</d>',
             '</a>'
         ]

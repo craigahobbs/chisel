@@ -126,29 +126,33 @@ class Element(object):
         yield '<' + self.name
         for attr_key, attr_value in sorted(self.attrs.items(), key=lambda x: x[0].lstrip('_')):
             yield ' ' + attr_key.lstrip('_') + '=' + quoteattr(attr_value)
-        yield '>'
-        if not self.closed and not self.children:
-            return
 
         # Child elements
-        if isinstance(self.children, Element):
-            yield from self.children.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
-        elif self.children is not None:
-            for child in self._iterate_children_helper(self.children):
-                yield from child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
+        has_children = False
+        for child in self._iterate_children_helper(self.children):
+            if not has_children:
+                has_children = True
+                yield '>'
+            yield from child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
 
         # Element close
+        if not has_children:
+            yield ' />' if self.closed else '>'
+            return
         if indent is not None and not inline and not self.inline:
             yield '\n' + indent * indent_index
         yield '</' + self.name + '>'
 
     @classmethod
     def _iterate_children_helper(cls, children):
-        for child in children:
-            if isinstance(child, Element):
-                yield child
-            elif child is not None:
-                yield from cls._iterate_children_helper(child)
+        if isinstance(children, Element):
+            yield children
+        elif children is not None:
+            for child in children:
+                if isinstance(child, Element):
+                    yield child
+                elif child is not None:
+                    yield from cls._iterate_children_helper(child)
 
 
 def _index_html(environ, requests):
