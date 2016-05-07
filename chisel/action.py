@@ -88,6 +88,10 @@ class Action(Request):
         self.wsgi_response = wsgi_response
         self.jsonp = jsonp
 
+    @property
+    def __module__(self):
+        return super().__module__ if self.action_callback is None else self.action_callback.__module__
+
     def onload(self, app):
         Request.onload(self, app)
 

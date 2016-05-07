@@ -54,6 +54,10 @@ class Request(object):
                    for url in urls))
         self.doc = doc
 
+    @property
+    def __module__(self):
+        return getattr(super(), '__module__', None) if self.wsgi_callback is None else self.wsgi_callback.__module__
+
     def onload(self, app):
         pass
 

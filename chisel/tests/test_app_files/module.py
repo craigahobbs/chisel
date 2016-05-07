@@ -1,5 +1,8 @@
 import chisel
 
+# my_action3 should not load from here - will error if it does...
+from .sub.subsub.submodule import my_action3 # pylint: disable=unused-import
+
 
 # Action callback used by test_app.py
 @chisel.action
