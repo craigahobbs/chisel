@@ -89,8 +89,8 @@ class Action(Request):
         self.jsonp = jsonp
 
     @property
-    def __module__(self):
-        return super().__module__ if self.action_callback is None else self.action_callback.__module__
+    def module_name(self):
+        return self.action_callback.__module__
 
     def onload(self, app):
         Request.onload(self, app)

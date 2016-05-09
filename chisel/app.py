@@ -106,7 +106,7 @@ class Application(object):
         for module in load_modules(module_path, module_ext=module_ext):
             for module_attr in dir(module):
                 request = getattr(module, module_attr)
-                if isinstance(request, Request) and request.__module__ == module.__name__:
+                if isinstance(request, Request) and request.module_name == module.__name__:
                     self.add_request(request)
 
     def __call__(self, environ, start_response):
