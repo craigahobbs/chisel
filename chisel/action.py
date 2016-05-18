@@ -125,7 +125,7 @@ class Action(Request):
                 else:
                     request = {}
             except Exception as exc:
-                ctx.log.warning("Error decoding JSON content for action '%s': %s", self.name, content)
+                ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
                 raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
 
             # Decode the query string
