@@ -44,10 +44,11 @@ class ActionError(Exception):
 
     __slots__ = ('error', 'message')
 
-    def __init__(self, error, message=None):
+    def __init__(self, error, message=None, status=None):
         Exception.__init__(self, error)
         self.error = error
         self.message = message
+        self.status = status
 
 
 class _ActionErrorInternal(Exception):
@@ -167,16 +168,21 @@ class Action(Request):
 
             # Call the action callback
             try:
+                status = '200 OK'
                 response = self.action_callback(ctx, request)
                 if self.wsgi_response:
                     return response
                 elif response is None:
                     response = {}
+                elif 'error' in response and not jsonp:
+                    status = '500 Internal Server Error'
             except ActionError as exc:
+                status = exc.status or '500 Internal Server Error'
                 response = {'error': exc.error}
                 if exc.message is not None:
                     response['message'] = exc.message
             except Exception as exc:
+                status = '500 Internal Server Error'
                 ctx.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal('UnexpectedError')
 
@@ -196,6 +202,7 @@ class Action(Request):
                     raise _ActionErrorInternal('InvalidOutput', str(exc), exc.member)
 
         except _ActionErrorInternal as exc:
+            status = '500 Internal Server Error'
             response = {'error': exc.error}
             if exc.message is not None:
                 response['message'] = exc.message
@@ -203,5 +210,4 @@ class Action(Request):
                 response['member'] = exc.member
 
         # Serialize the response as JSON
-        status = '200 OK' if 'error' not in response or jsonp else '500 Internal Server Error'
         return ctx.response_json(status, response, jsonp=jsonp)

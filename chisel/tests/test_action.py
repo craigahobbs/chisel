@@ -396,7 +396,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError"}')
 
     # Test action raised-error response with message
-    def test_error_message_raised(self):
+    def test_error_raised_message(self):
 
         @action(spec='''\
 action my_action
@@ -411,6 +411,26 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(sorted(headers), [('Content-Length', '42'),
+                                           ('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
+
+    # Test action raised-error response with status
+    def test_error_raised_status(self):
+
+        @action(spec='''\
+action my_action
+  errors
+    MyError
+''')
+        def my_action(dummy_app, dummy_req):
+            raise ActionError('MyError', message='My message', status='404 Not Found')
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '404 Not Found')
         self.assertEqual(sorted(headers), [('Content-Length', '42'),
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')

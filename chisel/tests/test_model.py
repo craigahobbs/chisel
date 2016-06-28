@@ -21,7 +21,6 @@
 #
 
 from datetime import date, datetime
-import json
 import unittest
 from uuid import UUID
 
@@ -29,89 +28,10 @@ from chisel.model import StructMemberAttributes, ValidationError, AttributeValid
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, IMMUTABLE_VALIDATION_MODES, \
     Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME
-from chisel.util import JSONFloat, TZUTC, TZLOCAL
+from chisel.util import TZUTC, TZLOCAL
 
 
 ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT)
-
-
-class TestModelJSONFloat(unittest.TestCase):
-
-    def test(self):
-
-        obj = JSONFloat(2.25, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.25')
-        self.assertEqual(str(obj), '2.25')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.25}')
-
-    def test_default(self):
-
-        obj = JSONFloat(2.1234567)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.123457')
-        self.assertEqual(str(obj), '2.123457')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.123457}')
-
-    def test_round_up(self):
-
-        obj = JSONFloat(2.256, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.26')
-        self.assertEqual(str(obj), '2.26')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.26}')
-
-    def test_round_down(self):
-
-        obj = JSONFloat(2.254, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.25')
-        self.assertEqual(str(obj), '2.25')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.25}')
-
-    # Two decimal places float repr - ugly in Python 2.6
-    def test_ugly(self):
-
-        obj = JSONFloat(2.03, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.03')
-        self.assertEqual(str(obj), '2.03')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.03}')
-
-    # Two decimal places float repr with end-zero trimming
-    def test_zero_trim(self):
-
-        obj = JSONFloat(2.5, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.5')
-        self.assertEqual(str(obj), '2.5')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2.5}')
-
-    # Two decimal places float repr with end-point trimming
-    def test_point_trim(self):
-
-        obj = JSONFloat(2., 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2')
-        self.assertEqual(str(obj), '2')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2}')
-
-    # Zero decimal places
-    def test_zero_prec(self):
-
-        obj = JSONFloat(2.25, 0)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2')
-        self.assertEqual(str(obj), '2')
-        self.assertEqual(json.dumps({'v': obj}), '{"v": 2}')
 
 
 class TestModelValidationError(unittest.TestCase):
