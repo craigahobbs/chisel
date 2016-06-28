@@ -248,7 +248,8 @@ ul.chsl-constraint-list {
         # Validate the first my_action1's HTML
         environ = dict(self._environ)
         environ['QUERY_STRING'] = 'name=my_action1'
-        dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
 <!doctype html>
@@ -614,7 +615,8 @@ A value
         # Validate the my_action2's HTML
         environ = dict(self._environ2)
         environ['QUERY_STRING'] = 'name=my_action2'
-        dummy_status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
 <!doctype html>
@@ -829,7 +831,8 @@ And some other important information.
         application.add_request(DocAction())
         application.add_request(my_request)
 
-        dummy_status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_request')
+        status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_request')
+        self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
 <!doctype html>
@@ -976,6 +979,20 @@ The request is exposed at the following URL:
 </html>'''
         self.assertEqual(html_expected, html)
 
+    def test_request_not_found(self):
+
+        @request(doc='''
+This is the request documentation.
+''')
+        def my_request(dummy_environ, dummy_start_response):
+            pass
+        application = Application()
+        application.add_request(DocAction())
+        application.add_request(my_request)
+
+        status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_unknown_request')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Unknown Request')
 
     # Test doc generation element class
     def test_element(self):

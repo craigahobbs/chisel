@@ -289,7 +289,7 @@ action my_action
 
         # Duplicate query string argument
         status, headers, response = app.request('POST', '/my_action', query_string='a=7', wsgi_input=b'{"a": 7, "b": 8}')
-        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Length', '79'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate query string argument member \'a\'"}')
 
@@ -472,7 +472,7 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('GET', '/my_action', query_string='a')
-        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Length', '63'),
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
@@ -492,7 +492,7 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{a: 7}')
-        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(status, '400 Bad Request')
         self.assertTrue(any(header for header in headers if header[0] == 'Content-Length'))
         self.assertEqual(sorted(header for header in headers if header[0] != 'Content-Length'),
                          [('Content-Type', 'application/json')])
@@ -533,7 +533,7 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": 7}')
-        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Length', '117'),
                                            ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),

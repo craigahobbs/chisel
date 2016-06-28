@@ -60,7 +60,7 @@ action {name}
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text('200 OK', content, content_type='text/html')
         else:
-            return ctx.response_text('500 Internal Server Error', 'Unknown Request')
+            return ctx.response_text('404 Not Found', 'Unknown Request')
 
 
 class DocPage(Action):

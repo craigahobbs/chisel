@@ -30,6 +30,10 @@ from .spec import SpecParser
 from .url import decode_query_string
 
 
+STATUS_400 = '400 Bad Request'
+STATUS_500 = '500 Internal Server Error'
+
+
 def action(_action_callback=None, **kwargs):
     """
     Chisel action request decorator
@@ -42,7 +46,7 @@ class ActionError(Exception):
     Action error response exception
     """
 
-    __slots__ = ('error', 'message')
+    __slots__ = ('error', 'message', 'status')
 
     def __init__(self, error, message=None, status=None):
         Exception.__init__(self, error)
@@ -51,13 +55,11 @@ class ActionError(Exception):
         self.status = status
 
 
-class _ActionErrorInternal(Exception):
-    __slots__ = ('error', 'message', 'member')
+class _ActionErrorInternal(ActionError):
+    __slots__ = ('member')
 
-    def __init__(self, error, message=None, member=None):
-        Exception.__init__(self, error)
-        self.error = error
-        self.message = message
+    def __init__(self, error, message=None, status=None, member=None):
+        ActionError.__init__(self, error, message=message, status=status)
         self.member = member
 
 
@@ -99,7 +101,7 @@ class Action(Request):
         # Get the action model, if necessary
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
-            assert self.model is not None, "No spec defined for action '%s'" % (self.name,)
+            assert self.model is not None, "No spec defined for action '{0}'".format(self.name)
             self.doc = self.model.doc
 
     def __call__(self, environ, dummy_start_response):
@@ -114,7 +116,7 @@ class Action(Request):
                 content = None if is_get else environ['wsgi.input'].read()
             except:
                 ctx.log.warning("I/O error reading input for action '%s'", self.name)
-                raise _ActionErrorInternal('IOError', 'Error reading request content')
+                raise _ActionErrorInternal('IOError', message='Error reading request content')
 
             # De-serialize the JSON content
             validate_mode = VALIDATE_JSON_INPUT
@@ -127,7 +129,7 @@ class Action(Request):
                     request = {}
             except Exception as exc:
                 ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
-                raise _ActionErrorInternal('InvalidInput', 'Invalid request JSON: ' + str(exc))
+                raise _ActionErrorInternal('InvalidInput', message='Invalid request JSON: ' + str(exc), status=STATUS_400)
 
             # Decode the query string
             query_string = environ.get('QUERY_STRING')
@@ -137,12 +139,14 @@ class Action(Request):
                     request_query_string = decode_query_string(query_string)
                 except Exception as exc:
                     ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
-                    raise _ActionErrorInternal('InvalidInput', str(exc))
+                    raise _ActionErrorInternal('InvalidInput', message=str(exc), status=STATUS_400)
 
                 for request_key, request_value in request_query_string.items():
                     if request_key in request:
                         ctx.log.warning("Duplicate query string argument member '%s' for action '%s'", request_key, self.name)
-                        raise _ActionErrorInternal('InvalidInput', "Duplicate query string argument member '%s'" % (request_key,))
+                        raise _ActionErrorInternal('InvalidInput',
+                                                   message="Duplicate query string argument member '{0}'".format(request_key),
+                                                   status=STATUS_400)
                     request[request_key] = request_value
 
             # Add url arguments
@@ -151,7 +155,9 @@ class Action(Request):
                 for url_arg, url_value in ctx.url_args.items():
                     if url_arg in request:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
-                        raise _ActionErrorInternal('InvalidInput', "Duplicate URL argument member '%s'" % (url_arg,))
+                        raise _ActionErrorInternal('InvalidInput',
+                                                   message="Duplicate URL argument member '{0}'".format(url_arg),
+                                                   status=STATUS_400)
                     request[url_arg] = url_value
 
             # JSONP?
@@ -164,7 +170,7 @@ class Action(Request):
                 request = self.model.input_type.validate(request, validate_mode)
             except ValidationError as exc:
                 ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
-                raise _ActionErrorInternal('InvalidInput', str(exc), exc.member)
+                raise _ActionErrorInternal('InvalidInput', message=str(exc), member=exc.member, status=STATUS_400)
 
             # Call the action callback
             try:
@@ -175,14 +181,13 @@ class Action(Request):
                 elif response is None:
                     response = {}
                 elif 'error' in response and not jsonp:
-                    status = '500 Internal Server Error'
+                    status = STATUS_500
             except ActionError as exc:
-                status = exc.status or '500 Internal Server Error'
+                status = exc.status or STATUS_500
                 response = {'error': exc.error}
                 if exc.message is not None:
                     response['message'] = exc.message
             except Exception as exc:
-                status = '500 Internal Server Error'
                 ctx.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal('UnexpectedError')
 
@@ -199,10 +204,10 @@ class Action(Request):
                     response_type.validate(response, mode=VALIDATE_DEFAULT)
                 except ValidationError as exc:
                     ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
-                    raise _ActionErrorInternal('InvalidOutput', str(exc), exc.member)
+                    raise _ActionErrorInternal('InvalidOutput', message=str(exc), member=exc.member)
 
         except _ActionErrorInternal as exc:
-            status = '500 Internal Server Error'
+            status = exc.status or STATUS_500
             response = {'error': exc.error}
             if exc.message is not None:
                 response['message'] = exc.message
