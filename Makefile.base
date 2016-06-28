@@ -48,6 +48,7 @@ endef
 # Python version support
 ifndef PYTHON_URLS
 PYTHON_URLS := \
+    https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz \
     https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz \
     https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz \
     https://www.python.org/ftp/python/3.3.6/Python-3.3.6.tgz \
@@ -182,7 +183,7 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.1b2, COVER_COMMANDS_FN))
+$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.1, COVER_COMMANDS_FN))
 
 # Generate doc rules
 HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)

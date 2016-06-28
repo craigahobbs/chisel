@@ -46,31 +46,6 @@ class JSONEncoder(json_JSONEncoder):
         return json_JSONEncoder.default(self, obj)
 
 
-class JSONFloat(float):
-    """
-    Floating point number with precision for JSON encoding.
-    """
-
-    __slots__ = ('json',)
-
-    def __new__(cls, value, dummy_prec=6):
-        return float.__new__(cls, value)
-
-    def __init__(self, value, prec=6):
-        float.__init__(self)
-        if value is not self:
-            self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
-
-    def __repr__(self):
-        return self.json
-
-    def __str__(self):
-        return self.json
-
-    def __float__(self):
-        return self
-
-
 class _TZUTC(tzinfo):
     """
     GMT tzinfo class (from Python docs)
