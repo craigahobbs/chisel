@@ -170,7 +170,7 @@ class Action(Request):
                 request = self.model.input_type.validate(request, validate_mode)
             except ValidationError as exc:
                 ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
-                raise _ActionErrorInternal('InvalidInput', message=str(exc), member=exc.member, status=STATUS_400)
+                raise _ActionErrorInternal('InvalidInput', message=str(exc), status=STATUS_400, member=exc.member)
 
             # Call the action callback
             try:

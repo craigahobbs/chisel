@@ -170,7 +170,7 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
 
     # Does the path exist?
     if not os.path.isdir(module_path):
-        raise IOError('%r not found or is not a directory' % (module_path,))
+        raise IOError('{0!r} not found or is not a directory'.format(module_path))
 
     # Where is this module on the system path?
     module_dir_parts = module_path.split(os.sep)
@@ -190,7 +190,7 @@ def load_modules(module_path, module_ext='.py', exclude_submodules=None):
                             pass
                         else:
                             return len(module_dir_parts) - len(module_name_parts)
-        raise ImportError('%r not found on system path' % (module_path,))
+        raise ImportError('{0!r} not found on system path'.format(module_path))
     ix_module_name = find_module_name_index()
 
     # Recursively find module files
