@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime
+from decimal import Decimal
 from itertools import chain
 from math import isnan, isinf
 from uuid import UUID
@@ -439,7 +440,7 @@ class _TypeInt(object):
         # Validate and translate the value
         if isinstance(value, int) and not isinstance(value, bool):
             value_x = value
-        elif isinstance(value, float):
+        elif isinstance(value, (float, Decimal)):
             value_x = int(value)
             if value_x != value:
                 raise ValidationError.member_error(self, value, _member)
@@ -471,7 +472,7 @@ class _TypeFloat(object):
         # Validate and translate the value
         if isinstance(value, float):
             value_x = value
-        elif isinstance(value, int) and not isinstance(value, bool):
+        elif isinstance(value, (int, Decimal)) and not isinstance(value, bool):
             value_x = float(value)
         elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
             try:

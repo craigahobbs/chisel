@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime
+from decimal import Decimal
 import unittest
 from uuid import UUID
 
@@ -1328,6 +1329,21 @@ class TestModelIntValidation(unittest.TestCase):
                 self.assertTrue(isinstance(obj2, int))
                 self.assertEqual(obj2, 7)
 
+    # All validation modes - decimal
+    def test_validate_decimal(self):
+
+        type_ = TYPE_INT
+
+        obj = Decimal('7')
+        for mode in ALL_VALIDATION_MODES:
+            obj2 = type_.validate(obj, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(obj is obj2)
+            else:
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, int))
+                self.assertEqual(obj2, 7)
+
     # Query string validation mode - string
     def test_query_string(self):
 
@@ -1363,6 +1379,20 @@ class TestModelIntValidation(unittest.TestCase):
                 type_.validate(obj, mode)
             except ValidationError as exc:
                 self.assertEqual(str(exc), "Invalid value 7.5 (type 'float'), expected type 'int'")
+            else:
+                self.fail()
+
+    # All validation modes - error - not-integer decimal
+    def test_validate_error_decimal(self):
+
+        type_ = TYPE_INT
+
+        obj = Decimal('7.5')
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value Decimal('7.5') (type 'Decimal'), expected type 'int'")
             else:
                 self.fail()
 
@@ -1414,6 +1444,21 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.assertTrue(obj is not obj2)
                 self.assertTrue(isinstance(obj2, float))
                 self.assertEqual(obj2, 7.)
+
+    # All validation modes - decimal
+    def test_validate_decimal(self):
+
+        type_ = TYPE_FLOAT
+
+        obj = Decimal('7.5')
+        for mode in ALL_VALIDATION_MODES:
+            obj2 = type_.validate(obj, mode)
+            if mode in IMMUTABLE_VALIDATION_MODES:
+                self.assertTrue(obj is obj2)
+            else:
+                self.assertTrue(obj is not obj2)
+                self.assertTrue(isinstance(obj2, float))
+                self.assertEqual(obj2, 7.5)
 
     # Query string validation mode - string
     def test_query_string(self):
