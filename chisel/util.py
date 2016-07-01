@@ -21,6 +21,7 @@
 #
 
 from datetime import date, datetime, timedelta, tzinfo
+from decimal import Decimal
 from itertools import islice
 from json import JSONEncoder as json_JSONEncoder
 import os
@@ -33,7 +34,7 @@ from uuid import UUID
 
 class JSONEncoder(json_JSONEncoder):
     """
-    JSON encoder class with support for encoding date, datetime, and UUID.
+    JSON encoder class with support for encoding date, datetime, Decimal, and UUID.
     """
 
     def default(self, obj): # pylint: disable=method-hidden
@@ -41,34 +42,11 @@ class JSONEncoder(json_JSONEncoder):
             return (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
         elif isinstance(obj, date):
             return obj.isoformat()
+        elif isinstance(obj, Decimal):
+            return float(obj)
         elif isinstance(obj, UUID):
             return str(obj)
         return json_JSONEncoder.default(self, obj)
-
-
-class JSONFloat(float):
-    """
-    Floating point number with precision for JSON encoding.
-    """
-
-    __slots__ = ('json',)
-
-    def __new__(cls, value, prec=6):
-        return float.__new__(cls, round(value, prec))
-
-    def __init__(self, value, prec=6):
-        float.__init__(self)
-        if value is not self:
-            self.json = format(value, '.' + str(prec) + 'f').rstrip('0').rstrip('.')
-
-    def __repr__(self):
-        return self.json
-
-    def __str__(self):
-        return self.json
-
-    def __float__(self):
-        return self
 
 
 class _TZUTC(tzinfo):

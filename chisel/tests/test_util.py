@@ -20,65 +20,28 @@
 # SOFTWARE.
 #
 
+from datetime import date, datetime
+from decimal import Decimal
 import unittest
+from uuid import UUID
 
-from chisel.util import JSONFloat
+from chisel.util import JSONEncoder
 
 
-class TestModelJSONFloat(unittest.TestCase):
+class TestJSONEncoder(unittest.TestCase):
 
-    def test(self):
-
-        obj = JSONFloat(2.25, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.25')
-        self.assertEqual(str(obj), '2.25')
-
-    def test_default(self):
-
-        obj = JSONFloat(2.1234567)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.123457')
-        self.assertEqual(str(obj), '2.123457')
-
-    def test_round_up(self):
-
-        obj = JSONFloat(2.256, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.26')
-        self.assertEqual(str(obj), '2.26')
-
-    def test_round_down(self):
-
-        obj = JSONFloat(2.254, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.25')
-        self.assertEqual(str(obj), '2.25')
-
-    def test_zero_trim(self):
-
-        obj = JSONFloat(2.5, 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2.5')
-        self.assertEqual(str(obj), '2.5')
-
-    def test_point_trim(self):
-
-        obj = JSONFloat(2., 2)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2')
-        self.assertEqual(str(obj), '2')
-
-    def test_zero_prec(self):
-
-        obj = JSONFloat(2.25, 0)
-        self.assertTrue(isinstance(obj, float))
-        self.assertTrue(float(obj) is obj)
-        self.assertEqual(repr(obj), '2')
-        self.assertEqual(str(obj), '2')
+    def test_types(self):
+        encoder = JSONEncoder(indent=2, sort_keys=True, separators=(',', ': '))
+        content = encoder.encode({
+            'date': date(2016, 7, 1),
+            'datetime': datetime(2016, 7, 1, 7, 56),
+            'decimal': Decimal('7.57'),
+            'uuid': UUID('127FF2EB-3E1E-42A6-AB8A-F03B6EEB33E7')
+        })
+        self.assertEqual(content, '''\
+{
+  "date": "2016-07-01",
+  "datetime": "2016-07-01T07:56:00-07:00",
+  "decimal": 7.57,
+  "uuid": "127ff2eb-3e1e-42a6-ab8a-f03b6eeb33e7"
+}''')

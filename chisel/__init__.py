@@ -61,6 +61,5 @@ from .url import \
 
 from .util import \
     JSONEncoder, \
-    JSONFloat, \
     TZLOCAL, \
     TZUTC
