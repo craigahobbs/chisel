@@ -64,10 +64,10 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo "usage: make [build|test|cover|doc|pylint|check|clean|superclean|setup]"
+	@echo "usage: make [build|test|cover|doc|pylint|commit|clean|superclean|setup]"
 
-.PHONY: check
-check: test doc cover pylint
+.PHONY: commit
+commit: pylint test doc cover
 
 .PHONY: clean
 clean: _clean
