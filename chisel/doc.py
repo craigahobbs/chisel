@@ -207,7 +207,7 @@ def _request_html(environ, request, nonav=False):
             Element('div', _class='chsl-notes', children=[
 
                 # Request URLs
-                Element('div', _class='chsl-note', children=[
+                None if not request.urls else Element('div', _class='chsl-note', children=[
                     Element('p', children=[
                         Element('b', inline=True, children=Element('Note: ', text=True)),
                         Element('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
