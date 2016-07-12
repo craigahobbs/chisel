@@ -108,6 +108,7 @@ ifneq "$(OS_MAC)" ""
 else
 	sudo apt-get install -y \
 		build-essential \
+		curl \
 		libbz2-dev \
 		libexpat1-dev \
 		libssl-dev \
@@ -123,7 +124,7 @@ $(call PYTHON_NAME_FN, $(1)) := "$$($(call PYTHON_NAME_FN, $(1))_INSTALL)/bin/py
 
 $$($(call PYTHON_NAME_FN, $(1))_BUILD):
 	mkdir -p "$$(dir $$@)"
-	$(if $(shell which curl),curl -s,wget -q -O -) "$(strip $(1))" | tar xzC "$$(dir $$@)"
+	curl -s "$(strip $(1))" | tar xzC "$$(dir $$@)"
 	mv "$$($(call PYTHON_NAME_FN, $(1))_INSTALL)" "$$($(call PYTHON_NAME_FN, $(1))_SRC)"
 	cd "$$($(call PYTHON_NAME_FN, $(1))_SRC)" && \
 		$(if $(OS_MAC), CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include") \
@@ -132,7 +133,7 @@ $$($(call PYTHON_NAME_FN, $(1))_BUILD):
 		make && \
 		make install
 	if ! $$($(call PYTHON_NAME_FN, $(1))) -m ensurepip --default-pip; then \
-		$(if $(shell which curl),curl -s,wget -q -O -) "https://bootstrap.pypa.io/get-pip.py" | $$($(call PYTHON_NAME_FN, $(1))); \
+		curl -s "https://bootstrap.pypa.io/get-pip.py" | $$($(call PYTHON_NAME_FN, $(1))); \
 	fi
 	$$($(call PYTHON_NAME_FN, $(1))) -m pip --disable-pip-version-check install --upgrade pip
 	$$($(call PYTHON_NAME_FN, $(1))) -m pip --disable-pip-version-check install --no-binary :all: virtualenv
