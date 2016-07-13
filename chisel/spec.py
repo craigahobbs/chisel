@@ -377,18 +377,18 @@ class SpecParser(object):
 
             # Match line syntax
             match_comment = self._RE_COMMENT.search(line)
-            match_action = None if match_comment else \
-                           self._RE_ACTION.search(line)
-            match_definition = None if match_comment or match_action else \
-                               self._RE_DEFINITION.search(line)
-            match_section = None if match_comment or match_action or match_definition else \
-                            self._RE_SECTION.search(line)
-            match_value = None if match_comment or match_action or match_definition or match_section else \
-                          self._RE_VALUE.search(line)
-            match_member = None if match_comment or match_action or match_definition or match_section or match_value else \
-                           self._RE_MEMBER.search(line)
-            match_typedef = None if match_comment or match_action or match_definition or match_section or match_value or match_member else \
-                            self._RE_TYPEDEF.search(line)
+            if match_comment is None:
+                match_action = self._RE_ACTION.search(line)
+                if match_action is None:
+                    match_definition = self._RE_DEFINITION.search(line)
+                    if match_definition is None:
+                        match_section = self._RE_SECTION.search(line)
+                        if match_section is None:
+                            match_value = self._RE_VALUE.search(line)
+                            if match_value is None:
+                                match_member = self._RE_MEMBER.search(line)
+                                if match_member is None:
+                                    match_typedef = self._RE_TYPEDEF.search(line)
 
             # Comment?
             if match_comment:
