@@ -40,8 +40,9 @@ class DocAction(Action):
 
     __slots__ = ()
 
-    def __init__(self, name='doc', urls=None):
-        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, wsgi_response=True, spec='''\
+    def __init__(self, name='doc', urls=None, doc=None, doc_group=None):
+        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, doc=doc, doc_group=doc_group,
+                        wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
   input
@@ -74,11 +75,12 @@ class DocPage(Action):
 
     __slots__ = ('request')
 
-    def __init__(self, request, name=None, urls=None):
+    def __init__(self, request, name=None, urls=None, doc=None, doc_group=None):
         request_name = request.name
         if name is None:
             name = 'doc_' + request_name
-        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, wsgi_response=True, spec='''\
+        Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, doc=doc, doc_group=doc_group,
+                        wsgi_response=True, spec='''\
 # Documentation page for {request_name}.
 action {name}
 '''.format(name=name, request_name=request_name))

@@ -70,7 +70,8 @@ class Action(Request):
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, method=('GET', 'POST'), urls=None, spec=None, wsgi_response=False, jsonp=None):
+    def __init__(self, action_callback, name=None, method=('GET', 'POST'), urls=None, doc=None, doc_group=None,
+                 spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
         if name is None:
@@ -78,14 +79,16 @@ class Action(Request):
 
         # Spec provided?
         model = None
-        doc = None
-        doc_group = None
+        doc = doc
+        doc_group = doc_group
         if spec is not None:
             parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
             assert name in parser.actions, 'Unknown action "{0}"'.format(name)
             model = parser.actions[name]
-            doc = model.doc
-            doc_group = model.doc_group
+            if doc is None:
+                doc = model.doc
+            if doc_group is None:
+                doc_group = model.doc_group
 
         Request.__init__(self, name=name, method=method, urls=urls, doc=doc, doc_group=doc_group)
         self.action_callback = action_callback
@@ -104,8 +107,10 @@ class Action(Request):
         if self.model is None:
             self.model = app.specs.actions.get(self.name)
             assert self.model is not None, "No spec defined for action '{0}'".format(self.name)
-            self.doc = self.model.doc
-            self.doc_group = self.model.doc_group
+            if self.doc is None:
+                self.doc = self.model.doc
+            if self.doc_group is None:
+                self.doc_group = self.model.doc_group
 
     def __call__(self, environ, dummy_start_response):
         ctx = environ[ENVIRON_CTX]
