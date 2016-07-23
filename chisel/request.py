@@ -35,9 +35,9 @@ class Request(object):
     Chisel request
     """
 
-    __slots__ = ('wsgi_callback', 'name', 'urls', 'doc')
+    __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'doc_group')
 
-    def __init__(self, wsgi_callback=None, name=None, method=None, urls=None, doc=None):
+    def __init__(self, wsgi_callback=None, name=None, method=None, urls=None, doc=None, doc_group=None):
         assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
 
         methods = (method and method.upper(),) if method is None or isinstance(method, str) else \
@@ -53,6 +53,7 @@ class Request(object):
                    ((url[0] and url[0].upper(), url[1] or '/' + self.name),)
                    for url in urls))
         self.doc = doc
+        self.doc_group = doc_group
 
     @property
     def module_name(self):

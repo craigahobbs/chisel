@@ -22,7 +22,7 @@
 
 import unittest
 
-from chisel import action, request, Action, Application, DocAction, DocPage, Element
+from chisel import action, request, Action, Application, DocAction, DocPage, Element, Request
 
 
 class TestDoc(unittest.TestCase):
@@ -237,6 +237,181 @@ ul.chsl-constraint-list {
       <li><a href="/doc?name=doc">doc</a></li>
       <li><a href="/doc?name=my_action1">my_action1</a></li>
       <li><a href="/doc?name=my_action2">my_action2</a></li>
+    </ul>
+  </body>
+</html>'''
+        self.assertEqual(html_expected, html)
+
+    def test_doc_group(self):
+
+        app = Application()
+        app.pretty_output = True
+        app.specs.parse_string('''\
+action my_action1
+
+group "My  Group   1"
+
+action my_action2
+
+group "My Group 1"
+
+action my_action3
+
+group "My Group 2"
+
+action my_action4
+
+group
+
+action my_action5
+''')
+        app.add_request(DocAction())
+        app.add_request(Action(lambda ctx, req: {}, name='my_action1'))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action2'))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action3'))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action4'))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action5'))
+        app.add_request(Request(lambda environ, start_response: [], name='my_request1'))
+        app.add_request(Request(lambda environ, start_response: [], name='my_request2', doc_group='My  Group   2'))
+
+        status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
+        html = response.decode('utf-8')
+        self.assertEqual(status, '200 OK')
+        html_expected = '''\
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>localhost:8080</title>
+    <style type="text/css">
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}
+    </style>
+  </head>
+  <body class="chsl-index-body">
+    <h1>localhost:8080</h1>
+    <h2>My Group 1</h2>
+    <ul class="chsl-request-list">
+      <li><a href="/doc?name=my_action2">my_action2</a></li>
+      <li><a href="/doc?name=my_action3">my_action3</a></li>
+    </ul>
+    <h2>My Group 2</h2>
+    <ul class="chsl-request-list">
+      <li><a href="/doc?name=my_action4">my_action4</a></li>
+      <li><a href="/doc?name=my_request2">my_request2</a></li>
+    </ul>
+    <h2>Uncategorized</h2>
+    <ul class="chsl-request-list">
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=my_action1">my_action1</a></li>
+      <li><a href="/doc?name=my_action5">my_action5</a></li>
+      <li><a href="/doc?name=my_request1">my_request1</a></li>
     </ul>
   </body>
 </html>'''

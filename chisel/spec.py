@@ -30,14 +30,15 @@ from .model import AttributeValidationError, StructMemberAttributes, TypeArray, 
 
 # Action model
 class ActionModel(object):
-    __slots__ = ('name', 'input_type', 'output_type', 'error_type', 'doc')
+    __slots__ = ('name', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
 
-    def __init__(self, name, doc=None):
+    def __init__(self, name, doc=None, doc_group=None):
         self.name = name
         self.input_type = TypeStruct(type_name=name + '_input')
         self.output_type = TypeStruct(type_name=name + '_output')
         self.error_type = TypeEnum(type_name=name + '_error')
         self.doc = [] if doc is None else doc
+        self.doc_group = doc_group
 
 
 # Spec parser exception
@@ -63,6 +64,7 @@ class SpecParser(object):
         '_action_sections',
         '_type',
         '_doc',
+        '_doc_group',
         '_typerefs',
         '_finalize_checks'
     )
@@ -77,6 +79,7 @@ class SpecParser(object):
     _RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
     _RE_LINE_CONT = re.compile(r'\\s*$')
     _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
+    _RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
     _RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
     _RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
     _RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
@@ -119,6 +122,7 @@ class SpecParser(object):
         self._action_sections = None
         self._type = None
         self._doc = None
+        self._doc_group = None
         self._parse_lines = None
         self._parse_filename = None
         self._parse_linenum = 0
@@ -136,6 +140,7 @@ class SpecParser(object):
         self._action = None
         self._type = None
         self._doc = []
+        self._doc_group = None
         self._parse_lines = lines
         self._parse_filename = filename
         self._parse_linenum = 0
@@ -378,23 +383,31 @@ class SpecParser(object):
             # Match line syntax
             match_comment = self._RE_COMMENT.search(line)
             if match_comment is None:
-                match_action = self._RE_ACTION.search(line)
-                if match_action is None:
-                    match_definition = self._RE_DEFINITION.search(line)
-                    if match_definition is None:
-                        match_section = self._RE_SECTION.search(line)
-                        if match_section is None:
-                            match_value = self._RE_VALUE.search(line)
-                            if match_value is None:
-                                match_member = self._RE_MEMBER.search(line)
-                                if match_member is None:
-                                    match_typedef = self._RE_TYPEDEF.search(line)
+                match_group = self._RE_GROUP.search(line)
+                if match_group is None:
+                    match_action = self._RE_ACTION.search(line)
+                    if match_action is None:
+                        match_definition = self._RE_DEFINITION.search(line)
+                        if match_definition is None:
+                            match_section = self._RE_SECTION.search(line)
+                            if match_section is None:
+                                match_value = self._RE_VALUE.search(line)
+                                if match_value is None:
+                                    match_member = self._RE_MEMBER.search(line)
+                                    if match_member is None:
+                                        match_typedef = self._RE_TYPEDEF.search(line)
 
             # Comment?
             if match_comment:
                 doc_string = match_comment.group('doc')
                 if doc_string is not None:
                     self._doc.append(doc_string.strip())
+
+            # Documentation group?
+            elif match_group:
+                self._doc_group = match_group.group('group')
+                if self._doc_group is not None:
+                    self._doc_group = self._doc_group.strip()
 
             # Action?
             elif match_action:
@@ -405,7 +418,7 @@ class SpecParser(object):
                     self._error("Redefinition of action '" + action_id + "'")
 
                 # Create the new action
-                self._action = ActionModel(action_id, doc=self._doc)
+                self._action = ActionModel(action_id, doc=self._doc, doc_group=self._doc_group)
                 self._action_sections = set()
                 self._type = None
                 self._doc = []

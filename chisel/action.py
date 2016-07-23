@@ -79,13 +79,15 @@ class Action(Request):
         # Spec provided?
         model = None
         doc = None
+        doc_group = None
         if spec is not None:
             parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
             assert name in parser.actions, 'Unknown action "{0}"'.format(name)
             model = parser.actions[name]
             doc = model.doc
+            doc_group = model.doc_group
 
-        Request.__init__(self, name=name, method=method, urls=urls, doc=doc)
+        Request.__init__(self, name=name, method=method, urls=urls, doc=doc, doc_group=doc_group)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
@@ -103,6 +105,7 @@ class Action(Request):
             self.model = app.specs.actions.get(self.name)
             assert self.model is not None, "No spec defined for action '{0}'".format(self.name)
             self.doc = self.model.doc
+            self.doc_group = self.model.doc_group
 
     def __call__(self, environ, dummy_start_response):
         ctx = environ[ENVIRON_CTX]

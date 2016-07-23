@@ -22,11 +22,15 @@
 
 from html import escape
 from itertools import chain
+import re
 from urllib.parse import quote
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
 from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
+
+
+_RE_WHITESPACE_CLEANUP = re.compile(r'\s{2,}')
 
 
 class DocAction(Action):
@@ -159,6 +163,16 @@ def _index_html(environ, requests):
     root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
     title = environ.get('HTTP_HOST') or (environ['SERVER_NAME'] + ':' + environ['SERVER_PORT'])
 
+    # Group requests
+    has_groups = False
+    group_requests = {}
+    for request in requests:
+        has_groups = has_groups or request.doc_group is not None
+        group_name = _RE_WHITESPACE_CLEANUP.sub(' ', request.doc_group or 'Uncategorized')
+        if group_name not in group_requests:
+            group_requests[group_name] = []
+        group_requests[group_name].append(request)
+
     return Element('html', children=[
         Element('head', children=[
             Element('meta', closed=False, charset='UTF-8'),
@@ -167,12 +181,19 @@ def _index_html(environ, requests):
         ]),
         Element('body', _class='chsl-index-body', children=[
             Element('h1', inline=True, children=Element(title, text=True)),
-            Element('ul', _class='chsl-request-list', children=[
-                Element('li', inline=True, children=
-                        Element('a', href=root_url + '?name=' + quote(request.name), children=
-                                Element(request.name, text=True)))
-                for request in requests
-            ])
+            [
+                [
+                    None if not has_groups else Element('h2', inline=True, children=Element(
+                        'Uncategorized' if group_name is None else group_name, text=True)),
+                    Element('ul', _class='chsl-request-list', children=[
+                        Element('li', inline=True, children=
+                                Element('a', href=root_url + '?name=' + quote(request.name), children=
+                                        Element(request.name, text=True)))
+                        for request in group_requests[group_name]
+                    ])
+                ]
+                for group_name in sorted(group_requests.keys())
+            ]
         ])
     ])
 
