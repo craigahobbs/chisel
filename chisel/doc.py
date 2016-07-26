@@ -170,7 +170,7 @@ def _index_html(environ, requests):
     group_requests = {}
     for request in requests:
         has_groups = has_groups or request.doc_group is not None
-        group_name = _RE_WHITESPACE_CLEANUP.sub(' ', request.doc_group or 'Uncategorized')
+        group_name = _RE_WHITESPACE_CLEANUP.sub(' ', request.doc_group or 'Uncategorized').strip()
         if group_name not in group_requests:
             group_requests[group_name] = []
         group_requests[group_name].append(request)
