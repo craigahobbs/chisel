@@ -24,7 +24,7 @@ import unittest
 
 from chisel import SpecParser, SpecParserError
 from chisel.model import TypeArray, Typedef, TypeDict, TypeEnum, TypeStruct, \
-    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_INT, TYPE_FLOAT, TYPE_STRING, TYPE_UUID
+    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_INT, TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TYPE_UUID
 
 
 class TestSpecParseSpec(unittest.TestCase):
@@ -110,6 +110,7 @@ struct MyStruct2
     optional uuid i
     optional MyEnum : MyStruct{} j
     optional nullable date k
+    optional object l
 
 # This is a union
 union MyUnion
@@ -171,7 +172,8 @@ action MyAction4 \\
                                     ('h', type(TYPE_DATETIME), True),
                                     ('i', type(TYPE_UUID), True),
                                     ('j', TypeDict, True),
-                                    ('k', type(TYPE_DATE), True, True)))
+                                    ('k', type(TYPE_DATE), True, True),
+                                    ('l', type(TYPE_OBJECT), True)))
         self.assert_struct_by_name(parser, 'MyUnion',
                                    (('a', type(TYPE_INT), True),
                                     ('b', type(TYPE_STRING), True)))

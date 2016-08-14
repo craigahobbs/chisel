@@ -254,10 +254,9 @@ class TypeStruct(object):
 
         # Any unknown members?
         if member_count != len(value_x):
-            member_set = set(member.name for member in self.members())
-            for value_name in value_x.keys():
-                if value_name not in member_set:
-                    raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, value_name)) + "'")
+            member_set = {member.name for member in self.members()}
+            unknown_value_names = [value_name for value_name in value_x.keys() if value_name not in member_set]
+            raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, unknown_value_names[0])) + "'")
 
         return value if value_copy is None else value_copy
 
@@ -599,3 +598,22 @@ class _TypeDatetime(object):
             raise ValidationError.member_error(self, value, _member)
 
 TYPE_DATETIME = _TypeDatetime()
+
+
+# Object type
+class _TypeObject(object):
+    __slots__ = ()
+
+    type_name = 'object'
+
+    @staticmethod
+    def validate_attr(attr):
+        attr.validate_attr()
+
+    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()): # pylint: disable=unused-argument
+        if value is not None:
+            return value
+        else:
+            raise ValidationError.member_error(self, value, _member)
+
+TYPE_OBJECT = _TypeObject()

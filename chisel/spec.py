@@ -25,7 +25,7 @@ import re
 
 from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
     TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
-    TYPE_FLOAT, TYPE_STRING, TypeStruct, TYPE_UUID
+    TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TypeStruct, TYPE_UUID
 
 
 # Action model
@@ -103,13 +103,14 @@ class SpecParser(object):
 
     # Built-in types
     _TYPES = {
-        'string': TYPE_STRING,
-        'int': TYPE_INT,
-        'float': TYPE_FLOAT,
         'bool': TYPE_BOOL,
         'date': TYPE_DATE,
         'datetime': TYPE_DATETIME,
-        'uuid': TYPE_UUID,
+        'float': TYPE_FLOAT,
+        'int': TYPE_INT,
+        'object': TYPE_OBJECT,
+        'string': TYPE_STRING,
+        'uuid': TYPE_UUID
     }
 
     def __init__(self, spec=None):

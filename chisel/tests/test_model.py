@@ -28,7 +28,7 @@ from uuid import UUID
 from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, \
     VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, IMMUTABLE_VALIDATION_MODES, \
     Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME
+    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT
 from chisel.util import TZUTC, TZLOCAL
 
 
@@ -1536,6 +1536,25 @@ class TestModelBoolValidation(unittest.TestCase):
 
         self.assertEqual(type_.type_name, 'bool')
 
+    # Test attribute validation
+    def test_validate_attr(self):
+
+        type_ = TYPE_BOOL
+
+        type_.validate_attr(StructMemberAttributes())
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+
     # All validation modes - success
     def test_validate(self):
 
@@ -1580,6 +1599,25 @@ class TestModelUuidValidation(unittest.TestCase):
         type_ = TYPE_UUID
 
         self.assertEqual(type_.type_name, 'uuid')
+
+    # Test attribute validation
+    def test_validate_attr(self):
+
+        type_ = TYPE_UUID
+
+        type_.validate_attr(StructMemberAttributes())
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
 
     # All validation modes - UUID object
     def test_validate(self):
@@ -1635,6 +1673,25 @@ class TestModelDateValidation(unittest.TestCase):
 
         self.assertEqual(type_.type_name, 'date')
 
+    # Test attribute validation
+    def test_validate_attr(self):
+
+        type_ = TYPE_DATE
+
+        type_.validate_attr(StructMemberAttributes())
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+
     # All validation modes - date object
     def test_validate(self):
 
@@ -1688,6 +1745,25 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         self.assertEqual(type_.type_name, 'datetime')
+
+    # Test attribute validation
+    def test_validate_attr(self):
+
+        type_ = TYPE_DATETIME
+
+        type_.validate_attr(StructMemberAttributes())
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
 
     # All validation modes - datetime object
     def test_validate(self):
@@ -1825,5 +1901,58 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 type_.validate(obj, mode)
             except ValidationError as exc:
                 self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
+            else:
+                self.fail()
+
+
+class TestModelObjectValidation(unittest.TestCase):
+
+    # Test object type construction
+    def test_init(self):
+
+        type_ = TYPE_OBJECT
+
+        self.assertEqual(type_.type_name, 'object')
+
+    # Test attribute validation
+    def test_validate_attr(self):
+
+        type_ = TYPE_OBJECT
+
+        type_.validate_attr(StructMemberAttributes())
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+
+        try:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+            self.fail()
+        except AttributeValidationError as exc:
+            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+
+    # All validation modes - success
+    def test_validate(self):
+
+        type_ = TYPE_OBJECT
+
+        for mode in ALL_VALIDATION_MODES:
+            for obj in (object(), 'abc', 7, False):
+                obj2 = type_.validate(obj, mode)
+                self.assertTrue(obj is obj2)
+
+    # All validation modes - error - invalid value
+    def test_validate_error(self):
+
+        type_ = TYPE_OBJECT
+
+        obj = None
+        for mode in ALL_VALIDATION_MODES:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Invalid value None (type 'NoneType'), expected type 'object'")
             else:
                 self.fail()
