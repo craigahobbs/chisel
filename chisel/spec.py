@@ -50,9 +50,54 @@ class SpecParserError(Exception):
         self.errors = errors
 
 
+# Spec language regex
+_RE_PART_ID = r'(?:[A-Za-z]\w*)'
+_RE_PART_ATTR_GROUP = r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
+                      r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
+_RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', _RE_PART_ATTR_GROUP)
+_RE_PART_ATTRS = r'(?:' + _RE_PART_ATTR + r'(?:\s*,\s*' + _RE_PART_ATTR + r')*)'
+_RE_ATTR_GROUP = re.compile(_RE_PART_ATTR_GROUP)
+_RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
+_RE_LINE_CONT = re.compile(r'\\s*$')
+_RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
+_RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
+_RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
+_RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
+_RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
+_RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
+                   r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
+                   r'(?:' \
+                   r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?' \
+                   r'|' \
+                   r'(?:' \
+                   r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')' \
+                   r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?' \
+                   r')?' \
+                   r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?' \
+                   r')' \
+                   r'\s+(?P<id>' + _RE_PART_ID + r')'
+_RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
+_RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
+_RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
+
+
+# Built-in types
+_TYPES = {
+    'bool': TYPE_BOOL,
+    'date': TYPE_DATE,
+    'datetime': TYPE_DATETIME,
+    'float': TYPE_FLOAT,
+    'int': TYPE_INT,
+    'object': TYPE_OBJECT,
+    'string': TYPE_STRING,
+    'uuid': TYPE_UUID
+}
+
+
 # Specification language parser class
 class SpecParser(object):
-
     __slots__ = (
         'types',
         'actions',
@@ -68,50 +113,6 @@ class SpecParser(object):
         '_typerefs',
         '_finalize_checks'
     )
-
-    # Spec language regex
-    _RE_PART_ID = r'(?:[A-Za-z]\w*)'
-    _RE_PART_ATTR_GROUP = r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
-                          r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
-    _RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', _RE_PART_ATTR_GROUP)
-    _RE_PART_ATTRS = r'(?:' + _RE_PART_ATTR + r'(?:\s*,\s*' + _RE_PART_ATTR + r')*)'
-    _RE_ATTR_GROUP = re.compile(_RE_PART_ATTR_GROUP)
-    _RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
-    _RE_LINE_CONT = re.compile(r'\\s*$')
-    _RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
-    _RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
-    _RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
-    _RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
-    _RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
-    _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
-    _RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
-    _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
-                       r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
-                       r'(?:' \
-                       r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?' \
-                       r'|' \
-                       r'(?:' \
-                       r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')' \
-                       r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?' \
-                       r')?' \
-                       r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?' \
-                       r')' \
-                       r'\s+(?P<id>' + _RE_PART_ID + r')'
-    _RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
-    _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
-    _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
-
-    # Built-in types
-    _TYPES = {
-        'bool': TYPE_BOOL,
-        'date': TYPE_DATE,
-        'datetime': TYPE_DATETIME,
-        'float': TYPE_FLOAT,
-        'int': TYPE_INT,
-        'object': TYPE_OBJECT,
-        'string': TYPE_STRING,
-        'uuid': TYPE_UUID
-    }
 
     def __init__(self, spec=None):
         self.types = {}
@@ -174,7 +175,7 @@ class SpecParser(object):
         linenum = self._parse_linenum
 
         def set_type(error):
-            type_ = self._TYPES.get(type_name) or self.types.get(type_name)
+            type_ = _TYPES.get(type_name) or self.types.get(type_name)
             if type_ is not None:
                 error_count = len(self.errors)
                 if validate_fn is not None:
@@ -278,8 +279,8 @@ class SpecParser(object):
     def _parse_attr(cls, attrs_string):
         attr = None
         if attrs_string is not None:
-            for attr_string in cls._RE_FIND_ATTRS.findall(attrs_string):
-                match_attr = cls._RE_ATTR_GROUP.match(attr_string)
+            for attr_string in _RE_FIND_ATTRS.findall(attrs_string):
+                match_attr = _RE_ATTR_GROUP.match(attr_string)
                 attr_op = match_attr.group('op')
                 attr_length_op = match_attr.group('lop') if attr_op is None else None
 
@@ -370,7 +371,7 @@ class SpecParser(object):
             self._parse_linenum += 1
 
             # Line continuation?
-            line_part_no_continuation = self._RE_LINE_CONT.sub('', line_part)
+            line_part_no_continuation = _RE_LINE_CONT.sub('', line_part)
             if line_continuation or line_part_no_continuation is not line_part:
                 line_continuation.append(line_part_no_continuation)
             if line_part_no_continuation is not line_part:
@@ -381,38 +382,28 @@ class SpecParser(object):
             else:
                 line = line_part
 
-            # Match line syntax
-            match_comment = self._RE_COMMENT.search(line)
-            if match_comment is None:
-                match_group = self._RE_GROUP.search(line)
-                if match_group is None:
-                    match_action = self._RE_ACTION.search(line)
-                    if match_action is None:
-                        match_definition = self._RE_DEFINITION.search(line)
-                        if match_definition is None:
-                            match_section = self._RE_SECTION.search(line)
-                            if match_section is None:
-                                match_value = self._RE_VALUE.search(line)
-                                if match_value is None:
-                                    match_member = self._RE_MEMBER.search(line)
-                                    if match_member is None:
-                                        match_typedef = self._RE_TYPEDEF.search(line)
-
             # Comment?
-            if match_comment:
-                doc_string = match_comment.group('doc')
+            match = _RE_COMMENT.search(line)
+            if match:
+                doc_string = match.group('doc')
                 if doc_string is not None:
                     self._doc.append(doc_string.strip())
 
+                continue
+
             # Documentation group?
-            elif match_group:
-                self._doc_group = match_group.group('group')
+            match = _RE_GROUP.search(line)
+            if match:
+                self._doc_group = match.group('group')
                 if self._doc_group is not None:
                     self._doc_group = self._doc_group.strip()
 
+                continue
+
             # Action?
-            elif match_action:
-                action_id = match_action.group('id')
+            match = _RE_ACTION.search(line)
+            if match:
+                action_id = match.group('id')
 
                 # Action already defined?
                 if action_id in self.actions:
@@ -425,19 +416,22 @@ class SpecParser(object):
                 self._doc = []
                 self.actions[self._action.name] = self._action
 
+                continue
+
             # Definition?
-            elif match_definition:
-                definition_string = match_definition.group('type')
-                definition_id = match_definition.group('id')
-                definition_base_ids = match_definition.group('base_ids')
+            match = _RE_DEFINITION.search(line)
+            if match:
+                definition_string = match.group('type')
+                definition_id = match.group('id')
+                definition_base_ids = match.group('base_ids')
                 if definition_base_ids is not None:
-                    definition_base_ids = self._RE_BASE_IDS_SPLIT.split(definition_base_ids)
+                    definition_base_ids = _RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
                 # Struct definition
                 if definition_string == 'struct' or definition_string == 'union':
 
                     # Type already defined?
-                    if definition_id in self._TYPES or definition_id in self.types:
+                    if definition_id in _TYPES or definition_id in self.types:
                         self._error("Redefinition of type '" + definition_id + "'")
 
                     # Create the new struct type
@@ -455,7 +449,7 @@ class SpecParser(object):
                 else:  # definition_string == 'enum':
 
                     # Type already defined?
-                    if definition_id in self._TYPES or definition_id in self.types:
+                    if definition_id in _TYPES or definition_id in self.types:
                         self._error("Redefinition of type '" + definition_id + "'")
 
                     # Create the new enum type
@@ -469,12 +463,15 @@ class SpecParser(object):
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
+                continue # definition
+
             # Section?
-            elif match_section:
-                section_string = match_section.group('type')
-                section_base_ids = match_section.group('base_ids')
+            match = _RE_SECTION.search(line)
+            if match:
+                section_string = match.group('type')
+                section_base_ids = match.group('base_ids')
                 if section_base_ids is not None:
-                    section_base_ids = self._RE_BASE_IDS_SPLIT.split(section_base_ids)
+                    section_base_ids = _RE_BASE_IDS_SPLIT.split(section_base_ids)
 
                 # Not in an action scope?
                 if self._action is None:
@@ -516,9 +513,12 @@ class SpecParser(object):
                                            None, self._validate_errors_base_type)
                         self._set_finalize(self._type, self._finalize_enum_base_type)
 
+                continue # section
+
             # Enum value?
-            elif match_value:
-                value_string = match_value.group('id')
+            match = _RE_VALUE.search(line)
+            if match:
+                value_string = match.group('id')
 
                 # Not in an enum scope?
                 if not isinstance(self._type, TypeEnum):
@@ -533,11 +533,14 @@ class SpecParser(object):
                 self._type.add_value(value_string, doc=self._doc)
                 self._doc = []
 
+                continue
+
             # Struct member?
-            elif match_member:
-                optional = match_member.group('optional') is not None
-                nullable = match_member.group('nullable') is not None
-                member_name = match_member.group('id')
+            match = _RE_MEMBER.search(line)
+            if match:
+                optional = match.group('optional') is not None
+                nullable = match.group('nullable') is not None
+                member_name = match.group('id')
 
                 # Not in a struct scope?
                 if not isinstance(self._type, TypeStruct):
@@ -550,21 +553,23 @@ class SpecParser(object):
 
                 # Create the member
                 member = self._type.add_member(member_name, None, optional=optional, nullable=nullable, attr=None, doc=self._doc)
-                self._parse_typedef(member, 'type', 'attr', match_member)
-
+                self._parse_typedef(member, 'type', 'attr', match)
                 self._doc = []
 
+                continue
+
             # Typedef?
-            elif match_typedef:
-                typedef_name = match_typedef.group('id')
+            match = _RE_TYPEDEF.search(line)
+            if match:
+                typedef_name = match.group('id')
 
                 # Type already defined?
-                if typedef_name in self._TYPES or typedef_name in self.types:
+                if typedef_name in _TYPES or typedef_name in self.types:
                     self._error("Redefinition of type '" + typedef_name + "'")
 
                 # Create the typedef
                 typedef = Typedef(None, attr=None, type_name=typedef_name, doc=self._doc)
-                self._parse_typedef(typedef, 'type', 'attr', match_typedef)
+                self._parse_typedef(typedef, 'type', 'attr', match)
                 self.types[typedef_name] = typedef
 
                 # Reset current action/type
@@ -572,6 +577,7 @@ class SpecParser(object):
                 self._type = None
                 self._doc = []
 
+                continue
+
             # Unrecognized line syntax
-            else:
-                self._error('Syntax error')
+            self._error('Syntax error')
