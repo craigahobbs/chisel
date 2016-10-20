@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+from collections import OrderedDict
 from io import BytesIO
 from itertools import chain
 import logging
@@ -191,7 +192,7 @@ class Context(object):
         self.environ = environ or {}
         self._start_response = start_response
         self.url_args = url_args
-        self.headers = []
+        self.headers = OrderedDict()
 
         # Create the logger
         self.log = logging.getLoggerClass()('')
@@ -209,13 +210,15 @@ class Context(object):
 
     def start_response(self, status, headers):
         if self._start_response is not None:
-            self._start_response(status, list(chain(headers, self.headers)))
+            self._start_response(status, list(chain(headers, self.headers.items())))
 
     def add_header(self, key, value):
         """
         Add a response header
         """
-        self.headers.append((key, value))
+        assert isinstance(key, str)
+        assert isinstance(value, str)
+        self.headers[key] = value
 
     def response(self, status, content_type, content, headers=None):
         """

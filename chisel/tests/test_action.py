@@ -300,6 +300,7 @@ action my_action
 action my_action
 ''')
         def my_action(app, dummy_req):
+            app.add_header('MyHeader', 'MyInitialValue')
             app.add_header('MyHeader', 'MyValue')
             return {}
 
