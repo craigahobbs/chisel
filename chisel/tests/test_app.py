@@ -21,6 +21,7 @@
 #
 
 from io import BytesIO, StringIO
+import json
 import logging
 import os
 import re
@@ -201,6 +202,33 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
         self.assertEqual(status, '400 Bad Request')
         self.assertTrue(('Content-Type', 'application/json') in headers)
+
+        # Reconstruct URL - error
+        status, headers, response = self.app.request('POST', '/my_action4', wsgi_input=b'{"myArg": 7}')
+        self.assertEqual(response.decode('utf-8'), '{"reconstructedURL":"ERROR"}')
+        self.assertEqual(status, '200 OK')
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+
+        # Reconstruct URL
+        for environ, reconstructed_url in [
+                ({'wsgi.url_scheme': 'http', 'HTTP_HOST': 'localhost'}, 'http://localhost/my_action4'),
+                ({'wsgi.url_scheme': 'http'}, 'http://localhost/my_action4'),
+                ({'wsgi.url_scheme': 'http', 'SERVER_PORT': '8000'}, 'http://localhost:8000/my_action4'),
+                ({'wsgi.url_scheme': 'https', 'SERVER_PORT': '443'}, 'https://localhost/my_action4'),
+                ({'wsgi.url_scheme': 'https', 'SERVER_PORT': '8000'}, 'https://localhost:8000/my_action4'),
+                ({'wsgi.url_scheme': 'http', 'SCRIPT_NAME': '/script'}, 'http://localhost/script/my_action4'),
+        ]:
+            # POST
+            status, headers, response = self.app.request('POST', '/my_action4', wsgi_input=b'{"myArg": 7}', environ=dict(environ))
+            self.assertEqual(status, '200 OK')
+            self.assertTrue(('Content-Type', 'application/json') in headers)
+            self.assertEqual(json.loads(response.decode('utf-8')), {'reconstructedURL': reconstructed_url})
+
+            # GET
+            status, headers, response = self.app.request('GET', '/my_action4', query_string='myArg=8', environ=dict(environ))
+            self.assertEqual(status, '200 OK')
+            self.assertTrue(('Content-Type', 'application/json') in headers)
+            self.assertEqual(json.loads(response.decode('utf-8')), {'reconstructedURL': reconstructed_url + '?myArg=8'})
 
     def test_log_format_callable(self):
 

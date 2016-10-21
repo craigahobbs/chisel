@@ -11,3 +11,9 @@ action my_action3
         int myArg
     output
         string myArg
+
+action my_action4
+    input
+        int myArg
+    output
+        string reconstructedURL

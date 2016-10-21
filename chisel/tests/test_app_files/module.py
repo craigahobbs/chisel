@@ -25,3 +25,10 @@ def my_action2(ctx, req):
         multiplier = 2
 
     return {'result': req['value'] * multiplier}
+
+
+@chisel.action
+def my_action4(ctx, dummy_req):
+    ctx.log.info('In my_action4')
+
+    return {'reconstructedURL': ctx.reconstructed_url or 'ERROR'}
