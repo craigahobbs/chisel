@@ -28,10 +28,10 @@ import sys
 import types
 import unittest
 
-from chisel import action, Application, ENVIRON_CTX, Request
+from chisel import action, Application, Context, ENVIRON_CTX, Request
 
 
-class TestAppApplication(unittest.TestCase):
+class TestApplication(unittest.TestCase):
 
     def setUp(self):
 
@@ -392,3 +392,58 @@ action my_action
         status, dummy_headers, response = app.request('GET', '/my_action/3/4')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
+
+
+class TestContext(unittest.TestCase):
+
+    def test_context_reconstructed_url(self):
+        app = Application()
+
+        # Minimal HTTP_HOST
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'http://localhost')
+
+        # Minimal SERVER_NAME/SERVER_PORT
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '80'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'http://localhost')
+
+        # HTTP non-80 SERVER_PORT
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '8080'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'http://localhost:8080')
+
+        # HTTPS
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'https',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '443'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'https://localhost')
+
+        # HTTPS non-443 SERVER_PORT
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'https',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '8443'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'https://localhost:8443')
+
+        # Complete
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstructed_url, 'http://localhost/request?foo=bar')

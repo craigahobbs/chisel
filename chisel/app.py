@@ -26,7 +26,7 @@ from itertools import chain
 import logging
 import os
 import re
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 from .app_defs import ENVIRON_CTX
 from .request import Request
@@ -260,3 +260,31 @@ class Context(object):
         else:
             content_list = [content.encode(encoding)]
         return self.response(status, content_type, content_list, headers=headers)
+
+    @property
+    def reconstructed_url(self):
+        """
+        Reconstructs the request URL using the algorithm provided by PEP3333
+        """
+
+        environ = self.environ
+        url = environ['wsgi.url_scheme']+'://'
+
+        if environ.get('HTTP_HOST'):
+            url += environ['HTTP_HOST']
+        else:
+            url += environ['SERVER_NAME']
+
+            if environ['wsgi.url_scheme'] == 'https':
+                if environ['SERVER_PORT'] != '443':
+                    url += ':' + environ['SERVER_PORT']
+            else:
+                if environ['SERVER_PORT'] != '80':
+                    url += ':' + environ['SERVER_PORT']
+
+        url += quote(environ.get('SCRIPT_NAME', ''))
+        url += quote(environ.get('PATH_INFO', ''))
+        if environ.get('QUERY_STRING'):
+            url += '?' + environ['QUERY_STRING']
+
+        return url
