@@ -31,6 +31,7 @@ from urllib.parse import quote, unquote
 from .app_defs import ENVIRON_CTX
 from .request import Request
 from .spec import SpecParser
+from .url import encode_query_string
 from .util import JSONEncoder, load_modules
 
 
@@ -261,8 +262,7 @@ class Context(object):
             content_list = [content.encode(encoding)]
         return self.response(status, content_type, content_list, headers=headers)
 
-    @property
-    def reconstructed_url(self):
+    def reconstruct_url(self, path_info=None, query_string=None):
         """
         Reconstructs the request URL using the algorithm provided by PEP3333
         """
@@ -283,8 +283,16 @@ class Context(object):
                     url += ':' + environ['SERVER_PORT']
 
         url += quote(environ.get('SCRIPT_NAME', ''))
-        url += quote(environ.get('PATH_INFO', ''))
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
+        if path_info is None:
+            url += quote(environ.get('PATH_INFO', ''))
+        else:
+            url += path_info
+        if query_string is None:
+            if environ.get('QUERY_STRING'):
+                url += '?' + environ['QUERY_STRING']
+        else:
+            encoded_query_string = encode_query_string(query_string)
+            if encoded_query_string:
+                url += '?' + encoded_query_string
 
         return url

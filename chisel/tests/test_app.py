@@ -404,7 +404,7 @@ class TestContext(unittest.TestCase):
             'wsgi.url_scheme': 'http',
             'HTTP_HOST': 'localhost'
         })
-        self.assertEqual(ctx.reconstructed_url, 'http://localhost')
+        self.assertEqual(ctx.reconstruct_url(), 'http://localhost')
 
         # Minimal SERVER_NAME/SERVER_PORT
         ctx = Context(app, environ={
@@ -412,7 +412,7 @@ class TestContext(unittest.TestCase):
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '80'
         })
-        self.assertEqual(ctx.reconstructed_url, 'http://localhost')
+        self.assertEqual(ctx.reconstruct_url(), 'http://localhost')
 
         # HTTP non-80 SERVER_PORT
         ctx = Context(app, environ={
@@ -420,7 +420,7 @@ class TestContext(unittest.TestCase):
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '8080'
         })
-        self.assertEqual(ctx.reconstructed_url, 'http://localhost:8080')
+        self.assertEqual(ctx.reconstruct_url(), 'http://localhost:8080')
 
         # HTTPS
         ctx = Context(app, environ={
@@ -428,7 +428,7 @@ class TestContext(unittest.TestCase):
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '443'
         })
-        self.assertEqual(ctx.reconstructed_url, 'https://localhost')
+        self.assertEqual(ctx.reconstruct_url(), 'https://localhost')
 
         # HTTPS non-443 SERVER_PORT
         ctx = Context(app, environ={
@@ -436,7 +436,7 @@ class TestContext(unittest.TestCase):
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '8443'
         })
-        self.assertEqual(ctx.reconstructed_url, 'https://localhost:8443')
+        self.assertEqual(ctx.reconstruct_url(), 'https://localhost:8443')
 
         # Complete
         ctx = Context(app, environ={
@@ -446,4 +446,34 @@ class TestContext(unittest.TestCase):
             'PATH_INFO': '/request',
             'QUERY_STRING': 'foo=bar'
         })
-        self.assertEqual(ctx.reconstructed_url, 'http://localhost/request?foo=bar')
+        self.assertEqual(ctx.reconstruct_url(), 'http://localhost/request?foo=bar')
+
+        # Replace path_info
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(path_info='/other'), 'http://localhost/other?foo=bar')
+
+        # Replace query_string
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(query_string={'bar': 'foo', 'bonk': 19}), 'http://localhost/request?bar=foo&bonk=19')
+
+        # Replace empty query_string
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(query_string={}), 'http://localhost/request')
