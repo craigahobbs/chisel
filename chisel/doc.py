@@ -23,7 +23,6 @@
 from html import escape
 from itertools import chain
 import re
-from urllib.parse import quote
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
@@ -58,11 +57,11 @@ action {name}
     def _action_callback(ctx, req):
         request_name = req.get('name')
         if request_name is None:
-            root = _index_html(ctx.environ, sorted(ctx.app.requests.values(), key=lambda x: x.name.lower()))
+            root = _index_html(ctx, sorted(ctx.app.requests.values(), key=lambda x: x.name.lower()))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         elif request_name in ctx.app.requests:
-            root = _request_html(ctx.environ, ctx.app.requests[request_name], req.get('nonav'))
+            root = _request_html(ctx, ctx.app.requests[request_name], req.get('nonav'))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         else:
@@ -88,7 +87,7 @@ action {name}
         self.request = request
 
     def _action_callback(self, ctx, dummy_req):
-        root = _request_html(ctx.environ, self.request, nonav=True)
+        root = _request_html(ctx, self.request, nonav=True)
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
         return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
 
@@ -162,9 +161,8 @@ class Element(object):
                     yield from cls._iterate_children_helper(child)
 
 
-def _index_html(environ, requests):
-    root_url = environ['SCRIPT_NAME'] + environ['PATH_INFO']
-    title = environ.get('HTTP_HOST') or (environ['SERVER_NAME'] + ':' + environ['SERVER_PORT'])
+def _index_html(ctx, requests):
+    title = ctx.environ.get('HTTP_HOST') or (ctx.environ['SERVER_NAME'] + ':' + ctx.environ['SERVER_PORT'])
 
     # Group requests
     has_groups = False
@@ -190,7 +188,7 @@ def _index_html(environ, requests):
                         'Uncategorized' if group_name is None else group_name, text=True)),
                     Element('ul', _class='chsl-request-list', children=[
                         Element('li', inline=True, children=
-                                Element('a', href=root_url + '?name=' + quote(request.name), children=
+                                Element('a', href=ctx.reconstruct_url(query_string={'name': request.name}), children=
                                         Element(request.name, text=True)))
                         for request in group_requests[group_name]
                     ])
@@ -201,8 +199,7 @@ def _index_html(environ, requests):
     ])
 
 
-def _request_html(environ, request, nonav=False):
-    root_url = environ.get('SCRIPT_NAME', '/') + environ.get('PATH_INFO', '')
+def _request_html(ctx, request, nonav=False):
 
     # Find all user types referenced by the action
     struct_types = {}
@@ -222,7 +219,8 @@ def _request_html(environ, request, nonav=False):
 
             # Request page header
             None if nonav else Element('div', _class='chsl-header', children=[
-                Element('a', inline=True, href=root_url, children=Element('Back to documentation index', text=True))
+                Element('a', inline=True, href=ctx.reconstruct_url(query_string=''), children=
+                        Element('Back to documentation index', text=True))
             ]),
             Element('h1', inline=True, children=Element(request.name, text=True)),
             _doc_text(request.doc),
@@ -238,7 +236,8 @@ def _request_html(environ, request, nonav=False):
                     ]),
                     Element('ul', children=[
                         Element('li', inline=True, children=
-                                Element('a', href=url, children=Element(url if method is None else method + ' ' + url, text=True)))
+                                Element('a', href=ctx.reconstruct_url(path_info=url, query_string=''), children=
+                                        Element(url if method is None else method + ' ' + url, text=True)))
                         for method, url in request.urls
                     ])
                 ]),

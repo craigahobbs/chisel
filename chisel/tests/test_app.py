@@ -171,6 +171,12 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
+        # GET (dict query string)
+        status, headers, response = self.app.request('GET', '/my_action2', query_string={'value': 8})
+        self.assertEqual(response.decode('utf-8'), '{"result":16}')
+        self.assertEqual(status, '200 OK')
+        self.assertTrue(('Content-Type', 'application/json') in headers)
+
         # HTTP error
         status, headers, response = self.app.request('GET', '/unknownAction')
         self.assertEqual(response.decode('utf-8'), 'Not Found')
@@ -396,7 +402,7 @@ action my_action
 
 class TestContext(unittest.TestCase):
 
-    def test_context_reconstructed_url(self):
+    def test_context_reconstruct_url(self):
         app = Application()
 
         # Minimal HTTP_HOST
@@ -458,7 +464,7 @@ class TestContext(unittest.TestCase):
         })
         self.assertEqual(ctx.reconstruct_url(path_info='/other'), 'http://localhost/other?foo=bar')
 
-        # Replace query_string
+        # Replace query_string (dict)
         ctx = Context(app, environ={
             'wsgi.url_scheme': 'http',
             'HTTP_HOST': 'localhost',
@@ -468,7 +474,7 @@ class TestContext(unittest.TestCase):
         })
         self.assertEqual(ctx.reconstruct_url(query_string={'bar': 'foo', 'bonk': 19}), 'http://localhost/request?bar=foo&bonk=19')
 
-        # Replace empty query_string
+        # Remove query_string (dict)
         ctx = Context(app, environ={
             'wsgi.url_scheme': 'http',
             'HTTP_HOST': 'localhost',
@@ -477,3 +483,23 @@ class TestContext(unittest.TestCase):
             'QUERY_STRING': 'foo=bar'
         })
         self.assertEqual(ctx.reconstruct_url(query_string={}), 'http://localhost/request')
+
+        # Replace query_string (encoded string)
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(query_string='bar=foo&bonk=19'), 'http://localhost/request?bar=foo&bonk=19')
+
+        # Remove query_string (empty string)
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(query_string=''), 'http://localhost/request')

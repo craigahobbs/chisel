@@ -163,8 +163,9 @@ class Application(object):
             environ = {}
         environ['REQUEST_METHOD'] = request_method
         environ['PATH_INFO'] = path_info
+        environ.setdefault('wsgi.url_scheme', 'http')
         environ.setdefault('SCRIPT_NAME', '')
-        environ.setdefault('QUERY_STRING', query_string)
+        environ.setdefault('QUERY_STRING', encode_query_string(query_string) if isinstance(query_string, dict) else query_string)
         environ.setdefault('SERVER_NAME', 'localhost')
         environ.setdefault('SERVER_PORT', '80')
         if 'wsgi.input' not in environ:
@@ -268,7 +269,7 @@ class Context(object):
         """
 
         environ = self.environ
-        url = environ['wsgi.url_scheme']+'://'
+        url = environ['wsgi.url_scheme'] + '://'
 
         if environ.get('HTTP_HOST'):
             url += environ['HTTP_HOST']
@@ -291,8 +292,7 @@ class Context(object):
             if environ.get('QUERY_STRING'):
                 url += '?' + environ['QUERY_STRING']
         else:
-            encoded_query_string = encode_query_string(query_string)
-            if encoded_query_string:
-                url += '?' + encoded_query_string
+            if query_string:
+                url += '?' + (encode_query_string(query_string) if isinstance(query_string, dict) else query_string)
 
         return url

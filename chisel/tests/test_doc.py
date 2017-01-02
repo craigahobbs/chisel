@@ -84,19 +84,6 @@ action my_action2
         MyError2
 '''
 
-    _environ = {
-        'SCRIPT_NAME': '',
-        'PATH_INFO': '/',
-        'HTTP_HOST': 'localhost:8080'
-    }
-
-    _environ2 = {
-        'SCRIPT_NAME': '',
-        'PATH_INFO': '/',
-        'SERVER_NAME': 'localhost',
-        'SERVER_PORT': '8080'
-    }
-
     def setUp(self):
 
         # Application object
@@ -111,7 +98,7 @@ action my_action2
     def test_index(self):
 
         # Validate the HTML
-        status, dummy_headers, response = self.app.request('GET', '/doc', environ=self._environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -119,7 +106,7 @@ action my_action2
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>localhost:8080</title>
+    <title>localhost:80</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -232,11 +219,11 @@ ul.chsl-constraint-list {
     </style>
   </head>
   <body class="chsl-index-body">
-    <h1>localhost:8080</h1>
+    <h1>localhost:80</h1>
     <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=my_action1">my_action1</a></li>
-      <li><a href="/doc?name=my_action2">my_action2</a></li>
+      <li><a href="http://localhost/doc?name=doc">doc</a></li>
+      <li><a href="http://localhost/doc?name=my_action1">my_action1</a></li>
+      <li><a href="http://localhost/doc?name=my_action2">my_action2</a></li>
     </ul>
   </body>
 </html>'''
@@ -274,7 +261,7 @@ action my_action5
         app.add_request(Request(lambda environ, start_response: [], name='my_request1'))
         app.add_request(Request(lambda environ, start_response: [], name='my_request2', doc_group='My  Group   2'))
 
-        status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -282,7 +269,7 @@ action my_action5
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>localhost:8080</title>
+    <title>localhost:80</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -395,23 +382,23 @@ ul.chsl-constraint-list {
     </style>
   </head>
   <body class="chsl-index-body">
-    <h1>localhost:8080</h1>
+    <h1>localhost:80</h1>
     <h2>My Group 1</h2>
     <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_action2">my_action2</a></li>
-      <li><a href="/doc?name=my_action3">my_action3</a></li>
+      <li><a href="http://localhost/doc?name=my_action2">my_action2</a></li>
+      <li><a href="http://localhost/doc?name=my_action3">my_action3</a></li>
     </ul>
     <h2>My Group 2</h2>
     <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_action4">my_action4</a></li>
-      <li><a href="/doc?name=my_request2">my_request2</a></li>
+      <li><a href="http://localhost/doc?name=my_action4">my_action4</a></li>
+      <li><a href="http://localhost/doc?name=my_request2">my_request2</a></li>
     </ul>
     <h2>Uncategorized</h2>
     <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=my_action1">my_action1</a></li>
-      <li><a href="/doc?name=my_action5">my_action5</a></li>
-      <li><a href="/doc?name=my_request1">my_request1</a></li>
+      <li><a href="http://localhost/doc?name=doc">doc</a></li>
+      <li><a href="http://localhost/doc?name=my_action1">my_action1</a></li>
+      <li><a href="http://localhost/doc?name=my_action5">my_action5</a></li>
+      <li><a href="http://localhost/doc?name=my_request1">my_request1</a></li>
     </ul>
   </body>
 </html>'''
@@ -421,9 +408,7 @@ ul.chsl-constraint-list {
     def test_action(self):
 
         # Validate the first my_action1's HTML
-        environ = dict(self._environ)
-        environ['QUERY_STRING'] = 'name=my_action1'
-        status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action1'})
         self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
@@ -545,7 +530,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
+      <a href="http://localhost/doc">Back to documentation index</a>
     </div>
     <h1>my_action1</h1>
     <div class="chsl-notes">
@@ -555,8 +540,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action1">GET /my_action1</a></li>
-          <li><a href="/my_action1">POST /my_action1</a></li>
+          <li><a href="http://localhost/my_action1">GET /my_action1</a></li>
+          <li><a href="http://localhost/my_action1">POST /my_action1</a></li>
         </ul>
       </div>
     </div>
@@ -788,9 +773,7 @@ A value
         self.assertEqual(html_expected, html)
 
         # Validate the my_action2's HTML
-        environ = dict(self._environ2)
-        environ['QUERY_STRING'] = 'name=my_action2'
-        status, dummy_headers, response = self.app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action2'})
         self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
@@ -912,7 +895,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
+      <a href="http://localhost/doc">Back to documentation index</a>
     </div>
     <h1>my_action2</h1>
     <div class="chsl-notes">
@@ -922,8 +905,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action2">GET /my_action2</a></li>
-          <li><a href="/my_action2">POST /my_action2</a></li>
+          <li><a href="http://localhost/my_action2">GET /my_action2</a></li>
+          <li><a href="http://localhost/my_action2">POST /my_action2</a></li>
         </ul>
       </div>
     </div>
@@ -1128,7 +1111,7 @@ ul.chsl-constraint-list {
 </head>
 <body class="chsl-request-body">
 <div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
+<a href="http://localhost/doc">Back to documentation index</a>
 </div>
 <h1>my_request</h1>
 <div class="chsl-text">
@@ -1146,7 +1129,7 @@ And some other important information.
 The request is exposed at the following URL:
 </p>
 <ul>
-<li><a href="/my_request">/my_request</a></li>
+<li><a href="http://localhost/my_request">/my_request</a></li>
 </ul>
 </div>
 </div>
@@ -1321,7 +1304,7 @@ action my_action
         app.add_request(DocAction())
         app.add_request(DocPage(my_action))
 
-        status, dummy_headers, response = app.request('GET', '/doc', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1329,7 +1312,7 @@ action my_action
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>localhost:8080</title>
+    <title>localhost:80</title>
     <style type="text/css">
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
@@ -1442,18 +1425,16 @@ ul.chsl-constraint-list {
     </style>
   </head>
   <body class="chsl-index-body">
-    <h1>localhost:8080</h1>
+    <h1>localhost:80</h1>
     <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=doc_my_action">doc_my_action</a></li>
+      <li><a href="http://localhost/doc?name=doc">doc</a></li>
+      <li><a href="http://localhost/doc?name=doc_my_action">doc_my_action</a></li>
     </ul>
   </body>
 </html>'''
         self.assertEqual(html_expected, html)
 
-        environ = dict(self._environ)
-        environ['QUERY_STRING'] = 'name=doc_my_action'
-        status, dummy_headers, response = app.request('GET', '/doc', environ=environ)
+        status, dummy_headers, response = app.request('GET', '/doc', query_string={'name': 'doc_my_action'})
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1575,7 +1556,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
+      <a href="http://localhost/doc">Back to documentation index</a>
     </div>
     <h1>doc_my_action</h1>
     <div class="chsl-text">
@@ -1590,7 +1571,7 @@ Documentation page for my_action.
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="/doc_my_action">GET /doc_my_action</a></li>
+          <li><a href="http://localhost/doc_my_action">GET /doc_my_action</a></li>
         </ul>
       </div>
       <div class="chsl-note">
@@ -1610,7 +1591,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc_my_action', environ=self._environ)
+        status, dummy_headers, response = app.request('GET', '/doc_my_action')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1739,8 +1720,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="/my_action">GET /my_action</a></li>
-          <li><a href="/my_action">POST /my_action</a></li>
+          <li><a href="http://localhost/my_action">GET /my_action</a></li>
+          <li><a href="http://localhost/my_action">POST /my_action</a></li>
         </ul>
       </div>
     </div>
