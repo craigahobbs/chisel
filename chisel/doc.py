@@ -27,6 +27,7 @@ from urllib.parse import quote
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
+from .app_defs import STATUS_200_OK, STATUS_404_NOT_FOUND
 from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 
 
@@ -59,13 +60,13 @@ action {name}
         if request_name is None:
             root = _index_html(ctx.environ, sorted(ctx.app.requests.values(), key=lambda x: x.name.lower()))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
-            return ctx.response_text('200 OK', content, content_type='text/html')
+            return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         elif request_name in ctx.app.requests:
             root = _request_html(ctx.environ, ctx.app.requests[request_name], req.get('nonav'))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
-            return ctx.response_text('200 OK', content, content_type='text/html')
+            return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         else:
-            return ctx.response_text('404 Not Found', 'Unknown Request')
+            return ctx.response_text(STATUS_404_NOT_FOUND, 'Unknown Request')
 
 
 class DocPage(Action):
@@ -89,7 +90,7 @@ action {name}
     def _action_callback(self, ctx, dummy_req):
         root = _request_html(ctx.environ, self.request, nonav=True)
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
-        return ctx.response_text('200 OK', content, content_type='text/html')
+        return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
 
 
 class Element(object):

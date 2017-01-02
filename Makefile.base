@@ -48,8 +48,8 @@ endef
 # Python version support
 ifndef PYTHON_URLS
 PYTHON_URLS := \
-    https://www.python.org/ftp/python/3.6.0/Python-3.6.0.tgz \
     https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz \
+    https://www.python.org/ftp/python/3.6.0/Python-3.6.0.tgz \
     https://www.python.org/ftp/python/3.4.5/Python-3.4.5.tgz \
     https://www.python.org/ftp/python/3.3.6/Python-3.3.6.tgz \
     $(PYTHON_URLS_EXTRA)

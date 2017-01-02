@@ -28,7 +28,7 @@ import os
 import re
 from urllib.parse import quote, unquote
 
-from .app_defs import ENVIRON_CTX
+from .app_defs import ENVIRON_CTX, STATUS_404_NOT_FOUND, STATUS_405_METHOD_NOT_ALLOWED, STATUS_500_INTERNAL_SERVER_ERROR
 from .request import Request
 from .spec import SpecParser
 from .url import encode_query_string
@@ -143,15 +143,15 @@ class Application(object):
         if request is None:
             if next((True for _, path in self.__request_urls.keys() if path == path_info), False) or \
                next((True for _, regex, _ in self.__request_regex if regex.match(path_info)), False):
-                return ctx.response_text('405 Method Not Allowed', 'Method Not Allowed')
-            return ctx.response_text('404 Not Found', 'Not Found')
+                return ctx.response_text(STATUS_405_METHOD_NOT_ALLOWED, 'Method Not Allowed')
+            return ctx.response_text(STATUS_404_NOT_FOUND, 'Not Found')
 
         # Handle the request
         try:
             return request(ctx.environ, ctx.start_response)
         except: # pylint: disable=bare-except
             ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
-            return ctx.response_text('500 Internal Server Error', 'Unexpected Error')
+            return ctx.response_text(STATUS_500_INTERNAL_SERVER_ERROR, 'Unexpected Error')
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
         """

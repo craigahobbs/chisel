@@ -20,4 +20,15 @@
 # SOFTWARE.
 #
 
+# WSGI environment variables
 ENVIRON_CTX = 'chisel.ctx'
+
+# HTTP status codes
+STATUS_200_OK = '200 OK'
+STATUS_301_MOVED_PERMANENTLY = '301 Moved Permanently'
+STATUS_304_NOT_MODIFIED = '304 Not Modified'
+STATUS_400_BAD_REQUEST = '400 Bad Request'
+STATUS_401_UNAUTHORIZED = '401 Unauthorized'
+STATUS_404_NOT_FOUND = '404 Not Found'
+STATUS_405_METHOD_NOT_ALLOWED = '405 Method Not Allowed'
+STATUS_500_INTERNAL_SERVER_ERROR = '500 Internal Server Error'

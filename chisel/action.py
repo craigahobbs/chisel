@@ -23,15 +23,11 @@
 from cgi import parse_header
 from json import loads as json_loads
 
-from .app_defs import ENVIRON_CTX
+from .app_defs import ENVIRON_CTX, STATUS_200_OK, STATUS_400_BAD_REQUEST, STATUS_500_INTERNAL_SERVER_ERROR
 from .model import VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, ValidationError, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
 from .url import decode_query_string
-
-
-STATUS_400 = '400 Bad Request'
-STATUS_500 = '500 Internal Server Error'
 
 
 def action(_action_callback=None, **kwargs):
@@ -55,11 +51,14 @@ class ActionError(Exception):
         self.status = status
 
 
-class _ActionErrorInternal(ActionError):
-    __slots__ = ('member')
+class _ActionErrorInternal(Exception):
+    __slots__ = ('status', 'error', 'message', 'member')
 
-    def __init__(self, error, message=None, status=None, member=None):
-        ActionError.__init__(self, error, message=message, status=status)
+    def __init__(self, status, error, message=None, member=None):
+        Exception.__init__(self, error)
+        self.status = status
+        self.error = error
+        self.message = message
         self.member = member
 
 
@@ -124,7 +123,7 @@ class Action(Request):
                 content = None if is_get else environ['wsgi.input'].read()
             except:
                 ctx.log.warning("I/O error reading input for action '%s'", self.name)
-                raise _ActionErrorInternal('IOError', message='Error reading request content')
+                raise _ActionErrorInternal(STATUS_400_BAD_REQUEST, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
             validate_mode = VALIDATE_JSON_INPUT
@@ -137,7 +136,7 @@ class Action(Request):
                     request = {}
             except Exception as exc:
                 ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
-                raise _ActionErrorInternal('InvalidInput', message='Invalid request JSON: ' + str(exc), status=STATUS_400)
+                raise _ActionErrorInternal(STATUS_400_BAD_REQUEST, 'InvalidInput', message='Invalid request JSON: ' + str(exc))
 
             # Decode the query string
             query_string = environ.get('QUERY_STRING')
@@ -147,14 +146,16 @@ class Action(Request):
                     request_query_string = decode_query_string(query_string)
                 except Exception as exc:
                     ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
-                    raise _ActionErrorInternal('InvalidInput', message=str(exc), status=STATUS_400)
+                    raise _ActionErrorInternal(STATUS_400_BAD_REQUEST, 'InvalidInput', message=str(exc))
 
                 for request_key, request_value in request_query_string.items():
                     if request_key in request:
                         ctx.log.warning("Duplicate query string argument member '%s' for action '%s'", request_key, self.name)
-                        raise _ActionErrorInternal('InvalidInput',
-                                                   message="Duplicate query string argument member '{0}'".format(request_key),
-                                                   status=STATUS_400)
+                        raise _ActionErrorInternal(
+                            STATUS_400_BAD_REQUEST,
+                            'InvalidInput',
+                            message="Duplicate query string argument member '{0}'".format(request_key)
+                        )
                     request[request_key] = request_value
 
             # Add url arguments
@@ -163,9 +164,11 @@ class Action(Request):
                 for url_arg, url_value in ctx.url_args.items():
                     if url_arg in request:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
-                        raise _ActionErrorInternal('InvalidInput',
-                                                   message="Duplicate URL argument member '{0}'".format(url_arg),
-                                                   status=STATUS_400)
+                        raise _ActionErrorInternal(
+                            STATUS_400_BAD_REQUEST,
+                            'InvalidInput',
+                            message="Duplicate URL argument member '{0}'".format(url_arg)
+                        )
                     request[url_arg] = url_value
 
             # JSONP?
@@ -178,44 +181,40 @@ class Action(Request):
                 request = self.model.input_type.validate(request, validate_mode)
             except ValidationError as exc:
                 ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
-                raise _ActionErrorInternal('InvalidInput', message=str(exc), status=STATUS_400, member=exc.member)
+                raise _ActionErrorInternal(STATUS_400_BAD_REQUEST, 'InvalidInput', message=str(exc), member=exc.member)
 
             # Call the action callback
             try:
-                status = '200 OK'
+                status = STATUS_200_OK
                 response = self.action_callback(ctx, request)
                 if self.wsgi_response:
                     return response
                 elif response is None:
                     response = {}
-                elif 'error' in response and not jsonp:
-                    status = STATUS_500
+                response_type = self.model.output_type
             except ActionError as exc:
-                status = exc.status or STATUS_500
+                status = exc.status or STATUS_400_BAD_REQUEST
                 response = {'error': exc.error}
                 if exc.message is not None:
                     response['message'] = exc.message
-            except Exception as exc:
-                ctx.log.exception("Unexpected error in action '%s'", self.name)
-                raise _ActionErrorInternal('UnexpectedError')
-
-            # Validate the response
-            if ctx.app.validate_output:
-                if hasattr(response, '__contains__') and 'error' in response:
+                if ctx.app.validate_output:
                     response_type = TypeStruct()
                     response_type.add_member('error', self.model.error_type)
                     response_type.add_member('message', TYPE_STRING, optional=True)
-                else:
-                    response_type = self.model.output_type
+            except Exception as exc:
+                ctx.log.exception("Unexpected error in action '%s'", self.name)
+                raise _ActionErrorInternal(STATUS_500_INTERNAL_SERVER_ERROR, 'UnexpectedError')
 
+            # Validate the response
+            if ctx.app.validate_output:
                 try:
                     response_type.validate(response, mode=VALIDATE_DEFAULT)
                 except ValidationError as exc:
                     ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
-                    raise _ActionErrorInternal('InvalidOutput', message=str(exc), member=exc.member)
+                    raise _ActionErrorInternal(STATUS_500_INTERNAL_SERVER_ERROR, 'InvalidOutput', message=str(exc), member=exc.member)
 
         except _ActionErrorInternal as exc:
-            status = exc.status or STATUS_500
+            status = exc.status
             response = {'error': exc.error}
             if exc.message is not None:
                 response['message'] = exc.message

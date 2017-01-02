@@ -196,8 +196,7 @@ action my_action
 
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '8'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '8'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"c":15}')
 
     # Test successful action get
@@ -220,8 +219,7 @@ action my_action
 
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '8'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '8'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"c":15}')
 
     # Test successful action get with JSONP
@@ -243,8 +241,7 @@ action my_action
 
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8&jsonp=foo')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '14'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '14'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), 'foo({"c":15});')
 
     # Test successful action post
@@ -309,9 +306,7 @@ action my_action
 
         status, headers, response = app.request('GET', '/my_action')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '2'),
-                                           ('Content-Type', 'application/json'),
-                                           ('MyHeader', 'MyValue')])
+        self.assertEqual(sorted(headers), [('Content-Length', '2'), ('Content-Type', 'application/json'), ('MyHeader', 'MyValue')])
         self.assertEqual(response.decode('utf-8'), '{}')
 
     # Test successful action with custom response
@@ -332,12 +327,11 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": "world"}')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '11'),
-                                           ('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Length', '11'), ('Content-Type', 'text/plain')])
         self.assertEqual(response.decode('utf-8'), 'Hello WORLD')
 
-    # Test action error response
-    def test_error(self):
+    # Test action error response (invalid)
+    def test_error_response(self):
 
         @action(spec='''\
 action my_action
@@ -352,9 +346,8 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '19'),
-                                           ('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"MyError"}')
+        self.assertEqual(sorted(headers), [('Content-Length', '60'), ('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Unknown member \'error\'"}')
 
     # Test action error response with message
     def test_error_message(self):
@@ -365,15 +358,14 @@ action my_action
     MyError
 ''')
         def my_action(dummy_app, dummy_req):
-            return {'error': 'MyError', 'message': 'My message'}
+            raise ActionError('MyError', message='My message')
 
         app = Application()
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '42'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Length', '42'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
 
     # Test action raised-error response
@@ -391,9 +383,8 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '19'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Length', '19'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError"}')
 
     # Test action raised-error response with message
@@ -411,9 +402,8 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '42'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Length', '42'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
 
     # Test action raised-error response with status
@@ -432,8 +422,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '404 Not Found')
-        self.assertEqual(sorted(headers), [('Content-Length', '42'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '42'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
 
     # Test action returning bad error enum value
@@ -445,15 +434,14 @@ action my_action
     MyError
 ''')
         def my_action(dummy_app, dummy_req):
-            return {'error': 'MyBadError'}
+            raise ActionError('MyBadError')
 
         app = Application()
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '146'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '146'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
                          'for member \'error\', expected type \'my_action_error\'"}')
@@ -474,8 +462,7 @@ action my_action
 
         status, headers, response = app.request('GET', '/my_action', query_string='a')
         self.assertEqual(status, '400 Bad Request')
-        self.assertEqual(sorted(headers), [('Content-Length', '63'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '63'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
 
     # Test action with invalid json content
@@ -515,8 +502,7 @@ action my_action
 
         status, headers, response = app.request('FOO', '/my_action', wsgi_input=b'{"a": 7}')
         self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(sorted(headers), [('Content-Length', '18'),
-                                           ('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Length', '18'), ('Content-Type', 'text/plain')])
         self.assertEqual(response.decode('utf-8'), 'Method Not Allowed')
 
     # Test action with invalid input
@@ -535,8 +521,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": 7}')
         self.assertEqual(status, '400 Bad Request')
-        self.assertEqual(sorted(headers), [('Content-Length', '117'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '117'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
                          'for member \'a\', expected type \'string\'"}')
@@ -557,8 +542,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '120'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '120'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"a","message":"Invalid value \'asdf\' (type \'str\') '
                          'for member \'a\', expected type \'int\'"}')
@@ -577,8 +561,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Length', '2'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '2'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{}')
 
     # Test action with invalid array output
@@ -595,8 +578,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '102'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '102'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), '
                          'expected type \'my_action_output\'"}')
@@ -615,8 +597,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '27'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '27'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
 
     # Test action HTTP post IO error handling
@@ -637,9 +618,8 @@ action my_action
                 raise IOError('FAIL')
 
         status, headers, response = app.request('POST', '/my_action', environ={'wsgi.input': MyStream()},)
-        self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '61'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Length', '61'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"IOError","message":"Error reading request content"}')
 
     # Test action JSON serialization error handling
@@ -662,8 +642,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '16'),
-                                           ('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Length', '16'), ('Content-Type', 'text/plain')])
         self.assertEqual(response.decode('utf-8'), 'Unexpected Error')
 
     # Test action unexpected error response with custom response
@@ -680,6 +659,5 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Length', '27'),
-                                           ('Content-Type', 'application/json')])
+        self.assertEqual(sorted(headers), [('Content-Length', '27'), ('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
