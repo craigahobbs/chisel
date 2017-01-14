@@ -61,8 +61,7 @@ action {name}
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         elif request_name in ctx.app.requests:
-            root = _request_html(ctx, ctx.app.requests[request_name], req.get('nonav'))
-            content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
+            content = DocPage.content(ctx, ctx.app.requests[request_name], nonav=req.get('nonav'))
             return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
         else:
             return ctx.response_text(STATUS_404_NOT_FOUND, 'Unknown Request')
@@ -76,7 +75,7 @@ class DocPage(Action):
     __slots__ = ('request')
 
     def __init__(self, request, name=None, urls=None, doc=None, doc_group=None):
-        request_name = request.name
+        request_name = request.name if not isinstance(request, TypeStruct) else request.type_name
         if name is None:
             name = 'doc_' + request_name
         Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, doc=doc, doc_group=doc_group,
@@ -87,9 +86,12 @@ action {name}
         self.request = request
 
     def _action_callback(self, ctx, dummy_req):
-        root = _request_html(ctx, self.request, nonav=True)
-        content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
-        return ctx.response_text(STATUS_200_OK, content, content_type='text/html')
+        return ctx.response_text(STATUS_200_OK, self.content(ctx, self.request), content_type='text/html')
+
+    @staticmethod
+    def content(ctx, request, nonav=True):
+        root = _request_html(ctx, request, nonav)
+        return root.serialize(indent='  ' if ctx.app.pretty_output else '')
 
 
 class Element(object):
@@ -200,19 +202,23 @@ def _index_html(ctx, requests):
 
 
 def _request_html(ctx, request, nonav=False):
+    is_action = isinstance(request, Action)
+    is_struct = isinstance(request, TypeStruct)
 
     # Find all user types referenced by the action
     struct_types = {}
     enum_types = {}
     typedef_types = {}
-    if isinstance(request, Action):
+    if is_action:
         _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
         _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
+    elif is_struct:
+        _referenced_types(struct_types, enum_types, typedef_types, request)
 
     return Element('html', children=[
         Element('head', children=[
             Element('meta', closed=False, charset='UTF-8'),
-            Element('title', inline=True, children=Element(request.name, text=True)),
+            Element('title', inline=True, children=Element(request.type_name if is_struct else request.name, text=True)),
             _style_element()
         ]),
         Element('body', _class='chsl-request-body', children=[
@@ -222,14 +228,18 @@ def _request_html(ctx, request, nonav=False):
                 Element('a', inline=True, href=ctx.reconstruct_url(query_string=''), children=
                         Element('Back to documentation index', text=True))
             ]),
-            Element('h1', inline=True, children=Element(request.name, text=True)),
-            _doc_text(request.doc),
+            [
+                _struct_section(request, 'h1', ('union ' if request.union else 'struct ') + request.type_name, ('The struct is empty.',))
+            ] if is_struct else [
+                Element('h1', inline=True, children=Element(request.name, text=True)),
+                _doc_text(request.doc)
+            ],
 
             # Notes
             Element('div', _class='chsl-notes', children=[
 
                 # Request URLs
-                None if not request.urls else Element('div', _class='chsl-note', children=[
+                None if is_struct or not request.urls else Element('div', _class='chsl-note', children=[
                     Element('p', children=[
                         Element('b', inline=True, children=Element('Note: ', text=True)),
                         Element('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
@@ -243,7 +253,7 @@ def _request_html(ctx, request, nonav=False):
                 ]),
 
                 # Non-default response
-                None if not (isinstance(request, Action) and request.wsgi_response) else [
+                None if not (is_action and request.wsgi_response) else [
                     Element('div', _class='chsl-note', children=Element('p', children=[
                         Element('b', inline=True, children=Element('Note: ', text=True)),
                         Element('The action has a non-default response. See documentation for details.', text=True)
@@ -252,7 +262,7 @@ def _request_html(ctx, request, nonav=False):
             ]),
 
             # Request input and output structs
-            None if not isinstance(request, Action) else [
+            None if not is_action else [
                 _struct_section(request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
                 None if request.wsgi_response else [
                     _struct_section(request.model.output_type, 'h2', 'Output Parameters', ('The action has no output parameters.',)),
