@@ -165,7 +165,7 @@ def parse_iso8601_datetime(string):
             timedelta(hours=offhour, minutes=offmin))
 
 
-def import_submodules(package, parent_package=None):
+def import_submodules(package, parent_package=None, exclude_submodules=None):
     """
     Generator which imports all submodules of a module, recursively, including subpackages
 
@@ -176,6 +176,9 @@ def import_submodules(package, parent_package=None):
     :rtype: iterator of modules
     """
 
+    exclude_submodules_dot = [x + '.' for x in exclude_submodules] if exclude_submodules else exclude_submodules
     package = importlib.import_module(package, parent_package)
     for _, name, _ in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
+        if exclude_submodules and (name in exclude_submodules or any(name.startswith(x) for x in exclude_submodules_dot)):
+            continue
         yield importlib.import_module(name)
