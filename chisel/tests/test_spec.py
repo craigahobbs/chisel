@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+import os
 import unittest
 
 from chisel import SpecParser, SpecParserError
@@ -73,6 +74,28 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assert_struct(parser.actions[action_name].input_type, input_members)
         self.assert_struct(parser.actions[action_name].output_type, output_members)
         self.assert_enum(parser.actions[action_name].error_type, error_values)
+
+    def test_load(self):
+        parser = SpecParser()
+        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+        self.assertIn('my_action', parser.actions)
+        self.assertIn('my_action2', parser.actions)
+        self.assertIn('my_action3', parser.actions)
+
+    def test_load_file(self):
+        parser = SpecParser()
+        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files', 'module.chsl'))
+        self.assertIn('my_action', parser.actions)
+        self.assertIn('my_action2', parser.actions)
+        self.assertNotIn('my_action3', parser.actions)
+
+    def test_load_finalize(self):
+        parser = SpecParser()
+        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files'), finalize=False)
+        parser.finalize()
+        self.assertIn('my_action', parser.actions)
+        self.assertIn('my_action2', parser.actions)
+        self.assertIn('my_action3', parser.actions)
 
     # Test valid spec parsing
     def test_simple(self):

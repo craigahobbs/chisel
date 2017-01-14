@@ -21,6 +21,7 @@
 #
 
 from itertools import chain
+import os
 import re
 
 from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
@@ -131,11 +132,7 @@ class SpecParser(object):
         if spec is not None:
             self.parse_string(spec)
 
-    # Parse a specification string
-    def parse_string(self, spec, filename='', finalize=True):
-        self.parse(spec.splitlines(), finalize=finalize, filename=filename)
-
-    # Parse a specification from a collection of spec lines (e.g an input stream)
+    # Parse a specification from an iterator of spec lines (e.g an input stream)
     def parse(self, lines, filename='', finalize=True):
 
         # Set the parser state
@@ -151,6 +148,10 @@ class SpecParser(object):
         self._parse()
         if finalize:
             self.finalize()
+
+    # Parse a specification string
+    def parse_string(self, spec, filename='', finalize=True):
+        self.parse(spec.splitlines(), finalize=finalize, filename=filename)
 
     # Finalize parsing (must call after calling parse one or more times - can be repeated)
     def finalize(self):
@@ -168,6 +169,21 @@ class SpecParser(object):
         # Raise a parser exception if there are any errors
         if self.errors:
             raise SpecParserError(self.errors)
+
+    def load(self, spec_path, spec_ext='.chsl', finalize=True):
+        if os.path.isdir(spec_path):
+            for dirpath, _, filenames in os.walk(spec_path):
+                for filename in filenames:
+                    _, ext = os.path.splitext(filename)
+                    if ext == spec_ext:
+                        with open(os.path.join(dirpath, filename), 'r') as file_spec:
+                            self.parse(file_spec, finalize=False)
+        else:
+            with open(spec_path, 'r') as file_spec:
+                self.parse(file_spec, finalize=False)
+
+        if finalize:
+            self.finalize()
 
     # Set a type attribute by name
     def _set_type(self, parent_type, parent_object, parent_type_attr, type_name, type_attr, validate_fn=None):

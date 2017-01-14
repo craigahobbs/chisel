@@ -22,11 +22,10 @@
 
 from datetime import date, datetime, timedelta, tzinfo
 from decimal import Decimal
-from itertools import islice
+import importlib
 from json import JSONEncoder as json_JSONEncoder
-import os
+import pkgutil
 import re
-import sys
 from time import altzone as time_altzone, daylight as time_daylight, localtime as time_localtime, \
     mktime as time_mktime, timezone as time_timezone, tzname as time_tzname
 from uuid import UUID
@@ -166,68 +165,17 @@ def parse_iso8601_datetime(string):
             timedelta(hours=offhour, minutes=offmin))
 
 
-def load_modules(module_path, module_ext='.py', exclude_submodules=None):
+def import_submodules(package, parent_package=None):
     """
-    Recursively load Python modules
+    Generator which imports all submodules of a module, recursively, including subpackages
+
+    :param package: package name (e.g 'chisel.util'); may be relative if parent_package is provided
+    :type package: str
+    :param parent_package: parent package name (e.g 'chisel')
+    :type package: str
+    :rtype: iterator of modules
     """
 
-    # Does the path exist?
-    if not os.path.isdir(module_path):
-        raise IOError('{0!r} not found or is not a directory'.format(module_path))
-
-    # Where is this module on the system path?
-    module_dir_parts = module_path.split(os.sep)
-
-    def find_module_name_index():
-        for sys_path in sys.path:
-            for ix_module_part in range(len(module_dir_parts) - 1, 0, -1):
-                module_name_parts = module_dir_parts[ix_module_part:]
-                if not any(not part.isidentifier() for part in module_name_parts):
-                    sys_module_path = os.path.join(sys_path, *module_name_parts)
-                    if os.path.isdir(sys_module_path) and os.path.samefile(module_path, sys_module_path):
-                        # Make sure the module package is import-able
-                        module_name = '.'.join(module_name_parts)
-                        try:
-                            __import__(module_name)
-                        except ImportError:
-                            pass
-                        else:
-                            return len(module_dir_parts) - len(module_name_parts)
-        raise ImportError('{0!r} not found on system path'.format(module_path))
-    ix_module_name = find_module_name_index()
-
-    # Recursively find module files
-    exclude_submodules_dot = None if exclude_submodules is None else [x + '.' for x in exclude_submodules]
-    for dirpath, dummy_dirnames, filenames in os.walk(module_path):
-
-        # Skip Python 3.x cache directories
-        if os.path.basename(dirpath) == '__pycache__':
-            continue
-
-        # Is the sub-package excluded?
-        subpackage_parts = dirpath.split(os.sep)
-        subpackage_name = '.'.join(islice(subpackage_parts, ix_module_name, None))
-        if exclude_submodules is not None and \
-           (subpackage_name in exclude_submodules or any(subpackage_name.startswith(x) for x in exclude_submodules_dot)):
-            continue
-
-        # Load each sub-module file in the directory
-        for filename in filenames:
-
-            # Skip non-module files
-            (basename, ext) = os.path.splitext(filename)
-            if ext != module_ext:
-                continue
-
-            # Skip package __init__ files
-            if basename == '__init__':
-                continue
-
-            # Is the sub-module excluded?
-            submodule_name = subpackage_name + '.' + basename
-            if exclude_submodules is not None and \
-               (submodule_name in exclude_submodules or any(submodule_name.startswith(x) for x in exclude_submodules)):
-                continue
-
-            # Load the sub-module
-            yield __import__(submodule_name, globals(), locals(), ['.'])
+    package = importlib.import_module(package, parent_package)
+    for _, name, _ in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
+        yield importlib.import_module(name)

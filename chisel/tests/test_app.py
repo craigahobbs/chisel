@@ -23,7 +23,6 @@
 from io import BytesIO, StringIO
 import logging
 import os
-import re
 import sys
 import types
 import unittest
@@ -39,7 +38,7 @@ class TestApplication(unittest.TestCase):
             def __init__(self):
                 Application.__init__(self)
                 self.load_specs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-                self.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+                self.load_requests('.test_app_files', __package__)
                 self.log_level = logging.INFO
 
         self.app = MyApplication()
@@ -50,16 +49,12 @@ class TestApplication(unittest.TestCase):
         self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
 
     def test_load_requests_error(self):
-        sys_path = sys.path
         try:
-            sys.path = []
-            self.app.load_requests(os.path.join(os.path.dirname(__file__), 'test_app_files'))
+            self.app.load_requests('chisel.tests.test_app_files2')
         except ImportError as exc:
-            self.assertTrue(re.search("'.*?' not found on system path", str(exc)))
+            self.assertEqual(str(exc), "No module named 'chisel.tests.test_app_files2'")
         else:
             self.fail()
-        finally:
-            sys.path = sys_path
 
     def test_call(self):
 

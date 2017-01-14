@@ -24,7 +24,6 @@ from collections import OrderedDict
 from io import BytesIO
 from itertools import chain
 import logging
-import os
 import re
 from urllib.parse import quote, unquote
 
@@ -32,7 +31,7 @@ from .app_defs import ENVIRON_CTX, STATUS_404_NOT_FOUND, STATUS_405_METHOD_NOT_A
 from .request import Request
 from .spec import SpecParser
 from .url import encode_query_string
-from .util import JSONEncoder, load_modules
+from .util import JSONEncoder
 
 
 # Regular expression for matching URL arguments
@@ -56,24 +55,6 @@ class Application(object):
         self.requests = {}
         self.__request_urls = {}
         self.__request_regex = []
-
-    def load_specs(self, spec_path, spec_ext='.chsl', finalize=True):
-        """
-        Load a spec file or directory
-        """
-        if os.path.isdir(spec_path):
-            for dirpath, dummy_dirnames, filenames in os.walk(spec_path):
-                for filename in filenames:
-                    (dummy_base, ext) = os.path.splitext(filename)
-                    if ext == spec_ext:
-                        with open(os.path.join(dirpath, filename), 'r') as file_spec:
-                            self.specs.parse(file_spec, finalize=False)
-        else:
-            with open(spec_path, 'r') as file_spec:
-                self.specs.parse(file_spec, finalize=False)
-
-        if finalize:
-            self.specs.finalize()
 
     def add_request(self, request):
         """
@@ -101,15 +82,18 @@ class Application(object):
         # Make the request app-aware at load-time
         request.onload(self)
 
-    def load_requests(self, module_path, module_ext='.py'):
+    def load_requests(self, package, parent_package=None):
         """
-        Recursively load all requests in a directory
+        Recursively import all requests in a directory
         """
-        for module in load_modules(module_path, module_ext=module_ext):
-            for module_attr in dir(module):
-                request = getattr(module, module_attr)
-                if isinstance(request, Request) and request.module_name == module.__name__:
-                    self.add_request(request)
+        for request in Request.import_requests(package, parent_package):
+            self.add_request(request)
+
+    def load_specs(self, spec_path, spec_ext='.chsl', finalize=True):
+        """
+        Load a spec file or directory
+        """
+        self.specs.load(spec_path, spec_ext, finalize)
 
     def __call__(self, environ, start_response):
         """

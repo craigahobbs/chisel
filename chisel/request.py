@@ -21,13 +21,19 @@
 #
 
 from itertools import chain
+import sys
+
+from chisel.util import import_submodules
+
+
+REQUESTS_MODULE_ATTR = '__chisel_requests__'
 
 
 def request(_wsgi_callback=None, **kwargs):
     """
     Chisel request decorator
     """
-    return Request(_wsgi_callback, **kwargs) if _wsgi_callback is not None else lambda fn: Request(fn, **kwargs)
+    return Request(_wsgi_callback, **kwargs).decorate_module(_wsgi_callback) if _wsgi_callback else lambda fn: request(fn, **kwargs)
 
 
 class Request(object):
@@ -55,13 +61,25 @@ class Request(object):
         self.doc = doc
         self.doc_group = doc_group
 
-    @property
-    def module_name(self):
-        return getattr(self, '__module__', None) if self.wsgi_callback is None else self.wsgi_callback.__module__
-
     def onload(self, app):
         pass
 
     def __call__(self, environ, start_response):
         assert self.wsgi_callback is not None, 'must specify wsgi_callback when using Request directly'
         return self.wsgi_callback(environ, start_response)
+
+    def decorate_module(self, callback):
+        if callback.__module__:
+            module = sys.modules[callback.__module__]
+            requests = getattr(module, REQUESTS_MODULE_ATTR, [])
+            if not requests:
+                setattr(module, REQUESTS_MODULE_ATTR, requests)
+            requests.append(self)
+        return self
+
+    @staticmethod
+    def import_requests(package, parent_package=None):
+        for module in import_submodules(package, parent_package):
+            requests = getattr(module, REQUESTS_MODULE_ATTR, None)
+            if requests:
+                yield from iter(requests)

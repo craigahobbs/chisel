@@ -34,7 +34,7 @@ def action(_action_callback=None, **kwargs):
     """
     Chisel action request decorator
     """
-    return Action(_action_callback, **kwargs) if _action_callback is not None else lambda fn: Action(fn, **kwargs)
+    return Action(_action_callback, **kwargs).decorate_module(_action_callback) if _action_callback else lambda fn: action(fn, **kwargs)
 
 
 class ActionError(Exception):
@@ -94,10 +94,6 @@ class Action(Request):
         self.model = model
         self.wsgi_response = wsgi_response
         self.jsonp = jsonp
-
-    @property
-    def module_name(self):
-        return self.action_callback.__module__
 
     def onload(self, app):
         Request.onload(self, app)
