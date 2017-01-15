@@ -20,12 +20,14 @@
 # SOFTWARE.
 #
 
+from datetime import datetime
 from io import BytesIO, StringIO
 import logging
 import os
 import sys
 import types
 import unittest
+import unittest.mock
 
 from chisel import action, Application, Context, ENVIRON_CTX, Request
 
@@ -114,7 +116,10 @@ class TestApplication(unittest.TestCase):
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
         self.assertEqual(start_response_data['status'], ['200 OK'])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
+        self.assertEqual(start_response_data['headers'], [[
+            ('Content-Type', 'text/plain'),
+            ('Cache-Control', 'no-cache')
+        ]])
         self.assertEqual(list(response_parts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
     def test_call_string_response(self):
@@ -145,7 +150,11 @@ class TestApplication(unittest.TestCase):
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
         self.assertEqual(start_response_data['status'], ['500 Internal Server Error'])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain'), ('Content-Length', '16')]])
+        self.assertEqual(start_response_data['headers'], [[
+            ('Content-Type', 'text/plain'),
+            ('Content-Length', '16'),
+            ('Cache-Control', 'no-cache')
+        ]])
         self.assertEqual(list(response_parts), ['Unexpected Error'.encode('utf-8')])
         self.assertTrue('Response content of type str or bytes received' in environ['wsgi.errors'].getvalue())
 
@@ -396,6 +405,56 @@ action my_action
 
 
 class TestContext(unittest.TestCase):
+
+    def test_add_cache_headers(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[ENVIRON_CTX] = ctx
+
+        ctx.add_cache_headers()
+        self.assertEqual(ctx.headers['Cache-Control'], 'no-cache')
+        self.assertNotIn('Expires', ctx.headers)
+
+    def test_add_cache_headers_public(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[ENVIRON_CTX] = ctx
+
+        with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
+            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
+            ctx.add_cache_headers('public', 60)
+        self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
+        self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
+
+    def test_add_cache_headers_private(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[ENVIRON_CTX] = ctx
+
+        with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
+            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
+            ctx.add_cache_headers('private', 60)
+        self.assertEqual(ctx.headers['Cache-Control'], 'private,max-age=60')
+        self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
+
+    def test_add_cache_headers_non_get(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'POST'
+        })
+        ctx.environ[ENVIRON_CTX] = ctx
+
+        with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
+            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
+            ctx.add_cache_headers('private', 60)
+        self.assertNotIn('Cache-Control', ctx.headers)
+        self.assertNotIn('Expires', ctx.headers)
 
     def test_context_reconstruct_url(self):
         app = Application()

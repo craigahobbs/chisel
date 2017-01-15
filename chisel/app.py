@@ -21,6 +21,7 @@
 #
 
 from collections import OrderedDict
+from datetime import datetime, timedelta
 from io import BytesIO
 from itertools import chain
 import logging
@@ -205,6 +206,17 @@ class Context(object):
         assert isinstance(key, str)
         assert isinstance(value, str)
         self.headers[key] = value
+
+    def add_cache_headers(self, control=None, ttl_seconds=None):
+        if self.environ.get('REQUEST_METHOD') == 'GET':
+            if control is None:
+                assert ttl_seconds is None
+                self.add_header('Cache-Control', 'no-cache')
+            else:
+                assert control in ('public', 'private')
+                assert isinstance(ttl_seconds, int) and ttl_seconds > 0
+                self.add_header('Cache-Control', '{0},max-age={1}'.format(control, ttl_seconds))
+                self.add_header('Expires', (datetime.utcnow() + timedelta(seconds=ttl_seconds)).strftime('%a, %d %b %Y %H:%M:%S GMT'))
 
     def response(self, status, content_type, content, headers=None):
         """
