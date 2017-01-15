@@ -28,6 +28,7 @@ from xml.sax.saxutils import quoteattr
 from .action import Action
 from .app_defs import STATUS_200_OK, STATUS_404_NOT_FOUND
 from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
+from .request import Request
 
 
 _RE_WHITESPACE_CLEANUP = re.compile(r'\s{2,}')
@@ -75,7 +76,7 @@ class DocPage(Action):
     __slots__ = ('request')
 
     def __init__(self, request, name=None, urls=None, doc=None, doc_group=None):
-        request_name = request.name if not isinstance(request, TypeStruct) else request.type_name
+        request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
         Action.__init__(self, self._action_callback, name=name, method='GET', urls=urls, doc=doc, doc_group=doc_group,
@@ -202,8 +203,8 @@ def _index_html(ctx, requests):
 
 
 def _request_html(ctx, request, nonav=False):
+    is_request = isinstance(request, Request)
     is_action = isinstance(request, Action)
-    is_struct = isinstance(request, TypeStruct)
 
     # Find all user types referenced by the action
     struct_types = {}
@@ -212,13 +213,13 @@ def _request_html(ctx, request, nonav=False):
     if is_action:
         _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
         _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
-    elif is_struct:
+    elif not is_request:
         _referenced_types(struct_types, enum_types, typedef_types, request)
 
     return Element('html', children=[
         Element('head', children=[
             Element('meta', closed=False, charset='UTF-8'),
-            Element('title', inline=True, children=Element(request.type_name if is_struct else request.name, text=True)),
+            Element('title', inline=True, children=Element(request.name if is_request else request.type_name, text=True)),
             _style_element()
         ]),
         Element('body', _class='chsl-request-body', children=[
@@ -229,17 +230,19 @@ def _request_html(ctx, request, nonav=False):
                         Element('Back to documentation index', text=True))
             ]),
             [
-                _struct_section(request, 'h1', ('union ' if request.union else 'struct ') + request.type_name, ('The struct is empty.',))
-            ] if is_struct else [
                 Element('h1', inline=True, children=Element(request.name, text=True)),
                 _doc_text(request.doc)
+            ] if is_request else [
+                _typedef_section(request, 'h1') if isinstance(request, Typedef) else None,
+                _struct_section(request, 'h1') if isinstance(request, TypeStruct) else None,
+                _enum_section(request, 'h1') if isinstance(request, TypeEnum) else None
             ],
 
             # Notes
             Element('div', _class='chsl-notes', children=[
 
                 # Request URLs
-                None if is_struct or not request.urls else Element('div', _class='chsl-note', children=[
+                None if not is_request or not request.urls else Element('div', _class='chsl-note', children=[
                     Element('p', children=[
                         Element('b', inline=True, children=Element('Note: ', text=True)),
                         Element('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
@@ -273,17 +276,17 @@ def _request_html(ctx, request, nonav=False):
             # User types
             None if not typedef_types else [
                 Element('h2', inline=True, children=Element('Typedefs', text=True)),
-                [_typedef_section(type_)
+                [_typedef_section(type_, 'h3')
                  for type_ in sorted(typedef_types.values(), key=lambda x: x.type_name.lower())]
             ],
             None if not struct_types else [
                 Element('h2', inline=True, children=Element('Struct Types', text=True)),
-                [_struct_section(type_, 'h3', ('union ' if type_.union else 'struct ') + type_.type_name, ('The struct is empty.',))
+                [_struct_section(type_, 'h3')
                  for type_ in sorted(struct_types.values(), key=lambda x: x.type_name.lower())]
             ],
             None if not enum_types else [
                 Element('h2', inline=True, children=Element('Enum Types', text=True)),
-                [_enum_section(type_, 'h3', 'enum ' + type_.type_name, ('The enum is empty.',))
+                [_enum_section(type_, 'h3')
                  for type_ in sorted(enum_types.values(), key=lambda x: x.type_name.lower())]
             ]
         ])
@@ -401,11 +404,11 @@ def _type_attr(type_, attr, optional, nullable):
     ])
 
 
-def _typedef_section(type_):
+def _typedef_section(type_, title_tag):
     attrs_element = _type_attr(type_.type, type_.attr, False, False)
     no_attrs = not attrs_element
     return [
-        Element('h3', inline=True, _id=type_.type_name,
+        Element(title_tag, inline=True, _id=type_.type_name,
                 children=Element('a', _class='linktarget', children=Element('typedef ' + type_.type_name, text=True))),
         _doc_text(type_.doc),
         Element('table', children=[
@@ -421,7 +424,11 @@ def _typedef_section(type_):
     ]
 
 
-def _struct_section(type_, title_tag, title, empty_doc):
+def _struct_section(type_, title_tag, title=None, empty_doc=None):
+    if not title:
+        title = ('union ' if type_.union else 'struct ') + type_.type_name
+    if not empty_doc:
+        empty_doc = ('The struct is empty.',)
     attrs_elements = {member.name: _type_attr(member.type, member.attr, member.optional, member.nullable) for member in type_.members()}
     no_attrs = not any(attrs_elements.values())
     no_description = not any(member.doc for member in type_.members())
@@ -448,7 +455,11 @@ def _struct_section(type_, title_tag, title, empty_doc):
     ]
 
 
-def _enum_section(type_, title_tag, title, empty_doc):
+def _enum_section(type_, title_tag, title=None, empty_doc=None):
+    if not title:
+        title = 'enum ' + type_.type_name
+    if not empty_doc:
+        empty_doc = ('The enum is empty.',)
     no_description = not any(value.doc for value in type_.values())
     return [
         Element(title_tag, inline=True, _id=type_.type_name,
