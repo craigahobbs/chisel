@@ -16,9 +16,9 @@
 ;; (add-to-list 'auto-mode-alist '("\\.chsl?\\'" . chsl-mode))
 
 ;;; Code:
-
 (require 'generic-x)
 
+;;;###autoload
 (define-generic-mode 'chsl-mode
       '("#")
       '(
