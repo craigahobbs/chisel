@@ -7,12 +7,13 @@
 ;; To install, add the following to your .emacs file:
 
 ;; (package-initialize)
+;;
 ;; (unless (package-installed-p 'chsl-mode)
 ;;   (let ((chsl-mode-file (make-temp-file "chsl-mode")))
 ;;     (message "Installing chsl-mode")
 ;;     (url-copy-file "https://raw.githubusercontent.com/craigahobbs/chisel/master/extra/chsl-mode.el" chsl-mode-file t)
 ;;     (package-install-file chsl-mode-file)
-;;     (delete-file chsl-mode-file))
+;;     (delete-file chsl-mode-file)))
 ;; (add-to-list 'auto-mode-alist '("\\.chsl?\\'" . chsl-mode))
 
 ;;; Code:
