@@ -20,7 +20,7 @@
 # SOFTWARE.
 #
 
-__version__ = '0.9.41'
+__version__ = '0.9.42'
 
 from .action import \
     action, \
