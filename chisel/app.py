@@ -197,8 +197,7 @@ class Context(object):
     def start_response(self, status, headers):
         for key, value in headers:
             self.add_header(key, value)
-        if self._start_response is not None:
-            self._start_response(status, sorted(self.headers.items()))
+        self._start_response(status, sorted(self.headers.items()))
 
     def add_header(self, key, value):
         """
@@ -229,13 +228,11 @@ class Context(object):
             'Response content of type str or bytes received'
 
         # Build the headers array
-        _headers = list(headers) if headers is not None else []
-        headers_set = {header[0] for header in _headers}
-        if 'Content-Type' not in headers_set:
-            _headers.append(('Content-Type', content_type))
+        headers = list(headers) if headers is not None else []
+        headers.append(('Content-Type', content_type))
 
         # Return the response
-        self.start_response(status, _headers)
+        self.start_response(status, headers)
         return content
 
     def response_text(self, status, text, content_type='text/plain', encoding='utf-8', headers=None):

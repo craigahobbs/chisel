@@ -443,11 +443,20 @@ class TestContext(unittest.TestCase):
         })
         ctx.environ[ENVIRON_CTX] = ctx
 
-        with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
-            ctx.add_cache_headers('private', 60)
+        ctx.add_cache_headers('private', 60)
         self.assertNotIn('Cache-Control', ctx.headers)
         self.assertNotIn('Expires', ctx.headers)
+
+    def test_add_cache_headers_utcnow(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[ENVIRON_CTX] = ctx
+
+        ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32))
+        self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
+        self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
     def test_context_reconstruct_url(self):
         app = Application()
