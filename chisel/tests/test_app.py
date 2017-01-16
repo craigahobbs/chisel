@@ -80,7 +80,7 @@ class TestApplication(unittest.TestCase):
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
         self.assertEqual(start_response_data['status'], ['200 OK'])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'application/json'), ('Content-Length', '2')]])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'application/json')]])
         self.assertEqual(list(response_parts), ['{}'.encode('utf-8')])
         self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
         self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
@@ -116,10 +116,7 @@ class TestApplication(unittest.TestCase):
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
         self.assertEqual(start_response_data['status'], ['200 OK'])
-        self.assertEqual(start_response_data['headers'], [[
-            ('Content-Type', 'text/plain'),
-            ('Cache-Control', 'no-cache')
-        ]])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
         self.assertEqual(list(response_parts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
     def test_call_string_response(self):
@@ -150,11 +147,7 @@ class TestApplication(unittest.TestCase):
         # Successfully create and call the application
         response_parts = self.app(environ, start_response)
         self.assertEqual(start_response_data['status'], ['500 Internal Server Error'])
-        self.assertEqual(start_response_data['headers'], [[
-            ('Content-Type', 'text/plain'),
-            ('Content-Length', '16'),
-            ('Cache-Control', 'no-cache')
-        ]])
+        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
         self.assertEqual(list(response_parts), ['Unexpected Error'.encode('utf-8')])
         self.assertTrue('Response content of type str or bytes received' in environ['wsgi.errors'].getvalue())
 

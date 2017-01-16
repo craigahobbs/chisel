@@ -23,7 +23,6 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from io import BytesIO
-from itertools import chain
 import logging
 import re
 from urllib.parse import quote, unquote
@@ -196,8 +195,10 @@ class Context(object):
         self.log.addHandler(handler)
 
     def start_response(self, status, headers):
+        for key, value in headers:
+            self.add_header(key, value)
         if self._start_response is not None:
-            self._start_response(status, list(chain(headers, self.headers.items())))
+            self._start_response(status, sorted(self.headers.items()))
 
     def add_header(self, key, value):
         """
@@ -207,7 +208,7 @@ class Context(object):
         assert isinstance(value, str)
         self.headers[key] = value
 
-    def add_cache_headers(self, control=None, ttl_seconds=None):
+    def add_cache_headers(self, control=None, ttl_seconds=None, utcnow=None):
         if self.environ.get('REQUEST_METHOD') == 'GET':
             if control is None:
                 assert ttl_seconds is None
@@ -216,7 +217,9 @@ class Context(object):
                 assert control in ('public', 'private')
                 assert isinstance(ttl_seconds, int) and ttl_seconds > 0
                 self.add_header('Cache-Control', '{0},max-age={1}'.format(control, ttl_seconds))
-                self.add_header('Expires', (datetime.utcnow() + timedelta(seconds=ttl_seconds)).strftime('%a, %d %b %Y %H:%M:%S GMT'))
+                if utcnow is None:
+                    utcnow = datetime.utcnow()
+                self.add_header('Expires', (utcnow + timedelta(seconds=ttl_seconds)).strftime('%a, %d %b %Y %H:%M:%S GMT'))
 
     def response(self, status, content_type, content, headers=None):
         """
@@ -230,8 +233,6 @@ class Context(object):
         headers_set = {header[0] for header in _headers}
         if 'Content-Type' not in headers_set:
             _headers.append(('Content-Type', content_type))
-        if isinstance(content, list) and 'Content-Length' not in headers_set:
-            _headers.append(('Content-Length', str(sum(len(x) for x in content))))
 
         # Return the response
         self.start_response(status, _headers)

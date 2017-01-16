@@ -23,7 +23,6 @@
 from itertools import chain
 import sys
 
-from .app_defs import ENVIRON_CTX
 from .util import import_submodules
 
 
@@ -67,9 +66,6 @@ class Request(object):
 
     def __call__(self, environ, start_response):
         assert self.wsgi_callback is not None, 'must specify wsgi_callback when using Request directly'
-        ctx = environ.get(ENVIRON_CTX)
-        if ctx is not None:
-            ctx.add_cache_headers()
         return self.wsgi_callback(environ, start_response)
 
     def decorate_module(self, callback):
