@@ -170,17 +170,18 @@ class SpecParser(object):
         if self.errors:
             raise SpecParserError(self.errors)
 
-    def load(self, spec_path, spec_ext='.chsl', finalize=True):
-        if os.path.isdir(spec_path):
-            for dirpath, _, filenames in os.walk(spec_path):
+    def load(self, path, spec_ext='.chsl', finalize=True):
+        if os.path.isdir(path):
+            for dirpath, _, filenames in os.walk(path):
                 for filename in filenames:
                     _, ext = os.path.splitext(filename)
                     if ext == spec_ext:
-                        with open(os.path.join(dirpath, filename), 'r') as file_spec:
-                            self.parse(file_spec, finalize=False)
+                        spec_path = os.path.join(dirpath, filename)
+                        with open(spec_path, 'r') as file_spec:
+                            self.parse(file_spec, filename=spec_path, finalize=False)
         else:
-            with open(spec_path, 'r') as file_spec:
-                self.parse(file_spec, finalize=False)
+            with open(path, 'r') as file_spec:
+                self.parse(file_spec, filename=path, finalize=False)
 
         if finalize:
             self.finalize()
