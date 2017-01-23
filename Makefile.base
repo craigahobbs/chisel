@@ -184,7 +184,7 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(COVER)/index.html
 endef
-$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.2, COVER_COMMANDS_FN))
+$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.3.4, COVER_COMMANDS_FN))
 
 # Generate doc rules
 HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)

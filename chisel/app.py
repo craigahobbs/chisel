@@ -20,7 +20,6 @@
 # SOFTWARE.
 #
 
-from collections import OrderedDict
 from datetime import datetime, timedelta
 from io import BytesIO
 import logging
@@ -63,7 +62,7 @@ class Application(object):
 
         # Duplicate request name?
         if request.name in self.requests:
-            raise Exception('Redefinition of request "{0}"'.format(request.name))
+            raise ValueError('redefinition of request "{0}"'.format(request.name))
         self.requests[request.name] = request
 
         # Add the request URLs
@@ -76,7 +75,7 @@ class Application(object):
             else:
                 request_key = (method, url)
                 if request_key in self.__request_urls:
-                    raise Exception('Redefinition of request URL "{0}"'.format(url))
+                    raise ValueError('redefinition of request URL "{0}"'.format(url))
                 self.__request_urls[request_key] = request
 
         # Make the request app-aware at load-time
@@ -147,13 +146,17 @@ class Application(object):
             environ = {}
         environ['REQUEST_METHOD'] = request_method
         environ['PATH_INFO'] = path_info
-        environ.setdefault('wsgi.url_scheme', 'http')
-        environ.setdefault('SCRIPT_NAME', '')
-        environ.setdefault('QUERY_STRING', encode_query_string(query_string) if isinstance(query_string, dict) else query_string)
-        environ.setdefault('SERVER_NAME', 'localhost')
-        environ.setdefault('SERVER_PORT', '80')
+        if 'QUERY_STRING' not in environ:
+            if isinstance(query_string, str):
+                environ['QUERY_STRING'] = query_string
+            else:
+                environ['QUERY_STRING'] = encode_query_string(query_string)
         if 'wsgi.input' not in environ:
             environ['wsgi.input'] = BytesIO(wsgi_input)
+        environ.setdefault('wsgi.url_scheme', 'http')
+        environ.setdefault('SCRIPT_NAME', '')
+        environ.setdefault('SERVER_NAME', 'localhost')
+        environ.setdefault('SERVER_PORT', '80')
 
         # Capture the response status and headers
         status, headers = '', []
@@ -178,20 +181,20 @@ class Context(object):
         self.environ = environ or {}
         self._start_response = start_response
         self.url_args = url_args
-        self.headers = OrderedDict()
+        self.headers = {}
 
         # Create the logger
         self.log = logging.getLoggerClass()('')
-        self.log.setLevel(self.app.log_level)
-        wsgi_errors = environ.get('wsgi.errors')
+        self.log.setLevel(app.log_level)
+        wsgi_errors = environ.get('wsgi.errors') if environ else None
         if wsgi_errors is None:
             handler = logging.NullHandler()
         else:
             handler = logging.StreamHandler(wsgi_errors) # pylint: disable=redefined-variable-type
-        if hasattr(self.app.log_format, '__call__'):
-            handler.setFormatter(self.app.log_format(self))
+        if hasattr(app.log_format, '__call__'):
+            handler.setFormatter(app.log_format(self))
         else:
-            handler.setFormatter(logging.Formatter(self.app.log_format))
+            handler.setFormatter(logging.Formatter(app.log_format))
         self.log.addHandler(handler)
 
     def start_response(self, status, headers):
@@ -203,8 +206,8 @@ class Context(object):
         """
         Add a response header
         """
-        assert isinstance(key, str)
-        assert isinstance(value, str)
+        assert isinstance(key, str), 'header key must be of type str'
+        assert isinstance(value, str), 'header value must be of type str'
         self.headers[key] = value
 
     def add_cache_headers(self, control=None, ttl_seconds=None, utcnow=None):
@@ -224,15 +227,15 @@ class Context(object):
         """
         Send an HTTP response
         """
-        assert not isinstance(content, str) and not isinstance(content, bytes), \
-            'Response content of type str or bytes received'
+        assert not isinstance(content, (str, bytes)), 'response content cannot be of type str or bytes'
 
         # Build the headers array
-        headers = list(headers) if headers is not None else []
-        headers.append(('Content-Type', content_type))
+        response_headers = [('Content-Type', content_type)]
+        if headers:
+            response_headers.extend(headers)
 
         # Return the response
-        self.start_response(status, headers)
+        self.start_response(status, response_headers)
         return content
 
     def response_text(self, status, text, content_type='text/plain', encoding='utf-8', headers=None):
@@ -245,11 +248,13 @@ class Context(object):
         """
         Send a JSON response
         """
-        encoder = JSONEncoder(check_circular=self.app.validate_output,
-                              allow_nan=False,
-                              sort_keys=True,
-                              indent=2 if self.app.pretty_output else None,
-                              separators=(',', ': ') if self.app.pretty_output else (',', ':'))
+        encoder = JSONEncoder(
+            check_circular=self.app.validate_output,
+            allow_nan=False,
+            sort_keys=True,
+            indent=2 if self.app.pretty_output else None,
+            separators=(',', ': ') if self.app.pretty_output else (',', ':')
+        )
         content = encoder.encode(response)
         if jsonp:
             content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
@@ -287,6 +292,9 @@ class Context(object):
                 url += '?' + environ['QUERY_STRING']
         else:
             if query_string:
-                url += '?' + (encode_query_string(query_string) if isinstance(query_string, dict) else query_string)
+                if isinstance(query_string, str):
+                    url += '?' + query_string
+                else:
+                    url += '?' + encode_query_string(query_string)
 
         return url
