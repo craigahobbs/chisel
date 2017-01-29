@@ -425,6 +425,34 @@ class TestContext(unittest.TestCase):
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
+    def test_response_text(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        content = 'Hello, World!'
+        response = ctx.response_text(HTTPStatus.OK, content)
+        self.assertEqual(response, [content.encode('utf-8')])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
+    def test_response_text_status(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        response = ctx.response_text(HTTPStatus.OK)
+        self.assertEqual(response, [b'OK'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
+    def test_response_text_status_str(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        response = ctx.response_text('200 OK')
+        self.assertEqual(response, [b'200 OK'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
     def test_response_headers(self):
         app = Application()
         start_response = StartResponse()
