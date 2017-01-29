@@ -23,7 +23,7 @@
 import re
 import unittest
 
-from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
+from chisel import action, Action, ActionError, Application, HTTPStatus, Request, SpecParser, SpecParserError
 from chisel.spec import ActionModel
 
 
@@ -164,7 +164,7 @@ action theAction
         # Action decorator with urls, custom response callback, and validate response bool
         @action(urls=('/foo',), wsgi_response=True)
         def my_action_default(ctx, dummy_req):
-            return ctx.response_text('200 OK', 'OK')
+            return ctx.response_text(HTTPStatus.OK)
 
         app = Application()
         app.specs.parse_string('''\
@@ -320,7 +320,7 @@ action my_action
     string b
 ''')
         def my_action(ctx, req):
-            return ctx.response_text('200 OK', 'Hello ' + str(req['a'].upper()))
+            return ctx.response_text(HTTPStatus.OK, 'Hello ' + str(req['a'].upper()))
 
         app = Application()
         app.add_request(my_action)
@@ -415,7 +415,7 @@ action my_action
     MyError
 ''')
         def my_action(dummy_app, dummy_req):
-            raise ActionError('MyError', message='My message', status='404 Not Found')
+            raise ActionError('MyError', message='My message', status=HTTPStatus.NOT_FOUND)
 
         app = Application()
         app.add_request(my_action)

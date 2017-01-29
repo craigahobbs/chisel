@@ -22,7 +22,7 @@
 
 import unittest
 
-from chisel import request, Request
+from chisel import HTTPStatus, request, Request
 
 
 class TestRequest(unittest.TestCase):
@@ -188,7 +188,7 @@ class TestRequest(unittest.TestCase):
 
             def __call__(self, environ, start_response):
                 # Note: Do NOT call Request __call__ method in a subclass
-                start_response('200 OK', [('Content-Type', 'text/plain')])
+                start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
                 return ['This is request # {0}'.format(self.index)]
 
         req = MyRequest(1)

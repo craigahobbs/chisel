@@ -21,7 +21,7 @@
 #
 
 from datetime import datetime
-from io import BytesIO, StringIO
+from io import StringIO
 import logging
 import os
 import sys
@@ -29,7 +29,8 @@ import types
 import unittest
 import unittest.mock
 
-from chisel import action, Application, Context, ENVIRON_CTX, Request, STATUS_200_OK
+from chisel import action, Application, Context, Environ, HTTPStatus, Request
+from chisel.app_defs import StartResponse
 
 
 class TestApplication(unittest.TestCase):
@@ -73,95 +74,48 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(str(raises.exception), 'redefinition of request URL "/my_request"')
 
     def test_call(self):
-
-        # Test WSGI environment
-        environ = {
-            'SCRIPT_FILENAME': os.path.join(__file__),
-            'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/my_action',
-            'wsgi.input': BytesIO(),
-            'wsgi.errors': StringIO()
-            }
-        start_response_data = {
-            'status': [],
-            'headers': []
-            }
-
-        def start_response(status, headers):
-            start_response_data['status'].append(status)
-            start_response_data['headers'].append(headers)
-
-        # Successfully create and call the application
-        response_parts = self.app(environ, start_response)
-        self.assertEqual(start_response_data['status'], [STATUS_200_OK])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'application/json')]])
-        self.assertEqual(list(response_parts), ['{}'.encode('utf-8')])
-        self.assertTrue('Some info' not in environ['wsgi.errors'].getvalue())
-        self.assertTrue('A warning...' in environ['wsgi.errors'].getvalue())
+        environ = Environ.create('GET', '/my_action')
+        environ['wsgi.errors'] = StringIO()
+        start_response = StartResponse()
+        response = self.app(environ, start_response)
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
+        self.assertEqual(response, ['{}'.encode('utf-8')])
+        self.assertNotIn('Some info', environ['wsgi.errors'].getvalue())
+        self.assertIn('A warning...', environ['wsgi.errors'].getvalue())
 
     def test_call_generator(self):
-
-        # Test WSGI environment
-        environ = {
-            'SCRIPT_FILENAME': os.path.join(__file__),
-            'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/generator_response',
-            'wsgi.errors': StringIO()
-            }
-        start_response_data = {
-            'status': [],
-            'headers': []
-            }
-
-        def start_response(status, headers):
-            start_response_data['status'].append(status)
-            start_response_data['headers'].append(headers)
-
-        # Request that returns a generator
         def generator_response(environ, dummy_start_response):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
-            ctx = environ[ENVIRON_CTX]
-            return ctx.response(STATUS_200_OK, 'text/plain', response())
+            ctx = environ[Environ.CTX]
+            return ctx.response(HTTPStatus.OK, 'text/plain', response())
 
         self.app.add_request(Request(generator_response))
 
-        # Successfully create and call the application
-        response_parts = self.app(environ, start_response)
-        self.assertEqual(start_response_data['status'], [STATUS_200_OK])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
-        self.assertEqual(list(response_parts), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
+        environ = Environ.create('GET', '/generator_response')
+        start_response = StartResponse()
+        response = self.app(environ, start_response)
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+        self.assertEqual(list(response), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
 
     def test_call_string_response(self):
 
-        # Test WSGI environment
-        environ = {
-            'SCRIPT_FILENAME': os.path.join(__file__),
-            'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/string_response',
-            'wsgi.errors': StringIO()
-            }
-        start_response_data = {
-            'status': [],
-            'headers': []
-            }
-
-        def start_response(status, headers):
-            start_response_data['status'].append(status)
-            start_response_data['headers'].append(headers)
-
-        # Request that returns a generator
         def string_response(environ, dummy_start_response):
-            ctx = environ[ENVIRON_CTX]
-            return ctx.response(STATUS_200_OK, 'text/plain', 'Hello World')
+            ctx = environ[Environ.CTX]
+            return ctx.response(HTTPStatus.OK, 'text/plain', 'Hello World')
 
-        self.app.add_request(Request(string_response))
+        app = Application()
+        app.add_request(Request(string_response))
 
         # Successfully create and call the application
-        response_parts = self.app(environ, start_response)
-        self.assertEqual(start_response_data['status'], ['500 Internal Server Error'])
-        self.assertEqual(start_response_data['headers'], [[('Content-Type', 'text/plain')]])
+        environ = Environ.create('GET', '/string_response', environ={'wsgi.errors': StringIO()})
+        start_response = StartResponse()
+        response_parts = app(environ, start_response)
+        self.assertEqual(start_response.status, '500 Internal Server Error')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
         self.assertEqual(list(response_parts), ['Unexpected Error'.encode('utf-8')])
         self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
 
@@ -172,20 +126,20 @@ class TestApplication(unittest.TestCase):
         environ = {'wsgi.errors': StringIO()}
         status, headers, response = self.app.request('POST', '/my_action2', wsgi_input=b'{"value": 7}', environ=environ)
         self.assertEqual(response.decode('utf-8'), '{"result":14}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
         self.assertEqual(environ['wsgi.errors'].getvalue(), 'In my_action2\n')
 
         # GET
         status, headers, response = self.app.request('GET', '/my_action2', query_string='value=8')
         self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # GET (dict query string)
         status, headers, response = self.app.request('GET', '/my_action2', query_string={'value': 8})
         self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # HTTP error
@@ -198,25 +152,25 @@ class TestApplication(unittest.TestCase):
         status, headers, response = self.app.request('POST', '/my_action2', wsgi_input=b'{"value": 9}',
                                                      environ={'MYENVIRON': '10'})
         self.assertEqual(response.decode('utf-8'), '{"result":90}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request with environ with QUERY_STRING
-        status, headers, response = self.app.request('GET', '/my_action2', environ={'QUERY_STRING': 'value=8'})
+        status, headers, response = self.app.request('GET', '/my_action2', query_string='value=8')
         self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex
         status, headers, response = self.app.request('GET', '/my_action3/123')
         self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - POST
         status, headers, response = self.app.request('POST', '/my_action3/123', wsgi_input=b'{}')
         self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'application/json') in headers)
 
         # Request action matched by regex - duplicate member error
@@ -228,9 +182,9 @@ class TestApplication(unittest.TestCase):
     def test_log_format_callable(self):
 
         def my_wsgi(environ, start_response):
-            ctx = environ[ENVIRON_CTX]
+            ctx = environ[Environ.CTX]
             ctx.log.warning('Hello log')
-            start_response(STATUS_200_OK, [('Content-Type', 'text/plain')])
+            start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
             return ['Hello'.encode('utf-8')]
 
         class MyFormatter(object):
@@ -256,27 +210,27 @@ class TestApplication(unittest.TestCase):
         environ = {'wsgi.errors': StringIO()}
         status, headers, response = app.request('GET', '/my_wsgi', environ=environ)
         self.assertEqual(response, 'Hello'.encode('utf-8'))
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(environ['wsgi.errors'].getvalue(), 'Hello log\n')
 
     def test_nested_requests(self):
 
         def request1(environ, dummy_start_response):
-            ctx = environ[ENVIRON_CTX]
-            return ctx.response_text(STATUS_200_OK, '7')
+            ctx = environ[Environ.CTX]
+            return ctx.response_text(HTTPStatus.OK, '7')
 
         def request2(environ, dummy_start_response):
-            ctx = environ[ENVIRON_CTX]
+            ctx = environ[Environ.CTX]
             dummy_status, dummy_headers, response = ctx.app.request('GET', '/request1')
-            return ctx.response_text(STATUS_200_OK, str(5 + int(response)))
+            return ctx.response_text(HTTPStatus.OK, str(5 + int(response)))
 
         app = Application()
         app.add_request(Request(request1))
         app.add_request(Request(request2))
 
         status, dummy_headers, response = app.request('GET', '/request2')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
 
     def test_request_exception(self):
@@ -319,11 +273,11 @@ action my_action2
         app.add_request(my_action2)
 
         status, dummy_headers, response = app.request('GET', '/action/1')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"number":2}')
 
         status, dummy_headers, response = app.request('POST', '/action/1', wsgi_input=b'{}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"number":1}')
 
     def test_request_url_method(self):
@@ -339,11 +293,11 @@ action my_action
         app.add_request(my_action)
 
         status, dummy_headers, response = app.request('GET', '/my_action')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{}')
 
         status, dummy_headers, response = app.request('POST', '/my_action/', wsgi_input=b'{}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{}')
 
         status, dummy_headers, response = app.request('GET', '/my_action/')
@@ -376,11 +330,11 @@ action my_action
         app.add_request(my_action)
 
         status, dummy_headers, response = app.request('GET', '/my_action/3/4')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 
         status, dummy_headers, response = app.request('POST', '/my_action/3/4/', wsgi_input=b'{}')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 
         status, dummy_headers, response = app.request('GET', '/my_action/3/4/')
@@ -413,7 +367,7 @@ action my_action
         app.add_request(my_action)
 
         status, dummy_headers, response = app.request('GET', '/my_action/3/4')
-        self.assertEqual(status, STATUS_200_OK)
+        self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 
 
@@ -424,7 +378,7 @@ class TestContext(unittest.TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[ENVIRON_CTX] = ctx
+        ctx.environ[Environ.CTX] = ctx
 
         ctx.add_cache_headers()
         self.assertEqual(ctx.headers['Cache-Control'], 'no-cache')
@@ -435,7 +389,7 @@ class TestContext(unittest.TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[ENVIRON_CTX] = ctx
+        ctx.environ[Environ.CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
             mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
@@ -448,7 +402,7 @@ class TestContext(unittest.TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[ENVIRON_CTX] = ctx
+        ctx.environ[Environ.CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
             mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
@@ -461,7 +415,7 @@ class TestContext(unittest.TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'POST'
         })
-        ctx.environ[ENVIRON_CTX] = ctx
+        ctx.environ[Environ.CTX] = ctx
 
         ctx.add_cache_headers('private', 60)
         self.assertNotIn('Cache-Control', ctx.headers)
@@ -472,38 +426,30 @@ class TestContext(unittest.TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[ENVIRON_CTX] = ctx
+        ctx.environ[Environ.CTX] = ctx
 
         ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32))
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
     def test_response(self):
-        status, headers = [], []
-        def start_response(status_, headers_):
-            status.append(status_)
-            headers.append(headers_)
-
         app = Application()
+        start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
         content = b'Hello, World!'
-        response = ctx.response(STATUS_200_OK, 'text/plain', [content])
+        response = ctx.response(HTTPStatus.OK, 'text/plain', [content])
         self.assertEqual(response, [content])
-        self.assertEqual(status, [STATUS_200_OK])
-        self.assertEqual(headers, [[('Content-Type', 'text/plain')]])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
     def test_response_headers(self):
-        status, headers = [], []
-        def start_response(status_, headers_):
-            status.append(status_)
-            headers.append(headers_)
-
         app = Application()
+        start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
-        response = ctx.response(STATUS_200_OK, 'text/plain', [b'Hello, World!'], headers=[('MY_HEADER', 'MY_VALUE')])
+        response = ctx.response(HTTPStatus.OK, 'text/plain', [b'Hello, World!'], headers=[('MY_HEADER', 'MY_VALUE')])
         self.assertEqual(response, [b'Hello, World!'])
-        self.assertEqual(status, [STATUS_200_OK])
-        self.assertEqual(headers, [[('Content-Type', 'text/plain'), (('MY_HEADER', 'MY_VALUE'))]])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain'), (('MY_HEADER', 'MY_VALUE'))])
 
     def test_context_reconstruct_url(self):
         app = Application()

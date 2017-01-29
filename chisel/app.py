@@ -21,12 +21,11 @@
 #
 
 from datetime import datetime, timedelta
-from io import BytesIO
 import logging
 import re
 from urllib.parse import quote, unquote
 
-from .app_defs import ENVIRON_CTX, STATUS_404_NOT_FOUND, STATUS_405_METHOD_NOT_ALLOWED, STATUS_500_INTERNAL_SERVER_ERROR
+from .app_defs import Environ, HTTPStatus, StartResponse
 from .request import Request
 from .spec import SpecParser
 from .url import encode_query_string
@@ -120,53 +119,29 @@ class Application(object):
 
         # Create the request context
         ctx = Context(self, environ, start_response, url_args)
-        environ[ENVIRON_CTX] = ctx
+        environ[Environ.CTX] = ctx
 
         # Request not found?
         if request is None:
             if next((True for _, path in self.__request_urls.keys() if path == path_info), False) or \
                next((True for _, regex, _ in self.__request_regex if regex.match(path_info)), False):
-                return ctx.response_text(STATUS_405_METHOD_NOT_ALLOWED, 'Method Not Allowed')
-            return ctx.response_text(STATUS_404_NOT_FOUND, 'Not Found')
+                return ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED, 'Method Not Allowed')
+            return ctx.response_text(HTTPStatus.NOT_FOUND, 'Not Found')
 
         # Handle the request
         try:
             return request(ctx.environ, ctx.start_response)
         except: # pylint: disable=bare-except
             ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
-            return ctx.response_text(STATUS_500_INTERNAL_SERVER_ERROR, 'Unexpected Error')
+            return ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR, 'Unexpected Error')
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
-        """
-        Make an HTTP request on this application
-        """
-
-        # WSGI environment
-        if environ is None:
-            environ = {}
-        environ['REQUEST_METHOD'] = request_method
-        environ['PATH_INFO'] = path_info
-        if 'QUERY_STRING' not in environ:
-            if isinstance(query_string, str):
-                environ['QUERY_STRING'] = query_string
-            else:
-                environ['QUERY_STRING'] = encode_query_string(query_string)
-        if 'wsgi.input' not in environ:
-            environ['wsgi.input'] = BytesIO(wsgi_input)
-        environ.setdefault('wsgi.url_scheme', 'http')
-        environ.setdefault('SCRIPT_NAME', '')
-        environ.setdefault('SERVER_NAME', 'localhost')
-        environ.setdefault('SERVER_PORT', '80')
-
-        # Capture the response status and headers
-        status, headers = '', []
-        def start_response(status_, headers_):
-            nonlocal status, headers
-            status, headers = status_, headers_ # pylint: disable=unused-variable
-
-        # Make the request
-        response = self(environ, start_response)
-        return status, headers, b''.join(response)
+        request_environ = Environ.create(request_method, path_info, query_string, wsgi_input)
+        if environ:
+            request_environ.update(environ)
+        start_response = StartResponse()
+        response = self(request_environ, start_response)
+        return start_response.status, start_response.headers, b''.join(response)
 
 
 class Context(object):
@@ -198,6 +173,8 @@ class Context(object):
         self.log.addHandler(handler)
 
     def start_response(self, status, headers):
+        if not isinstance(status, str):
+            status = str(status.value) + ' ' + status.phrase
         for key, value in headers:
             self.add_header(key, value)
         self._start_response(status, sorted(self.headers.items()))
@@ -238,10 +215,15 @@ class Context(object):
         self.start_response(status, response_headers)
         return content
 
-    def response_text(self, status, text, content_type='text/plain', encoding='utf-8', headers=None):
+    def response_text(self, status, text=None, content_type='text/plain', encoding='utf-8', headers=None):
         """
         Send a plain-text response
         """
+        if text is None:
+            if isinstance(status, str):
+                text = status
+            else:
+                text = status.phrase
         return self.response(status, content_type, [text.encode(encoding)], headers=headers)
 
     def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None, jsonp=None):
