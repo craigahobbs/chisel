@@ -25,14 +25,10 @@ from decimal import Decimal
 import unittest
 from uuid import UUID
 
-from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, \
-    VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, IMMUTABLE_VALIDATION_MODES, \
-    Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
+from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, ValidationMode, \
+    IMMUTABLE_VALIDATION_MODES, Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT
 from chisel.util import TZUTC, TZLOCAL
-
-
-ALL_VALIDATION_MODES = (VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT)
 
 
 class TestModelValidationError(unittest.TestCase):
@@ -227,9 +223,9 @@ class TestModelTypedefValidation(unittest.TestCase):
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 5
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - success
     def test_validate_no_attr(self):
@@ -237,9 +233,9 @@ class TestModelTypedefValidation(unittest.TestCase):
         type_ = Typedef(TYPE_INT)
 
         obj = 5
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # Query string validation mode - transformed value
     def test_validate_transformed_value(self):
@@ -247,8 +243,8 @@ class TestModelTypedefValidation(unittest.TestCase):
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = '5'
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, 5)
 
     # Query string validation mode - transformed value
@@ -257,7 +253,7 @@ class TestModelTypedefValidation(unittest.TestCase):
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -271,7 +267,7 @@ class TestModelTypedefValidation(unittest.TestCase):
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 4
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -356,12 +352,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING)
 
         obj = {'a': 7, 'b': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
@@ -373,22 +369,22 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING)
 
         obj = {'a': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7})
 
         obj = {'b': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'b': 'abc'})
 
@@ -405,12 +401,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('c', TYPE_BOOL)
 
         obj = {'a': 7, 'b': 'abc', 'c': True}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 'abc', 'c': True})
 
@@ -422,12 +418,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, optional=True)
 
         obj = {'a': 7, 'b': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
@@ -439,12 +435,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, optional=True)
 
         obj = {'a': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7})
 
@@ -456,12 +452,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, nullable=True)
 
         obj = {'a': 7, 'b': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
@@ -473,12 +469,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, nullable=True)
 
         obj = {'a': 7, 'b': None}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': None})
 
@@ -490,17 +486,17 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_INT, nullable=True, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 7, 'b': 4}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 4})
 
         obj = {'a': 7, 'b': 5}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -509,12 +505,12 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
         obj = {'a': 7, 'b': None}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': None})
 
@@ -526,10 +522,10 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_INT, nullable=True)
 
         obj = {'a': 7, 'b': 'null'}
-        for mode in ALL_VALIDATION_MODES:
-            if mode == VALIDATE_QUERY_STRING:
+        for mode in ValidationMode:
+            if mode == ValidationMode.QUERY_STRING:
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
                 self.assertEqual(obj2, {'a': 7, 'b': None})
             else:
@@ -548,12 +544,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, nullable=True)
 
         obj = {'a': 7, 'b': 'null'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 'null'})
 
@@ -565,7 +561,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING, nullable=True)
 
         obj = {'a': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -580,12 +576,12 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 4}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 4})
 
@@ -596,7 +592,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -613,13 +609,13 @@ class TestModelStructValidation(unittest.TestCase):
         type2.add_member('b', TYPE_INT)
 
         obj = {'a': {'b': 7}}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
                 self.assertTrue(obj['a'] is obj2['a'])
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(obj['a'] is not obj2['a'])
                 self.assertTrue(isinstance(obj2, dict))
                 self.assertTrue(isinstance(obj2['a'], dict))
@@ -632,8 +628,8 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT)
 
         obj = {'a': '7'}
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
@@ -642,8 +638,8 @@ class TestModelStructValidation(unittest.TestCase):
         type_ = TypeStruct()
 
         obj = ''
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
@@ -653,8 +649,8 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_UUID)
 
         obj = {'a': '184EAB31-4307-416C-AAC4-3B92B2358677'}
-        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.JSON_INPUT)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
 
     # All validation modes - error - invalid value
@@ -664,7 +660,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT)
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -679,7 +675,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT, optional=True)
 
         obj = {'a': None}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -694,7 +690,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT)
 
         obj = {'a': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -712,7 +708,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING)
 
         obj = {'a': 'abc', 'b': 'def'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -721,7 +717,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
         obj = {'a': 7, 'b': 8}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -738,7 +734,7 @@ class TestModelStructValidation(unittest.TestCase):
         type2.add_member('b', TYPE_INT)
 
         obj = {'a': {'b': 'abc'}}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -753,7 +749,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT)
 
         obj = {'a': 7, 'b': 8}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -768,7 +764,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('a', TYPE_INT)
 
         obj = {}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -784,7 +780,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('bb', TYPE_STRING)
 
         obj = {'a': 1, 'bb': 'abcd'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -801,7 +797,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING)
 
         obj = {}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -817,7 +813,7 @@ class TestModelStructValidation(unittest.TestCase):
         type_.add_member('b', TYPE_STRING)
 
         obj = {'c': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -842,12 +838,12 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, 2, 3]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, list))
             self.assertEqual(obj2, [1, 2, 3])
 
@@ -857,12 +853,12 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 2, 3]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, list))
             self.assertEqual(obj2, [1, 2, 3])
 
@@ -872,7 +868,7 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 7, 3]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -886,12 +882,12 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TypeArray(TYPE_INT))
 
         obj = [[1, 2, 3], [4, 5, 6]]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, list))
             self.assertEqual(obj2, [[1, 2, 3], [4, 5, 6]])
 
@@ -901,8 +897,8 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, '2', 3]
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, [1, 2, 3])
 
     # Query string validation mode - empty string
@@ -911,8 +907,8 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT)
 
         obj = ''
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, [])
 
     # JSON input validation mode - transformed member
@@ -921,8 +917,8 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_UUID)
 
         obj = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
-        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.JSON_INPUT)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
 
     # All validation modes - error - invalid value
@@ -931,7 +927,7 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT)
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -945,7 +941,7 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, 'abc', 3]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -959,7 +955,7 @@ class TestModelArrayValidation(unittest.TestCase):
         type_ = TypeArray(TypeArray(TYPE_INT))
 
         obj = [[1, 2, 3], [4, 5, 'abc']]
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -983,12 +979,12 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = {'a': 7, 'b': 8}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 7, 'b': 8})
 
@@ -998,12 +994,12 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 2}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 1, 'b': 2})
 
@@ -1013,7 +1009,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1027,12 +1023,12 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=5))
 
         obj = {'a': 1, 'b': 2}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': 1, 'b': 2})
 
@@ -1042,7 +1038,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=2))
 
         obj = {'a': 1, 'bc': 2}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1056,12 +1052,12 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TypeDict(TYPE_INT))
 
         obj = {'a': {'b': 7}}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, dict))
             self.assertEqual(obj2, {'a': {'b': 7}})
 
@@ -1071,8 +1067,8 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = {'a': '7'}
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
@@ -1081,8 +1077,8 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = ''
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
@@ -1091,8 +1087,8 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_UUID)
 
         obj = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
-        obj2 = type_.validate(obj, mode=VALIDATE_JSON_INPUT)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.JSON_INPUT)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
 
     # All validation modes - error - invalid value
@@ -1101,7 +1097,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1115,7 +1111,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = {7: 7}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1129,7 +1125,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TYPE_INT)
 
         obj = {'7': 'abc'}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1143,7 +1139,7 @@ class TestModelDictValidation(unittest.TestCase):
         type_ = TypeDict(TypeDict(TYPE_INT))
 
         obj = {'a': {'b': 'abc'}}
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1205,9 +1201,9 @@ class TestModelEnumValidation(unittest.TestCase):
         type_.add_value('b')
 
         obj = 'a'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - valid enumeration value with base types
     def test_validate_base_types(self):
@@ -1222,9 +1218,9 @@ class TestModelEnumValidation(unittest.TestCase):
         type_.add_value('c')
 
         for obj in ('a', 'b', 'c'):
-            for mode in ALL_VALIDATION_MODES:
+            for mode in ValidationMode:
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
 
     # All validation modes - valid enumeration value
     def test_validate_error(self):
@@ -1234,7 +1230,7 @@ class TestModelEnumValidation(unittest.TestCase):
         type_.add_value('b')
 
         obj = 'c'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1252,7 +1248,7 @@ class TestModelEnumValidation(unittest.TestCase):
         type_.add_value('b')
 
         obj = 'c'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1276,9 +1272,9 @@ class TestModelStringValidation(unittest.TestCase):
         type_ = TYPE_STRING
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
@@ -1286,7 +1282,7 @@ class TestModelStringValidation(unittest.TestCase):
         type_ = TYPE_STRING
 
         obj = 7
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1310,9 +1306,9 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = 7
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - float
     def test_validate_float(self):
@@ -1320,13 +1316,13 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = 7.
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
-                self.assertTrue(isinstance(obj2, int))
+                self.assertIsNot(obj, obj2)
+                self.assertIsInstance(obj2, int)
                 self.assertEqual(obj2, 7)
 
     # All validation modes - decimal
@@ -1335,13 +1331,13 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = Decimal('7')
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
-                self.assertTrue(isinstance(obj2, int))
+                self.assertIsNot(obj, obj2)
+                self.assertIsInstance(obj2, int)
                 self.assertEqual(obj2, 7)
 
     # Query string validation mode - string
@@ -1350,8 +1346,8 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = '7'
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, 7)
 
     # All validation modes - error - invalid value
@@ -1360,7 +1356,7 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1374,7 +1370,7 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = 7.5
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1388,7 +1384,7 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = Decimal('7.5')
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1402,7 +1398,7 @@ class TestModelIntValidation(unittest.TestCase):
         type_ = TYPE_INT
 
         obj = True
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1426,9 +1422,9 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 7.5
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - int
     def test_validate_int(self):
@@ -1436,12 +1432,12 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 7
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, float))
                 self.assertEqual(obj2, 7.)
 
@@ -1451,12 +1447,12 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = Decimal('7.5')
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             if mode in IMMUTABLE_VALIDATION_MODES:
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, float))
                 self.assertEqual(obj2, 7.5)
 
@@ -1466,8 +1462,8 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = '7.5'
-        obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-        self.assertTrue(obj is not obj2)
+        obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+        self.assertIsNot(obj, obj2)
         self.assertEqual(obj2, 7.5)
 
     # All validation modes - error - invalid value
@@ -1476,7 +1472,7 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1490,7 +1486,7 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 'nan'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1504,7 +1500,7 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = 'inf'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1518,7 +1514,7 @@ class TestModelFloatValidation(unittest.TestCase):
         type_ = TYPE_FLOAT
 
         obj = True
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1561,9 +1557,9 @@ class TestModelBoolValidation(unittest.TestCase):
         type_ = TYPE_BOOL
 
         obj = False
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # Query string validation mode - string
     def test_validate_query_string(self):
@@ -1571,8 +1567,8 @@ class TestModelBoolValidation(unittest.TestCase):
         type_ = TYPE_BOOL
 
         for obj, expected in (('false', False), ('true', True)):
-            obj2 = type_.validate(obj, mode=VALIDATE_QUERY_STRING)
-            self.assertTrue(obj is not obj2)
+            obj2 = type_.validate(obj, mode=ValidationMode.QUERY_STRING)
+            self.assertIsNot(obj, obj2)
             self.assertTrue(isinstance(obj2, bool))
             self.assertEqual(obj2, expected)
 
@@ -1582,7 +1578,7 @@ class TestModelBoolValidation(unittest.TestCase):
         type_ = TYPE_BOOL
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1625,9 +1621,9 @@ class TestModelUuidValidation(unittest.TestCase):
         type_ = TYPE_UUID
 
         obj = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - UUID string
     def test_validate_string(self):
@@ -1635,10 +1631,10 @@ class TestModelUuidValidation(unittest.TestCase):
         type_ = TYPE_UUID
 
         obj = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, UUID))
                 self.assertEqual(obj2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
             else:
@@ -1655,7 +1651,7 @@ class TestModelUuidValidation(unittest.TestCase):
         type_ = TYPE_UUID
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1698,9 +1694,9 @@ class TestModelDateValidation(unittest.TestCase):
         type_ = TYPE_DATE
 
         obj = date(2013, 5, 26)
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - ISO date string
     def test_validate_query_string(self):
@@ -1708,10 +1704,10 @@ class TestModelDateValidation(unittest.TestCase):
         type_ = TYPE_DATE
 
         obj = '2013-05-26'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, date))
                 self.assertEqual(obj2, date(2013, 5, 26))
             else:
@@ -1728,7 +1724,7 @@ class TestModelDateValidation(unittest.TestCase):
         type_ = TYPE_DATE
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1771,9 +1767,9 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC)
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
-            self.assertTrue(obj is obj2)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - datetime object with no timezone
     def test_validate_no_timezone(self):
@@ -1781,13 +1777,13 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = datetime(2013, 5, 26, 11, 1, 0)
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             if mode in IMMUTABLE_VALIDATION_MODES:
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
             else:
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZLOCAL))
 
     # All validation modes - ISO datetime string
@@ -1796,10 +1792,10 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00+08:00'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=TZUTC))
             else:
@@ -1816,10 +1812,10 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00+00:00'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
             else:
@@ -1836,10 +1832,10 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00.1234+00:00'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=TZUTC))
             else:
@@ -1856,10 +1852,10 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01Z'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=TZUTC))
             else:
@@ -1876,10 +1872,10 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11Z'
-        for mode in ALL_VALIDATION_MODES:
-            if mode in (VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT):
+        for mode in ValidationMode:
+            if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is not obj2)
+                self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=TZUTC))
             else:
@@ -1896,7 +1892,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
         type_ = TYPE_DATETIME
 
         obj = 'abc'
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:
@@ -1938,10 +1934,10 @@ class TestModelObjectValidation(unittest.TestCase):
 
         type_ = TYPE_OBJECT
 
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             for obj in (object(), 'abc', 7, False):
                 obj2 = type_.validate(obj, mode)
-                self.assertTrue(obj is obj2)
+                self.assertIs(obj, obj2, mode)
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
@@ -1949,7 +1945,7 @@ class TestModelObjectValidation(unittest.TestCase):
         type_ = TYPE_OBJECT
 
         obj = None
-        for mode in ALL_VALIDATION_MODES:
+        for mode in ValidationMode:
             try:
                 type_.validate(obj, mode)
             except ValidationError as exc:

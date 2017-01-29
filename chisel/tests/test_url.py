@@ -43,7 +43,7 @@ class TestUrl(unittest.TestCase):
 
         # Top-level array
         query_string = '0=1&1=2&2=3'
-        obj = ['1', '2', '3'] # pylint: disable=redefined-variable-type
+        obj = ['1', '2', '3']
         self.assertEqual(decode_query_string(query_string), obj)
 
         # Empty query string
@@ -186,7 +186,7 @@ class TestUrl(unittest.TestCase):
         self.assertEqual(encode_query_string(obj), query_string)
 
         # Top-level array
-        obj = [1, 2, 3] # pylint: disable=redefined-variable-type
+        obj = [1, 2, 3]
         query_string = '0=1&1=2&2=3'
         self.assertEqual(encode_query_string(obj), query_string)
 

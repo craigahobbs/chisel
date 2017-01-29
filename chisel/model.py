@@ -22,6 +22,7 @@
 
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 from itertools import chain
 from math import isnan, isinf
 from uuid import UUID
@@ -30,12 +31,13 @@ from .util import TZLOCAL, parse_iso8601_date, parse_iso8601_datetime
 
 
 # Validation mode
-VALIDATE_DEFAULT = 0
-VALIDATE_QUERY_STRING = 1
-VALIDATE_JSON_INPUT = 2
+class ValidationMode(Enum):
+    DEFAULT = 0
+    QUERY_STRING = 1
+    JSON_INPUT = 2
 
 # Immutable validation modes
-IMMUTABLE_VALIDATION_MODES = (VALIDATE_DEFAULT,)
+IMMUTABLE_VALIDATION_MODES = (ValidationMode.DEFAULT,)
 
 
 # Type attribute exception
@@ -169,7 +171,7 @@ class Typedef(object):
     def validate_attr(self, attr):
         self.type.validate_attr(attr)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
         result = self.type.validate(value, mode, _member)
         if self.attr is not None:
             self.attr.validate(result, _member)
@@ -213,12 +215,12 @@ class TypeStruct(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
             value_x = value
-        elif mode == VALIDATE_QUERY_STRING and value == '':
+        elif mode == ValidationMode.QUERY_STRING and value == '':
             value_x = {}
         else:
             raise ValidationError.member_error(self, value, _member)
@@ -242,7 +244,7 @@ class TypeStruct(object):
             member_count += 1
             member_value = value_x[member_name]
             if member.nullable and (member_value is None or \
-                    (mode == VALIDATE_QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
+                    (mode == ValidationMode.QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
                 member_value_x = None
             else:
                 member_path = (_member, member_name)
@@ -275,12 +277,12 @@ class TypeArray(object):
     def validate_attr(attr):
         attr.validate_attr(allow_length=True)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, list) or isinstance(value, tuple):
             value_x = value
-        elif mode == VALIDATE_QUERY_STRING and value == '':
+        elif mode == ValidationMode.QUERY_STRING and value == '':
             value_x = []
         else:
             raise ValidationError.member_error(self, value, _member)
@@ -326,12 +328,12 @@ class TypeDict(object):
     def validate_attr(attr):
         attr.validate_attr(allow_length=True)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, dict):
             value_x = value
-        elif mode == VALIDATE_QUERY_STRING and value == '':
+        elif mode == ValidationMode.QUERY_STRING and value == '':
             value_x = {}
         else:
             raise ValidationError.member_error(self, value, _member)
@@ -394,7 +396,7 @@ class TypeEnum(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, dummy_mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate the value
         if value not in self.values():
@@ -413,7 +415,7 @@ class _TypeString(object):
     def validate_attr(attr):
         attr.validate_attr(allow_length=True)
 
-    def validate(self, value, dummy_mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, dummy_mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate the value
         if not isinstance(value, str):
@@ -434,7 +436,7 @@ class _TypeInt(object):
     def validate_attr(attr):
         attr.validate_attr(allow_value=True)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, int) and not isinstance(value, bool):
@@ -443,7 +445,7 @@ class _TypeInt(object):
             value_x = int(value)
             if value_x != value:
                 raise ValidationError.member_error(self, value, _member)
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
+        elif mode == ValidationMode.QUERY_STRING and isinstance(value, str):
             try:
                 value_x = int(value)
             except:
@@ -466,14 +468,14 @@ class _TypeFloat(object):
     def validate_attr(attr):
         attr.validate_attr(allow_value=True)
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, float):
             value_x = value
         elif isinstance(value, (int, Decimal)) and not isinstance(value, bool):
             value_x = float(value)
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
+        elif mode == ValidationMode.QUERY_STRING and isinstance(value, str):
             try:
                 value_x = float(value)
                 if isnan(value_x) or isinf(value_x):
@@ -503,12 +505,12 @@ class _TypeBool(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, bool):
             return value
-        elif mode == VALIDATE_QUERY_STRING and isinstance(value, str):
+        elif mode == ValidationMode.QUERY_STRING and isinstance(value, str):
             try:
                 return self.VALUES[value]
             except:
@@ -529,7 +531,7 @@ class _TypeUuid(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, UUID):
@@ -555,7 +557,7 @@ class _TypeDate(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, date):
@@ -581,7 +583,7 @@ class _TypeDatetime(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()):
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
         if isinstance(value, datetime):
@@ -610,7 +612,7 @@ class _TypeObject(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, mode=VALIDATE_DEFAULT, _member=()): # pylint: disable=unused-argument
+    def validate(self, value, mode=ValidationMode.DEFAULT, _member=()): # pylint: disable=unused-argument
         if value is not None:
             return value
         else:

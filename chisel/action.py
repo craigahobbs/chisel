@@ -24,7 +24,7 @@ from cgi import parse_header
 from json import loads as json_loads
 
 from .app_defs import Environ, HTTPStatus
-from .model import VALIDATE_DEFAULT, VALIDATE_QUERY_STRING, VALIDATE_JSON_INPUT, ValidationError, TypeStruct, TYPE_STRING
+from .model import ValidationError, ValidationMode, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
 from .url import decode_query_string
@@ -122,7 +122,7 @@ class Action(Request):
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
-            validate_mode = VALIDATE_JSON_INPUT
+            validation_mode = ValidationMode.JSON_INPUT
             try:
                 if content:
                     content_type = environ.get('CONTENT_TYPE')
@@ -137,7 +137,7 @@ class Action(Request):
             # Decode the query string
             query_string = environ.get('QUERY_STRING')
             if query_string:
-                validate_mode = VALIDATE_QUERY_STRING
+                validation_mode = ValidationMode.QUERY_STRING
                 try:
                     request_query_string = decode_query_string(query_string)
                 except Exception as exc:
@@ -156,7 +156,7 @@ class Action(Request):
 
             # Add url arguments
             if ctx.url_args is not None:
-                validate_mode = VALIDATE_QUERY_STRING
+                validation_mode = ValidationMode.QUERY_STRING
                 for url_arg, url_value in ctx.url_args.items():
                     if url_arg in request:
                         ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
@@ -174,7 +174,7 @@ class Action(Request):
 
             # Validate the request
             try:
-                request = self.model.input_type.validate(request, validate_mode)
+                request = self.model.input_type.validate(request, validation_mode)
             except ValidationError as exc:
                 ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc), member=exc.member)
@@ -204,7 +204,7 @@ class Action(Request):
             # Validate the response
             if ctx.app.validate_output:
                 try:
-                    response_type.validate(response, mode=VALIDATE_DEFAULT)
+                    response_type.validate(response)
                 except ValidationError as exc:
                     ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
                     raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=str(exc), member=exc.member)

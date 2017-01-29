@@ -42,9 +42,7 @@ from .doc import \
 
 from .model import \
     ValidationError, \
-    VALIDATE_DEFAULT, \
-    VALIDATE_QUERY_STRING, \
-    VALIDATE_JSON_INPUT
+    ValidationMode
 
 from .request import \
     request, \

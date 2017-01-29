@@ -165,7 +165,7 @@ class Context(object):
         if wsgi_errors is None:
             handler = logging.NullHandler()
         else:
-            handler = logging.StreamHandler(wsgi_errors) # pylint: disable=redefined-variable-type
+            handler = logging.StreamHandler(wsgi_errors)
         if hasattr(app.log_format, '__call__'):
             handler.setFormatter(app.log_format(self))
         else:

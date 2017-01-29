@@ -76,7 +76,8 @@ disable=locally-disabled,
  too-many-locals,
  too-many-nested-blocks,
  too-many-public-methods,
- too-many-statements
+ too-many-statements,
+ redefined-variable-type
 
 
 [REPORTS]

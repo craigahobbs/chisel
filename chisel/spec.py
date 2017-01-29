@@ -317,7 +317,7 @@ class SpecParser(object):
                     else:  # ==
                         attr.op_eq = attr_value
                 else:  # attr_length_op is not None:
-                    attr_value = int(match_attr.group('lopnum')) # pylint: disable=redefined-variable-type
+                    attr_value = int(match_attr.group('lopnum'))
                     if attr_length_op == '<':
                         attr.op_len_lt = attr_value
                     elif attr_length_op == '<=':
@@ -471,7 +471,7 @@ class SpecParser(object):
 
                     # Create the new enum type
                     self._action = None
-                    self._type = TypeEnum(type_name=definition_id, doc=self._doc) # pylint: disable=redefined-variable-type
+                    self._type = TypeEnum(type_name=definition_id, doc=self._doc)
                     if definition_base_ids is not None:
                         self._type.base_types = [None for _ in definition_base_ids]
                         for base_index, base_id in enumerate(definition_base_ids):
