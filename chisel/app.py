@@ -89,7 +89,10 @@ class Application(object):
             request, url_args = next((
                 (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
                 for request, request_match in
-                ((request, regex.match(path_info)) for method, regex, request in self.__request_regex if method == request_method)
+                (
+                    (request, regex.match(path_info)) for method, regex, request in self.__request_regex
+                    if method is not None and method == request_method
+                )
                 if request_match), (None, None))
             if request is None:
                 request, url_args = self.__request_urls.get((None, path_info)), None
@@ -97,31 +100,32 @@ class Application(object):
                     request, url_args = next((
                         (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
                         for request, request_match in
-                        ((request, regex.match(path_info)) for method, regex, request in self.__request_regex if method is None)
-                        if request_match), (None, None))
+                        (
+                            (request, regex.match(path_info)) for method, regex, request in self.__request_regex
+                            if method is None
+                        )
+                        if request_match
+                    ), (None, None))
 
         # Create the request context
-        ctx = Context(self, environ, start_response, url_args)
-        environ[Environ.CTX] = ctx
+        ctx = environ[Environ.CTX] = Context(self, environ, start_response, url_args)
 
         # Request not found?
         if request is None:
-            if next((True for _, path in self.__request_urls.keys() if path == path_info), False) or \
-               next((True for _, regex, _ in self.__request_regex if regex.match(path_info)), False):
-                return ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED, 'Method Not Allowed')
-            return ctx.response_text(HTTPStatus.NOT_FOUND, 'Not Found')
+            if any(path == path_info for _, path in self.__request_urls.keys()) or \
+               any(regex.match(path_info) for _, regex, _ in self.__request_regex):
+                return ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED)
+            return ctx.response_text(HTTPStatus.NOT_FOUND)
 
         # Handle the request
         try:
             return request(ctx.environ, ctx.start_response)
         except: # pylint: disable=bare-except
-            ctx.log.exception('Exception raised by WSGI request "%s"', request.name)
-            return ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR, 'Unexpected Error')
+            ctx.log.exception('exception raised by request "%s"', request.name)
+            return ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
-        request_environ = Environ.create(request_method, path_info, query_string, wsgi_input)
-        if environ:
-            request_environ.update(environ)
+        request_environ = Environ.create(request_method, path_info, query_string, wsgi_input, environ=environ)
         start_response = StartResponse()
         response = self(request_environ, start_response)
         return start_response.status, start_response.headers, b''.join(response)
@@ -166,6 +170,7 @@ class Context(object):
         """
         Add a response header
         """
+
         assert isinstance(key, str), 'header key must be of type str'
         assert isinstance(value, str), 'header value must be of type str'
         self.headers[key] = value
@@ -187,14 +192,11 @@ class Context(object):
         """
         Send an HTTP response
         """
-        assert not isinstance(content, (str, bytes)), 'response content cannot be of type str or bytes'
 
-        # Build the headers array
+        assert not isinstance(content, (str, bytes)), 'response content cannot be of type str or bytes'
         response_headers = [('Content-Type', content_type)]
         if headers:
             response_headers.extend(headers)
-
-        # Return the response
         self.start_response(status, response_headers)
         return content
 
@@ -202,6 +204,7 @@ class Context(object):
         """
         Send a plain-text response
         """
+
         if text is None:
             if isinstance(status, str):
                 text = status

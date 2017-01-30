@@ -624,7 +624,7 @@ action my_action
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
-        self.assertEqual(response.decode('utf-8'), 'Unexpected Error')
+        self.assertEqual(response, b'Internal Server Error')
 
     # Test action unexpected error response with custom response
     def test_error_unexpected_custom(self):

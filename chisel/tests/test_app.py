@@ -99,7 +99,7 @@ class TestApplication(unittest.TestCase):
         response_parts = app(environ, start_response)
         self.assertEqual(start_response.status, '500 Internal Server Error')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
-        self.assertEqual(list(response_parts), ['Unexpected Error'.encode('utf-8')])
+        self.assertEqual(list(response_parts), ['Internal Server Error'.encode('utf-8')])
         self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
 
     def test_request(self):
@@ -227,7 +227,7 @@ class TestApplication(unittest.TestCase):
         status, headers, response = app.request('GET', '/request1')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
-        self.assertEqual(response, b'Unexpected Error')
+        self.assertEqual(response, b'Internal Server Error')
 
     def test_request_url_mix(self):
 
