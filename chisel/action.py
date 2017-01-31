@@ -17,7 +17,10 @@ def action(_action_callback=None, **kwargs):
     """
     Chisel action request decorator
     """
-    return Action(_action_callback, **kwargs).decorate_module(_action_callback) if _action_callback else lambda fn: action(fn, **kwargs)
+    if _action_callback is None:
+        return lambda fn: action(fn, **kwargs)
+    else:
+        return Action(_action_callback, **kwargs).decorate_module(_action_callback)
 
 
 class ActionError(Exception):

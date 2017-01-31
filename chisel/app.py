@@ -115,7 +115,8 @@ class Application(object):
             if any(path == path_info for _, path in self.__request_urls.keys()) or \
                any(regex.match(path_info) for _, regex, _ in self.__request_regex):
                 return ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED)
-            return ctx.response_text(HTTPStatus.NOT_FOUND)
+            else:
+                return ctx.response_text(HTTPStatus.NOT_FOUND)
 
         # Handle the request
         try:
