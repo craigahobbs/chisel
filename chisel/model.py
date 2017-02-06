@@ -28,7 +28,7 @@ class AttributeValidationError(Exception):
     __slots__ = ('attr',)
 
     def __init__(self, attr):
-        Exception.__init__(self, "Invalid attribute '" + attr + "'")
+        super().__init__("Invalid attribute '" + attr + "'")
         self.attr = attr
 
 
@@ -37,7 +37,7 @@ class ValidationError(Exception):
     __slots__ = ('member',)
 
     def __init__(self, msg, member=None):
-        Exception.__init__(self, msg)
+        super().__init__(msg)
         self.member = member
 
     @classmethod

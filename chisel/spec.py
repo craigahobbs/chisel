@@ -30,7 +30,7 @@ class SpecParserError(Exception):
     __slots__ = ('errors',)
 
     def __init__(self, errors):
-        Exception.__init__(self, '\n'.join(errors))
+        super().__init__('\n'.join(errors))
         self.errors = errors
 
 

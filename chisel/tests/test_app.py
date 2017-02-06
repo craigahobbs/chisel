@@ -22,7 +22,7 @@ class TestApplication(unittest.TestCase):
 
         class MyApplication(Application):
             def __init__(self):
-                Application.__init__(self)
+                super().__init__()
                 self.load_specs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
                 self.load_requests('.test_app_files', __package__)
                 self.log_level = logging.INFO

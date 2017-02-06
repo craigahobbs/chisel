@@ -164,7 +164,7 @@ class TestRequest(unittest.TestCase):
             __slots__ = ('index',)
 
             def __init__(self, index):
-                Request.__init__(self, name='MyRequest{0}'.format(index),
+                super().__init__(name='MyRequest{0}'.format(index),
                                  urls=[('GET', '/my-request-{0}'.format(index))],
                                  doc=['My request number {0}.'.format(index)])
                 self.index = index

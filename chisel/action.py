@@ -31,7 +31,7 @@ class ActionError(Exception):
     __slots__ = ('error', 'message', 'status')
 
     def __init__(self, error, message=None, status=None):
-        Exception.__init__(self, error)
+        super().__init__(error)
         self.error = error
         self.message = message
         self.status = status
@@ -41,7 +41,7 @@ class _ActionErrorInternal(Exception):
     __slots__ = ('status', 'error', 'message', 'member')
 
     def __init__(self, status, error, message=None, member=None):
-        Exception.__init__(self, error)
+        super().__init__(error)
         self.status = status
         self.error = error
         self.message = message
@@ -75,14 +75,14 @@ class Action(Request):
             if doc_group is None:
                 doc_group = model.doc_group
 
-        Request.__init__(self, name=name, method=method, urls=urls, doc=doc, doc_group=doc_group)
+        super().__init__(name=name, method=method, urls=urls, doc=doc, doc_group=doc_group)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
         self.jsonp = jsonp
 
     def onload(self, app):
-        Request.onload(self, app)
+        super().onload(app)
 
         # Get the action model, if necessary
         if self.model is None:
