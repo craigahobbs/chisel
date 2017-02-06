@@ -1744,6 +1744,193 @@ The action returns no custom error codes.
 </html>'''
         self.assertEqual(html_expected, html)
 
+    def test_page_urls(self):
+
+        app = Application()
+        app.pretty_output = True
+
+        @action(spec='''\
+action my_action
+    input
+        int a
+        int b
+    output
+        int c
+''')
+        def my_action(dummy_ctx, req):
+            return {'c': req['a'] + req['b']}
+
+        app.add_request(DocPage(my_action, request_urls=[('GET', 'https://foo.com/my_action')]))
+
+        status, dummy_headers, response = app.request('GET', '/doc_my_action')
+        html = response.decode('utf-8')
+        self.assertEqual(status, '200 OK')
+        html_expected = '''\
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>my_action</title>
+    <style type="text/css">
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}
+    </style>
+  </head>
+  <body class="chsl-request-body">
+    <h1>my_action</h1>
+    <div class="chsl-notes">
+      <div class="chsl-note">
+        <p>
+          <b>Note: </b>
+The request is exposed at the following URL:
+        </p>
+        <ul>
+          <li><a href="https://foo.com/my_action">GET https://foo.com/my_action</a></li>
+        </ul>
+      </div>
+    </div>
+    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td>a</td>
+        <td>int</td>
+      </tr>
+      <tr>
+        <td>b</td>
+        <td>int</td>
+      </tr>
+    </table>
+    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td>c</td>
+        <td>int</td>
+      </tr>
+    </table>
+    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
+    <div class="chsl-text">
+      <p>
+The action returns no custom error codes.
+      </p>
+    </div>
+  </body>
+</html>'''
+        self.assertEqual(html_expected, html)
+
     def test_page_struct(self):
 
         parser = SpecParser('''\

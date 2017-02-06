@@ -56,9 +56,9 @@ class DocPage(Action):
     Chisel single-request documentation request
     """
 
-    __slots__ = ('request')
+    __slots__ = ('request', 'request_urls')
 
-    def __init__(self, request, name=None, urls=None, doc=None, doc_group=None):
+    def __init__(self, request, request_urls=None, name=None, urls=None, doc=None, doc_group=None):
         request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
@@ -68,13 +68,14 @@ class DocPage(Action):
 action {name}
 '''.format(name=name, request_name=request_name))
         self.request = request
+        self.request_urls = request_urls
 
     def _action_callback(self, ctx, dummy_req):
-        return ctx.response_text(HTTPStatus.OK, self.content(ctx, self.request), content_type='text/html')
+        return ctx.response_text(HTTPStatus.OK, self.content(ctx, self.request, self.request_urls), content_type='text/html')
 
     @staticmethod
-    def content(ctx, request, nonav=True):
-        root = _request_html(ctx, request, nonav)
+    def content(ctx, request, request_urls=None, nonav=True):
+        root = _request_html(ctx, request, request_urls, nonav)
         return root.serialize(indent='  ' if ctx.app.pretty_output else '')
 
 
@@ -185,9 +186,14 @@ def _index_html(ctx, requests):
     ])
 
 
-def _request_html(ctx, request, nonav=False):
+def _request_html(ctx, request, request_urls, nonav):
     is_request = isinstance(request, Request)
     is_action = isinstance(request, Action)
+    if is_request and request_urls is None:
+        request_urls = request.urls
+        relative_urls = True
+    else:
+        relative_urls = False
 
     # Find all user types referenced by the action
     struct_types = {}
@@ -225,16 +231,16 @@ def _request_html(ctx, request, nonav=False):
             Element('div', _class='chsl-notes', children=[
 
                 # Request URLs
-                None if not is_request or not request.urls else Element('div', _class='chsl-note', children=[
+                None if not is_request or not request_urls else Element('div', _class='chsl-note', children=[
                     Element('p', children=[
                         Element('b', inline=True, children=Element('Note: ', text=True)),
-                        Element('The request is exposed at the following ' + ('URLs' if len(request.urls) > 1 else 'URL') + ':', text=True)
+                        Element('The request is exposed at the following ' + ('URLs' if len(request_urls) > 1 else 'URL') + ':', text=True)
                     ]),
                     Element('ul', children=[
                         Element('li', inline=True, children=
-                                Element('a', href=ctx.reconstruct_url(path_info=url, query_string=''), children=
+                                Element('a', href=ctx.reconstruct_url(path_info=url, query_string='') if relative_urls else url, children=
                                         Element(url if method is None else method + ' ' + url, text=True)))
-                        for method, url in request.urls
+                        for method, url in request_urls
                     ])
                 ]),
 
