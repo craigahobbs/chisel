@@ -204,9 +204,9 @@ ul.chsl-constraint-list {
   <body class="chsl-index-body">
     <h1>localhost:80</h1>
     <ul class="chsl-request-list">
-      <li><a href="http://localhost/doc?name=doc">doc</a></li>
-      <li><a href="http://localhost/doc?name=my_action1">my_action1</a></li>
-      <li><a href="http://localhost/doc?name=my_action2">my_action2</a></li>
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=my_action1">my_action1</a></li>
+      <li><a href="/doc?name=my_action2">my_action2</a></li>
     </ul>
   </body>
 </html>'''
@@ -368,20 +368,20 @@ ul.chsl-constraint-list {
     <h1>localhost:80</h1>
     <h2>My Group 1</h2>
     <ul class="chsl-request-list">
-      <li><a href="http://localhost/doc?name=my_action2">my_action2</a></li>
-      <li><a href="http://localhost/doc?name=my_action3">my_action3</a></li>
+      <li><a href="/doc?name=my_action2">my_action2</a></li>
+      <li><a href="/doc?name=my_action3">my_action3</a></li>
     </ul>
     <h2>My Group 2</h2>
     <ul class="chsl-request-list">
-      <li><a href="http://localhost/doc?name=my_action4">my_action4</a></li>
-      <li><a href="http://localhost/doc?name=my_request2">my_request2</a></li>
+      <li><a href="/doc?name=my_action4">my_action4</a></li>
+      <li><a href="/doc?name=my_request2">my_request2</a></li>
     </ul>
     <h2>Uncategorized</h2>
     <ul class="chsl-request-list">
-      <li><a href="http://localhost/doc?name=doc">doc</a></li>
-      <li><a href="http://localhost/doc?name=my_action1">my_action1</a></li>
-      <li><a href="http://localhost/doc?name=my_action5">my_action5</a></li>
-      <li><a href="http://localhost/doc?name=my_request1">my_request1</a></li>
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=my_action1">my_action1</a></li>
+      <li><a href="/doc?name=my_action5">my_action5</a></li>
+      <li><a href="/doc?name=my_request1">my_request1</a></li>
     </ul>
   </body>
 </html>'''
@@ -513,7 +513,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="http://localhost/doc">Back to documentation index</a>
+      <a href="/doc">Back to documentation index</a>
     </div>
     <h1>my_action1</h1>
     <div class="chsl-notes">
@@ -523,8 +523,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="http://localhost/my_action1">GET /my_action1</a></li>
-          <li><a href="http://localhost/my_action1">POST /my_action1</a></li>
+          <li><a href="/my_action1">GET /my_action1</a></li>
+          <li><a href="/my_action1">POST /my_action1</a></li>
         </ul>
       </div>
     </div>
@@ -878,7 +878,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="http://localhost/doc">Back to documentation index</a>
+      <a href="/doc">Back to documentation index</a>
     </div>
     <h1>my_action2</h1>
     <div class="chsl-notes">
@@ -888,8 +888,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="http://localhost/my_action2">GET /my_action2</a></li>
-          <li><a href="http://localhost/my_action2">POST /my_action2</a></li>
+          <li><a href="/my_action2">GET /my_action2</a></li>
+          <li><a href="/my_action2">POST /my_action2</a></li>
         </ul>
       </div>
     </div>
@@ -1094,7 +1094,7 @@ ul.chsl-constraint-list {
 </head>
 <body class="chsl-request-body">
 <div class="chsl-header">
-<a href="http://localhost/doc">Back to documentation index</a>
+<a href="/doc">Back to documentation index</a>
 </div>
 <h1>my_request</h1>
 <div class="chsl-text">
@@ -1112,7 +1112,7 @@ And some other important information.
 The request is exposed at the following URL:
 </p>
 <ul>
-<li><a href="http://localhost/my_request">/my_request</a></li>
+<li><a href="/my_request">/my_request</a></li>
 </ul>
 </div>
 </div>
@@ -1410,8 +1410,8 @@ ul.chsl-constraint-list {
   <body class="chsl-index-body">
     <h1>localhost:80</h1>
     <ul class="chsl-request-list">
-      <li><a href="http://localhost/doc?name=doc">doc</a></li>
-      <li><a href="http://localhost/doc?name=doc_my_action">doc_my_action</a></li>
+      <li><a href="/doc?name=doc">doc</a></li>
+      <li><a href="/doc?name=doc_my_action">doc_my_action</a></li>
     </ul>
   </body>
 </html>'''
@@ -1539,7 +1539,7 @@ ul.chsl-constraint-list {
   </head>
   <body class="chsl-request-body">
     <div class="chsl-header">
-      <a href="http://localhost/doc">Back to documentation index</a>
+      <a href="/doc">Back to documentation index</a>
     </div>
     <h1>doc_my_action</h1>
     <div class="chsl-text">
@@ -1554,7 +1554,7 @@ Documentation page for my_action.
 The request is exposed at the following URL:
         </p>
         <ul>
-          <li><a href="http://localhost/doc_my_action">GET /doc_my_action</a></li>
+          <li><a href="/doc_my_action">GET /doc_my_action</a></li>
         </ul>
       </div>
       <div class="chsl-note">
@@ -1703,8 +1703,8 @@ ul.chsl-constraint-list {
 The request is exposed at the following URLs:
         </p>
         <ul>
-          <li><a href="http://localhost/my_action">GET /my_action</a></li>
-          <li><a href="http://localhost/my_action">POST /my_action</a></li>
+          <li><a href="/my_action">GET /my_action</a></li>
+          <li><a href="/my_action">POST /my_action</a></li>
         </ul>
       </div>
     </div>

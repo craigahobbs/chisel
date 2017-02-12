@@ -514,6 +514,16 @@ class TestContext(unittest.TestCase):
         })
         self.assertEqual(ctx.reconstruct_url(), 'http://localhost/request?foo=bar')
 
+        # Relative
+        ctx = Context(app, environ={
+            'wsgi.url_scheme': 'http',
+            'HTTP_HOST': 'localhost',
+            'SCRIPT_NAME': '',
+            'PATH_INFO': '/request',
+            'QUERY_STRING': 'foo=bar'
+        })
+        self.assertEqual(ctx.reconstruct_url(relative=True), '/request?foo=bar')
+
         # Replace path_info
         ctx = Context(app, environ={
             'wsgi.url_scheme': 'http',

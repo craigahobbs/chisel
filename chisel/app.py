@@ -231,25 +231,28 @@ class Context(object):
             content_list = [content.encode(encoding)]
         return self.response(status, content_type, content_list, headers=headers)
 
-    def reconstruct_url(self, path_info=None, query_string=None):
+    def reconstruct_url(self, path_info=None, query_string=None, relative=False):
         """
         Reconstructs the request URL using the algorithm provided by PEP3333
         """
 
         environ = self.environ
-        url = environ['wsgi.url_scheme'] + '://'
-
-        if environ.get('HTTP_HOST'):
-            url += environ['HTTP_HOST']
+        if relative:
+            url = ''
         else:
-            url += environ['SERVER_NAME']
+            url = environ['wsgi.url_scheme'] + '://'
 
-            if environ['wsgi.url_scheme'] == 'https':
-                if environ['SERVER_PORT'] != '443':
-                    url += ':' + environ['SERVER_PORT']
+            if environ.get('HTTP_HOST'):
+                url += environ['HTTP_HOST']
             else:
-                if environ['SERVER_PORT'] != '80':
-                    url += ':' + environ['SERVER_PORT']
+                url += environ['SERVER_NAME']
+
+                if environ['wsgi.url_scheme'] == 'https':
+                    if environ['SERVER_PORT'] != '443':
+                        url += ':' + environ['SERVER_PORT']
+                else:
+                    if environ['SERVER_PORT'] != '80':
+                        url += ':' + environ['SERVER_PORT']
 
         url += quote(environ.get('SCRIPT_NAME', ''))
         if path_info is None:

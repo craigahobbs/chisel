@@ -175,7 +175,7 @@ def _index_html(ctx, requests):
                         'Uncategorized' if group_name is None else group_name, text=True)),
                     Element('ul', _class='chsl-request-list', children=[
                         Element('li', inline=True, children=
-                                Element('a', href=ctx.reconstruct_url(query_string={'name': request.name}), children=
+                                Element('a', href=ctx.reconstruct_url(query_string={'name': request.name}, relative=True), children=
                                         Element(request.name, text=True)))
                         for request in group_requests[group_name]
                     ])
@@ -191,9 +191,9 @@ def _request_html(ctx, request, request_urls, nonav):
     is_action = isinstance(request, Action)
     if is_request and request_urls is None:
         request_urls = request.urls
-        relative_urls = True
+        reconstruct_urls = True
     else:
-        relative_urls = False
+        reconstruct_urls = False
 
     # Find all user types referenced by the action
     struct_types = {}
@@ -215,7 +215,7 @@ def _request_html(ctx, request, request_urls, nonav):
 
             # Request page header
             None if nonav else Element('div', _class='chsl-header', children=[
-                Element('a', inline=True, href=ctx.reconstruct_url(query_string=''), children=
+                Element('a', inline=True, href=ctx.reconstruct_url(query_string='', relative=True), children=
                         Element('Back to documentation index', text=True))
             ]),
             [
@@ -238,8 +238,11 @@ def _request_html(ctx, request, request_urls, nonav):
                     ]),
                     Element('ul', children=[
                         Element('li', inline=True, children=
-                                Element('a', href=ctx.reconstruct_url(path_info=url, query_string='') if relative_urls else url, children=
-                                        Element(url if method is None else method + ' ' + url, text=True)))
+                                Element(
+                                    'a',
+                                    href=ctx.reconstruct_url(path_info=url, query_string='', relative=True) if reconstruct_urls else url,
+                                    children=Element(url if method is None else method + ' ' + url, text=True)
+                                ))
                         for method, url in request_urls
                     ])
                 ]),
