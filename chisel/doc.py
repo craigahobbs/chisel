@@ -383,9 +383,9 @@ def _type_attr(type_, attr, optional, nullable):
     if nullable:
         type_attrs.append(('nullable', None, None))
     type_attrs.extend(_type_attr_helper(attr, type_name, 'len(' + type_name + ')'))
-    if hasattr(type_, 'key_type'):
+    if isinstance(type_, TypeDict):
         type_attrs.extend(_type_attr_helper(type_.key_attr, 'key', 'len(key)'))
-    if hasattr(type_, 'type'):
+    if isinstance(type_, (TypeArray, TypeDict)):
         type_attrs.extend(_type_attr_helper(type_.attr, 'elem', 'len(elem)'))
 
     return None if not type_attrs else Element('ul', _class='chsl-constraint-list', children=[

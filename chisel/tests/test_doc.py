@@ -533,21 +533,14 @@ The request is exposed at the following URLs:
       <tr>
         <th>Name</th>
         <th>Type</th>
-        <th>Attributes</th>
       </tr>
       <tr>
         <td>struct</td>
         <td><a href="#MyStruct">MyStruct</a></td>
-        <td />
       </tr>
       <tr>
         <td>typedef</td>
         <td><a href="#MyTypedef">MyTypedef</a></td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(elem)</span> &gt; 0</li>
-          </ul>
-        </td>
       </tr>
     </table>
     <h2 id="my_action1_output"><a class="linktarget">Output Parameters</a></h2>
