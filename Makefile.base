@@ -160,7 +160,7 @@ $(foreach X, $(PYTHON_URLS), $(eval $(call ENV_RULE, test, -e . -e .[tests], TES
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
-	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test
+	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
 	$(2) -m coverage html -d $(COVER)
 	$(2) -m coverage report
 	@echo
