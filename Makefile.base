@@ -177,10 +177,10 @@ ifneq "$(HAS_DOC)" ""
 	@echo Doc index is $(DOC)/html/index.html
 endif
 endef
-$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.5.1), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.5.3), DOC_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
 	$(2) -m pylint -j 0 $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
-$(eval $(call ENV_RULE, pylint, -e . pylint==1.6.4, PYLINT_COMMANDS_FN))
+$(eval $(call ENV_RULE, pylint, -e . pylint==1.6.5, PYLINT_COMMANDS_FN))
