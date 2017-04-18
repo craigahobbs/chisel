@@ -6,7 +6,7 @@ from .sub.subsub.submodule import my_action3 # pylint: disable=unused-import
 
 # Action callback used by test_app.py
 @chisel.action
-def my_action(ctx, dummy_req):
+def my_action(ctx, unused_req):
 
     # Log info and a warning
     ctx.log.debug('Some info')

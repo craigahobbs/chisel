@@ -93,7 +93,7 @@ class Action(Request):
             if self.doc_group is None:
                 self.doc_group = self.model.doc_group
 
-    def __call__(self, environ, dummy_start_response):
+    def __call__(self, environ, unused_start_response):
         ctx = environ[Environ.CTX]
 
         # Handle the action

@@ -263,7 +263,7 @@ class TypeArray(object):
     def validate(self, value, mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate and translate the value
-        if isinstance(value, list) or isinstance(value, tuple):
+        if isinstance(value, (list, tuple)):
             value_x = value
         elif mode == ValidationMode.QUERY_STRING and value == '':
             value_x = []
@@ -302,7 +302,7 @@ class TypeDict(object):
     @staticmethod
     def valid_key_type(key_type):
         key_type_base = Typedef.base_type(key_type)
-        return isinstance(key_type_base, _TypeString) or isinstance(key_type_base, TypeEnum)
+        return isinstance(key_type_base, (_TypeString, TypeEnum))
 
     def has_default_key_type(self):
         return isinstance(self.key_type, _TypeString)
@@ -379,7 +379,7 @@ class TypeEnum(object):
     def validate_attr(attr):
         attr.validate_attr()
 
-    def validate(self, value, dummy_mode=ValidationMode.DEFAULT, _member=()):
+    def validate(self, value, unused_mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate the value
         if value not in self.values():
@@ -398,7 +398,7 @@ class _TypeString(object):
     def validate_attr(attr):
         attr.validate_attr(allow_length=True)
 
-    def validate(self, value, dummy_mode=ValidationMode.DEFAULT, _member=()):
+    def validate(self, value, unused_mode=ValidationMode.DEFAULT, _member=()):
 
         # Validate the value
         if not isinstance(value, str):

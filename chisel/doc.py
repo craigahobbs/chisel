@@ -70,7 +70,7 @@ action {name}
         self.request = request
         self.request_urls = request_urls
 
-    def _action_callback(self, ctx, dummy_req):
+    def _action_callback(self, ctx, unused_req):
         return ctx.response_text(HTTPStatus.OK, self.content(ctx, self.request, self.request_urls), content_type='text/html')
 
     @staticmethod

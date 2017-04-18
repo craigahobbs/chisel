@@ -81,7 +81,7 @@ action my_action2
     def test_index(self):
 
         # Validate the HTML
-        status, dummy_headers, response = self.app.request('GET', '/doc')
+        status, unused_headers, response = self.app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -244,7 +244,7 @@ action my_action5
         app.add_request(Request(lambda environ, start_response: [], name='my_request1'))
         app.add_request(Request(lambda environ, start_response: [], name='my_request2', doc_group='My  Group   2'))
 
-        status, dummy_headers, response = app.request('GET', '/doc')
+        status, unused_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -391,7 +391,7 @@ ul.chsl-constraint-list {
     def test_action(self):
 
         # Validate the first my_action1's HTML
-        status, dummy_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action1'})
+        status, unused_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action1'})
         self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
@@ -749,7 +749,7 @@ A value
         self.assertEqual(html_expected, html)
 
         # Validate the my_action2's HTML
-        status, dummy_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action2'})
+        status, unused_headers, response = self.app.request('GET', '/doc', query_string={'name': 'my_action2'})
         self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
@@ -959,13 +959,13 @@ This is the request documentation.
 
 And some other important information.
 ''')
-        def my_request(dummy_environ, dummy_start_response):
+        def my_request(unused_environ, unused_start_response):
             pass
         application = Application()
         application.add_request(DocAction())
         application.add_request(my_request)
 
-        status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_request')
+        status, unused_headers, response = application.request('GET', '/doc', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
         html = response.decode('utf-8')
         html_expected = '''\
@@ -1118,13 +1118,13 @@ The request is exposed at the following URL:
         @request(doc='''
 This is the request documentation.
 ''')
-        def my_request(dummy_environ, dummy_start_response):
+        def my_request(unused_environ, unused_start_response):
             pass
         application = Application()
         application.add_request(DocAction())
         application.add_request(my_request)
 
-        status, dummy_headers, response = application.request('GET', '/doc', query_string='name=my_unknown_request')
+        status, unused_headers, response = application.request('GET', '/doc', query_string='name=my_unknown_request')
         self.assertEqual(status, '404 Not Found')
         self.assertEqual(response, b'Unknown Request')
 
@@ -1274,13 +1274,13 @@ action my_action
     output
         int c
 ''')
-        def my_action(dummy_ctx, req):
+        def my_action(unused_ctx, req):
             return {'c': req['a'] + req['b']}
 
         app.add_request(DocAction())
         app.add_request(DocPage(my_action))
 
-        status, dummy_headers, response = app.request('GET', '/doc')
+        status, unused_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1410,7 +1410,7 @@ ul.chsl-constraint-list {
 </html>'''
         self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc', query_string={'name': 'doc_my_action'})
+        status, unused_headers, response = app.request('GET', '/doc', query_string={'name': 'doc_my_action'})
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1567,7 +1567,7 @@ The action has no input parameters.
 </html>'''
         self.assertEqual(html_expected, html)
 
-        status, dummy_headers, response = app.request('GET', '/doc_my_action')
+        status, unused_headers, response = app.request('GET', '/doc_my_action')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1750,12 +1750,12 @@ action my_action
     output
         int c
 ''')
-        def my_action(dummy_ctx, req):
+        def my_action(unused_ctx, req):
             return {'c': req['a'] + req['b']}
 
         app.add_request(DocPage(my_action, request_urls=[('GET', 'https://foo.com/my_action')]))
 
-        status, dummy_headers, response = app.request('GET', '/doc_my_action')
+        status, unused_headers, response = app.request('GET', '/doc_my_action')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -1944,7 +1944,7 @@ struct MyOtherStruct
         app.add_request(DocAction())
         app.add_request(DocPage(parser.types['MyStruct']))
 
-        status, dummy_headers, response = app.request('GET', '/doc_MyStruct')
+        status, unused_headers, response = app.request('GET', '/doc_MyStruct')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -2132,7 +2132,7 @@ typedef MyStruct[len > 1] MyTypedef
         app.add_request(DocAction())
         app.add_request(DocPage(parser.types['MyTypedef']))
 
-        status, dummy_headers, response = app.request('GET', '/doc_MyTypedef')
+        status, unused_headers, response = app.request('GET', '/doc_MyTypedef')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\
@@ -2313,7 +2313,7 @@ enum MyEnum
         app.add_request(DocAction())
         app.add_request(DocPage(parser.types['MyEnum']))
 
-        status, dummy_headers, response = app.request('GET', '/doc_MyEnum')
+        status, unused_headers, response = app.request('GET', '/doc_MyEnum')
         html = response.decode('utf-8')
         self.assertEqual(status, '200 OK')
         html_expected = '''\

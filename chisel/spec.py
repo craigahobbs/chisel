@@ -205,7 +205,7 @@ class SpecParser(object):
                 def_type = 'union' if struct_type.union else 'struct'
             self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
 
-    def _validate_enum_base_type(self, dummy_enum_type, base_type, filename, linenum, def_type=None):
+    def _validate_enum_base_type(self, unused_enum_type, base_type, filename, linenum, def_type=None):
         if not isinstance(Typedef.base_type(base_type), TypeEnum):
             if def_type is None:
                 def_type = 'enum'

@@ -68,7 +68,7 @@ class TestApplication(unittest.TestCase):
         self.assertIn('A warning...', environ['wsgi.errors'].getvalue())
 
     def test_call_generator(self):
-        def generator_response(environ, dummy_start_response):
+        def generator_response(environ, unused_start_response):
             def response():
                 yield 'Hello'.encode('utf-8')
                 yield 'World'.encode('utf-8')
@@ -86,7 +86,7 @@ class TestApplication(unittest.TestCase):
 
     def test_call_string_response(self):
 
-        def string_response(environ, dummy_start_response):
+        def string_response(environ, unused_start_response):
             ctx = environ[Environ.CTX]
             return ctx.response(HTTPStatus.OK, 'text/plain', 'Hello World')
 
@@ -179,11 +179,11 @@ class TestApplication(unittest.TestCase):
                 return record.getMessage()
 
             @staticmethod
-            def formatTime(record, dummy_datefmt=None): # pylint: disable=invalid-name
+            def formatTime(record, unused_datefmt=None): # pylint: disable=invalid-name
                 return record.getMessage()
 
             @staticmethod
-            def formatException(dummy_exc_info): # pylint: disable=invalid-name
+            def formatException(unused_exc_info): # pylint: disable=invalid-name
                 return 'Bad'
 
         app = Application()
@@ -199,26 +199,26 @@ class TestApplication(unittest.TestCase):
 
     def test_nested_requests(self):
 
-        def request1(environ, dummy_start_response):
+        def request1(environ, unused_start_response):
             ctx = environ[Environ.CTX]
             return ctx.response_text(HTTPStatus.OK, '7')
 
-        def request2(environ, dummy_start_response):
+        def request2(environ, unused_start_response):
             ctx = environ[Environ.CTX]
-            dummy_status, dummy_headers, response = ctx.app.request('GET', '/request1')
+            unused_status, unused_headers, response = ctx.app.request('GET', '/request1')
             return ctx.response_text(HTTPStatus.OK, str(5 + int(response)))
 
         app = Application()
         app.add_request(Request(request1))
         app.add_request(Request(request2))
 
-        status, dummy_headers, response = app.request('GET', '/request2')
+        status, unused_headers, response = app.request('GET', '/request2')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
 
     def test_request_exception(self):
 
-        def request1(dummy_environ, dummy_start_response):
+        def request1(unused_environ, unused_start_response):
             raise Exception('')
 
         app = Application()
@@ -237,29 +237,29 @@ action my_action1
   output
     int number
 ''')
-        def my_action1(dummy_ctx, dummy_req):
+        def my_action1(unused_ctx, unused_req):
             return {'number': 1}
 
-        @action(urls=[('GET', '/action/{dummy_number}')],
+        @action(urls=[('GET', '/action/{unused_number}')],
                 spec='''\
 action my_action2
   input
-    int dummy_number
+    int unused_number
   output
     int number
 ''')
-        def my_action2(dummy_ctx, dummy_req):
+        def my_action2(unused_ctx, unused_req):
             return {'number': 2}
 
         app = Application()
         app.add_request(my_action1)
         app.add_request(my_action2)
 
-        status, dummy_headers, response = app.request('GET', '/action/1')
+        status, unused_headers, response = app.request('GET', '/action/1')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"number":2}')
 
-        status, dummy_headers, response = app.request('POST', '/action/1', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('POST', '/action/1', wsgi_input=b'{}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"number":1}')
 
@@ -269,29 +269,29 @@ action my_action2
                 spec='''\
 action my_action
 ''')
-        def my_action(dummy_ctx, dummy_req):
+        def my_action(unused_ctx, unused_req):
             pass
 
         app = Application()
         app.add_request(my_action)
 
-        status, dummy_headers, response = app.request('GET', '/my_action')
+        status, unused_headers, response = app.request('GET', '/my_action')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{}')
 
-        status, dummy_headers, response = app.request('POST', '/my_action/', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('POST', '/my_action/', wsgi_input=b'{}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{}')
 
-        status, dummy_headers, response = app.request('GET', '/my_action/')
+        status, unused_headers, response = app.request('GET', '/my_action/')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
-        status, dummy_headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
-        status, dummy_headers, response = app.request('PUT', '/my_action', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('PUT', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
@@ -306,29 +306,29 @@ action my_action
   output
     int sum
 ''')
-        def my_action(dummy_ctx, req):
+        def my_action(unused_ctx, req):
             return {'sum': req['a'] + req['b']}
 
         app = Application()
         app.add_request(my_action)
 
-        status, dummy_headers, response = app.request('GET', '/my_action/3/4')
+        status, unused_headers, response = app.request('GET', '/my_action/3/4')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 
-        status, dummy_headers, response = app.request('POST', '/my_action/3/4/', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('POST', '/my_action/3/4/', wsgi_input=b'{}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 
-        status, dummy_headers, response = app.request('GET', '/my_action/3/4/')
+        status, unused_headers, response = app.request('GET', '/my_action/3/4/')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
-        status, dummy_headers, response = app.request('POST', '/my_action/3/4', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('POST', '/my_action/3/4', wsgi_input=b'{}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
-        status, dummy_headers, response = app.request('PUT', '/my_action/3/4', wsgi_input=b'{}')
+        status, unused_headers, response = app.request('PUT', '/my_action/3/4', wsgi_input=b'{}')
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(response, b'Method Not Allowed')
 
@@ -343,13 +343,13 @@ action my_action
   output
     int sum
 ''')
-        def my_action(dummy_ctx, req):
+        def my_action(unused_ctx, req):
             return {'sum': req['number_one'] + req['number_two']}
 
         app = Application()
         app.add_request(my_action)
 
-        status, dummy_headers, response = app.request('GET', '/my_action/3/4')
+        status, unused_headers, response = app.request('GET', '/my_action/3/4')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'{"sum":7}')
 

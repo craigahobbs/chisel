@@ -19,7 +19,7 @@ class JSONEncoder(json_JSONEncoder):
     JSON encoder class with support for encoding date, datetime, Decimal, and UUID.
     """
 
-    def default(self, obj): # pylint: disable=method-hidden
+    def default(self, obj): # pylint: disable=arguments-differ,method-hidden
         if isinstance(obj, datetime):
             return (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
         elif isinstance(obj, date):

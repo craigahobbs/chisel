@@ -16,7 +16,7 @@ class TestAction(unittest.TestCase):
     def test_decorator(self):
 
         @action
-        def my_action_default(dummy_app, dummy_req):
+        def my_action_default(unused_app, unused_req):
             return {}
 
         self.assertTrue(isinstance(my_action_default, Action))
@@ -37,7 +37,7 @@ action my_action_default
     def test_decorator_unknown_action(self):
 
         @action
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         self.assertTrue(isinstance(my_action, Action))
@@ -57,7 +57,7 @@ action my_action_default
         @action(spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         self.assertTrue(isinstance(my_action, Action))
@@ -79,7 +79,7 @@ action my_action
 action my_action
 ''')
         @action(spec=parser)
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         self.assertTrue(isinstance(my_action, Action))
@@ -100,10 +100,10 @@ action my_action
             @action(spec='''\
 action my_action
 ''')
-            def dummy_my_action(dummy_app, dummy_req):
+            def unused_my_action(unused_app, unused_req):
                 return {}
         except AssertionError as exc:
-            self.assertEqual(str(exc), 'Unknown action "dummy_my_action"')
+            self.assertEqual(str(exc), 'Unknown action "unused_my_action"')
         else:
             self.fail()
 
@@ -113,7 +113,7 @@ action my_action
             @action(spec='''\
 asdfasdf
 ''')
-            def dummy_my_action(dummy_app, dummy_req):
+            def unused_my_action(unused_app, unused_req):
                 return {}
         except SpecParserError as exc:
             self.assertEqual(str(exc), ':1: error: Syntax error')
@@ -127,7 +127,7 @@ asdfasdf
 action theActionOther
 action theAction
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         self.assertTrue(isinstance(my_action, Action))
@@ -146,7 +146,7 @@ action theAction
 
         # Action decorator with urls, custom response callback, and validate response bool
         @action(urls=('/foo',), wsgi_response=True)
-        def my_action_default(ctx, dummy_req):
+        def my_action_default(ctx, unused_req):
             return ctx.response_text(HTTPStatus.OK)
 
         app = Application()
@@ -171,7 +171,7 @@ action my_action
   output
     int c
 ''')
-        def my_action(dummy_app, req):
+        def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
 
         app = Application()
@@ -193,7 +193,7 @@ action my_action
   output
     int c
 ''')
-        def my_action(dummy_app, req):
+        def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
 
         app = Application()
@@ -216,7 +216,7 @@ action my_action
   output
     int c
 ''')
-        def my_action(dummy_app, req):
+        def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
 
         app = Application()
@@ -238,7 +238,7 @@ action my_action
   output
     int c
 ''')
-        def my_action(dummy_app, req):
+        def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
 
         app = Application()
@@ -279,7 +279,7 @@ action my_action
         @action(spec='''\
 action my_action
 ''')
-        def my_action(ctx, dummy_req):
+        def my_action(ctx, unused_req):
             ctx.add_header('MyHeader', 'MyInitialValue')
             ctx.add_header('MyHeader', 'MyValue')
             return {}
@@ -321,7 +321,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {'error': 'MyError'}
 
         app = Application()
@@ -340,7 +340,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise ActionError('MyError', message='My message')
 
         app = Application()
@@ -359,7 +359,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise ActionError('MyError')
 
         app = Application()
@@ -378,7 +378,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise ActionError('MyError', 'My message')
 
         app = Application()
@@ -397,7 +397,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise ActionError('MyError', message='My message', status=HTTPStatus.NOT_FOUND)
 
         app = Application()
@@ -416,7 +416,7 @@ action my_action
   errors
     MyError
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise ActionError('MyBadError')
 
         app = Application()
@@ -437,7 +437,7 @@ action my_action
   input
     int a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         app = Application()
@@ -456,7 +456,7 @@ action my_action
   input
     int a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         app = Application()
@@ -475,7 +475,7 @@ action my_action
   input
     int a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         app = Application()
@@ -494,7 +494,7 @@ action my_action
   input
     string a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         app = Application()
@@ -515,7 +515,7 @@ action my_action
   output
     int a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {'a': 'asdf'}
 
         app = Application()
@@ -534,7 +534,7 @@ action my_action
         @action(spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             pass
 
         app = Application()
@@ -551,7 +551,7 @@ action my_action
         @action(spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return []
 
         app = Application()
@@ -570,7 +570,7 @@ action my_action
         @action(spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise Exception('My unexpected error')
 
         app = Application()
@@ -587,7 +587,7 @@ action my_action
         @action(spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {}
 
         app = Application()
@@ -614,7 +614,7 @@ action my_action
   output
     float a
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             return {'a': MyClass()}
 
         app = Application()
@@ -632,7 +632,7 @@ action my_action
         @action(wsgi_response=True, spec='''\
 action my_action
 ''')
-        def my_action(dummy_app, dummy_req):
+        def my_action(unused_app, unused_req):
             raise Exception('FAIL')
 
         app = Application()
