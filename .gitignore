@@ -1,11 +1,7 @@
-*~
-*.pyc
-*.so
 *.egg-info
-.build
-.env
-.cover
+*~
 .coverage
-build
-dist
-doc/_build
+__pycache__/
+build/
+dist/
+doc/_build/
