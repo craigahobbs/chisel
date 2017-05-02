@@ -140,8 +140,6 @@ class Element(object):
     def _iterate_children_helper(cls, children):
         if isinstance(children, Element):
             yield children
-        elif callable(children):
-            yield children()
         elif children is not None:
             for child in children:
                 if isinstance(child, Element):
