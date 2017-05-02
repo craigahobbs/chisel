@@ -14,7 +14,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request)
         self.assertEqual(req.wsgi_callback, my_request)
@@ -28,7 +28,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, name='foo')
         self.assertEqual(req.wsgi_callback, my_request)
@@ -41,7 +41,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, method='Get')
         self.assertEqual(req.wsgi_callback, my_request)
@@ -54,7 +54,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, method=('Get', 'POST'), urls=[None, '/other', ('PUT', None), ('DELETE', '/delete'), (None, '/all')])
         self.assertEqual(req.wsgi_callback, my_request)
@@ -75,7 +75,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
@@ -88,7 +88,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, method='Get', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
@@ -101,7 +101,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
@@ -114,7 +114,7 @@ class TestRequest(unittest.TestCase):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         req = Request(my_request, doc=('doc line 1', 'doc line 2'))
         self.assertEqual(req.wsgi_callback, my_request)
@@ -150,7 +150,7 @@ class TestRequest(unittest.TestCase):
         @request
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
@@ -187,7 +187,7 @@ class TestRequest(unittest.TestCase):
         @request(name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'], doc=('doc line 1', 'doc line 2'))
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
-            assert hasattr(start_response, '__call__')
+            assert callable(start_response)
             return ['ok']
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request.name, 'foo')

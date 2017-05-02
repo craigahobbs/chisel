@@ -154,7 +154,7 @@ class Context(object):
             handler = logging.NullHandler()
         else:
             handler = logging.StreamHandler(wsgi_errors)
-        if hasattr(app.log_format, '__call__'):
+        if callable(app.log_format):
             handler.setFormatter(app.log_format(self))
         else:
             handler.setFormatter(logging.Formatter(app.log_format))
