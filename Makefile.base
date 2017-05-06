@@ -59,12 +59,12 @@ clean: _clean
 .PHONY: _clean
 _clean:
 	rm -rf \
-		$(BUILD) \
+		$(BUILD_COV) \
 		$(BUILD_DOC) \
+		$(BUILD_ENV) \
 		.coverage \
 		.makefile \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
-		build \
 		dist \
 		*.egg-info \
 		*.egg
@@ -75,7 +75,7 @@ superclean: clean _superclean
 .PHONY: _superclean
 _superclean:
 	rm -rf \
-		$(BUILD_SYS)
+		$(BUILD)
 
 .PHONY: setup
 setup: _setup
