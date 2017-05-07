@@ -3,9 +3,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+from http import HTTPStatus
 import unittest
 
-from chisel import HTTPStatus, request, Request
+from chisel import request, Request
 
 
 class TestRequest(unittest.TestCase):

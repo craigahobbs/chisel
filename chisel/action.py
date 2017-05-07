@@ -4,9 +4,10 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from cgi import parse_header
+from http import HTTPStatus
 from json import loads as json_loads
 
-from .app_defs import Environ, HTTPStatus
+from .app_defs import Environ
 from .model import ValidationError, ValidationMode, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser

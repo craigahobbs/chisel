@@ -4,11 +4,12 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from datetime import datetime, timedelta
+from http import HTTPStatus
 import logging
 import re
 from urllib.parse import quote, unquote
 
-from .app_defs import Environ, HTTPStatus, StartResponse
+from .app_defs import Environ, StartResponse
 from .request import Request
 from .spec import SpecParser
 from .url import encode_query_string

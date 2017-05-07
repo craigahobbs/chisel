@@ -4,6 +4,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from datetime import datetime
+from http import HTTPStatus
 from io import StringIO
 import logging
 import os
@@ -12,7 +13,7 @@ import types
 import unittest
 import unittest.mock
 
-from chisel import action, Application, Context, Environ, HTTPStatus, Request
+from chisel import action, Application, Context, Environ, Request
 from chisel.app_defs import StartResponse
 
 

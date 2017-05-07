@@ -3,7 +3,6 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-from enum import IntEnum
 from io import BytesIO
 
 from .url import encode_query_string
@@ -29,25 +28,6 @@ class Environ(object):
         environ.setdefault('wsgi.input', BytesIO(wsgi_input))
         environ.setdefault('wsgi.url_scheme', 'http')
         return environ
-
-
-class HTTPStatus(IntEnum):
-    """HTTP status codes"""
-
-    def __new__(cls, value, phrase):
-        obj = int.__new__(cls, value)
-        obj._value_ = value # pylint: disable=protected-access
-        obj.phrase = phrase
-        return obj
-
-    OK = 200, 'OK'  # pylint: disable=invalid-name
-    MOVED_PERMANENTLY = 301, 'Moved Permanently'
-    NOT_MODIFIED = 304, 'Not Modified'
-    BAD_REQUEST = 400, 'Bad Request'
-    UNAUTHORIZED = 401, 'Unauthorized'
-    NOT_FOUND = 404, 'Not Found'
-    METHOD_NOT_ALLOWED = 405, 'Method Not Allowed'
-    INTERNAL_SERVER_ERROR = 500, 'Internal Server Error'
 
 
 class StartResponse(object):

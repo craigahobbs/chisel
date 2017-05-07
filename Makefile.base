@@ -34,7 +34,6 @@ ifndef PYTHON_URLS
 PYTHON_URLS := \
     https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tgz \
     https://www.python.org/ftp/python/3.6.1/Python-3.6.1.tgz \
-    https://www.python.org/ftp/python/3.4.6/Python-3.4.6.tgz \
     $(PYTHON_URLS_EXTRA)
 endif
 

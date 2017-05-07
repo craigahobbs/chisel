@@ -3,10 +3,11 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+from http import HTTPStatus
 import re
 import unittest
 
-from chisel import action, Action, ActionError, Application, HTTPStatus, Request, SpecParser, SpecParserError
+from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
 from chisel.spec import ActionModel
 
 

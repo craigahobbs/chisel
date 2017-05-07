@@ -4,12 +4,12 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from html import escape
+from http import HTTPStatus
 from itertools import chain
 import re
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
-from .app_defs import HTTPStatus
 from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 from .request import Request
 

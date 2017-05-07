@@ -15,8 +15,7 @@ from .app import \
     Context
 
 from .app_defs import \
-    Environ, \
-    HTTPStatus
+    Environ
 
 from .doc import \
     DocAction, \
