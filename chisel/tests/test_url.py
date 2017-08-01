@@ -205,7 +205,7 @@ class TestUrl(unittest.TestCase):
 
         # Keys and values with special characters
         obj = {'a&b=c.d': 'a&b=c.d'}
-        query_string = 'a%26b%3Dc.d=a%26b%3Dc.d'
+        query_string = 'a&b=c.d=a%26b%3Dc.d'
         self.assertEqual(encode_query_string(obj), query_string)
 
         # Unicode keys and values

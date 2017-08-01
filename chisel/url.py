@@ -11,37 +11,36 @@ from .util import TZLOCAL
 
 
 # Encode an object as a URL query string
-def _encode_query_string_flatten(obj, parent, encoding):
+def encode_query_string(obj, encoding='utf-8'):
+    return '&'.join(k + '=' + v for k, v in encode_query_string_items(obj, encoding=encoding))
+
+
+def encode_query_string_items(obj, parent=None, encoding=None):
     if isinstance(obj, dict):
         if obj:
-            for member in obj:
-                yield from _encode_query_string_flatten(obj[member], parent + (quote(member, encoding=encoding),), encoding)
+            for member, value in sorted(obj.items()):
+                yield from encode_query_string_items(value, parent=parent + '.' + member if parent else member, encoding=encoding)
         elif parent:
-            yield (parent, '')
+            yield parent, ''
     elif isinstance(obj, (list, tuple)):
         if obj:
             for idx, value in enumerate(obj):
-                yield from _encode_query_string_flatten(value, parent + (quote(str(idx), encoding=encoding),), encoding)
+                yield from encode_query_string_items(value, parent=parent + '.' + str(idx) if parent else str(idx), encoding=encoding)
         elif parent:
-            yield (parent, '')
+            yield parent, ''
     else:
-        if isinstance(obj, date):
-            ostr = obj.isoformat()
-        elif isinstance(obj, datetime):
-            ostr = (obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat()
+        if isinstance(obj, datetime):
+            yield parent, quote((obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat(), encoding=encoding)
+        elif isinstance(obj, date):
+            yield parent, obj.isoformat() # quote safe
         elif isinstance(obj, UUID):
-            ostr = str(obj)
+            yield parent, str(obj) # quote safe
         elif isinstance(obj, bool):
-            ostr = 'true' if obj else 'false'
+            yield parent, 'true' if obj else 'false' # quote safe
         elif obj is None:
-            ostr = 'null'
+            yield parent, 'null' # quote safe
         else:
-            ostr = obj if isinstance(obj, str) else str(obj)
-        yield (parent, quote(ostr, encoding=encoding))
-
-def encode_query_string(obj, encoding='utf-8'):
-    return '&'.join('='.join(('.'.join(k), v)) for k, v in
-                    sorted(_encode_query_string_flatten(obj, (), encoding)))
+            yield parent, quote(str(obj), encoding=encoding)
 
 
 # Decode an object from a URL query string
