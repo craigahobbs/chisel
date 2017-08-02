@@ -6,8 +6,10 @@
 from datetime import date, datetime
 import unittest
 from uuid import UUID
+from urllib.parse import quote
 
-from chisel import decode_query_string, encode_query_string, TZUTC
+from chisel import decode_query_string, encode_query_string, TZLOCAL, TZUTC
+from chisel.url import encode_query_string_items
 
 
 class TestUrl(unittest.TestCase):
@@ -205,7 +207,7 @@ class TestUrl(unittest.TestCase):
 
         # Keys and values with special characters
         obj = {'a&b=c.d': 'a&b=c.d'}
-        query_string = 'a&b=c.d=a%26b%3Dc.d'
+        query_string = 'a%26b%3Dc.d=a%26b%3Dc.d'
         self.assertEqual(encode_query_string(obj), query_string)
 
         # Unicode keys and values
@@ -234,6 +236,13 @@ class TestUrl(unittest.TestCase):
         query_string = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encode_query_string(obj), query_string)
 
+    # Test naive datetime query string encoding
+    def test_encode_query_string_datetime_naive(self): # pylint: disable=invalid-name
+
+        obj = {'a': datetime(2013, 7, 18, 12, 31)}
+        query_string = 'a=' + quote(obj['a'].replace(tzinfo=TZLOCAL).isoformat(), encoding='utf-8')
+        self.assertEqual(encode_query_string(obj), query_string)
+
     # Test uuid query string encoding
     def test_encode_query_string_uuid(self):
 
@@ -247,3 +256,51 @@ class TestUrl(unittest.TestCase):
         obj = {'a': None}
         query_string = 'a=null'
         self.assertEqual(encode_query_string(obj), query_string)
+
+    def test_encode_query_string_items(self):
+
+        obj = {}
+        self.assertListEqual(list(encode_query_string_items(obj)), [])
+
+        obj = {
+            'bool': True,
+            'int': 19,
+            'datetime': datetime(2017, 8, 2, 8, 12, 0, tzinfo=TZUTC),
+            'date': date(2017, 8, 2),
+            'uuid': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e'),
+            'none': None,
+            'float': 3.1459,
+            'a&b=c': 'a&b=c', # string
+            'list': [1, 2, 3],
+            'dict': {'a': 1, 'b': 2}
+        }
+        self.assertListEqual(list(encode_query_string_items(obj)), [
+            ('a&b=c', 'a&b=c'),
+            ('bool', 'true'),
+            ('date', '2017-08-02'),
+            ('datetime', '2017-08-02T08:12:00+00:00'),
+            ('dict.a', '1'),
+            ('dict.b', '2'),
+            ('float', '3.1459'),
+            ('int', '19'),
+            ('list.0', '1'),
+            ('list.1', '2'),
+            ('list.2', '3'),
+            ('none', 'null'),
+            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
+        ])
+        self.assertListEqual(list(encode_query_string_items(obj, encoding='utf-8')), [
+            ('a%26b%3Dc', 'a%26b%3Dc'),
+            ('bool', 'true'),
+            ('date', '2017-08-02'),
+            ('datetime', '2017-08-02T08%3A12%3A00%2B00%3A00'),
+            ('dict.a', '1'),
+            ('dict.b', '2'),
+            ('float', '3.1459'),
+            ('int', '19'),
+            ('list.0', '1'),
+            ('list.1', '2'),
+            ('list.2', '3'),
+            ('none', 'null'),
+            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
+        ])

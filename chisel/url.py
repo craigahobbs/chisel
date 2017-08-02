@@ -19,28 +19,35 @@ def encode_query_string_items(obj, parent=None, encoding=None):
     if isinstance(obj, dict):
         if obj:
             for member, value in sorted(obj.items()):
-                yield from encode_query_string_items(value, parent=parent + '.' + member if parent else member, encoding=encoding)
+                member_quoted = quote(str(member), encoding=encoding) if encoding else str(member)
+                parent_member = parent + '.' + member_quoted if parent else member_quoted
+                yield from encode_query_string_items(value, parent=parent_member, encoding=encoding)
         elif parent:
             yield parent, ''
     elif isinstance(obj, (list, tuple)):
         if obj:
             for idx, value in enumerate(obj):
-                yield from encode_query_string_items(value, parent=parent + '.' + str(idx) if parent else str(idx), encoding=encoding)
+                parent_member = parent + '.' + str(idx) if parent else str(idx)
+                yield from encode_query_string_items(value, parent=parent_member, encoding=encoding)
         elif parent:
             yield parent, ''
     else:
-        if isinstance(obj, datetime):
-            yield parent, quote((obj if obj.tzinfo else obj.replace(tzinfo=TZLOCAL)).isoformat(), encoding=encoding)
+        if isinstance(obj, bool):
+            yield parent, 'true' if obj else 'false' # quote safe
+        elif isinstance(obj, int):
+            yield parent, str(obj) # quote safe
+        elif isinstance(obj, datetime):
+            if not obj.tzinfo:
+                obj = obj.replace(tzinfo=TZLOCAL)
+            yield parent, quote(obj.isoformat(), encoding=encoding) if encoding else obj.isoformat()
         elif isinstance(obj, date):
             yield parent, obj.isoformat() # quote safe
         elif isinstance(obj, UUID):
             yield parent, str(obj) # quote safe
-        elif isinstance(obj, bool):
-            yield parent, 'true' if obj else 'false' # quote safe
         elif obj is None:
             yield parent, 'null' # quote safe
-        else:
-            yield parent, quote(str(obj), encoding=encoding)
+        else: # str, float
+            yield parent, quote(str(obj), encoding=encoding) if encoding else str(obj)
 
 
 # Decode an object from a URL query string
