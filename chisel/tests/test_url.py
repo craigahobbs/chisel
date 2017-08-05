@@ -9,7 +9,7 @@ from uuid import UUID
 from urllib.parse import quote
 
 from chisel import decode_query_string, encode_query_string, TZLOCAL, TZUTC
-from chisel.url import encode_query_string_items
+from chisel.url import encode_query_string_items, decode_query_string_items
 
 
 class TestUrl(unittest.TestCase):
@@ -157,6 +157,67 @@ class TestUrl(unittest.TestCase):
         # First list, then dict
         query_string = 'a.0=0&a.b=0'
         assert_decode_error(query_string, "Invalid key/value pair 'a.b=0'")
+
+    def test_decode_query_string_items(self):
+
+        query_string_items = []
+        self.assertDictEqual(decode_query_string_items(query_string_items), {})
+
+        query_string_items = [
+            ('a&b=c', 'a&b=c'),
+            ('bool', 'true'),
+            ('date', '2017-08-02'),
+            ('datetime', '2017-08-02T08:12:00+00:00'),
+            ('dict.a', '1'),
+            ('dict.b', '2'),
+            ('float', '3.1459'),
+            ('int', '19'),
+            ('list.0', '1'),
+            ('list.1', '2'),
+            ('list.2', '3'),
+            ('none', 'null'),
+            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
+        ]
+        self.assertDictEqual(decode_query_string_items(query_string_items), {
+            'a&b=c': 'a&b=c',
+            'bool': 'true',
+            'date': '2017-08-02',
+            'datetime': '2017-08-02T08:12:00+00:00',
+            'dict': {'a': '1', 'b': '2'},
+            'float': '3.1459',
+            'int': '19',
+            'list': ['1', '2', '3'],
+            'none': 'null',
+            'uuid': '7da81f83-a656-42f1-aeb3-ab207809fb0e'
+        })
+
+        query_string_items = [
+            ('a%26b%3Dc', 'a%26b%3Dc'),
+            ('bool', 'true'),
+            ('date', '2017-08-02'),
+            ('datetime', '2017-08-02T08%3A12%3A00%2B00%3A00'),
+            ('dict.a', '1'),
+            ('dict.b', '2'),
+            ('float', '3.1459'),
+            ('int', '19'),
+            ('list.0', '1'),
+            ('list.1', '2'),
+            ('list.2', '3'),
+            ('none', 'null'),
+            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
+        ]
+        self.assertDictEqual(decode_query_string_items(query_string_items, encoding='utf-8'), {
+            'a&b=c': 'a&b=c',
+            'bool': 'true',
+            'date': '2017-08-02',
+            'datetime': '2017-08-02T08:12:00+00:00',
+            'dict': {'a': '1', 'b': '2'},
+            'float': '3.1459',
+            'int': '19',
+            'list': ['1', '2', '3'],
+            'none': 'null',
+            'uuid': '7da81f83-a656-42f1-aeb3-ab207809fb0e'
+        })
 
     def test_encode_query_string(self):
 

@@ -52,25 +52,29 @@ def encode_query_string_items(obj, parent=None, encoding=None):
 
 # Decode an object from a URL query string
 def decode_query_string(query_string, encoding='utf-8'):
+    return decode_query_string_items(
+        (key_value_str.split('=') for key_value_str in query_string.split('&') if key_value_str),
+        encoding=encoding
+    )
+
+
+def decode_query_string_items(query_string_items, encoding=None):
 
     # Build the object
     result = [None]
-    for key_value_str in query_string.split('&'):
-
-        # Ignore empty key/value strings
-        if not key_value_str:
-            continue
+    for key_value in query_string_items:
 
         # Split the key/value string
-        key_value = key_value_str.split('=')
-        if len(key_value) != 2:
-            raise ValueError("Invalid key/value pair '" + key_value_str + "'")
-        value = unquote(key_value[1], encoding=encoding)
+        try:
+            key_str, value_str = key_value
+            value = unquote(value_str, encoding=encoding) if encoding else value_str
+        except ValueError:
+            raise ValueError("Invalid key/value pair '" + '='.join(key_value) + "'")
 
         # Find/create the object on which to set the value
         parent = result
         key_parent = 0
-        for key in (unquote(key, encoding=encoding) for key in key_value[0].split('.')):
+        for key in (unquote(key, encoding=encoding) if encoding else key for key in key_str.split('.')):
             obj = parent[key_parent]
 
             # Array key?  First "key" of an array must start with "0".
@@ -84,11 +88,11 @@ def decode_query_string(query_string, encoding='utf-8'):
                 try:
                     key = int(key)
                 except:
-                    raise ValueError("Invalid key/value pair '" + key_value_str + "'")
+                    raise ValueError("Invalid key/value pair '" + '='.join(key_value) + "'")
                 if key == len(obj):
                     obj.append(None)
                 elif key < 0 or key > len(obj):
-                    raise ValueError("Invalid key/value pair '" + key_value_str + "'")
+                    raise ValueError("Invalid key/value pair '" + '='.join(key_value) + "'")
 
             # Dictionary key
             else:
@@ -107,7 +111,7 @@ def decode_query_string(query_string, encoding='utf-8'):
 
         # Set the value
         if parent[key_parent] is not None:
-            raise ValueError("Duplicate key '" + key_value_str + "'")
+            raise ValueError("Duplicate key '" + '='.join(key_value) + "'")
         parent[key_parent] = value
 
     return result[0] if (result[0] is not None) else {}
