@@ -91,9 +91,13 @@ class TestUrl(unittest.TestCase):
             else:
                 self.fail()
 
-        # Key with no equal - assume empty string
+        # Key with no equal
         query_string = 'a=7&b'
         assert_decode_error(query_string, "Invalid key/value pair 'b'")
+
+        # Key with no equal - long key/value
+        query_string = 'a=7&' + 'b' * 2000
+        assert_decode_error(query_string, "Invalid key/value pair '" + 'b' * 999)
 
         # Empty string key
         query_string = 'a=7&=b'
@@ -142,6 +146,10 @@ class TestUrl(unittest.TestCase):
         query_string = 'abc=21&ab=19&abc=17'
         assert_decode_error(query_string, "Duplicate key 'abc=17'")
 
+        # Duplicate keys - long key/value
+        query_string = 'a' * 2000 + '=21&ab=19&' + 'a' * 2000 + '=17'
+        assert_decode_error(query_string, "Duplicate key '" + 'a' * 999)
+
         # Duplicate index
         query_string = 'a.0=0&a.1=1&a.0=2'
         assert_decode_error(query_string, "Duplicate key 'a.0=2'")
@@ -150,6 +158,10 @@ class TestUrl(unittest.TestCase):
         query_string = 'a.0=0&a.1=1&a.3=3'
         assert_decode_error(query_string, "Invalid key/value pair 'a.3=3'")
 
+        # Index too large - long key/value
+        query_string = 'a' * 2000 + '.0=0&' + 'a' * 2000 + '.1=1&' + 'a' * 2000 + '.3=3'
+        assert_decode_error(query_string, "Invalid key/value pair '" + 'a' * 999)
+
         # Negative index
         query_string = 'a.0=0&a.1=1&a.-3=3'
         assert_decode_error(query_string, "Invalid key/value pair 'a.-3=3'")
@@ -157,6 +169,10 @@ class TestUrl(unittest.TestCase):
         # First list, then dict
         query_string = 'a.0=0&a.b=0'
         assert_decode_error(query_string, "Invalid key/value pair 'a.b=0'")
+
+        # First list, then dict - long key/value
+        query_string = 'a' * 2000 + '.0=0&' + 'a' * 2000 + '.b=0'
+        assert_decode_error(query_string, "Invalid key/value pair '" + 'a' * 999)
 
     def test_decode_query_string_items(self):
 

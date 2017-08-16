@@ -48,6 +48,14 @@ class TestModelValidationError(unittest.TestCase):
         self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
         self.assertEqual(exc.member, 'a')
 
+    def test_member_error_long(self):
+
+        exc = ValidationError.member_error(TYPE_INT, 'abc' * 1000, ('a',))
+        self.assertTrue(isinstance(exc, Exception))
+        self.assertTrue(isinstance(exc, ValidationError))
+        self.assertEqual(str(exc), "Invalid value '" + 'abc' * 333 + " (type 'str') for member 'a', expected type 'int'")
+        self.assertEqual(exc.member, 'a')
+
     def test_member_error_no_member(self):
 
         exc = ValidationError.member_error(TYPE_INT, 'abc', ())
@@ -737,6 +745,21 @@ class TestModelStructValidation(unittest.TestCase):
                 type_.validate(obj, mode)
             except ValidationError as exc:
                 self.assertEqual(str(exc), "Unknown member 'b'")
+            else:
+                self.fail()
+
+    # All validation modes - error - long unknown member
+    def test_validation_error_unknown_member_long(self): # pylint: disable=invalid-name
+
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+
+        obj = {'a': 7, 'b' * 2000: 8}
+        for mode in ValidationMode:
+            try:
+                type_.validate(obj, mode)
+            except ValidationError as exc:
+                self.assertEqual(str(exc), "Unknown member '" + 'b' * 99)
             else:
                 self.fail()
 

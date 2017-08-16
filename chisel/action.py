@@ -128,16 +128,16 @@ class Action(Request):
                 try:
                     request_query_string = decode_query_string(query_string)
                 except Exception as exc:
-                    ctx.log.warning("Error decoding query string for action '%s': %s", self.name, environ.get('QUERY_STRING', ''))
+                    ctx.log.warning("Error decoding query string for action '%s': %.1000r", self.name, environ.get('QUERY_STRING', ''))
                     raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc))
 
                 for request_key, request_value in request_query_string.items():
                     if request_key in request:
-                        ctx.log.warning("Duplicate query string argument member '%s' for action '%s'", request_key, self.name)
+                        ctx.log.warning("Duplicate query string argument member %.100r for action '%s'", request_key, self.name)
                         raise _ActionErrorInternal(
                             HTTPStatus.BAD_REQUEST,
                             'InvalidInput',
-                            message="Duplicate query string argument member '{0}'".format(request_key)
+                            message="Duplicate query string argument member {0!r:.100s}".format(request_key)
                         )
                     request[request_key] = request_value
 
@@ -146,11 +146,11 @@ class Action(Request):
                 validation_mode = ValidationMode.QUERY_STRING
                 for url_arg, url_value in ctx.url_args.items():
                     if url_arg in request:
-                        ctx.log.warning("Duplicate URL argument member '%s' for action '%s'", url_arg, self.name)
+                        ctx.log.warning("Duplicate URL argument member %r for action '%s'", url_arg, self.name)
                         raise _ActionErrorInternal(
                             HTTPStatus.BAD_REQUEST,
                             'InvalidInput',
-                            message="Duplicate URL argument member '{0}'".format(url_arg)
+                            message="Duplicate URL argument member {0!r}".format(url_arg)
                         )
                     request[url_arg] = url_value
 

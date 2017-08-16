@@ -4,6 +4,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from http import HTTPStatus
+from io import StringIO
 import re
 import unittest
 
@@ -231,7 +232,7 @@ action my_action
     # Test successful action post
     def test_post(self):
 
-        @action(spec='''\
+        @action(urls=(None, '/my/{a}'), spec='''\
 action my_action
   input
     int a
@@ -273,6 +274,32 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate query string argument member \'a\'"}')
+
+        # Duplicate query string argument - long key
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request(
+            'POST',
+            '/my_action',
+            query_string='a' * 200 + '=7',
+            wsgi_input=b'{"' + b'a' * 200 + b'": 7, "b": 8}',
+            environ=environ
+        )
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(
+            response.decode('utf-8'),
+            '{"error":"InvalidInput","message":"Duplicate query string argument member \'' + 'a' * 99 + '"}'
+        )
+        self.assertTrue(re.search(
+            r"^WARNING \[\d+ / \d+\] Duplicate query string argument member 'a{99} for action 'my_action'$",
+            environ['wsgi.errors'].getvalue()
+        ))
+
+        # Duplicate URL argument
+        status, headers, response = app.request('POST', '/my/7', wsgi_input=b'{"a": 7, "b": 8}')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'a\'"}')
 
     # Test successful action get with headers
     def test_headers(self):
@@ -448,6 +475,30 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
+
+    # Test action long query string decode error
+    def test_error_invalid_query_string_long(self): # pylint: disable=invalid-name
+
+        @action(spec='''\
+action my_action
+  input
+    int a
+''')
+        def my_action(unused_app, unused_req):
+            return {}
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('GET', '/my_action', query_string='a' * 2000, environ=environ)
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 999 + '"}')
+        self.assertTrue(re.search(
+            r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$",
+            environ['wsgi.errors'].getvalue()
+        ))
 
     # Test action with invalid json content
     def test_error_invalid_json(self):

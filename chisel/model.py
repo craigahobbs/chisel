@@ -58,10 +58,13 @@ class ValidationError(Exception):
     @classmethod
     def member_error(cls, type_, value, members, constraint_syntax=None):
         member_syntax = cls.member_syntax(members)
-        msg = 'Invalid value ' + repr(value) + " (type '" + value.__class__.__name__ + "')" + \
-              ((" for member '" + member_syntax + "'") if member_syntax else '') + \
-              ((", expected type '" + type_.type_name + "'") if type_ else '') + \
-              ((' [' + constraint_syntax + ']') if constraint_syntax else '')
+        msg = "Invalid value {0!r:.1000s} (type '{1}'){2}{3}{4}".format(
+            value,
+            value.__class__.__name__,
+            " for member '" + member_syntax + "'" if member_syntax else '',
+            ", expected type '" + type_.type_name + "'" if type_ else '',
+            ' [' + constraint_syntax + ']' if constraint_syntax else ''
+        )
         return ValidationError(msg, member=member_syntax)
 
 
@@ -222,7 +225,7 @@ class TypeStruct(object):
             member_name = member.name
             if member_name not in value_x:
                 if not member.optional:
-                    raise ValidationError("Required member '" + ValidationError.member_syntax((_member, member_name)) + "' missing")
+                    raise ValidationError("Required member {0!r} missing".format(ValidationError.member_syntax((_member, member_name))))
                 continue
             member_count += 1
             member_value = value_x[member_name]
@@ -241,7 +244,7 @@ class TypeStruct(object):
         if member_count != len(value_x):
             member_set = {member.name for member in self.members()}
             unknown_value_names = [value_name for value_name in value_x.keys() if value_name not in member_set]
-            raise ValidationError("Unknown member '" + ValidationError.member_syntax((_member, unknown_value_names[0])) + "'")
+            raise ValidationError("Unknown member {0!r:.100s}".format(ValidationError.member_syntax((_member, unknown_value_names[0]))))
 
         return value if value_copy is None else value_copy
 
