@@ -3,7 +3,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-__version__ = '0.9.49'
+__version__ = '0.9.50'
 
 from .action import \
     action, \
