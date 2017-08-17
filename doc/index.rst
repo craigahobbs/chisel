@@ -1,5 +1,5 @@
 .. chisel documentation master file, created by
-   sphinx-quickstart on Sat Oct 22 13:45:15 2016.
+   sphinx-quickstart on Thu Aug 17 07:58:23 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

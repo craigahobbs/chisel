@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # chisel documentation build configuration file, created by
-# sphinx-quickstart on Sat Oct 22 13:45:15 2016.
+# sphinx-quickstart on Thu Aug 17 07:58:23 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'chisel'
-copyright = '2012-2016, Craig Hobbs'
+copyright = '2012-2017, Craig Hobbs'
 author = 'Craig Hobbs'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -100,6 +100,21 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# Custom sidebar templates, must be a dictionary that maps document names
+# to template names.
+#
+# This is required for the alabaster theme
+# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',  # needs 'show_related': True theme option to display
+        'searchbox.html',
+        'donate.html',
+    ]
+}
+
 
 # -- Options for HTMLHelp output ------------------------------------------
 
@@ -110,21 +125,21 @@ htmlhelp_basename = 'chiseldoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-     # The paper size ('letterpaper' or 'a4paper').
-     #
-     # 'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #
+    # 'papersize': 'letterpaper',
 
-     # The font size ('10pt', '11pt' or '12pt').
-     #
-     # 'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #
+    # 'pointsize': '10pt',
 
-     # Additional stuff for the LaTeX preamble.
-     #
-     # 'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #
+    # 'preamble': '',
 
-     # Latex figure (float) alignment
-     #
-     # 'figure_align': 'htbp',
+    # Latex figure (float) alignment
+    #
+    # 'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
