@@ -11,7 +11,7 @@ endif
 # Build directories
 BUILD := build
 BUILD_COV := $(BUILD)/coverage
-BUILD_DOC := doc/_build
+BUILD_DOC := $(BUILD)/doc
 BUILD_ENV := $(BUILD)/env
 BUILD_SYS := $(BUILD)/sys
 
