@@ -23,10 +23,19 @@ RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 class Application(object):
     """
-    Chisel base application
+    Chisel application
     """
 
-    __slots__ = ('log_level', 'log_format', 'pretty_output', 'validate_output', 'specs', 'requests', '__request_urls', '__request_regex')
+    __slots__ = (
+        'log_level',
+        'log_format',
+        'pretty_output',
+        'validate_output',
+        'specs',
+        'requests',
+        '__request_urls',
+        '__request_regex'
+    )
 
     def __init__(self):
         self.log_level = logging.WARNING

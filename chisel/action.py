@@ -114,12 +114,22 @@ class Action(Request):
                 if content:
                     content_type = environ.get('CONTENT_TYPE')
                     content_charset = ('utf-8' if content_type is None else parse_header(content_type)[1].get('charset', 'utf-8'))
-                    request = json_loads(content.decode(content_charset))
+                    content_json = content.decode(content_charset)
+                    request = json_loads(content_json)
                 else:
                     request = {}
             except Exception as exc:
                 ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message='Invalid request JSON: ' + str(exc))
+
+            # Fail non-dictionary requests
+            if not isinstance(request, dict):
+                ctx.log.warning("Invalid top-level JSON object of type '%s': %.1000r", type(request).__name__, content_json)
+                raise _ActionErrorInternal(
+                    HTTPStatus.BAD_REQUEST,
+                    'InvalidInput',
+                    message="Invalid top-level JSON object of type '{0}'".format(type(request).__name__)
+                )
 
             # Decode the query string
             query_string = environ.get('QUERY_STRING')

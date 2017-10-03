@@ -559,6 +559,31 @@ action my_action
                          '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
                          'for member \'a\', expected type \'string\'"}')
 
+    # Test action with invalid array input
+    def test_error_invalid_input_array_query_string(self): # pylint: disable=invalid-name
+
+        @action(spec='''\
+action my_action
+''')
+        def my_action(unused_app, unused_req):
+            pass
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'[]', query_string='foo=bar', environ=environ)
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(
+            response.decode('utf-8'),
+            '{"error":"InvalidInput","message":"Invalid top-level JSON object of type \'list\'"}'
+        )
+        self.assertTrue(re.search(
+            r"WARNING \[\d+ / \d+\] Invalid top-level JSON object of type 'list': '\[\]'",
+            environ['wsgi.errors'].getvalue()
+        ))
+
     # Test action with invalid output
     def test_error_invalid_output(self):
 
