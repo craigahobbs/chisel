@@ -18,11 +18,11 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assertTrue(isinstance(struct_type, TypeStruct))
         struct_type_members = list(struct_type.members())
         self.assertEqual(len(struct_type_members), len(members))
-        for ix_member in range(0, len(members)):
-            if len(members[ix_member]) == 4:
-                name, type_, optional, nullable = members[ix_member]
+        for ix_member, member_info in enumerate(members):
+            if len(member_info) == 4:
+                name, type_, optional, nullable = member_info
             else:
-                name, type_, optional = members[ix_member]
+                name, type_, optional = member_info
                 nullable = False
             self.assertEqual(struct_type_members[ix_member].name, name)
             if isinstance(type_, (TypeStruct, TypeArray, TypeDict, TypeEnum)):

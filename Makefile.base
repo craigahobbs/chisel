@@ -158,7 +158,7 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(BUILD_COV)/index.html
 endef
-$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.4.1, COVER_COMMANDS_FN))
+$(eval $(call ENV_RULE, cover, -e . -e .[tests] coverage==4.4.2, COVER_COMMANDS_FN))
 
 # Generate doc rules
 HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)
@@ -169,10 +169,10 @@ ifneq '$(HAS_DOC)' ''
 	@echo Doc index is $(BUILD_DOC)/html/index.html
 endif
 endef
-$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.6.4), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.6.5), DOC_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
 	$(2) -m pylint -j 0 $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
-$(eval $(call ENV_RULE, pylint, -e . pylint==1.7.4, PYLINT_COMMANDS_FN))
+$(eval $(call ENV_RULE, pylint, -e . pylint==1.8.1, PYLINT_COMMANDS_FN))
