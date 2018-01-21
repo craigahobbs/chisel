@@ -32,7 +32,7 @@ endef
 # Python version support
 ifndef PYTHON_URLS
 PYTHON_URLS := \
-    https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz \
+    https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tgz \
     https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tgz \
     $(PYTHON_URLS_EXTRA)
 endif
@@ -169,7 +169,7 @@ ifneq '$(HAS_DOC)' ''
 	@echo Doc index is $(BUILD_DOC)/html/index.html
 endif
 endef
-$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.6.5), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), sphinx==1.7.0b1), DOC_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
