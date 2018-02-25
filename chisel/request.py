@@ -58,15 +58,12 @@ class Request(object):
                 for url in urls
             ))
 
-    def onload(self, app):
-        pass
-
     def __call__(self, environ, start_response):
         assert self.wsgi_callback is not None, 'must specify wsgi_callback when using Request directly'
         return self.wsgi_callback(environ, start_response)
 
     def decorate_module(self, callback):
-        if callback.__module__:
+        if callback.__module__: # pragma: no branch
             module = sys.modules[callback.__module__]
             requests = getattr(module, REQUESTS_MODULE_ATTR, None)
             if requests is None:

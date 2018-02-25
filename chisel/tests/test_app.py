@@ -3,89 +3,175 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-from datetime import datetime
+from datetime import date, datetime
 from http import HTTPStatus
 from io import StringIO
-import logging
-import os
-import sys
-import types
-import unittest
 import unittest.mock
 
-from chisel import action, Application, Context, Environ, Request
+from chisel import Application, Context, Environ, Request
 from chisel.app_defs import StartResponse
 
+from . import TestCase
 
-class TestApplication(unittest.TestCase):
 
-    def setUp(self):
+class TestApplication(TestCase):
 
-        class MyApplication(Application):
-            def __init__(self):
-                super().__init__()
-                self.load_specs(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-                self.load_requests('.test_app_files', __package__)
-                self.log_level = logging.INFO
+    def test_add_request(self):
+        app = Application()
+        request1 = Request(name='request1')
+        request2 = Request(name='request2', method='GET', urls='/request-two')
+        request3 = Request(name='request3', method=('GET', 'POST'), urls=('/request3', '/request3/'))
+        request4 = Request(name='request4', urls='/request4/{arg}')
+        request5 = Request(name='request5', urls=(('GET', '/request5/{arg}'), ('POST', '/request5/{arg}/foo')))
+        app.add_request(request1)
+        app.add_request(request2)
+        app.add_request(request3)
+        app.add_request(request4)
+        app.add_request(request5)
+        self.assertDictEqual(app.requests, {
+            'request1': request1,
+            'request2': request2,
+            'request3': request3,
+            'request4': request4,
+            'request5': request5
+        })
+        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=no-member, protected-access
+            (None, '/request1'): request1,
+            ('GET', '/request-two'): request2,
+            ('GET', '/request3'): request3,
+            ('POST', '/request3'): request3,
+            ('GET', '/request3/'): request3,
+            ('POST', '/request3/'): request3
+        })
+        self.assertListEqual(
+            [(method, regex.pattern, request) for method, regex, request in app._Application__request_regex],  # pylint: disable=no-member, protected-access
+            [
+                (None, '^\\/request4\\/(?P<arg>[^/]+)$', request4),
+                ('GET', '^\\/request5\\/(?P<arg>[^/]+)$', request5),
+                ('POST', '^\\/request5\\/(?P<arg>[^/]+)\\/foo$', request5)
+            ]
+        )
 
-        self.app = MyApplication()
-
-        self.assertTrue('test_app_files' not in sys.modules)
-        self.assertTrue('module' not in sys.modules)
-        self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files'], types.ModuleType))
-        self.assertTrue(isinstance(sys.modules['chisel.tests.test_app_files.module'], types.ModuleType))
-
-    def test_load_requests_error(self):
-        try:
-            self.app.load_requests('chisel.tests.test_app_files2')
-        except ImportError as exc:
-            self.assertEqual(str(exc), "No module named 'chisel.tests.test_app_files2'")
-        else:
-            self.fail()
-
-    def test_request_redefinition(self):
+    def test_add_request_redefinition(self):
         app = Application()
         app.add_request(Request(name='my_request'))
         with self.assertRaises(ValueError) as raises:
             app.add_request(Request(name='my_request'))
         self.assertEqual(str(raises.exception), 'redefinition of request "my_request"')
 
-    def test_request_url_redefinition(self):
+    def test_add_request_url_redefinition(self): # pylint: disable=invalid-name
         app = Application()
         app.add_request(Request(name='my_request'))
         with self.assertRaises(ValueError) as raises:
             app.add_request(Request(name='my_request2', urls='/my_request'))
         self.assertEqual(str(raises.exception), 'redefinition of request URL "/my_request"')
 
-    def test_call(self):
-        environ = Environ.create('GET', '/my_action')
-        environ['wsgi.errors'] = StringIO()
-        start_response = StartResponse()
-        response = self.app(environ, start_response)
-        self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
-        self.assertEqual(response, ['{}'.encode('utf-8')])
-        self.assertNotIn('Some info', environ['wsgi.errors'].getvalue())
-        self.assertIn('A warning...', environ['wsgi.errors'].getvalue())
+    def test_request(self):
 
-    def test_call_generator(self):
-        def generator_response(environ, unused_start_response):
-            def response():
-                yield 'Hello'.encode('utf-8')
-                yield 'World'.encode('utf-8')
+        def request1(environ, unused_start_response):
             ctx = environ[Environ.CTX]
-            return ctx.response(HTTPStatus.OK, 'text/plain', response())
+            return ctx.response_text(HTTPStatus.OK, 'request1')
 
-        self.app.add_request(Request(generator_response))
+        def request2(environ, unused_start_response):
+            ctx = environ[Environ.CTX]
+            return ctx.response_text(HTTPStatus.OK, 'request2 ' + ctx.url_args['arg'] + ' ' + ctx.url_args.get('arg2', '?'))
 
-        environ = Environ.create('GET', '/generator_response')
-        start_response = StartResponse()
-        response = self.app(environ, start_response)
-        self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
-        self.assertEqual(list(response), ['Hello'.encode('utf-8'), 'World'.encode('utf-8')])
+        app = Application()
+        app.add_request(Request(request1, urls=(
+            ('GET', '/request1a'),
+            (None, '/request1b')
+        )))
+        app.add_request(Request(request2, urls=(
+            ('GET', '/request2a/{arg}'),
+            (None, '/request2b/{arg}/bar/{arg2}/bonk')
+        )))
 
-    def test_call_string_response(self):
+        # Exact method and exact URL
+        status, _, response = app.request('GET', '/request1a')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'request1')
+
+        # Wrong method and exact URL
+        status, _, response = app.request('POST', '/request1a')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
+
+        # Any method and exact URL
+        status, _, response = app.request('GET', '/request1b')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'request1')
+
+        # Exact method and regex URL
+        status, _, response = app.request('GET', '/request2a/foo')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'request2 foo ?')
+
+        # Wrong method and regex URL
+        status, _, response = app.request('POST', '/request2a/foo')
+        self.assertEqual(status, '405 Method Not Allowed')
+        self.assertEqual(response, b'Method Not Allowed')
+
+        # Any method and regex URL
+        status, _, response = app.request('POST', '/request2b/foo/bar/blue/bonk')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'request2 foo blue')
+
+        # URL not found
+        status, _, response = app.request('GET', '/request3')
+        self.assertEqual(status, '404 Not Found')
+        self.assertEqual(response, b'Not Found')
+
+    def test_request_args(self):
+
+        def request1(environ, unused_start_response):
+            ctx = environ[Environ.CTX]
+            self.assertEqual(environ['QUERY_STRING'], 'a=1&b=2')
+            self.assertEqual(environ['wsgi.input'].read(), b'hello')
+            ctx.log.warn('in request1')
+            return ctx.response_text(HTTPStatus.OK, 'request1')
+
+        app = Application()
+        app.add_request(Request(request1))
+
+        environ = {'wsgi.errors': StringIO()}
+        status, _, response = app.request('GET', '/request1', query_string='a=1&b=2', wsgi_input=b'hello', environ=environ)
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'request1')
+        self.assertIn('in request1', environ['wsgi.errors'].getvalue())
+
+    def test_request_nested(self):
+
+        def request1(environ, unused_start_response):
+            ctx = environ[Environ.CTX]
+            return ctx.response_text(HTTPStatus.OK, '7')
+
+        def request2(environ, unused_start_response):
+            ctx = environ[Environ.CTX]
+            unused_status, _, response = ctx.app.request('GET', '/request1')
+            return ctx.response_text(HTTPStatus.OK, str(5 + int(response)))
+
+        app = Application()
+        app.add_request(Request(request1))
+        app.add_request(Request(request2))
+
+        status, _, response = app.request('GET', '/request2')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'12')
+
+    def test_request_exception(self):
+
+        def request1(unused_environ, unused_start_response):
+            raise Exception('')
+
+        app = Application()
+        app.add_request(Request(request1))
+
+        status, headers, response = app.request('GET', '/request1')
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertTrue(('Content-Type', 'text/plain') in headers)
+        self.assertEqual(response, b'Internal Server Error')
+
+    def test_request_string_response(self):
 
         def string_response(environ, unused_start_response):
             ctx = environ[Environ.CTX]
@@ -94,74 +180,12 @@ class TestApplication(unittest.TestCase):
         app = Application()
         app.add_request(Request(string_response))
 
-        # Successfully create and call the application
-        environ = Environ.create('GET', '/string_response', environ={'wsgi.errors': StringIO()})
-        start_response = StartResponse()
-        response_parts = app(environ, start_response)
-        self.assertEqual(start_response.status, '500 Internal Server Error')
-        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
-        self.assertEqual(list(response_parts), ['Internal Server Error'.encode('utf-8')])
-        self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
-
-    def test_request(self):
-
-        # POST
-        self.app.log_format = '%(message)s'
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = self.app.request('POST', '/my_action2', wsgi_input=b'{"value": 7}', environ=environ)
-        self.assertEqual(response.decode('utf-8'), '{"result":14}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-        self.assertEqual(environ['wsgi.errors'].getvalue(), 'In my_action2\n')
-
-        # GET
-        status, headers, response = self.app.request('GET', '/my_action2', query_string='value=8')
-        self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # GET (dict query string)
-        status, headers, response = self.app.request('GET', '/my_action2', query_string={'value': 8})
-        self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # HTTP error
-        status, headers, response = self.app.request('GET', '/unknownAction')
-        self.assertEqual(response.decode('utf-8'), 'Not Found')
-        self.assertEqual(status, '404 Not Found')
-        self.assertTrue(('Content-Type', 'text/plain') in headers)
-
-        # Request with environ
-        status, headers, response = self.app.request('POST', '/my_action2', wsgi_input=b'{"value": 9}',
-                                                     environ={'MYENVIRON': '10'})
-        self.assertEqual(response.decode('utf-8'), '{"result":90}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # Request with environ with QUERY_STRING
-        status, headers, response = self.app.request('GET', '/my_action2', query_string='value=8')
-        self.assertEqual(response.decode('utf-8'), '{"result":16}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # Request action matched by regex
-        status, headers, response = self.app.request('GET', '/my_action3/123')
-        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # Request action matched by regex - POST
-        status, headers, response = self.app.request('POST', '/my_action3/123', wsgi_input=b'{}')
-        self.assertEqual(response.decode('utf-8'), '{"myArg":"123"}')
-        self.assertEqual(status, '200 OK')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
-
-        # Request action matched by regex - duplicate member error
-        status, headers, response = self.app.request('GET', '/my_action3/123', query_string='myArg=321')
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'myArg\'"}')
-        self.assertEqual(status, '400 Bad Request')
-        self.assertTrue(('Content-Type', 'application/json') in headers)
+        status, headers, response = app.request('GET', '/string_response', environ=environ)
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+        self.assertEqual(response, b'Internal Server Error')
+        self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
 
     def test_log_format_callable(self):
 
@@ -172,6 +196,7 @@ class TestApplication(unittest.TestCase):
             return ['Hello'.encode('utf-8')]
 
         class MyFormatter(object):
+
             def __init__(self, ctx):
                 assert ctx is not None
 
@@ -198,164 +223,8 @@ class TestApplication(unittest.TestCase):
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(environ['wsgi.errors'].getvalue(), 'Hello log\n')
 
-    def test_nested_requests(self):
 
-        def request1(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
-            return ctx.response_text(HTTPStatus.OK, '7')
-
-        def request2(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
-            unused_status, unused_headers, response = ctx.app.request('GET', '/request1')
-            return ctx.response_text(HTTPStatus.OK, str(5 + int(response)))
-
-        app = Application()
-        app.add_request(Request(request1))
-        app.add_request(Request(request2))
-
-        status, unused_headers, response = app.request('GET', '/request2')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'12')
-
-    def test_request_exception(self):
-
-        def request1(unused_environ, unused_start_response):
-            raise Exception('')
-
-        app = Application()
-        app.add_request(Request(request1))
-
-        status, headers, response = app.request('GET', '/request1')
-        self.assertEqual(status, '500 Internal Server Error')
-        self.assertTrue(('Content-Type', 'text/plain') in headers)
-        self.assertEqual(response, b'Internal Server Error')
-
-    def test_request_url_mix(self):
-
-        @action(urls=[(None, '/action/1')],
-                spec='''\
-action my_action1
-  output
-    int number
-''')
-        def my_action1(unused_ctx, unused_req):
-            return {'number': 1}
-
-        @action(urls=[('GET', '/action/{unused_number}')],
-                spec='''\
-action my_action2
-  input
-    int unused_number
-  output
-    int number
-''')
-        def my_action2(unused_ctx, unused_req):
-            return {'number': 2}
-
-        app = Application()
-        app.add_request(my_action1)
-        app.add_request(my_action2)
-
-        status, unused_headers, response = app.request('GET', '/action/1')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{"number":2}')
-
-        status, unused_headers, response = app.request('POST', '/action/1', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{"number":1}')
-
-    def test_request_url_method(self):
-
-        @action(urls=[('GET', '/my_action'), ('POST', '/my_action/')],
-                spec='''\
-action my_action
-''')
-        def my_action(unused_ctx, unused_req):
-            pass
-
-        app = Application()
-        app.add_request(my_action)
-
-        status, unused_headers, response = app.request('GET', '/my_action')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{}')
-
-        status, unused_headers, response = app.request('POST', '/my_action/', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{}')
-
-        status, unused_headers, response = app.request('GET', '/my_action/')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-        status, unused_headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-        status, unused_headers, response = app.request('PUT', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-    def test_request_url_method_arg(self):
-
-        @action(urls=[('GET', '/my_action/{a}/{b}'), ('POST', '/my_action/{a}/{b}/')],
-                spec='''\
-action my_action
-  input
-    int a
-    int b
-  output
-    int sum
-''')
-        def my_action(unused_ctx, req):
-            return {'sum': req['a'] + req['b']}
-
-        app = Application()
-        app.add_request(my_action)
-
-        status, unused_headers, response = app.request('GET', '/my_action/3/4')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{"sum":7}')
-
-        status, unused_headers, response = app.request('POST', '/my_action/3/4/', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{"sum":7}')
-
-        status, unused_headers, response = app.request('GET', '/my_action/3/4/')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-        status, unused_headers, response = app.request('POST', '/my_action/3/4', wsgi_input=b'{}')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-        status, unused_headers, response = app.request('PUT', '/my_action/3/4', wsgi_input=b'{}')
-        self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(response, b'Method Not Allowed')
-
-    def test_request_url_arg_underscore(self):
-
-        @action(urls=['/my_action/{number_one}/{number_two}'],
-                spec='''\
-action my_action
-  input
-    int number_one
-    int number_two
-  output
-    int sum
-''')
-        def my_action(unused_ctx, req):
-            return {'sum': req['number_one'] + req['number_two']}
-
-        app = Application()
-        app.add_request(my_action)
-
-        status, unused_headers, response = app.request('GET', '/my_action/3/4')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response, b'{"sum":7}')
-
-
-class TestContext(unittest.TestCase):
+class TestContext(TestCase):
 
     def test_add_cache_headers(self):
         app = Application()
@@ -420,9 +289,8 @@ class TestContext(unittest.TestCase):
         app = Application()
         start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
-        content = b'Hello, World!'
-        response = ctx.response(HTTPStatus.OK, 'text/plain', [content])
-        self.assertEqual(response, [content])
+        response = ctx.response(HTTPStatus.OK, 'text/plain', [b'Hello, World!'])
+        self.assertEqual(response, [b'Hello, World!'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
@@ -430,9 +298,8 @@ class TestContext(unittest.TestCase):
         app = Application()
         start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
-        content = 'Hello, World!'
-        response = ctx.response_text(HTTPStatus.OK, content)
-        self.assertEqual(response, [content.encode('utf-8')])
+        response = ctx.response_text(HTTPStatus.OK, 'Hello, World!')
+        self.assertEqual(response, [b'Hello, World!'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
@@ -453,6 +320,24 @@ class TestContext(unittest.TestCase):
         self.assertEqual(response, [b'200 OK'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
+    def test_response_json(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        response = ctx.response_json(HTTPStatus.OK, {'a': 7, 'b': 'abc', 'c': date(2018, 2, 24)})
+        self.assertEqual(response, [b'{"a":7,"b":"abc","c":"2018-02-24"}'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
+
+    def test_response_json_jsonp(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        response = ctx.response_json(HTTPStatus.OK, {'a': 7, 'b': 'abc', 'c': date(2018, 2, 24)}, jsonp='jsonp')
+        self.assertEqual(response, [b'jsonp', b'(', b'{"a":7,"b":"abc","c":"2018-02-24"}', b');'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
 
     def test_response_headers(self):
         app = Application()

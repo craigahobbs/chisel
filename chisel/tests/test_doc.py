@@ -3,14 +3,16 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-import unittest
-
 from chisel import action, request, Action, Application, DocAction, DocPage, Element, Request, SpecParser
 
+from . import TestCase
 
-class TestDoc(unittest.TestCase):
 
-    _spec = '''\
+class TestDoc(TestCase):
+
+    def setUp(self):
+
+        spec_parser = SpecParser('''\
 # My enum
 enum MyEnum
     # A value
@@ -65,16 +67,13 @@ action my_action2
     errors
         MyError1
         MyError2
-'''
-
-    def setUp(self):
+''')
 
         # Application object
         self.app = Application()
         self.app.pretty_output = True
-        self.app.specs.parse_string(self._spec)
-        self.app.add_request(Action(lambda app, req: {}, name='my_action1'))
-        self.app.add_request(Action(lambda app, req: {}, name='my_action2'))
+        self.app.add_request(Action(lambda app, req: {}, name='my_action1', spec=spec_parser))
+        self.app.add_request(Action(lambda app, req: {}, name='my_action2', spec=spec_parser))
         self.app.add_request(DocAction())
 
     # Test documentation index HTML generation
@@ -214,9 +213,7 @@ ul.chsl-constraint-list {
 
     def test_doc_group(self):
 
-        app = Application()
-        app.pretty_output = True
-        app.specs.parse_string('''\
+        spec_parser = SpecParser('''\
 action my_action1
 
 group "My  Group   1"
@@ -235,12 +232,15 @@ group
 
 action my_action5
 ''')
+
+        app = Application()
+        app.pretty_output = True
         app.add_request(DocAction())
-        app.add_request(Action(lambda ctx, req: {}, name='my_action1'))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action2'))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action3'))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action4'))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action5'))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action1', spec=spec_parser))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action2', spec=spec_parser))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action3', spec=spec_parser))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action4', spec=spec_parser))
+        app.add_request(Action(lambda ctx, req: {}, name='my_action5', spec=spec_parser))
         app.add_request(Request(lambda environ, start_response: [], name='my_request1'))
         app.add_request(Request(lambda environ, start_response: [], name='my_request2', doc_group='My  Group   2'))
 

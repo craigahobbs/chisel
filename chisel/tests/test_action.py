@@ -6,18 +6,21 @@
 from http import HTTPStatus
 from io import StringIO
 import re
-import unittest
 
 from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
 from chisel.spec import ActionModel
 
+from . import TestCase
 
-class TestAction(unittest.TestCase):
+
+class TestAction(TestCase):
 
     # Default action decorator
     def test_decorator(self):
 
-        @action
+        @action(spec='''\
+action my_action_default
+''')
         def my_action_default(unused_app, unused_req):
             return {}
 
@@ -25,9 +28,6 @@ class TestAction(unittest.TestCase):
         self.assertTrue(isinstance(my_action_default, Request))
 
         app = Application()
-        app.specs.parse_string('''\
-action my_action_default
-''')
         app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
         self.assertEqual(my_action_default.urls, (('GET', '/my_action_default'), ('POST', '/my_action_default')))
@@ -38,18 +38,12 @@ action my_action_default
     # Default action decorator with missing spec
     def test_decorator_unknown_action(self):
 
-        @action
-        def my_action(unused_app, unused_req):
-            return {}
-
-        self.assertTrue(isinstance(my_action, Action))
-        self.assertTrue(isinstance(my_action, Request))
-
-        app = Application()
         try:
-            app.add_request(my_action)
+            @action
+            def my_action(unused_app, unused_req): # pylint: disable=unused-variable
+                return {}
         except AssertionError as exc:
-            self.assertEqual(str(exc), "No spec defined for action 'my_action'")
+            self.assertEqual(str(exc), 'Unknown action "my_action"')
         else:
             self.fail()
 
@@ -147,14 +141,13 @@ action theAction
     def test_decorator_other(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
-        @action(urls=('/foo',), wsgi_response=True)
+        @action(urls=('/foo',), wsgi_response=True, spec='''\
+action my_action_default
+''')
         def my_action_default(ctx, unused_req):
             return ctx.response_text(HTTPStatus.OK)
 
         app = Application()
-        app.specs.parse_string('''\
-action my_action_default
-''')
         app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
         self.assertEqual(my_action_default.urls, (('GET', '/foo'), ('POST', '/foo')))

@@ -5,13 +5,14 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-import unittest
 from uuid import UUID
 
 from chisel.util import JSONEncoder, TZLOCAL, TZUTC
 
+from . import TestCase
 
-class TestJSONEncoder(unittest.TestCase):
+
+class TestJSONEncoder(TestCase):
 
     def test_types(self):
         encoder = JSONEncoder(indent=2, sort_keys=True, separators=(',', ': '))

@@ -64,35 +64,17 @@ class Action(Request):
             name = action_callback.__name__
 
         # Spec provided?
-        model = None
-        doc = doc
-        doc_group = doc_group
-        if spec is not None:
-            parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
-            assert name in parser.actions, 'Unknown action "{0}"'.format(name)
-            model = parser.actions[name]
-            if doc is None:
-                doc = model.doc
-            if doc_group is None:
-                doc_group = model.doc_group
+        parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
+        model = parser.actions.get(name)
+        assert model is not None, 'Unknown action "{0}"'.format(name)
 
-        super().__init__(name=name, method=method, urls=urls, doc=doc, doc_group=doc_group)
+        super().__init__(name=name, method=method, urls=urls,
+                         doc=doc if doc is not None else model.doc,
+                         doc_group=doc_group if doc_group is not None else model.doc_group)
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
         self.jsonp = jsonp
-
-    def onload(self, app):
-        super().onload(app)
-
-        # Get the action model, if necessary
-        if self.model is None:
-            self.model = app.specs.actions.get(self.name)
-            assert self.model is not None, "No spec defined for action '{0}'".format(self.name)
-            if self.doc is None:
-                self.doc = self.model.doc
-            if self.doc_group is None:
-                self.doc_group = self.model.doc_group
 
     def __call__(self, environ, unused_start_response):
         ctx = environ[Environ.CTX]

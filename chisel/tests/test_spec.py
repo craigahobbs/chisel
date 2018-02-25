@@ -4,14 +4,15 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 import os
-import unittest
 
 from chisel import SpecParser, SpecParserError
 from chisel.model import TypeArray, Typedef, TypeDict, TypeEnum, TypeStruct, \
     TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_INT, TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TYPE_UUID
 
+from . import TestCase
 
-class TestSpecParseSpec(unittest.TestCase):
+
+class TestSpecParseSpec(TestCase):
 
     # Helper method to assert struct type member properties
     def assert_struct(self, struct_type, members):
@@ -58,27 +59,56 @@ class TestSpecParseSpec(unittest.TestCase):
         self.assert_struct(parser.actions[action_name].output_type, output_members)
         self.assert_enum(parser.actions[action_name].error_type, error_values)
 
+    def _test_load_specs(self):
+        return self.create_test_files((
+            (
+                ('module.chsl',),
+                '''\
+action my_action
+
+action my_action2
+    input
+        int value
+    output
+        int result
+'''
+            ),
+            (
+                ('sub', 'subsub', 'submodule.chsl'),
+                '''\
+action my_action3
+    input
+        int myArg
+    output
+        string myArg
+'''
+            )
+        ))
+
     def test_load(self):
-        parser = SpecParser()
-        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files'))
-        self.assertIn('my_action', parser.actions)
-        self.assertIn('my_action2', parser.actions)
-        self.assertIn('my_action3', parser.actions)
+        with self._test_load_specs() as spec_dir:
+            parser = SpecParser()
+            parser.load(spec_dir)
+            self.assertIn('my_action', parser.actions)
+            self.assertIn('my_action2', parser.actions)
+            self.assertIn('my_action3', parser.actions)
 
     def test_load_file(self):
-        parser = SpecParser()
-        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files', 'module.chsl'))
-        self.assertIn('my_action', parser.actions)
-        self.assertIn('my_action2', parser.actions)
-        self.assertNotIn('my_action3', parser.actions)
+        with self._test_load_specs() as spec_dir:
+            parser = SpecParser()
+            parser.load(os.path.join(spec_dir, 'module.chsl'))
+            self.assertIn('my_action', parser.actions)
+            self.assertIn('my_action2', parser.actions)
+            self.assertNotIn('my_action3', parser.actions)
 
     def test_load_finalize(self):
-        parser = SpecParser()
-        parser.load(os.path.join(os.path.dirname(__file__), 'test_app_files'), finalize=False)
-        parser.finalize()
-        self.assertIn('my_action', parser.actions)
-        self.assertIn('my_action2', parser.actions)
-        self.assertIn('my_action3', parser.actions)
+        with self._test_load_specs() as spec_dir:
+            parser = SpecParser()
+            parser.load(spec_dir)
+            parser.finalize()
+            self.assertIn('my_action', parser.actions)
+            self.assertIn('my_action2', parser.actions)
+            self.assertIn('my_action3', parser.actions)
 
     # Test valid spec parsing
     def test_simple(self):

@@ -1,7 +1,0 @@
-action my_action
-
-action my_action2
-    input
-        int value
-    output
-        int result

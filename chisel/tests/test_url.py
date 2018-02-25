@@ -4,15 +4,16 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from datetime import date, datetime
-import unittest
 from uuid import UUID
 from urllib.parse import quote
 
 from chisel import decode_query_string, encode_query_string, TZLOCAL, TZUTC
 from chisel.url import encode_query_string_items, decode_query_string_items
 
+from . import TestCase
 
-class TestUrl(unittest.TestCase):
+
+class TestUrl(TestCase):
 
     def test_decode_query_string(self):
 

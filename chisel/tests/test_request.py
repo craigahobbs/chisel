@@ -4,12 +4,15 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from http import HTTPStatus
-import unittest
+import unittest.mock
+import sys
 
 from chisel import request, Request
 
+from . import TestCase
 
-class TestRequest(unittest.TestCase):
+
+class TestRequest(TestCase):
 
     def test_reqeust(self):
 
@@ -17,12 +20,12 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request)
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, ((None, '/my_request'),))
         self.assertEqual(req.doc, None)
-        req.onload(None) # called by application
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 
     def test_request_name(self):
@@ -31,6 +34,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, name='foo')
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'foo')
@@ -44,6 +48,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, method='Get')
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
@@ -57,6 +62,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, method=('Get', 'POST'), urls=[None, '/other', ('PUT', None), ('DELETE', '/delete'), (None, '/all')])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
@@ -78,6 +84,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
@@ -91,10 +98,39 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, method='Get', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), ('GET', '/thud')))
+        self.assertEqual(req.doc, None)
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+    def test_request_urls_str(self):
+
+        def my_request(environ, start_response):
+            assert isinstance(environ, dict)
+            assert callable(start_response)
+            return ['ok']
+
+        req = Request(my_request, urls='/bar')
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, ((None, '/bar'),))
+        self.assertEqual(req.doc, None)
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+        req = Request(my_request, method='get', urls='/bar')
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, (('GET', '/bar'),))
+        self.assertEqual(req.doc, None)
+        self.assertEqual(req({}, lambda status, headers: None), ['ok'])
+
+        req = Request(my_request, method=('get', 'POST'), urls='/bar')
+        self.assertEqual(req.wsgi_callback, my_request)
+        self.assertEqual(req.name, 'my_request')
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/bar')))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), ['ok'])
 
@@ -104,6 +140,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'foo')
@@ -117,6 +154,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         req = Request(my_request, doc=('doc line 1', 'doc line 2'))
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
@@ -138,7 +176,6 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, ((None, '/my_request'),))
         self.assertEqual(req.doc, None)
-        req.onload(None) # called by application
         try:
             req({}, lambda status, headers: None)
         except AssertionError as exc:
@@ -153,6 +190,7 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
         self.assertEqual(my_request.name, 'my_request')
@@ -180,7 +218,6 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(req.name, 'MyRequest1')
         self.assertEqual(req.urls, (('GET', '/my-request-1'),))
         self.assertEqual(req.doc, ['My request number 1.'])
-        req.onload(None) # called by application
         self.assertEqual(req({}, lambda status, headers: None), ['This is request # 1'])
 
     def test_decorator_complete(self):
@@ -190,8 +227,67 @@ class TestRequest(unittest.TestCase):
             assert isinstance(environ, dict)
             assert callable(start_response)
             return ['ok']
+
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request.name, 'foo')
         self.assertEqual(my_request.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
         self.assertEqual(my_request.doc, ('doc line 1', 'doc line 2'))
         self.assertEqual(my_request({}, lambda status, headers: None), ['ok'])
+
+    def test_import_requests(self):
+
+        with self.create_test_files((
+            (
+                ('__init__.py',),
+                ''
+            ),
+            (
+                ('test_package', '__init__.py',),
+                ''
+            ),
+            (
+                ('test_package', 'module.py',),
+                '''\
+from chisel import request
+
+@request
+def request1(environ, start_response):
+    return [b'request1']
+
+@request
+def request2(environ, start_response):
+    return [b'request2']
+'''
+            ),
+            (
+                ('test_package', 'module2.py',),
+                ''
+            ),
+            (
+                ('test_package', 'sub', '__init__.py'),
+                ''
+            ),
+            (
+                ('test_package', 'sub', 'subsub', '__init__.py'),
+                ''
+            ),
+            (
+                ('test_package', 'sub', 'subsub', 'submodule.py'),
+                '''\
+from chisel import request
+
+@request
+def request3(environ, start_response):
+    return [b'request3']
+'''
+            )
+        )) as requests_dir:
+            with unittest.mock.patch('sys.path', [requests_dir] + sys.path):
+                self.assertListEqual(
+                    [request.name for request in Request.import_requests('test_package')],
+                    [
+                        'request1',
+                        'request2',
+                        'request3'
+                    ]
+                )

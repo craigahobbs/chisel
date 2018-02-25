@@ -5,7 +5,6 @@
 
 from datetime import date, datetime
 from decimal import Decimal
-import unittest
 from uuid import UUID
 
 from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, ValidationMode, \
@@ -13,8 +12,10 @@ from chisel.model import StructMemberAttributes, ValidationError, AttributeValid
     TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT
 from chisel.util import TZUTC, TZLOCAL
 
+from . import TestCase
 
-class TestModelValidationError(unittest.TestCase):
+
+class TestModelValidationError(TestCase):
 
     def test_member_syntax_dict_single(self):
         self.assertEqual(ValidationError.member_syntax(('a',)), 'a')
@@ -73,7 +74,7 @@ class TestModelValidationError(unittest.TestCase):
         self.assertEqual(exc.member, 'a')
 
 
-class TestStructMemberAttributes(unittest.TestCase):
+class TestStructMemberAttributes(TestCase):
 
     def test_validate_eq(self):
         attr = StructMemberAttributes(op_eq=5)
@@ -176,7 +177,7 @@ class TestStructMemberAttributes(unittest.TestCase):
             self.fail()
 
 
-class TestModelTypedefValidation(unittest.TestCase):
+class TestModelTypedefValidation(TestCase):
 
     # Test typedef type construction
     def test_init(self):
@@ -267,7 +268,7 @@ class TestModelTypedefValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelStructValidation(unittest.TestCase):
+class TestModelStructValidation(TestCase):
 
     # Test struct type construction
     def test_init(self):
@@ -828,7 +829,7 @@ class TestModelStructValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelArrayValidation(unittest.TestCase):
+class TestModelArrayValidation(TestCase):
 
     # Test array type construction
     def test_init(self):
@@ -970,7 +971,7 @@ class TestModelArrayValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelDictValidation(unittest.TestCase):
+class TestModelDictValidation(TestCase):
 
     # Test dict type construction
     def test_init(self):
@@ -1154,7 +1155,7 @@ class TestModelDictValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelEnumValidation(unittest.TestCase):
+class TestModelEnumValidation(TestCase):
 
     # Test enum type construction
     def test_init(self):
@@ -1263,7 +1264,7 @@ class TestModelEnumValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelStringValidation(unittest.TestCase):
+class TestModelStringValidation(TestCase):
 
     # Test string type construction
     def test_init(self):
@@ -1297,7 +1298,7 @@ class TestModelStringValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelIntValidation(unittest.TestCase):
+class TestModelIntValidation(TestCase):
 
     # Test int type construction
     def test_init(self):
@@ -1413,7 +1414,7 @@ class TestModelIntValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelFloatValidation(unittest.TestCase):
+class TestModelFloatValidation(TestCase):
 
     # Test float type construction
     def test_init(self):
@@ -1529,7 +1530,7 @@ class TestModelFloatValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelBoolValidation(unittest.TestCase):
+class TestModelBoolValidation(TestCase):
 
     # Test bool type construction
     def test_init(self):
@@ -1593,7 +1594,7 @@ class TestModelBoolValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelUuidValidation(unittest.TestCase):
+class TestModelUuidValidation(TestCase):
 
     # Test uuid type construction
     def test_init(self):
@@ -1666,7 +1667,7 @@ class TestModelUuidValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelDateValidation(unittest.TestCase):
+class TestModelDateValidation(TestCase):
 
     # Test date type construction
     def test_init(self):
@@ -1739,7 +1740,7 @@ class TestModelDateValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelDatetimeValidation(unittest.TestCase):
+class TestModelDatetimeValidation(TestCase):
 
     # Test datetime type construction
     def test_init(self):
@@ -1907,7 +1908,7 @@ class TestModelDatetimeValidation(unittest.TestCase):
                 self.fail()
 
 
-class TestModelObjectValidation(unittest.TestCase):
+class TestModelObjectValidation(TestCase):
 
     # Test object type construction
     def test_init(self):
