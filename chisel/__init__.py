@@ -15,7 +15,8 @@ from .app import \
     Context
 
 from .app_defs import \
-    Environ
+    Environ, \
+    StartResponse
 
 from .doc import \
     DocAction, \

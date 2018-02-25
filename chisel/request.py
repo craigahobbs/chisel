@@ -12,14 +12,15 @@ from .util import import_submodules
 REQUESTS_MODULE_ATTR = '__chisel_requests__'
 
 
-def request(_wsgi_callback=None, **kwargs):
+def request(request_callback=None, **kwargs):
     """
     Chisel request decorator
     """
-    if _wsgi_callback is None:
+
+    if request_callback is None:
         return lambda fn: request(fn, **kwargs)
     else:
-        return Request(_wsgi_callback, **kwargs).decorate_module(_wsgi_callback)
+        return Request(request_callback, **kwargs).decorate_module(request_callback)
 
 
 class Request(object):

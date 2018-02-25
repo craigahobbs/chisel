@@ -14,14 +14,15 @@ from .spec import SpecParser
 from .url import decode_query_string
 
 
-def action(_action_callback=None, **kwargs):
+def action(action_callback=None, **kwargs):
     """
-    Chisel action request decorator
+    Chisel action decorator
     """
-    if _action_callback is None:
+
+    if action_callback is None:
         return lambda fn: action(fn, **kwargs)
     else:
-        return Action(_action_callback, **kwargs).decorate_module(_action_callback)
+        return Action(action_callback, **kwargs).decorate_module(action_callback)
 
 
 class ActionError(Exception):
