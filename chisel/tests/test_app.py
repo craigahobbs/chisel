@@ -130,7 +130,7 @@ class TestApplication(TestCase):
             ctx = environ[Environ.CTX]
             self.assertEqual(environ['QUERY_STRING'], 'a=1&b=2')
             self.assertEqual(environ['wsgi.input'].read(), b'hello')
-            ctx.log.warn('in request1')
+            ctx.log.warning('in request1')
             return ctx.response_text(HTTPStatus.OK, 'request1')
 
         app = Application()
