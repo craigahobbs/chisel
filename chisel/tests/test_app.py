@@ -44,11 +44,14 @@ class TestApplication(TestCase):
             ('POST', '/request3/'): request3
         })
         self.assertListEqual(
-            [(method, regex.pattern, request) for method, regex, request in app._Application__request_regex],  # pylint: disable=no-member, protected-access
             [
-                (None, '^\\/request4\\/(?P<arg>[^/]+)$', request4),
-                ('GET', '^\\/request5\\/(?P<arg>[^/]+)$', request5),
-                ('POST', '^\\/request5\\/(?P<arg>[^/]+)\\/foo$', request5)
+                (method, regex.pattern.replace('\\/', '/'), request)
+                for method, regex, request in app._Application__request_regex # pylint: disable=no-member, protected-access
+            ],
+            [
+                (None, '^/request4/(?P<arg>[^/]+)$', request4),
+                ('GET', '^/request5/(?P<arg>[^/]+)$', request5),
+                ('POST', '^/request5/(?P<arg>[^/]+)/foo$', request5)
             ]
         )
 

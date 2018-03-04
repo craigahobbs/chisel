@@ -33,11 +33,10 @@ endef
 ifndef PYTHON_URLS
 PYTHON_URLS := \
     https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tgz \
+    https://www.python.org/ftp/python/3.7.0/Python-3.7.0b2.tgz \
     https://www.python.org/ftp/python/3.5.5/Python-3.5.5.tgz \
     $(PYTHON_URLS_EXTRA)
 endif
-
-PYTHON_NAME_FN = $(call UPPER_FN, $(subst -,_,$(subst .,_,$(basename $(notdir $(1))))))
 
 # OS helpers
 OS_MAC := $(findstring Darwin, $(shell uname))
@@ -47,10 +46,10 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [build|test|cover|doc|pylint|commit|clean|superclean|setup]'
+	@echo 'usage: make [test|pylint|doc|cover|commit|clean|superclean|setup]'
 
 .PHONY: commit
-commit: pylint test doc cover
+commit: test pylint doc cover
 
 .PHONY: clean
 clean: _clean
@@ -91,11 +90,14 @@ else
 		curl \
 		libbz2-dev \
 		libexpat1-dev \
+		libffi-dev \
+		libreadline-dev \
 		libssl-dev \
 		zlib1g-dev
 endif
 
 # Function to generate python source build rules - python_url
+PYTHON_NAME_FN = $(call UPPER_FN, $(subst -,_,$(subst .,_,$(basename $(notdir $(1))))))
 define PYTHON_RULE_FN
 $(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD_SYS)/$(basename $(notdir $(1)))
 $(call PYTHON_NAME_FN, $(1))_INSTALL := $$($(call PYTHON_NAME_FN, $(1))_SRC).sys
@@ -129,20 +131,12 @@ $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(first
 	touch $$@
 
 .PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS)))))
-$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))): build
 $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))_BUILD)
 $(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))_ENV), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS))))))
 
 .PHONY: $(strip $(1))
-$(strip $(1)): _$(strip $(1))
-
-.PHONY: _$(strip $(1))
-_$(strip $(1)): $(strip $(1))$(call LOWER_FN, _$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS)))))
+$(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(firstword $(PYTHON_URLS)))))
 endef
-
-# Overridable build rule
-.PHONY: build
-build:
 
 # Generate test rules
 define TEST_COMMANDS_FN
