@@ -88,7 +88,6 @@ class Action(Request):
             try:
                 content = None if is_get else environ['wsgi.input'].read()
             except:
-                ctx.log.warning("I/O error reading input for action '%s'", self.name)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
