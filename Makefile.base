@@ -110,7 +110,8 @@ $$($(call PYTHON_NAME_FN, $(1))_BUILD):
 	cd $$($(call PYTHON_NAME_FN, $(1))_SRC) && \
 		$(if $(OS_MAC), CPPFLAGS='-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include') \
 		$(if $(OS_MAC), LDFLAGS='-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib') \
-			./configure --prefix=$$(abspath $$($(call PYTHON_NAME_FN, $(1))_INSTALL)) && \
+			./configure --prefix=$$(abspath $$($(call PYTHON_NAME_FN, $(1))_INSTALL)) \
+			$(if $(OS_MAC), --with-openssl=/usr/local/opt/openssl) && \
 		make && \
 		make install
 	$$($(call PYTHON_NAME_FN, $(1))) -m ensurepip --default-pip
