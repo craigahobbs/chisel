@@ -6,4 +6,9 @@
 
 PACKAGE_NAME := chisel
 
+PYTHON_VERSIONS := \
+    3.6.5 \
+    3.7.0rc1 \
+    3.5.5 \
+
 include Makefile.base
