@@ -198,7 +198,7 @@ class TestApplication(TestCase):
             start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
             return ['Hello'.encode('utf-8')]
 
-        class MyFormatter(object):
+        class MyFormatter:
 
             def __init__(self, ctx):
                 assert ctx is not None

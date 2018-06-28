@@ -19,7 +19,7 @@ RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
 RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 
-class Application(object):
+class Application:
     """
     Chisel application
     """
@@ -135,7 +135,7 @@ class Application(object):
         return start_response.status, start_response.headers, b''.join(response)
 
 
-class Context(object):
+class Context:
     """
     Chisel request context
     """

@@ -69,7 +69,7 @@ class ValidationError(Exception):
 
 
 # Struct member attributes
-class StructMemberAttributes(object):
+class StructMemberAttributes:
     __slots__ = ('op_eq', 'op_lt', 'op_lte', 'op_gt', 'op_gte',
                  'op_len_eq', 'op_len_lt', 'op_len_lte', 'op_len_gt', 'op_len_gte')
 
@@ -139,7 +139,7 @@ class StructMemberAttributes(object):
 
 
 # Typedef type (type plus attributes)
-class Typedef(object):
+class Typedef:
     __slots__ = ('type_name', 'type', 'attr', 'doc')
 
     def __init__(self, type_, attr=None, type_name=None, doc=None):
@@ -165,7 +165,7 @@ class Typedef(object):
 
 
 # Struct member
-class StructMember(object):
+class StructMember:
     __slots__ = ('name', 'type', 'optional', 'nullable', 'attr', 'doc')
 
     def __init__(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
@@ -178,7 +178,7 @@ class StructMember(object):
 
 
 # Struct type
-class TypeStruct(object):
+class TypeStruct:
     __slots__ = ('type_name', 'union', 'base_types', '_members', 'doc')
 
     def __init__(self, type_name=None, union=False, base_types=None, doc=None):
@@ -250,7 +250,7 @@ class TypeStruct(object):
 
 
 # Array type
-class TypeArray(object):
+class TypeArray:
     __slots__ = ('type', 'attr')
 
     type_name = 'array'
@@ -291,7 +291,7 @@ class TypeArray(object):
 
 
 # Dict type
-class TypeDict(object):
+class TypeDict:
     __slots__ = ('type', 'attr', 'key_type', 'key_attr')
 
     type_name = 'dict'
@@ -349,7 +349,7 @@ class TypeDict(object):
 
 
 # Enumeration type
-class EnumValue(object):
+class EnumValue:
     __slots__ = ('value', 'doc')
 
     def __init__(self, valueString, doc=None):
@@ -360,7 +360,7 @@ class EnumValue(object):
         return self.value == other
 
 
-class TypeEnum(object):
+class TypeEnum:
     __slots__ = ('type_name', 'base_types', '_values', 'doc')
 
     def __init__(self, type_name='enum', base_types=None, doc=None):
@@ -392,7 +392,7 @@ class TypeEnum(object):
 
 
 # String type
-class _TypeString(object):
+class _TypeString:
     __slots__ = ()
 
     type_name = 'string'
@@ -413,7 +413,7 @@ TYPE_STRING = _TypeString()
 
 
 # Int type
-class _TypeInt(object):
+class _TypeInt:
     __slots__ = ()
 
     type_name = 'int'
@@ -445,7 +445,7 @@ TYPE_INT = _TypeInt()
 
 
 # Float type
-class _TypeFloat(object):
+class _TypeFloat:
     __slots__ = ()
 
     type_name = 'float'
@@ -477,7 +477,7 @@ TYPE_FLOAT = _TypeFloat()
 
 
 # Bool type
-class _TypeBool(object):
+class _TypeBool:
     __slots__ = ()
 
     type_name = 'bool'
@@ -508,7 +508,7 @@ TYPE_BOOL = _TypeBool()
 
 
 # Uuid type
-class _TypeUuid(object):
+class _TypeUuid:
     __slots__ = ()
 
     type_name = 'uuid'
@@ -534,7 +534,7 @@ TYPE_UUID = _TypeUuid()
 
 
 # Date type
-class _TypeDate(object):
+class _TypeDate:
     __slots__ = ()
 
     type_name = 'date'
@@ -560,7 +560,7 @@ TYPE_DATE = _TypeDate()
 
 
 # Datetime type
-class _TypeDatetime(object):
+class _TypeDatetime:
     __slots__ = ()
 
     type_name = 'datetime'
@@ -589,7 +589,7 @@ TYPE_DATETIME = _TypeDatetime()
 
 
 # Object type
-class _TypeObject(object):
+class _TypeObject:
     __slots__ = ()
 
     type_name = 'object'

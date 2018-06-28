@@ -13,7 +13,7 @@ from .model import AttributeValidationError, StructMemberAttributes, TypeArray, 
 
 
 # Action model
-class ActionModel(object):
+class ActionModel:
     __slots__ = ('name', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
 
     def __init__(self, name, doc=None, doc_group=None):
@@ -81,7 +81,7 @@ _TYPES = {
 
 
 # Specification language parser class
-class SpecParser(object):
+class SpecParser:
     __slots__ = (
         'types',
         'actions',
@@ -428,7 +428,7 @@ class SpecParser(object):
                     definition_base_ids = _RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
                 # Struct definition
-                if definition_string == 'struct' or definition_string == 'union':
+                if definition_string in ('struct', 'union'):
 
                     # Type already defined?
                     if definition_id in _TYPES or definition_id in self.types:

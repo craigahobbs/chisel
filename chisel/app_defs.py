@@ -8,7 +8,7 @@ from io import BytesIO
 from .url import encode_query_string
 
 
-class Environ(object):
+class Environ:
     """WSGI environment variables"""
 
     __slots__ = ()
@@ -30,7 +30,7 @@ class Environ(object):
         return environ
 
 
-class StartResponse(object):
+class StartResponse:
     __slots__ = ('status', 'headers')
 
     def __init__(self):

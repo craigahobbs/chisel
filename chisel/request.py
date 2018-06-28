@@ -23,7 +23,7 @@ def request(request_callback=None, **kwargs):
         return Request(request_callback, **kwargs).decorate_module(request_callback)
 
 
-class Request(object):
+class Request:
     """
     Chisel request
     """

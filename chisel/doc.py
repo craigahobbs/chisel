@@ -79,7 +79,7 @@ action {name}
         return root.serialize(indent='  ' if ctx.app.pretty_output else '')
 
 
-class Element(object):
+class Element:
     """
     HTML5 DOM element
     """

@@ -663,7 +663,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
 
-        class MyStream(object):
+        class MyStream:
             @staticmethod
             def read():
                 raise IOError('FAIL')
@@ -676,7 +676,7 @@ action my_action
     # Test action JSON serialization error handling
     def test_error_json(self):
 
-        class MyClass(object):
+        class MyClass:
             pass
 
         @action(spec='''\
