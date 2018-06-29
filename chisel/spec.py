@@ -160,10 +160,10 @@ class SpecParser:
                     _, ext = os.path.splitext(filename)
                     if ext == spec_ext:
                         spec_path = os.path.join(dirpath, filename)
-                        with open(spec_path, 'r') as file_spec:
+                        with open(spec_path, 'r', encoding='utf-8') as file_spec:
                             self.parse(file_spec, filename=spec_path, finalize=False)
         else:
-            with open(path, 'r') as file_spec:
+            with open(path, 'r', encoding='utf-8') as file_spec:
                 self.parse(file_spec, filename=path, finalize=False)
 
         if finalize:

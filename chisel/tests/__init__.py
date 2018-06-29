@@ -11,6 +11,6 @@ class TestCase(unittest.TestCase):
         for path_parts, content in file_defs:
             path = os.path.join(tempdir.name, *path_parts)
             os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'w') as file_:
+            with open(path, 'w', encoding='utf-8') as file_:
                 file_.write(content)
         return tempdir

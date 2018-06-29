@@ -37,7 +37,7 @@ def main():
     # Execute WSGI application file
     if args.file:
         application_globals = {}
-        with open(args.file) as wsgi_file:
+        with open(args.file, 'r', encoding='utf-8') as wsgi_file:
             exec(compile(wsgi_file.read(), args.file, 'exec'), application_globals) # pylint: disable=exec-used
         application = application_globals[args.application]
     else:
