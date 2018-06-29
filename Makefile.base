@@ -124,7 +124,7 @@ $(foreach X, $(PYTHON_VERSIONS), $(eval $(call PYTHON_RULE_FN, $(X))))
 define ENV_RULE
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV := $$(BUILD_ENV)/$(strip $(1))-$(basename $(notdir $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV).build
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV)/bin/python -E
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV)/bin/python3 -E
 
 $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD): $$($(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD)
 	$$($(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))) -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV)
