@@ -93,7 +93,7 @@ else
 		libexpat1-dev \
 		libffi-dev \
 		libreadline-dev \
-		libssl1.0-dev \
+		libssl-dev \
 		zlib1g-dev
 endif
 
