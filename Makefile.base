@@ -14,7 +14,7 @@ PYTHON_DEFAULT_VERSION := $(firstword $(PYTHON_VERSIONS))
 
 # Development tool versions
 COVERAGE_VERSION := 4.5.1
-PYLINT_VERSION := git+https://github.com/PyCQA/pylint.git@5b966bdac590791068981eb1492d132eb42e55ee
+PYLINT_VERSION := 2.0.0.dev2
 SPHINX_VERSION := 1.7.5
 
 # Build directories
