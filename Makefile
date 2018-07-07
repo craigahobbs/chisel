@@ -11,4 +11,6 @@ PYTHON_VERSIONS := \
     3.6.6 \
     3.5.5
 
+COVERAGE_FAIL_UNDER := 96
+
 include Makefile.base
