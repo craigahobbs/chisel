@@ -14,7 +14,7 @@ PYTHON_DEFAULT_VERSION := $(firstword $(PYTHON_VERSIONS))
 
 # Python pip option
 PIP_ARGS ?= --isolated --no-cache-dir --disable-pip-version-check
-PIP_INSTALL_ARGS ?= --progress-bar off --no-binary :all:
+PIP_INSTALL_ARGS ?= --no-binary :all: --progress-bar off
 
 # coverage
 COVERAGE_VERSION ?= 4.5.1
@@ -136,6 +136,7 @@ $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD := $$($(call UPPER_FN,
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4)) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)/bin/python3 -E
 
 $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD): $$($(call PYTHON_NAME_FN, $(4))_BUILD)
+	rm -rf *.egg-info
 	$$($(call PYTHON_NAME_FN, $(4))) -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))) -m pip -q $(PIP_ARGS) install --upgrade pip
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))) -m pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
