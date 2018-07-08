@@ -13,9 +13,12 @@ endif
 PYTHON_DEFAULT_VERSION := $(firstword $(PYTHON_VERSIONS))
 
 # Development tool versions
-COVERAGE_VERSION := 4.5.1
-PYLINT_VERSION := 2.0.0.dev2
-SPHINX_VERSION := 1.7.5
+COVERAGE_VERSION ?= 4.5.1
+PYLINT_VERSION ?= 2.0.0.dev2
+SPHINX_VERSION ?= 1.7.5
+
+# Development options
+COVERAGE_FAIL_UNDER ?= 100
 
 # Build directories
 BUILD := build
@@ -149,7 +152,7 @@ $(foreach X, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test, -e . -e .[tests],
 define COVER_COMMANDS_FN
 	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
 	$(2) -m coverage html -d $(BUILD_COV)
-	$(2) -m coverage report $(if COVERAGE_FAIL_UNDER,--fail-under $(COVERAGE_FAIL_UNDER))
+	$(2) -m coverage report $(if $(COVERAGE_FAIL_UNDER),--fail-under $(COVERAGE_FAIL_UNDER))
 	@echo
 	@echo Coverage report is $(BUILD_COV)/index.html
 endef
