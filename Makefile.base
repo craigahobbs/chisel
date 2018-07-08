@@ -40,7 +40,7 @@ ifndef __UPPER_FN__$(strip $(1))__
 __UPPER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:lower:]' '[:upper:]')
 endif
 endef
-PIP_VERSION = $(if $(findstring git+,$(2)),-e $(strip $(2))\#egg=$(strip $(1)),$(strip $(1))==$(strip $(2)))
+PIP_VERSION_FN = $(if $(findstring git+,$(2)),-e $(strip $(2))\#egg=$(strip $(1)),$(strip $(1))==$(strip $(2)))
 
 # OS helpers
 OS_MAC := $(findstring Darwin, $(shell uname))
@@ -156,21 +156,24 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(BUILD_COV)/index.html
 endef
-$(eval $(call ENV_RULE, cover, -e . -e .[tests] $(call PIP_VERSION, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
+$(eval $(call ENV_RULE, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
 # Generate doc rules
-HAS_DOC = $(shell if [ -d doc ]; then echo 1; fi)
-define DOC_COMMANDS_FN
+HAS_DOC := $(shell if [ -d doc ]; then echo 1; fi)
 ifneq '$(HAS_DOC)' ''
+define DOC_COMMANDS_FN
 	$(1)/bin/sphinx-build -b html -d $(BUILD_DOC)/doctrees doc $(BUILD_DOC)/html
 	@echo
 	@echo Doc index is $(BUILD_DOC)/html/index.html
-endif
 endef
-$(eval $(call ENV_RULE, doc, $(if $(HAS_DOC), $(call PIP_VERSION, sphinx, $(SPHINX_VERSION))), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
+else
+.PHONY: doc
+doc:
+endif
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
 	$(2) -m pylint -j 0 $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
-$(eval $(call ENV_RULE, pylint, -e . $(call PIP_VERSION, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
+$(eval $(call ENV_RULE, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
