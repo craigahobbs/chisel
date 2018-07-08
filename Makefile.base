@@ -12,13 +12,20 @@ ifeq '$(PYTHON_VERSIONS)' ''
 endif
 PYTHON_DEFAULT_VERSION := $(firstword $(PYTHON_VERSIONS))
 
-# Development tool versions
-COVERAGE_VERSION ?= 4.5.1
-PYLINT_VERSION ?= 2.0.0.dev2
-SPHINX_VERSION ?= 1.7.5
+# Python pip option
+PIP_ARGS ?= --isolated --no-cache-dir --disable-pip-version-check
+PIP_INSTALL_ARGS ?= --progress-bar off --no-binary :all:
 
-# Development options
-COVERAGE_FAIL_UNDER ?= 100
+# coverage
+COVERAGE_VERSION ?= 4.5.1
+COVERAGE_REPORT_ARGS ?= --fail-under 100
+
+# pylint
+PYLINT_VERSION ?= 2.0.0.dev2
+PYLINT_ARGS ?= -j 0
+
+# sphinx
+SPHINX_VERSION ?= 1.7.5
 
 # Build directories
 BUILD := build
@@ -100,8 +107,8 @@ else
 		zlib1g-dev
 endif
 
-# Function to generate python source build rules - python_url
-PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(strip $(1))))
+# Function to generate python source build rules - *python_version
+PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(if $(strip $(1)),$(strip $(1)),$(PYTHON_DEFAULT_VERSION))))
 define PYTHON_RULE_FN
 $(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD_SYS)/Python-$(strip $(1))
 $(call PYTHON_NAME_FN, $(1))_INSTALL := $$($(call PYTHON_NAME_FN, $(1))_SRC).sys
@@ -118,28 +125,28 @@ $$($(call PYTHON_NAME_FN, $(1))_BUILD):
 			$(if $(OS_MAC), --with-openssl=/usr/local/opt/openssl) && \
 		make && \
 		make install
-	$$($(call PYTHON_NAME_FN, $(1))) -m ensurepip
 	touch $$@
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call PYTHON_RULE_FN, $(X))))
 
-# Function to generate venv rules - env_name, pip_args, commands, *python_url
+# Function to generate venv rules - env_name, pip_args, commands, *python_version
 define ENV_RULE
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV := $$(BUILD_ENV)/$(strip $(1))-$(basename $(notdir $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV).build
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV)/bin/python3 -E
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV := $$(BUILD_ENV)/$(strip $(1))-$(basename $(notdir $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV).build
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4)) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)/bin/python3 -E
 
-$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD): $$($(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD)
-	$$($(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))) -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV)
-	$(if $(PIP_ARGS)$(strip $(2)),$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))) -m pip --disable-pip-version-check install --no-binary :all: $(PIP_ARGS) $(2))
+$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD): $$($(call PYTHON_NAME_FN, $(4))_BUILD)
+	$$($(call PYTHON_NAME_FN, $(4))) -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))) -m pip -q $(PIP_ARGS) install --upgrade pip
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))) -m pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
 	touch $$@
 
-.PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
-$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_BUILD)
-$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))_ENV), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION)))))
+.PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
+$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD)
+$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))))
 
 .PHONY: $(strip $(1))
-$(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
+$(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
 endef
 
 # Generate test rules
@@ -152,7 +159,7 @@ $(foreach X, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test, -e . -e .[tests],
 define COVER_COMMANDS_FN
 	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
 	$(2) -m coverage html -d $(BUILD_COV)
-	$(2) -m coverage report $(if $(COVERAGE_FAIL_UNDER),--fail-under $(COVERAGE_FAIL_UNDER))
+	$(2) -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
 	@echo Coverage report is $(BUILD_COV)/index.html
 endef
@@ -174,6 +181,6 @@ endif
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
-	$(2) -m pylint -j 0 $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
+	$(2) -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
 $(eval $(call ENV_RULE, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
