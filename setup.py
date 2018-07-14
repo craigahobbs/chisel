@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2017 Craig Hobbs
+# Copyright (C) 2012-2018 Craig Hobbs
 #
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
@@ -6,8 +6,6 @@
 from setuptools import setup
 
 import chisel
-
-TESTS_REQUIRE = []
 
 setup(
     name='chisel',
@@ -26,9 +24,5 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     packages=['chisel'],
-    test_suite='chisel.tests',
-    tests_require=TESTS_REQUIRE,
-    extras_require={
-        'tests': TESTS_REQUIRE,
-    },
+    test_suite='chisel.tests'
 )

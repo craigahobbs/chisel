@@ -1,5 +1,5 @@
 # -*- makefile-gmake -*-
-# Copyright (C) 2012-2017 Craig Hobbs
+# Copyright (C) 2012-2018 Craig Hobbs
 #
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
@@ -10,10 +10,9 @@ endif
 ifeq '$(PYTHON_VERSIONS)' ''
     $(error PYTHON_VERSIONS is not defined!)
 endif
-PYTHON_DEFAULT_VERSION := $(firstword $(PYTHON_VERSIONS))
 
 # Python pip option
-PIP_ARGS ?= --isolated --no-cache-dir --disable-pip-version-check
+PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --no-binary :all: --progress-bar off
 
 # coverage
@@ -27,12 +26,8 @@ PYLINT_ARGS ?= -j 0
 # sphinx
 SPHINX_VERSION ?= 1.7.5
 
-# Build directories
+# Build directory
 BUILD := build
-BUILD_COV := $(BUILD)/coverage
-BUILD_DOC := $(BUILD)/doc
-BUILD_ENV := $(BUILD)/env
-BUILD_SYS := $(BUILD)/sys
 
 # Helper functions
 LOWER_FN = $(eval $(call LOWER_FN_CACHE, $(1)))$(__LOWER_FN__$(strip $(1))__)
@@ -47,17 +42,17 @@ ifndef __UPPER_FN__$(strip $(1))__
 __UPPER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:lower:]' '[:upper:]')
 endif
 endef
+PYTHON_VERSION_FN = $(if $(strip $(1)),$(strip $(1)),$(firstword $(PYTHON_VERSIONS)))
+PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(call PYTHON_VERSION_FN,$(1))))
+PYTHON_IMAGE_FN = python:$(call PYTHON_VERSION_FN,$(1))-slim
 PIP_VERSION_FN = $(if $(findstring git+,$(2)),-e $(strip $(2))\#egg=$(strip $(1)),$(strip $(1))==$(strip $(2)))
-
-# OS helpers
-OS_MAC := $(findstring Darwin, $(shell uname))
 
 .PHONY: help
 help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [test|pylint|doc|cover|commit|clean|superclean|setup]'
+	@echo 'usage: make [test|pylint|doc|cover|commit|clean]'
 
 .PHONY: commit
 commit: test pylint doc cover
@@ -68,9 +63,7 @@ clean: _clean
 .PHONY: _clean
 _clean:
 	rm -rf \
-		$(BUILD_COV) \
-		$(BUILD_DOC) \
-		$(BUILD_ENV) \
+		$(BUILD) \
 		.coverage \
 		.makefile \
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
@@ -78,72 +71,24 @@ _clean:
 		*.egg-info \
 		*.egg
 
-.PHONY: superclean
-superclean: clean _superclean
+# Function to generate venv rules - env_name, pip_args, commands, *python_version, *docker_run_args
+define ENV_RULE_FN
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR := /build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN := docker run --rm -u $$(shell id -u) -v $(abspath .):/src -v $(abspath $(BUILD)):/build -w /src $(5) $(call PYTHON_IMAGE_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR)/bin
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
-.PHONY: _superclean
-_superclean:
-	rm -rf \
-		$(BUILD)
-
-.PHONY: setup
-setup: _setup
-
-.PHONY: _setup
-_setup:
-ifneq '$(OS_MAC)' ''
-	brew install \
-		openssl \
-		homebrew/dupes/zlib
-else
-	sudo apt-get install -y \
-		build-essential \
-		curl \
-		libbz2-dev \
-		libexpat1-dev \
-		libffi-dev \
-		libreadline-dev \
-		libssl-dev \
-		zlib1g-dev
-endif
-
-# Function to generate python source build rules - *python_version
-PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(if $(strip $(1)),$(strip $(1)),$(PYTHON_DEFAULT_VERSION))))
-define PYTHON_RULE_FN
-$(call PYTHON_NAME_FN, $(1))_SRC := $$(BUILD_SYS)/Python-$(strip $(1))
-$(call PYTHON_NAME_FN, $(1))_INSTALL := $$($(call PYTHON_NAME_FN, $(1))_SRC).sys
-$(call PYTHON_NAME_FN, $(1))_BUILD := $$($(call PYTHON_NAME_FN, $(1))_SRC).build
-$(call PYTHON_NAME_FN, $(1)) := $$($(call PYTHON_NAME_FN, $(1))_INSTALL)/bin/python3 -E
-
-$$($(call PYTHON_NAME_FN, $(1))_BUILD):
-	mkdir -p $$(dir $$@)
-	curl -s 'https://www.python.org/ftp/python/$(shell echo '$(strip $(1))' | sed -e 's/\(a\|b\|rc\)[0-9]\+//')/Python-$(strip $(1)).tgz' | tar xzC $$(dir $$@)
-	cd $$($(call PYTHON_NAME_FN, $(1))_SRC) && \
-		$(if $(OS_MAC), CPPFLAGS='-I/usr/local/opt/zlib/include -I/usr/local/opt/openssl/include') \
-		$(if $(OS_MAC), LDFLAGS='-L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib') \
-			./configure --prefix=$$(abspath $$($(call PYTHON_NAME_FN, $(1))_INSTALL)) \
-			$(if $(OS_MAC), --with-openssl=/usr/local/opt/openssl) && \
-		make && \
-		make install
-	touch $$@
-endef
-$(foreach X, $(PYTHON_VERSIONS), $(eval $(call PYTHON_RULE_FN, $(X))))
-
-# Function to generate venv rules - env_name, pip_args, commands, *python_version
-define ENV_RULE
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV := $$(BUILD_ENV)/$(strip $(1))-$(basename $(notdir $(if $(strip $(4)),$(4),$(PYTHON_DEFAULT_VERSION))))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV).build
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4)) := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)/bin/python3 -E
-
-$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD): $$($(call PYTHON_NAME_FN, $(4))_BUILD)
-	$$($(call PYTHON_NAME_FN, $(4))) -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)/bin/pip -q $(PIP_ARGS) install --upgrade pip
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV)/bin/pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
+$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD):
+	mkdir -p $(BUILD)
+	if [ "$$$$(docker images -q $(call PYTHON_IMAGE_FN, $(4)))" = "" ]; then docker pull $(call PYTHON_IMAGE_FN,$(4)); fi
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR)
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD)/pip -q $(PIP_ARGS) install --upgrade pip
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD)/pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
 	touch $$@
 
 .PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
-$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_BUILD)
-$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))))
+$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD)
+$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD))
 
 .PHONY: $(strip $(1))
 $(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
@@ -151,36 +96,36 @@ endef
 
 # Generate test rules
 define TEST_COMMANDS_FN
-	$(2) setup.py test $(if $(TEST),-s $(TEST))
+	$(1)/python3 setup.py test $(if $(TEST),-s $(TEST))
 endef
-$(foreach X, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE, test, -e . -e .[tests], TEST_COMMANDS_FN, $(X))))
+$(foreach X, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
-	$(2) -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
-	$(2) -m coverage html -d $(BUILD_COV)
-	$(2) -m coverage report $(COVERAGE_REPORT_ARGS)
+	$(1)/python3 -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
+	$(1)/python3 -m coverage html -d $(BUILD)/coverage
+	$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
-	@echo Coverage report is $(BUILD_COV)/index.html
+	@echo Coverage report is $(BUILD)/coverage/index.html
 endef
-$(eval $(call ENV_RULE, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
+$(eval $(call ENV_RULE_FN, cover, -e . $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
-# Generate doc rules
+# Generate pylint rules
+define PYLINT_COMMANDS_FN
+	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
+endef
+$(eval $(call ENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
+
+# Generate sphinx rules
 HAS_DOC := $(shell if [ -d doc ]; then echo 1; fi)
 ifneq '$(HAS_DOC)' ''
 define DOC_COMMANDS_FN
-	$(1)/bin/sphinx-build -b html -d $(BUILD_DOC)/doctrees doc $(BUILD_DOC)/html
+	$(1)/sphinx-build -b html -d $(BUILD)/doc/doctrees doc $(BUILD)/doc/html
 	@echo
-	@echo Doc index is $(BUILD_DOC)/html/index.html
+	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
-$(eval $(call ENV_RULE, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
+$(eval $(call ENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
 else
 .PHONY: doc
 doc:
 endif
-
-# Generate pylint rules
-define PYLINT_COMMANDS_FN
-	$(2) -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
-endef
-$(eval $(call ENV_RULE, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
