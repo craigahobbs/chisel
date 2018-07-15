@@ -213,7 +213,7 @@ class TestRequest(TestCase):
 
     def test_import_requests(self):
 
-        with self.create_test_files((
+        test_files = (
             (
                 ('__init__.py',),
                 ''
@@ -258,7 +258,8 @@ def request3(environ, start_response):
     return [b'request3']
 '''
             )
-        )) as requests_dir:
+        )
+        with self.create_test_files(test_files) as requests_dir:
             with unittest.mock.patch('sys.path', [requests_dir] + sys.path):
                 self.assertListEqual(
                     sorted(request.name for request in Request.import_requests('test_package')),
