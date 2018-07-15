@@ -34,12 +34,12 @@ LOWER_FN = $(eval $(call LOWER_FN_CACHE, $(1)))$(__LOWER_FN__$(strip $(1))__)
 UPPER_FN = $(eval $(call UPPER_FN_CACHE, $(1)))$(__UPPER_FN__$(strip $(1))__)
 define LOWER_FN_CACHE
 ifndef __LOWER_FN__$(strip $(1))__
-__LOWER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:upper:]' '[:lower:]')
+__LOWER_FN__$(strip $(1))__ := $$(shell echo $(1) | tr '[:upper:]' '[:lower:]')
 endif
 endef
 define UPPER_FN_CACHE
 ifndef __UPPER_FN__$(strip $(1))__
-__UPPER_FN__$(strip $(1))__ := $$(shell echo '$(strip $(1))' | tr '[:lower:]' '[:upper:]')
+__UPPER_FN__$(strip $(1))__ := $$(shell echo $(1) | tr '[:lower:]' '[:upper:]')
 endif
 endef
 PYTHON_VERSION_FN = $(if $(strip $(1)),$(strip $(1)),$(firstword $(PYTHON_VERSIONS)))
@@ -74,7 +74,7 @@ _clean:
 # Function to generate venv rules - env_name, pip_args, commands, *python_version, *docker_run_args
 define ENV_RULE_FN
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR := /build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN := docker run --rm -u $$(shell id -u) -v $(abspath .):/src -v $(abspath $(BUILD)):/build -w /src $(5) $(call PYTHON_IMAGE_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN := docker run --rm -u $$(shell id -u):$$(shell id -u) -v $(abspath .):/src -v $(abspath $(BUILD)):/build -w /src $(5) $(call PYTHON_IMAGE_FN,$(4))
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR)/bin
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
