@@ -13,4 +13,6 @@ PYTHON_VERSIONS := \
 
 COVERAGE_REPORT_ARGS := --fail-under 96
 
+SPHINX_DOC := doc
+
 include Makefile.base

@@ -25,6 +25,7 @@ PYLINT_ARGS ?= -j 0
 
 # sphinx
 SPHINX_VERSION ?= 1.7.5
+SPHINX_DOC ?=
 
 # Build directory
 BUILD := build
@@ -111,10 +112,9 @@ endef
 $(eval $(call ENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
 
 # Generate sphinx rules
-HAS_DOC := $(shell if [ -d doc ]; then echo 1; fi)
-ifneq '$(HAS_DOC)' ''
+ifneq '$(SPHINX_DOC)' ''
 define DOC_COMMANDS_FN
-	$(1)/sphinx-build -b html -d $(BUILD)/doc/doctrees doc $(BUILD)/doc/html
+	$(1)/sphinx-build -b html -d $(BUILD)/doc/doctrees $(SPHINX_DOC) $(BUILD)/doc/html
 	@echo
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
