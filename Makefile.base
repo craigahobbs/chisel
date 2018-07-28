@@ -20,11 +20,11 @@ COVERAGE_VERSION ?= 4.5.1
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
-PYLINT_VERSION ?= 2.0.0
+PYLINT_VERSION ?= 2.0.1
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 1.7.5
+SPHINX_VERSION ?= 1.7.6
 SPHINX_DOC ?=
 
 # Build directory
@@ -69,24 +69,24 @@ _clean:
 		*.egg-info \
 		*.egg
 
-# Function to generate venv rules - env_name, pip_args, commands, *python_version, *docker_run_args
-define ENV_RULE_FN
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR := /build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN := docker run --rm -u $$(USER_ID):$$(USER_ID) -v $(abspath .):/src -v $(abspath $(BUILD)):/build -w /src $(5) $(call PYTHON_IMAGE_FN,$(4))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR)/bin
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
+# Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
+define VENV_RULE_FN
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR := /build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN := docker run --rm -u $$(USER_ID):$$(USER_ID) -v $(abspath .):/src -v $(abspath $(BUILD)):/build -w /src $(5) $(call PYTHON_IMAGE_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)/bin
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
-$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD):
+$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD):
 	mkdir -p $(BUILD)
 	if [ "$$$$(docker images -q $(call PYTHON_IMAGE_FN, $(4)))" = "" ]; then docker pull $(call PYTHON_IMAGE_FN,$(4)); fi
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_DIR)
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD)/pip -q $(PIP_ARGS) install --upgrade pip
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD)/pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $(PIP_ARGS) install --upgrade pip
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
 	touch $$@
 
 .PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
-$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_BUILD)
-$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_ENV_CMD))
+$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD)
+$(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD))
 
 .PHONY: $(strip $(1))
 $(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
@@ -96,7 +96,7 @@ endef
 define TEST_COMMANDS_FN
 	$(1)/python3 setup.py test $(if $(TEST),-s $(TEST))
 endef
-$(foreach X, $(PYTHON_VERSIONS), $(eval $(call ENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
+$(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
@@ -106,13 +106,13 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(BUILD)/coverage/index.html
 endef
-$(eval $(call ENV_RULE_FN, cover, -e . $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, cover, -e . $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
 	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
 endef
-$(eval $(call ENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
 
 # Generate sphinx rules
 ifneq '$(SPHINX_DOC)' ''
@@ -121,7 +121,7 @@ define DOC_COMMANDS_FN
 	@echo
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
-$(eval $(call ENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
 else
 .PHONY: doc
 doc:
