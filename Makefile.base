@@ -47,7 +47,7 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [test|pylint|doc|cover|commit|clean]'
+	@echo 'usage: make [clean|commit|cover|*doc|pylint|test]'
 
 .PHONY: commit
 commit: test pylint doc cover
@@ -119,7 +119,4 @@ define DOC_COMMANDS_FN
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
 $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
-else
-.PHONY: doc
-doc:
 endif
