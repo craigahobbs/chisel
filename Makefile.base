@@ -99,7 +99,7 @@ $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e ., TEST_CO
 define COVER_COMMANDS_FN
 	$(1)/python3 -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
 	$(1)/python3 -m coverage html -d $(BUILD)/coverage
-	$(if $(TEST),-)$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
+	$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
 	@echo Coverage report is $(BUILD)/coverage/index.html
 endef
