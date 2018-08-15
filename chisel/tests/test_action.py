@@ -30,7 +30,7 @@ action my_action_default
         app = Application()
         app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
-        self.assertEqual(my_action_default.urls, (('GET', '/my_action_default'), ('POST', '/my_action_default')))
+        self.assertEqual(my_action_default.urls, (('POST', '/my_action_default'),))
         self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, False)
@@ -62,7 +62,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('POST', '/my_action')))
+        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
@@ -84,7 +84,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('POST', '/my_action')))
+        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
@@ -132,7 +132,7 @@ action theAction
         app = Application()
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'theAction')
-        self.assertEqual(my_action.urls, (('GET', '/theAction'), ('POST', '/theAction')))
+        self.assertEqual(my_action.urls, (('POST', '/theAction'),))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'theAction')
         self.assertEqual(my_action.wsgi_response, False)
@@ -150,7 +150,7 @@ action my_action_default
         app = Application()
         app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
-        self.assertEqual(my_action_default.urls, (('GET', '/foo'), ('POST', '/foo')))
+        self.assertEqual(my_action_default.urls, (('POST', '/foo'),))
         self.assertTrue(isinstance(my_action_default.model, ActionModel))
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, True)
@@ -158,7 +158,7 @@ action my_action_default
     # Test successful action get
     def test_get(self):
 
-        @action(spec='''\
+        @action(method='GET', spec='''\
 action my_action
   input
     int a
@@ -180,7 +180,7 @@ action my_action
     # Test successful action get
     def test_get_no_validate_output(self):
 
-        @action(spec='''\
+        @action(method='GET', spec='''\
 action my_action
   input
     int a
@@ -203,7 +203,7 @@ action my_action
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
-        @action(jsonp='jsonp', spec='''\
+        @action(method='GET', jsonp='jsonp', spec='''\
 action my_action
   input
     int a
@@ -308,7 +308,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
 
-        status, headers, response = app.request('GET', '/my_action')
+        status, headers, response = app.request('POST', '/my_action')
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers, [('Content-Type', 'application/json'), ('MyHeader', 'MyValue')])
         self.assertEqual(response.decode('utf-8'), '{}')
@@ -453,7 +453,7 @@ action my_action
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 
-        @action(spec='''\
+        @action(method='GET', spec='''\
 action my_action
   input
     int a
@@ -472,7 +472,7 @@ action my_action
     # Test action long query string decode error
     def test_error_invalid_query_string_long(self): # pylint: disable=invalid-name
 
-        @action(spec='''\
+        @action(method='GET', spec='''\
 action my_action
   input
     int a

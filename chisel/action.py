@@ -57,7 +57,7 @@ class Action(Request):
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, method=('GET', 'POST'), urls=None, doc=None, doc_group=None,
+    def __init__(self, action_callback, name=None, method='POST', urls=None, doc=None, doc_group=None,
                  spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
