@@ -124,6 +124,26 @@ class TestApplication(TestCase):
         self.assertEqual(status, '404 Not Found')
         self.assertEqual(response, b'Not Found')
 
+    def test_request_head(self):
+
+        def request(environ, unused_start_response):
+            assert environ['REQUEST_METHOD'] == 'GET'
+            ctx = environ[Environ.CTX]
+            return ctx.response_text(HTTPStatus.OK, 'the response')
+
+        app = Application()
+        app.add_request(Request(request, method='GET'))
+
+        status, headers, response = app.request('GET', '/request')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'the response')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+
+        status, headers, response = app.request('HEAD', '/request')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+
     def test_request_args(self):
 
         def request1(environ, unused_start_response):

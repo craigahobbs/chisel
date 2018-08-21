@@ -4,6 +4,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from datetime import datetime, timedelta
+from functools import partial
 from http import HTTPStatus
 import logging
 import re
@@ -73,7 +74,9 @@ class Application:
 
         # Match the request by method and exact URL
         path_info = environ['PATH_INFO']
-        request_method = environ['REQUEST_METHOD'].upper()
+        request_method = request_method_actual = environ['REQUEST_METHOD'].upper()
+        if request_method == 'HEAD':
+            request_method = environ['REQUEST_METHOD'] = 'GET'
         request, url_args = self.__request_urls.get((request_method, path_info)), None
         if request is None:
 
@@ -110,23 +113,35 @@ class Application:
                         (None, None)
                     )
 
+        # Wrap the start_response call
+        start_response_call = None
+        def start_response_wrapper(environ, headers):
+            nonlocal start_response_call
+            start_response_call = partial(start_response, environ, headers)
+
         # Create the request context
-        ctx = environ[Environ.CTX] = Context(self, environ, start_response, url_args)
+        ctx = environ[Environ.CTX] = Context(self, environ, start_response_wrapper, url_args)
 
         # Request not found?
         if request is None:
             if any(path == path_info for _, path in self.__request_urls) or \
                any(regex.match(path_info) for _, regex, _ in self.__request_regex):
-                return ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED)
+                response = ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED)
             else:
-                return ctx.response_text(HTTPStatus.NOT_FOUND)
+                response = ctx.response_text(HTTPStatus.NOT_FOUND)
+        else:
+            # Handle the request
+            try:
+                response = request(ctx.environ, ctx.start_response)
+            except: # pylint: disable=bare-except
+                ctx.log.exception('exception raised by request "%s"', request.name)
+                response = ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
 
-        # Handle the request
-        try:
-            return request(ctx.environ, ctx.start_response)
-        except: # pylint: disable=bare-except
-            ctx.log.exception('exception raised by request "%s"', request.name)
-            return ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
+        assert start_response_call is not None, 'start_response not called'
+        start_response_call() # pylint: disable=not-callable
+        if request_method_actual == 'HEAD':
+            return []
+        return response
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
         request_environ = Environ.create(request_method, path_info, query_string, wsgi_input, environ=environ)
