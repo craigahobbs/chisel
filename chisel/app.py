@@ -4,7 +4,6 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from datetime import datetime, timedelta
-from functools import partial
 from http import HTTPStatus
 import logging
 import re
@@ -74,8 +73,9 @@ class Application:
 
         # Match the request by method and exact URL
         path_info = environ['PATH_INFO']
-        request_method = request_method_actual = environ['REQUEST_METHOD'].upper()
-        if request_method == 'HEAD':
+        request_method = environ['REQUEST_METHOD'].upper()
+        is_head = (request_method == 'HEAD')
+        if is_head:
             request_method = environ['REQUEST_METHOD'] = 'GET'
         request, url_args = self.__request_urls.get((request_method, path_info)), None
         if request is None:
@@ -113,14 +113,8 @@ class Application:
                         (None, None)
                     )
 
-        # Wrap the start_response call
-        start_response_call = None
-        def start_response_wrapper(environ, headers):
-            nonlocal start_response_call
-            start_response_call = partial(start_response, environ, headers)
-
         # Create the request context
-        ctx = environ[Environ.CTX] = Context(self, environ, start_response_wrapper, url_args)
+        ctx = environ[Environ.CTX] = Context(self, environ, start_response, url_args)
 
         # Request not found?
         if request is None:
@@ -137,9 +131,7 @@ class Application:
                 ctx.log.exception('exception raised by request "%s"', request.name)
                 response = ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
 
-        assert start_response_call is not None, 'start_response not called'
-        start_response_call() # pylint: disable=not-callable
-        if request_method_actual == 'HEAD':
+        if is_head:
             return []
         return response
 
@@ -235,6 +227,7 @@ class Context:
         """
         Send a JSON response
         """
+
         encoder = JSONEncoder(
             check_circular=self.app.validate_output,
             allow_nan=False,
