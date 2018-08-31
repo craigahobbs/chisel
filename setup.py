@@ -12,8 +12,8 @@ setup(
     version=chisel.__version__,
     author='Craig Hobbs',
     author_email='craigahobbs@gmail.com',
-    description=('JSON web APIs made dirt simple'),
-    keywords='json api wsgi framework',
+    description=('Schema-validated JSON web APIs for humans.'),
+    keywords='api json framework schema wsgi',
     url='https://github.com/craigahobbs/chisel',
     license='MIT',
     classifiers=[

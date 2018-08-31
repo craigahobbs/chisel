@@ -64,7 +64,7 @@ _clean:
 		$$(find $(PACKAGE_NAME) -name '__pycache__') \
 		dist \
 		*.egg-info \
-		*.egg
+		*.eggs
 
 # Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
 define VENV_RULE_FN
