@@ -83,6 +83,7 @@ class Action(Request):
         # Handle the action
         is_get = (environ['REQUEST_METHOD'] == 'GET')
         jsonp = None
+        validate_output = True
         try:
             # Read the request content
             try:
@@ -173,15 +174,18 @@ class Action(Request):
                 if exc.message is not None:
                     response['message'] = exc.message
                 if ctx.app.validate_output:
-                    response_type = TypeStruct()
-                    response_type.add_member('error', self.model.error_type)
-                    response_type.add_member('message', TYPE_STRING, optional=True)
+                    if exc.error in ('UnexpectedError',):
+                        validate_output = False
+                    else:
+                        response_type = TypeStruct()
+                        response_type.add_member('error', self.model.error_type)
+                        response_type.add_member('message', TYPE_STRING, optional=True)
             except Exception as exc:
                 ctx.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'UnexpectedError')
 
             # Validate the response
-            if ctx.app.validate_output:
+            if validate_output and ctx.app.validate_output:
                 try:
                     response_type.validate(response)
                 except ValidationError as exc:

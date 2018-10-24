@@ -5,7 +5,6 @@
 
 from http import HTTPStatus
 from io import StringIO
-import re
 
 from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
 from chisel.spec import ActionModel
@@ -283,10 +282,10 @@ action my_action
             response.decode('utf-8'),
             '{"error":"InvalidInput","message":"Duplicate query string argument member \'' + 'a' * 99 + '"}'
         )
-        self.assertTrue(re.search(
-            r"^WARNING \[\d+ / \d+\] Duplicate query string argument member 'a{99} for action 'my_action'$",
-            environ['wsgi.errors'].getvalue()
-        ))
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r"^WARNING \[\d+ / \d+\] Duplicate query string argument member 'a{99} for action 'my_action'$"
+        )
 
         # Duplicate URL argument
         status, headers, response = app.request('POST', '/my/7', wsgi_input=b'{"a": 7, "b": 8}')
@@ -429,7 +428,26 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
 
-    # Test action returning bad error enum value
+    # Test action raising builtin error enum value
+    def test_error_raise_builtin(self):
+
+        @action(spec='''\
+action my_action
+''')
+        def my_action(unused_app, unused_req):
+            raise ActionError('UnexpectedError', status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}', environ=environ)
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
+    # Test action raising bad error enum value
     def test_error_bad_error(self):
 
         @action(spec='''\
@@ -443,12 +461,22 @@ action my_action
         app = Application()
         app.add_request(my_action)
 
+        environ = {'wsgi.errors': StringIO()}
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
                          'for member \'error\', expected type \'my_action_error\'"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
+        app.validate_output = False
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
     # Test action query string decode error
     def test_error_invalid_query_string(self):
@@ -488,10 +516,45 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 999 + '"}')
-        self.assertTrue(re.search(
-            r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$",
-            environ['wsgi.errors'].getvalue()
-        ))
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$"
+        )
+
+    # Test action url arg
+    def test_url_arg(self): # pylint: disable=invalid-name
+
+        @action(method='GET', urls='/my_action/{a}', spec='''\
+action my_action
+  input
+    int a
+    int b
+  output
+    int sum
+''')
+        def my_action(unused_app, req):
+            self.assertEqual(req['a'], 5)
+            return {'sum': req['a'] + req['b']}
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('GET', '/my_action/5', query_string='b=7', environ=environ)
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"sum":12}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('GET', '/my_action/5', query_string='a=3&b=7', environ=environ)
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'a\'"}')
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r"WARNING \[\d+ / \d+\] Duplicate URL argument member 'a' for action 'my_action'"
+        )
 
     # Test action with invalid json content
     def test_error_invalid_json(self):
@@ -510,7 +573,10 @@ action my_action
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{a: 7}')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(headers, [('Content-Type', 'application/json')])
-        self.assertTrue(re.search('{"error":"InvalidInput","message":"Invalid request JSON:', response.decode('utf-8')))
+        self.assertRegex(
+            response.decode('utf-8'),
+            '{"error":"InvalidInput","message":"Invalid request JSON:'
+        )
 
     # Test action with invalid HTTP method
     def test_error_invalid_method(self):
@@ -572,10 +638,10 @@ action my_action
             response.decode('utf-8'),
             '{"error":"InvalidInput","message":"Invalid top-level JSON object of type \'list\'"}'
         )
-        self.assertTrue(re.search(
-            r"WARNING \[\d+ / \d+\] Invalid top-level JSON object of type 'list': '\[\]'",
-            environ['wsgi.errors'].getvalue()
-        ))
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r"WARNING \[\d+ / \d+\] Invalid top-level JSON object of type 'list': '\[\]'"
+        )
 
     # Test action with invalid output
     def test_error_invalid_output(self):
