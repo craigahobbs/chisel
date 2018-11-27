@@ -125,7 +125,7 @@ expected-line-ending-format=
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 
-# Number of spaces of indent required inside a hanging  or continued line.
+# Number of spaces of indent required inside a hanging or continued line.
 indent-after-paren=4
 
 # String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
@@ -287,6 +287,7 @@ no-docstring-rgx=^_
 
 # List of decorators that produce properties, such as abc.abstractproperty. Add
 # to this list to register other decorators that produce valid properties.
+# These decorators are taken in consideration only for invalid-name.
 property-classes=abc.abstractproperty
 
 # Naming style matching correct variable names.
@@ -298,6 +299,9 @@ variable-naming-style=snake_case
 
 
 [LOGGING]
+
+# Format style used to check logging format string
+logging-format-style=%%
 
 # Logging modules to check that the string format arguments are in logging
 # function parameter format.
@@ -315,7 +319,7 @@ notes=FIXME,
 [VARIABLES]
 
 # List of additional names supposed to be defined in builtins. Remember that
-# you should avoid to define new builtins when possible.
+# you should avoid defining new builtins when possible.
 additional-builtins=
 
 # Tells whether unused global variables should be treated as a violation.

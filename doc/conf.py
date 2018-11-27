@@ -24,7 +24,7 @@ import chisel
 # -- Project information -----------------------------------------------------
 
 project = 'chisel'
-copyright = '2012-2018, Craig Hobbs'
+copyright = '2012, Craig Hobbs'
 author = 'Craig Hobbs'
 
 # The short X.Y version
