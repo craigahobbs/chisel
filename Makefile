@@ -5,8 +5,8 @@
 PACKAGE_NAME := chisel
 
 PYTHON_VERSIONS := \
-    3.7.1 \
-    3.6.7 \
+    3.7.2 \
+    3.6.8 \
     3.5.6
 
 COVERAGE_REPORT_ARGS := --fail-under 96
