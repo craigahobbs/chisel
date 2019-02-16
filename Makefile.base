@@ -37,7 +37,7 @@ UPPER_FN = $(strip $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$
     $(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1))))))))))))))))))))))))))))
 PYTHON_VERSION_FN = $(if $(strip $(1)),$(strip $(1)),$(firstword $(PYTHON_VERSIONS)))
 PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(call PYTHON_VERSION_FN,$(1))))
-PYTHON_IMAGE_FN = python:$(call PYTHON_VERSION_FN,$(1))-slim
+PYTHON_IMAGE_FN = $(if $(ARCH),$(ARCH)/)python:$(call PYTHON_VERSION_FN,$(1))-slim
 PIP_VERSION_FN = $(if $(findstring git+,$(2)),-e $(strip $(2))\#egg=$(strip $(1)),$(strip $(1))==$(strip $(2)))
 
 .PHONY: help
@@ -73,7 +73,6 @@ $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD := $$(BUILD)/venv
 
 $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD):
 	mkdir -p $(BUILD)
-	if [ "$$$$(docker images -q $(call PYTHON_IMAGE_FN, $(4)))" = "" ]; then docker pull $(call PYTHON_IMAGE_FN,$(4)); fi
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $(PIP_ARGS) install --upgrade pip
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip $(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
@@ -89,13 +88,13 @@ endef
 
 # Generate test rules
 define TEST_COMMANDS_FN
-	$(1)/python3 setup.py test $(if $(TEST),-s $(TEST))
+	$(1)/python3 -m unittest discover -v -t $(PACKAGE_NAME) -s $(PACKAGE_NAME)/tests $(if $(TEST),-p 'test*$(TEST)*.py')
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
-	$(1)/python3 -m coverage run --branch --source $(PACKAGE_NAME) setup.py test $(if $(TEST),-s $(TEST))
+	$(1)/python3 -m coverage run --branch --source $(PACKAGE_NAME) -m unittest discover -v -t $(PACKAGE_NAME) -s $(PACKAGE_NAME)/tests $(if $(TEST),-p 'test*$(TEST)*.py')
 	$(1)/python3 -m coverage html -d $(BUILD)/coverage
 	$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
