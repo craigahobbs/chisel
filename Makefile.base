@@ -2,9 +2,6 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-ifeq '$(PACKAGE_NAME)' ''
-    $(error PACKAGE_NAME is not defined!)
-endif
 ifeq '$(PYTHON_VERSIONS)' ''
     $(error PYTHON_VERSIONS is not defined!)
 endif
@@ -59,9 +56,9 @@ _clean:
 		$(BUILD) \
 		.coverage \
 		.makefile \
-		$$(find $(PACKAGE_NAME) -name '__pycache__') \
+		$$(find src -name '__pycache__') \
 		dist \
-		*.egg-info \
+		src/*.egg-info \
 		*.eggs
 
 # Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
@@ -88,13 +85,13 @@ endef
 
 # Generate test rules
 define TEST_COMMANDS_FN
-	$(1)/python3 -m unittest discover -v -t $(PACKAGE_NAME) -s $(PACKAGE_NAME)/tests $(if $(TEST),-p 'test*$(TEST)*.py')
+	$(1)/python3 -m unittest discover -v -t src -s src/tests $(if $(TEST),-p 'test*$(TEST)*.py')
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e . -e .[tests], TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
-	$(1)/python3 -m coverage run --branch --source $(PACKAGE_NAME) -m unittest discover -v -t $(PACKAGE_NAME) -s $(PACKAGE_NAME)/tests $(if $(TEST),-p 'test*$(TEST)*.py')
+	$(1)/python3 -m coverage run --branch --source src -m unittest discover -v -t src -s src/tests $(if $(TEST),-p 'test*$(TEST)*.py')
 	$(1)/python3 -m coverage html -d $(BUILD)/coverage
 	$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
@@ -104,7 +101,7 @@ $(eval $(call VENV_RULE_FN, cover, -e . -e .[tests] $(call PIP_VERSION_FN, cover
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
-	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py $(PACKAGE_NAME)
+	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py src
 endef
 $(eval $(call VENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
 

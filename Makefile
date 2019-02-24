@@ -2,12 +2,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-PACKAGE_NAME := chisel
-
 PYTHON_VERSIONS := \
-    3.7.2 \
-    3.6.8 \
-    3.5.6
+    3.7 \
+    3.6 \
+    3.5
 
 COVERAGE_REPORT_ARGS := --fail-under 96
 
