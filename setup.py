@@ -32,11 +32,7 @@ def main():
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
-            'Internet :: WWW/HTTP :: Dynamic Content',
-            'Internet :: WWW/HTTP :: WSGI :: Application',
-            'Software Development :: Libraries :: Application Frameworks',
-            'Software Development :: Libraries :: Python Modules'
+            'Programming Language :: Python :: 3.7'
         ],
         package_dir={'': 'src'},
         packages=[MODULE_NAME],
