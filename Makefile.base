@@ -90,7 +90,7 @@ endef
 define TEST_COMMANDS_FN
 	$(1)/python3 -m unittest discover -v -t $(PACKAGE_NAME) -s $(PACKAGE_NAME)/tests $(if $(TEST),-p 'test*$(TEST)*.py')
 endef
-$(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
+$(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e . -e .[tests], TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
@@ -100,7 +100,7 @@ define COVER_COMMANDS_FN
 	@echo
 	@echo Coverage report is $(BUILD)/coverage/index.html
 endef
-$(eval $(call VENV_RULE_FN, cover, -e . $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
 # Generate pylint rules
 define PYLINT_COMMANDS_FN
