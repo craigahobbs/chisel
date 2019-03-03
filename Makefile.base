@@ -8,14 +8,14 @@ endif
 
 # Python pip option
 PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
-PIP_INSTALL_ARGS ?= --no-binary :all: --progress-bar off
+PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
 COVERAGE_VERSION ?= 4.5.2
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
-PYLINT_VERSION ?= 2.2.2
+PYLINT_VERSION ?= 2.3.1
 PYLINT_ARGS ?= -j 0
 
 # sphinx
