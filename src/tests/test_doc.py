@@ -1181,7 +1181,7 @@ This is the request documentation.
                 Element('span', children=Element(' There!', text=True))
             ]),
             Element('c', closed=False, foo='bar'),
-            Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
+            Element('d', attr1='asdf', _attr2='sdfg', attr3=None, children=Element('e'))
         ])
 
         chunks = list(root.serialize_chunks(indent=''))

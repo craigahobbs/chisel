@@ -116,7 +116,8 @@ class Element:
         # Element open
         yield '<' + self.name
         for attr_key, attr_value in sorted(self.attrs.items(), key=lambda x: x[0].lstrip('_')):
-            yield ' ' + attr_key.lstrip('_') + '=' + quoteattr(attr_value)
+            if attr_value is not None:
+                yield ' ' + attr_key.lstrip('_') + '=' + quoteattr(attr_value)
 
         # Child elements
         has_children = False
