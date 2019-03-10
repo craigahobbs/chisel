@@ -55,9 +55,8 @@ _clean:
 	rm -rf \
 		$(BUILD) \
 		.coverage \
-		.makefile \
 		$$(find src -name '__pycache__') \
-		dist \
+		dist/ \
 		src/*.egg-info \
 		*.eggs
 
