@@ -13,7 +13,6 @@ SPHINX_DOC := doc
 
 include Makefile.base
 
-# Additional help
 help:
 	@echo "            [run]"
 
