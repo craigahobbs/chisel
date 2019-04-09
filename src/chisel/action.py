@@ -87,7 +87,7 @@ class Action(Request):
             try:
                 content = None if is_get else environ['wsgi.input'].read()
             except:
-                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'IOError', message='Error reading request content')
+                raise _ActionErrorInternal(HTTPStatus.REQUEST_TIMEOUT, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
             validation_mode = ValidationMode.JSON_INPUT

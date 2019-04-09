@@ -733,7 +733,7 @@ action my_action
                 raise IOError('FAIL')
 
         status, headers, response = app.request('POST', '/my_action', environ={'wsgi.input': MyStream()},)
-        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(status, '408 Request Timeout')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"IOError","message":"Error reading request content"}')
 
