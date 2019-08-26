@@ -19,7 +19,7 @@ PYLINT_VERSION ?= 2.3.1
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 2.1.2
+SPHINX_VERSION ?= 2.2
 SPHINX_DOC ?=
 
 # Build directory
