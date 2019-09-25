@@ -246,6 +246,56 @@ action MyAction4 \\
                            (),
                            ())
 
+    def test_action_url(self):
+
+        parser = SpecParser()
+        parser.parse_string('''\
+action MyAction
+
+action MyActionUrl
+    url
+        GET
+        GET /
+        *
+        * /star
+''')
+
+        self.assertEqual(parser.actions['MyAction'].urls, [])
+        self.assertEqual(list(parser.actions['MyAction'].input_type.members()), [])
+        self.assertEqual(list(parser.actions['MyAction'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['MyAction'].error_type.values()), [])
+
+        self.assertEqual(parser.actions['MyActionUrl'].urls, [
+            ('GET', None),
+            ('GET', '/'),
+            (None, None),
+            (None, '/star')
+        ])
+        self.assertEqual(list(parser.actions['MyActionUrl'].input_type.members()), [])
+        self.assertEqual(list(parser.actions['MyActionUrl'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['MyActionUrl'].error_type.values()), [])
+
+    def test_action_url_duplicate(self):
+
+        parser = SpecParser()
+        try:
+            parser.parse_string('''\
+action MyAction
+    url
+        GET /
+        GET /
+        GET
+        POST
+        GET
+''')
+        except SpecParserError:
+            self.assertEqual(parser.errors, [
+                ':4: error: Duplicate URL: GET /',
+                ':7: error: Duplicate URL: GET'
+            ])
+        else:
+            self.fail()
+
     # Struct with base types
     def test_struct_base_types(self):
 
@@ -964,7 +1014,7 @@ int cde
 ''')
         except SpecParserError as exc:
             self.assertEqual(str(exc), '''\
-:2: error: Member definition outside of struct scope
+:2: error: Syntax error
 :8: error: Member definition outside of struct scope
 :10: error: Syntax error''')
         else:
@@ -984,7 +1034,7 @@ int cde
 
         # Check errors
         self.assertEqual(parser.errors,
-                         [':2: error: Member definition outside of struct scope',
+                         [':2: error: Syntax error',
                           ':8: error: Member definition outside of struct scope',
                           ':10: error: Syntax error'])
 
@@ -1270,7 +1320,7 @@ struct MyStruct
 ''')
 
     def test_error_member_invalid(self):
-        self._test_spec_error([':1: error: Member definition outside of struct scope',
+        self._test_spec_error([':1: error: Syntax error',
                                ':5: error: Member definition outside of struct scope'], '''\
     string a
 
@@ -1461,7 +1511,7 @@ action Foo
         except SpecParserError:
             self.assertEqual(parser.errors, [
                 ':6: error: Redefinition of action input',
-                ':7: error: Member definition outside of struct scope',
+                ':7: error: Syntax error',
             ])
         else:
             self.fail()
@@ -1482,7 +1532,7 @@ action Foo
         except SpecParserError:
             self.assertEqual(parser.errors, [
                 ':6: error: Redefinition of action output',
-                ':7: error: Member definition outside of struct scope',
+                ':7: error: Syntax error',
             ])
         else:
             self.fail()
@@ -1504,7 +1554,7 @@ action Foo
         except SpecParserError:
             self.assertEqual(parser.errors, [
                 ':7: error: Redefinition of action errors',
-                ':8: error: Enumeration value outside of enum scope',
+                ':8: error: Syntax error',
             ])
         else:
             self.fail()

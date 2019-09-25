@@ -152,6 +152,50 @@ action my_action_default
         self.assertEqual(my_action_default.model.name, 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, True)
 
+    def test_decorator_url_spec(self):
+
+        # Action decorator with urls, custom response callback, and validate response bool
+        @action(spec='''\
+action my_action
+    url
+        GET
+        GET /
+        *
+        * /star
+''')
+        def my_action(ctx, unused_req):
+            return ctx.response_text(HTTPStatus.OK)
+
+        app = Application()
+        app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('GET', '/'), (None, '/my_action'), (None, '/star')))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertFalse(my_action.wsgi_response)
+
+    def test_decorator_url_spec_override(self):
+
+        # Action decorator with urls, custom response callback, and validate response bool
+        @action(urls='/', spec='''\
+action my_action
+    url
+        GET
+        GET /
+        *
+        * /star
+''')
+        def my_action(ctx, unused_req):
+            return ctx.response_text(HTTPStatus.OK)
+
+        app = Application()
+        app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, (('POST', '/'),))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertFalse(my_action.wsgi_response)
+
     # Test successful action get
     def test_get(self):
 

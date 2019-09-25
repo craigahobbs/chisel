@@ -12,10 +12,11 @@ from .model import AttributeValidationError, StructMemberAttributes, TypeArray, 
 
 # Action model
 class ActionModel:
-    __slots__ = ('name', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
+    __slots__ = ('name', 'urls', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
 
     def __init__(self, name, doc=None, doc_group=None):
         self.name = name
+        self.urls = []
         self.input_type = TypeStruct(type_name=name + '_input')
         self.output_type = TypeStruct(type_name=name + '_output')
         self.error_type = TypeEnum(type_name=name + '_error')
@@ -47,7 +48,7 @@ _RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
 _RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
 _RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
 _RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
-_RE_SECTION = re.compile(r'^\s+(?P<type>input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_SECTION = re.compile(r'^\s+(?P<type>url|input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
 _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
                    r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
                    r'(?:' \
@@ -63,6 +64,7 @@ _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
 _RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
 _RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
 _RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
+_RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
 
 
 # Built-in types
@@ -89,6 +91,7 @@ class SpecParser:
         '_parse_linenum',
         '_action',
         '_action_sections',
+        '_urls',
         '_type',
         '_doc',
         '_doc_group',
@@ -104,6 +107,7 @@ class SpecParser:
         self._finalize_checks = []
         self._action = None
         self._action_sections = None
+        self._urls = None
         self._type = None
         self._doc = None
         self._doc_group = None
@@ -118,6 +122,7 @@ class SpecParser:
 
         # Set the parser state
         self._action = None
+        self._urls = None
         self._type = None
         self._doc = []
         self._doc_group = None
@@ -410,6 +415,7 @@ class SpecParser:
                 # Create the new action
                 self._action = ActionModel(action_id, doc=self._doc, doc_group=self._doc_group)
                 self._action_sections = set()
+                self._urls = None
                 self._type = None
                 self._doc = []
                 self.actions[self._action.name] = self._action
@@ -434,6 +440,7 @@ class SpecParser:
 
                     # Create the new struct type
                     self._action = None
+                    self._urls = None
                     self._type = TypeStruct(type_name=definition_id, union=(definition_string == 'union'), doc=self._doc)
                     if definition_base_ids is not None:
                         self._type.base_types = [None for _ in definition_base_ids]
@@ -452,6 +459,7 @@ class SpecParser:
 
                     # Create the new enum type
                     self._action = None
+                    self._urls = None
                     self._type = TypeEnum(type_name=definition_id, doc=self._doc)
                     if definition_base_ids is not None:
                         self._type.base_types = [None for _ in definition_base_ids]
@@ -479,12 +487,14 @@ class SpecParser:
                 # Action section redefinition?
                 if section_string in self._action_sections:
                     self._error('Redefinition of action ' + section_string)
+                    self._urls = None
                     self._type = None
                     continue
                 self._action_sections.add(section_string)
 
                 # Set the action section type
                 if section_string == 'input':
+                    self._urls = None
                     self._type = self._action.input_type
                     if section_base_ids is not None:
                         self._type.base_types = [None for _ in section_base_ids]
@@ -494,6 +504,7 @@ class SpecParser:
                         self._set_finalize(self._type, self._finalize_struct_base_type)
 
                 elif section_string == 'output':
+                    self._urls = None
                     self._type = self._action.output_type
                     if section_base_ids is not None:
                         self._type.base_types = [None for _ in section_base_ids]
@@ -502,7 +513,8 @@ class SpecParser:
                                            None, self._validate_output_base_type)
                         self._set_finalize(self._type, self._finalize_struct_base_type)
 
-                else:  # section_string == 'errors':
+                elif section_string == 'errors':
+                    self._urls = None
                     self._type = self._action.error_type
                     if section_base_ids is not None:
                         self._type.base_types = [None for _ in section_base_ids]
@@ -511,10 +523,14 @@ class SpecParser:
                                            None, self._validate_errors_base_type)
                         self._set_finalize(self._type, self._finalize_enum_base_type)
 
+                else: # section_string == 'url':
+                    self._urls = self._action.urls
+                    self._type = None
+
                 continue # section
 
             # Enum value?
-            match = _RE_VALUE.search(line)
+            match = _RE_VALUE.search(line) if self._type is not None else None
             if match:
                 value_string = match.group('id')
 
@@ -534,7 +550,7 @@ class SpecParser:
                 continue
 
             # Struct member?
-            match = _RE_MEMBER.search(line)
+            match = _RE_MEMBER.search(line) if self._type is not None else None
             if match:
                 optional = match.group('optional') is not None
                 nullable = match.group('nullable') is not None
@@ -556,7 +572,25 @@ class SpecParser:
 
                 continue
 
+            # URL?
+            match = _RE_URL.search(line) if self._urls is not None else None
+            if match:
+                method = match.group('method')
+                path = match.group('path')
+                url = (method if method != '*' else None, path)
+
+                # Duplicate URL?
+                if url in self._urls:
+                    self._error('Duplicate URL: ' + method + (' ' + path if path is not None else ''))
+
+                # Add the URL
+                self._urls.append(url)
+                self._doc = []
+
+                continue
+
             # Typedef?
+
             match = _RE_TYPEDEF.search(line)
             if match:
                 typedef_name = match.group('id')
@@ -572,6 +606,7 @@ class SpecParser:
 
                 # Reset current action/type
                 self._action = None
+                self._urls = None
                 self._type = None
                 self._doc = []
 
