@@ -374,7 +374,7 @@ class SpecParser:
                 line_continuation.append(line_part_no_continuation)
             if line_part_no_continuation is not line_part:
                 continue
-            elif line_continuation:
+            if line_continuation:
                 line = ''.join(line_continuation)
                 del line_continuation[:]
             else:

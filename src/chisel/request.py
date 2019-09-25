@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+from functools import partial
 from itertools import chain
 import sys
 
@@ -16,7 +17,7 @@ def request(request_callback=None, **kwargs):
     """
 
     if request_callback is None:
-        return lambda fn: request(fn, **kwargs)
+        return partial(request, **kwargs)
     else:
         return Request(request_callback, **kwargs).decorate_module(request_callback)
 

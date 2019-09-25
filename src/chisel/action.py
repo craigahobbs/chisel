@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from cgi import parse_header
+from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
@@ -18,7 +19,7 @@ def action(action_callback=None, **kwargs):
     """
 
     if action_callback is None:
-        return lambda fn: action(fn, **kwargs)
+        return partial(action, **kwargs)
     else:
         return Action(action_callback, **kwargs).decorate_module(action_callback)
 
