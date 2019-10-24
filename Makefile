@@ -3,7 +3,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 PYTHON_VERSIONS := \
-    3.8-rc \
+    3.8 \
     3.7 \
     3.6 \
     3.5
