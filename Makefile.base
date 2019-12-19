@@ -11,7 +11,7 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 4.5.4
+COVERAGE_VERSION ?= 5.0.0
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
@@ -19,7 +19,7 @@ PYLINT_VERSION ?= 2.4.4
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 2.2.1
+SPHINX_VERSION ?= 2.3.0
 SPHINX_DOC ?=
 
 # Build directory
@@ -59,6 +59,13 @@ _clean:
 		dist/ \
 		src/*.egg-info \
 		*.eggs
+
+.PHONY: superclean
+superclean: clean _superclean
+
+.PHONY: _superclean
+_superclean:
+	docker rmi -f $(foreach V, $(PYTHON_VERSIONS),$(call PYTHON_IMAGE_FN, $(V)))
 
 # Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
 define VENV_RULE_FN
