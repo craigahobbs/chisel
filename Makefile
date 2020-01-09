@@ -8,7 +8,7 @@ PYTHON_VERSIONS := \
     3.6 \
     3.5
 
-COVERAGE_REPORT_ARGS := --fail-under 96
+COVERAGE_REPORT_ARGS := --fail-under 97
 
 SPHINX_DOC := doc
 
