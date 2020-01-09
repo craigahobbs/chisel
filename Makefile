@@ -13,13 +13,3 @@ COVERAGE_REPORT_ARGS := --fail-under 97
 SPHINX_DOC := doc
 
 include Makefile.base
-
-help:
-	@echo "            [run]"
-
-# Run a local server
-PORT ?= 8080
-define RUN_COMMANDS_FN
-	$(1)/python3 -u -m chisel $(if $(APP),$(APP)) -p $(PORT)$(if $(ARGS), $(ARGS))
-endef
-$(eval $(call VENV_RULE_FN, run, -e ., RUN_COMMANDS_FN,, -p $(PORT):$(PORT)))
