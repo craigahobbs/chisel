@@ -11,7 +11,7 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 5.0.2
+COVERAGE_VERSION ?= 5.0.3
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint

@@ -19,7 +19,7 @@ class TestAction(TestCase):
 action my_action_default
 ''')
         def my_action_default(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         self.assertTrue(isinstance(my_action_default, Action))
         self.assertTrue(isinstance(my_action_default, Request))
@@ -35,14 +35,11 @@ action my_action_default
     # Default action decorator with missing spec
     def test_decorator_unknown_action(self):
 
-        try:
+        with self.assertRaises(AssertionError) as cm_exc:
             @action
             def my_action(unused_app, unused_req): # pylint: disable=unused-variable
-                return {}
-        except AssertionError as exc:
-            self.assertEqual(str(exc), 'Unknown action "my_action"')
-        else:
-            self.fail()
+                pass # pragma: no cover
+        self.assertEqual(str(cm_exc.exception), 'Unknown action "my_action"')
 
     # Action decorator with spec
     def test_decorator_spec(self):
@@ -51,7 +48,7 @@ action my_action_default
 action my_action
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         self.assertTrue(isinstance(my_action, Action))
         self.assertTrue(isinstance(my_action, Request))
@@ -73,7 +70,7 @@ action my_action
 ''')
         @action(spec=parser)
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         self.assertTrue(isinstance(my_action, Action))
         self.assertTrue(isinstance(my_action, Request))
@@ -89,29 +86,23 @@ action my_action
     # Action decorator with spec with unknown action
     def test_decorator_spec_no_actions(self):
 
-        try:
+        with self.assertRaises(AssertionError) as cm_exc:
             @action(spec='''\
 action my_action
 ''')
             def unused_my_action(unused_app, unused_req):
-                return {}
-        except AssertionError as exc:
-            self.assertEqual(str(exc), 'Unknown action "unused_my_action"')
-        else:
-            self.fail()
+                pass # pragma: no cover
+        self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
 
     # Action decorator with spec with syntax errors
     def test_decorator_spec_error(self):
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             @action(spec='''\
 asdfasdf
 ''')
             def unused_my_action(unused_app, unused_req):
-                return {}
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), ':1: error: Syntax error')
-        else:
-            self.fail()
+                pass # pragma: no cover
+        self.assertEqual(str(cm_exc.exception), ':1: error: Syntax error')
 
     # Action decorator with name and spec
     def test_decorator_named_spec(self):
@@ -121,7 +112,7 @@ action theActionOther
 action theAction
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         self.assertTrue(isinstance(my_action, Action))
         self.assertTrue(isinstance(my_action, Request))
@@ -141,8 +132,8 @@ action theAction
         @action(urls=('/foo',), wsgi_response=True, spec='''\
 action my_action_default
 ''')
-        def my_action_default(ctx, unused_req):
-            return ctx.response_text(HTTPStatus.OK)
+        def my_action_default(unused_ctx, unused_req):
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action_default)
@@ -163,8 +154,8 @@ action my_action
         *
         * /star
 ''')
-        def my_action(ctx, unused_req):
-            return ctx.response_text(HTTPStatus.OK)
+        def my_action(unused_ctx, unused_req):
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -185,8 +176,8 @@ action my_action
         *
         * /star
 ''')
-        def my_action(ctx, unused_req):
-            return ctx.response_text(HTTPStatus.OK)
+        def my_action(unused_ctx, unused_req):
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -529,7 +520,7 @@ action my_action
     int a
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -548,7 +539,7 @@ action my_action
     int a
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -607,7 +598,7 @@ action my_action
     int a
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -629,7 +620,7 @@ action my_action
     int a
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -648,7 +639,7 @@ action my_action
     string a
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -667,7 +658,7 @@ action my_action
 action my_action
 ''')
         def my_action(unused_app, unused_req):
-            pass
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)
@@ -766,7 +757,7 @@ action my_action
 action my_action
 ''')
         def my_action(unused_app, unused_req):
-            return {}
+            pass # pragma: no cover
 
         app = Application()
         app.add_request(my_action)

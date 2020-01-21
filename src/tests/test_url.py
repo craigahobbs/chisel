@@ -83,12 +83,9 @@ class TestUrl(TestCase):
     def test_decode_query_string_degenerate(self): # pylint: disable=invalid-name
 
         def assert_decode_error(query_string, err):
-            try:
+            with self.assertRaises(ValueError) as cm_exc:
                 decode_query_string(query_string)
-            except ValueError as exc:
-                self.assertEqual(str(exc), err)
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), err)
 
         # Key with no equal
         query_string = 'a=7&b'

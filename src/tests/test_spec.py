@@ -278,7 +278,7 @@ action MyActionUrl
     def test_action_url_duplicate(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action MyAction
     url
@@ -288,13 +288,10 @@ action MyAction
         POST
         GET
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ':4: error: Duplicate URL: GET /',
-                ':7: error: Duplicate URL: GET'
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ':4: error: Duplicate URL: GET /',
+            ':7: error: Duplicate URL: GET'
+        ])
 
     # Struct with base types
     def test_struct_base_types(self):
@@ -389,7 +386,7 @@ struct MyStruct5 (MyStruct2, MyTypedef)
     def test_struct_base_types_error(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 struct MyStruct (MyEnum)
     int a
@@ -408,21 +405,18 @@ struct MyStruct4
 struct MyStruct5 (MyStruct4, MyDict)
     int b
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":15: error: Invalid struct base type 'MyDict'",
-                ":1: error: Invalid struct base type 'MyEnum'",
-                ":7: error: Redefinition of member 'a' from base type",
-                ":15: error: Redefinition of member 'b' from base type"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":15: error: Invalid struct base type 'MyDict'",
+            ":1: error: Invalid struct base type 'MyEnum'",
+            ":7: error: Redefinition of member 'a' from base type",
+            ":15: error: Redefinition of member 'b' from base type"
+        ])
 
     # Struct with circular base types error case
     def test_struct_base_types_circular(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 struct MyStruct (MyStruct2)
     int a
@@ -433,14 +427,11 @@ struct MyStruct2 (MyStruct3)
 struct MyStruct3 (MyStruct)
     int c
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":1: error: Circular base type detected for type 'MyStruct2'",
-                ":4: error: Circular base type detected for type 'MyStruct3'",
-                ":7: error: Circular base type detected for type 'MyStruct'"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":1: error: Circular base type detected for type 'MyStruct2'",
+            ":4: error: Circular base type detected for type 'MyStruct3'",
+            ":7: error: Circular base type detected for type 'MyStruct'"
+        ])
 
     # Enum with base types
     def test_enum_base_types(self):
@@ -535,7 +526,7 @@ enum MyEnum5 (MyEnum2, MyTypedef)
     def test_enum_base_types_error(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 enum MyEnum (MyStruct)
     A
@@ -554,21 +545,18 @@ enum MyEnum4
 enum MyEnum5 (MyEnum4, MyDict)
     B
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":15: error: Invalid enum base type 'MyDict'",
-                ":1: error: Invalid enum base type 'MyStruct'",
-                ":7: error: Redefinition of enumeration value 'A' from base type",
-                ":15: error: Redefinition of enumeration value 'B' from base type"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":15: error: Invalid enum base type 'MyDict'",
+            ":1: error: Invalid enum base type 'MyStruct'",
+            ":7: error: Redefinition of enumeration value 'A' from base type",
+            ":15: error: Redefinition of enumeration value 'B' from base type"
+        ])
 
     # Enum with circular base types error case
     def test_enum_base_types_circular(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 enum MyEnum (MyEnum2)
     a
@@ -579,14 +567,11 @@ enum MyEnum2 (MyEnum3)
 enum MyEnum3 (MyEnum)
     c
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":1: error: Circular base type detected for type 'MyEnum2'",
-                ":4: error: Circular base type detected for type 'MyEnum3'",
-                ":7: error: Circular base type detected for type 'MyEnum'"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":1: error: Circular base type detected for type 'MyEnum2'",
+            ":4: error: Circular base type detected for type 'MyEnum3'",
+            ":7: error: Circular base type detected for type 'MyEnum'"
+        ])
 
     # Test multiple parse calls per parser instance
     def test_multiple(self):
@@ -749,38 +734,32 @@ struct MyStruct2
     def test_typeref_invalid_nullable_order(self): # pylint: disable=invalid-name
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 struct MyStruct
     nullable optional int a
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), """\
+        self.assertEqual(str(cm_exc.exception), """\
 :2: error: Syntax error""")
-        else:
-            self.fail()
 
     def test_typeref_invalid_attr(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 struct MyStruct
     MyStruct2(len > 0) a
 struct MyStruct2
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), """\
+        self.assertEqual(str(cm_exc.exception), """\
 :2: error: Invalid attribute 'len > 0'""")
-        else:
-            self.fail()
 
     # Test members referencing unknown user types
     def test_error_unknown_type(self):
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 struct Foo
     MyBadType a
@@ -791,13 +770,10 @@ action MyAction
     output
         MyBadType b
 ''', filename='foo')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), """\
+        self.assertEqual(str(cm_exc.exception), """\
 foo:2: error: Unknown member type 'MyBadType'
 foo:6: error: Unknown member type 'MyBadType2'
 foo:8: error: Unknown member type 'MyBadType'""")
-        else:
-            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 3)
@@ -815,7 +791,7 @@ foo:8: error: Unknown member type 'MyBadType'""")
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 struct Foo
     int a
@@ -824,10 +800,7 @@ enum Foo
     A
     B
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), ":4: error: Redefinition of type 'Foo'")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), ":4: error: Redefinition of type 'Foo'")
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -846,7 +819,7 @@ enum Foo
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 enum Foo
     A
@@ -855,10 +828,7 @@ enum Foo
 struct Foo
     int a
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), ":5: error: Redefinition of type 'Foo'")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), ":5: error: Redefinition of type 'Foo'")
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -878,17 +848,14 @@ struct Foo
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 struct Foo
     int a
 
 typedef int(> 5) Foo
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), ":4: error: Redefinition of type 'Foo'")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), ":4: error: Redefinition of type 'Foo'")
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -912,7 +879,7 @@ typedef int(> 5) Foo
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 action MyAction
     input
@@ -922,10 +889,7 @@ action MyAction
     input
         string b
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), ":5: error: Redefinition of action 'MyAction'")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), ":5: error: Redefinition of action 'MyAction'")
 
         # Check counts
         self.assertEqual(len(parser.errors), 1)
@@ -947,7 +911,7 @@ action MyAction
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 action MyAction
 
@@ -962,16 +926,13 @@ input
 output
 errors
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), '''\
+        self.assertEqual(str(cm_exc.exception), '''\
 :6: error: Action section outside of action scope
 :7: error: Action section outside of action scope
 :8: error: Action section outside of action scope
 :10: error: Syntax error
 :11: error: Syntax error
 :12: error: Syntax error''')
-        else:
-            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 6)
@@ -999,7 +960,7 @@ errors
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 action MyAction
     int abc
@@ -1012,13 +973,10 @@ enum MyEnum
 
 int cde
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), '''\
+        self.assertEqual(str(cm_exc.exception), '''\
 :2: error: Syntax error
 :8: error: Member definition outside of struct scope
 :10: error: Syntax error''')
-        else:
-            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 3)
@@ -1043,7 +1001,7 @@ int cde
 
         # Parse spec string
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
 enum MyEnum
     "abc
@@ -1058,15 +1016,12 @@ action MyAction
     input
         MyError
 ''')
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), '''\
+        self.assertEqual(str(cm_exc.exception), '''\
 :2: error: Syntax error
 :3: error: Syntax error
 :4: error: Syntax error
 :8: error: Enumeration value outside of enum scope
 :12: error: Enumeration value outside of enum scope''')
-        else:
-            self.fail()
 
         # Check counts
         self.assertEqual(len(parser.errors), 5)
@@ -1236,12 +1191,9 @@ struct MyStruct
 
     def _test_spec_error(self, errors, spec):
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string(spec)
-        except SpecParserError as exc:
-            self.assertEqual(str(exc), '\n'.join(errors))
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), '\n'.join(errors))
         self.assertEqual(len(parser.errors), len(errors))
         self.assertEqual(parser.errors, errors)
 
@@ -1483,22 +1435,19 @@ struct MyStruct
     def test_error_dict_non_string_key(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 struct Foo
     int : int {} a
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ':2: error: Invalid dictionary key type',
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ':2: error: Invalid dictionary key type',
+        ])
 
     def test_error_action_input_redefinition(self): # pylint: disable=invalid-name
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action Foo
     input
@@ -1508,18 +1457,15 @@ action Foo
     input
         int c
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ':6: error: Redefinition of action input',
-                ':7: error: Syntax error',
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ':6: error: Redefinition of action input',
+            ':7: error: Syntax error',
+        ])
 
     def test_error_action_output_redefinition(self): # pylint: disable=invalid-name
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action Foo
     output
@@ -1529,18 +1475,15 @@ action Foo
     output
         int c
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ':6: error: Redefinition of action output',
-                ':7: error: Syntax error',
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ':6: error: Redefinition of action output',
+            ':7: error: Syntax error',
+        ])
 
     def test_error_action_errors_redefinition(self): # pylint: disable=invalid-name
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action Foo
     errors
@@ -1551,13 +1494,10 @@ action Foo
     errors
         C
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ':7: error: Redefinition of action errors',
-                ':8: error: Syntax error',
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ':7: error: Redefinition of action errors',
+            ':8: error: Syntax error',
+        ])
 
     def test_action_input_base_types(self):
 
@@ -1625,7 +1565,7 @@ action BarAction
     def test_action_input_non_struct(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action FooAction
     input (Foo)
@@ -1654,16 +1594,13 @@ action MyDictAction
     input (MyDict)
         int a
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":14: error: Invalid action input base type 'Foo'",
-                ":19: error: Invalid action input base type 'MyUnion'",
-                ":25: error: Invalid action input base type 'MyDict'",
-                ":2: error: Invalid action input base type 'Foo'",
-                ":19: error: Redefinition of member 'a' from base type"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action input base type 'Foo'",
+            ":19: error: Invalid action input base type 'MyUnion'",
+            ":25: error: Invalid action input base type 'MyDict'",
+            ":2: error: Invalid action input base type 'Foo'",
+            ":19: error: Redefinition of member 'a' from base type"
+        ])
 
     def test_action_output_struct(self):
 
@@ -1731,7 +1668,7 @@ action BarAction
     def test_action_output_non_struct(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action FooAction
     output (Foo)
@@ -1761,16 +1698,13 @@ action MyDictAction
         #- will not error
         int a
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":14: error: Invalid action output base type 'Foo'",
-                ":19: error: Invalid action output base type 'MyUnion'",
-                ":25: error: Invalid action output base type 'MyDict'",
-                ":2: error: Invalid action output base type 'Foo'",
-                ":19: error: Redefinition of member 'a' from base type"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action output base type 'Foo'",
+            ":19: error: Invalid action output base type 'MyUnion'",
+            ":25: error: Invalid action output base type 'MyDict'",
+            ":2: error: Invalid action output base type 'Foo'",
+            ":19: error: Redefinition of member 'a' from base type"
+        ])
 
     def test_action_errors_enum(self):
 
@@ -1826,7 +1760,7 @@ action BarAction
     def test_action_errors_non_enum(self):
 
         parser = SpecParser()
-        try:
+        with self.assertRaises(SpecParserError):
             parser.parse_string('''\
 action FooAction
     errors (Foo)
@@ -1848,12 +1782,9 @@ action BonkAction
     errors (MyEnum)
         A
 ''')
-        except SpecParserError:
-            self.assertEqual(parser.errors, [
-                ":14: error: Invalid action errors base type 'Bar'",
-                ":2: error: Invalid action errors base type 'Foo'",
-                ":14: error: Redefinition of enumeration value 'A' from base type",
-                ":18: error: Redefinition of enumeration value 'A' from base type"
-            ])
-        else:
-            self.fail()
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action errors base type 'Bar'",
+            ":2: error: Invalid action errors base type 'Foo'",
+            ":14: error: Redefinition of enumeration value 'A' from base type",
+            ":18: error: Redefinition of enumeration value 'A' from base type"
+        ])

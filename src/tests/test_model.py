@@ -77,102 +77,72 @@ class TestStructMemberAttributes(TestCase):
     def test_validate_eq(self):
         attr = StructMemberAttributes(op_eq=5)
         attr.validate(5)
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(4)
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 4 (type 'int') [== 5]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [== 5]")
 
     def test_validate_lt(self):
         attr = StructMemberAttributes(op_lt=5)
         attr.validate(4)
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(5)
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 5 (type 'int') [< 5]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 5 (type 'int') [< 5]")
 
     def test_validate_lte(self):
         attr = StructMemberAttributes(op_lte=5)
         attr.validate(5)
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(6)
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 6 (type 'int') [<= 5]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 6 (type 'int') [<= 5]")
 
     def test_validate_gt(self):
         attr = StructMemberAttributes(op_gt=5)
         attr.validate(6)
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(5)
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 5 (type 'int') [> 5]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 5 (type 'int') [> 5]")
 
     def test_validate_gte(self):
         attr = StructMemberAttributes(op_gte=5)
         attr.validate(5)
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(4)
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 4 (type 'int') [>= 5]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [>= 5]")
 
     def test_validate_len_eq(self):
         attr = StructMemberAttributes(op_len_eq=3)
         attr.validate('abc')
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('ab')
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len == 3]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'ab' (type 'str') [len == 3]")
 
     def test_validate_len_lt(self):
         attr = StructMemberAttributes(op_len_lt=3)
         attr.validate('ab')
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('abc')
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len < 3]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') [len < 3]")
 
     def test_validate_len_lte(self):
         attr = StructMemberAttributes(op_len_lte=3)
         attr.validate('abc')
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('abcd')
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 'abcd' (type 'str') [len <= 3]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'abcd' (type 'str') [len <= 3]")
 
     def test_validate_len_gt(self):
         attr = StructMemberAttributes(op_len_gt=3)
         attr.validate('abcd')
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('abc')
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') [len > 3]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') [len > 3]")
 
     def test_validate_len_gte(self):
         attr = StructMemberAttributes(op_len_gte=3)
         attr.validate('abc')
-        try:
+        with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('ab')
-        except ValidationError as exc:
-            self.assertEqual(str(exc), "Invalid value 'ab' (type 'str') [len >= 3]")
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'ab' (type 'str') [len >= 3]")
 
 
 class TestModelTypedefValidation(TestCase):
@@ -201,11 +171,9 @@ class TestModelTypedefValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes(op_gt=7))
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
     def test_validate(self):
@@ -244,12 +212,9 @@ class TestModelTypedefValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'int'")
 
     # Query string validation mode - transformed value
     def test_validate_attr_error(self):
@@ -258,12 +223,9 @@ class TestModelTypedefValidation(TestCase):
 
         obj = 4
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 4 (type 'int') [>= 5]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [>= 5]")
 
 
 class TestModelStructValidation(TestCase):
@@ -487,12 +449,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 7, 'b': 5}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 5 (type 'int') for member 'b' [< 5]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 5 (type 'int') for member 'b' [< 5]")
 
         obj = {'a': 7, 'b': None}
         for mode in ValidationMode:
@@ -519,12 +478,9 @@ class TestModelStructValidation(TestCase):
                 self.assertTrue(isinstance(obj2, dict))
                 self.assertEqual(obj2, {'a': 7, 'b': None})
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value 'null' (type 'str') for member 'b', expected type 'int'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value 'null' (type 'str') for member 'b', expected type 'int'")
 
     # All validation modes - nullable member present and 'null' string for string member
     def test_validation_nullable_present_null_string_type(self): # pylint: disable=invalid-name
@@ -552,12 +508,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 7}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Required member 'b' missing")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Required member 'b' missing")
 
     # All validation modes - member with attributes - valid
     def test_validation_member_attributes_valid(self): # pylint: disable=invalid-name
@@ -583,12 +536,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 7}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member 'a' [< 5]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int') for member 'a' [< 5]")
 
     # All validation modes - nested structure
     def test_validation_nested(self):
@@ -651,12 +601,9 @@ class TestModelStructValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'struct'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'struct'")
 
     # All validation modes - error - optional none value
     def test_validation_error_optional_none_value(self): # pylint: disable=invalid-name
@@ -666,12 +613,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': None}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
@@ -681,12 +625,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 'abc'}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
 
     # All validation modes - error - struct with base type member validation
     def test_validation_error_member_validation_base_types(self): # pylint: disable=invalid-name
@@ -699,21 +640,15 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 'abc', 'b': 'def'}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
 
         obj = {'a': 7, 'b': 8}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 8 (type 'int') for member 'b', expected type 'string'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 8 (type 'int') for member 'b', expected type 'string'")
 
     # All validation modes - error - nested member validation
     def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
@@ -725,12 +660,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': {'b': 'abc'}}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
 
     # All validation modes - error - unknown member
     def test_validation_error_unknown_member(self): # pylint: disable=invalid-name
@@ -740,12 +672,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 7, 'b': 8}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Unknown member 'b'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Unknown member 'b'")
 
     # All validation modes - error - long unknown member
     def test_validation_error_unknown_member_long(self): # pylint: disable=invalid-name
@@ -755,12 +684,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 7, 'b' * 2000: 8}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Unknown member '" + 'b' * 99)
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Unknown member '" + 'b' * 99)
 
     # All validation modes - error - missing member
     def test_validation_error_missing_member(self): # pylint: disable=invalid-name
@@ -770,12 +696,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Required member 'a' missing")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Required member 'a' missing")
 
     # All validation modes - error - union with more than one member
     def test_validation_error_union_multiple_members(self): # pylint: disable=invalid-name
@@ -786,13 +709,10 @@ class TestModelStructValidation(TestCase):
 
         obj = {'a': 1, 'bb': 'abcd'}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertTrue(str(exc).startswith('Invalid value {'))
-                self.assertTrue(str(exc).endswith("} (type 'dict'), expected type 'union'"))
-            else:
-                self.fail()
+            self.assertTrue(str(cm_exc.exception).startswith('Invalid value {'))
+            self.assertTrue(str(cm_exc.exception).endswith("} (type 'dict'), expected type 'union'"))
 
     # All validation modes - error - empty union
     def test_validation_error_union_zero_members(self): # pylint: disable=invalid-name
@@ -803,12 +723,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value {} (type 'dict'), expected type 'union'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value {} (type 'dict'), expected type 'union'")
 
     # All validation modes - error - union unknown member
     def test_validation_error_union_unknown_member(self): # pylint: disable=invalid-name
@@ -819,12 +736,9 @@ class TestModelStructValidation(TestCase):
 
         obj = {'c': 7}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Unknown member 'c'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Unknown member 'c'")
 
 
 class TestModelArrayValidation(TestCase):
@@ -874,12 +788,9 @@ class TestModelArrayValidation(TestCase):
 
         obj = [1, 7, 3]
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member '[1]' [< 5]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int') for member '[1]' [< 5]")
 
     # All validation modes - nested
     def test_validation_nested(self):
@@ -933,12 +844,9 @@ class TestModelArrayValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'array'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'array'")
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
@@ -947,12 +855,9 @@ class TestModelArrayValidation(TestCase):
 
         obj = [1, 'abc', 3]
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '[1]', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member '[1]', expected type 'int'")
 
     # All validation modes - error - error nested
     def test_validation_error_nested(self):
@@ -961,12 +866,9 @@ class TestModelArrayValidation(TestCase):
 
         obj = [[1, 2, 3], [4, 5, 'abc']]
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
 
 
 class TestModelDictValidation(TestCase):
@@ -1015,12 +917,9 @@ class TestModelDictValidation(TestCase):
 
         obj = {'a': 1, 'b': 7}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member 'b' [< 5]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int') for member 'b' [< 5]")
 
     # All validation modes - key attributes - success
     def test_validation_key_attributes(self):
@@ -1044,12 +943,9 @@ class TestModelDictValidation(TestCase):
 
         obj = {'a': 1, 'bc': 2}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'bc' (type 'str') for member 'bc' [len < 2]")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'bc' (type 'str') for member 'bc' [len < 2]")
 
     # All validation modes - nested
     def test_validation_nested(self):
@@ -1103,12 +999,9 @@ class TestModelDictValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'dict'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'dict'")
 
     # All validation modes - error - member key validation
     def test_validation_error_member_key_validation(self): # pylint: disable=invalid-name
@@ -1117,12 +1010,9 @@ class TestModelDictValidation(TestCase):
 
         obj = {7: 7}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
@@ -1131,12 +1021,9 @@ class TestModelDictValidation(TestCase):
 
         obj = {'7': 'abc'}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
 
     # All validation modes - error - nested member validation
     def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
@@ -1145,12 +1032,9 @@ class TestModelDictValidation(TestCase):
 
         obj = {'a': {'b': 'abc'}}
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
 
 
 class TestModelEnumValidation(TestCase):
@@ -1236,12 +1120,9 @@ class TestModelEnumValidation(TestCase):
 
         obj = 'c'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'c' (type 'str'), expected type 'enum'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'c' (type 'str'), expected type 'enum'")
 
     # All validation modes - valid enumeration value
     def test_validate_error_base_types(self):
@@ -1254,12 +1135,9 @@ class TestModelEnumValidation(TestCase):
 
         obj = 'c'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'c' (type 'str'), expected type 'enum'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'c' (type 'str'), expected type 'enum'")
 
 
 class TestModelStringValidation(TestCase):
@@ -1288,12 +1166,9 @@ class TestModelStringValidation(TestCase):
 
         obj = 7
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7 (type 'int'), expected type 'string'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int'), expected type 'string'")
 
 
 class TestModelIntValidation(TestCase):
@@ -1362,12 +1237,9 @@ class TestModelIntValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'int'")
 
     # All validation modes - error - not-integer float
     def test_validate_error_float(self):
@@ -1376,12 +1248,9 @@ class TestModelIntValidation(TestCase):
 
         obj = 7.5
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 7.5 (type 'float'), expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 7.5 (type 'float'), expected type 'int'")
 
     # All validation modes - error - not-integer decimal
     def test_validate_error_decimal(self):
@@ -1390,12 +1259,9 @@ class TestModelIntValidation(TestCase):
 
         obj = Decimal('7.5')
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value Decimal('7.5') (type 'Decimal'), expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value Decimal('7.5') (type 'Decimal'), expected type 'int'")
 
     # All validation modes - error - bool
     def test_validate_error_bool(self):
@@ -1404,12 +1270,9 @@ class TestModelIntValidation(TestCase):
 
         obj = True
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value True (type 'bool'), expected type 'int'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value True (type 'bool'), expected type 'int'")
 
 
 class TestModelFloatValidation(TestCase):
@@ -1478,12 +1341,9 @@ class TestModelFloatValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'float'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'float'")
 
     # All validation modes - error - invalid value "nan"
     def test_validate_error_nan(self):
@@ -1492,12 +1352,9 @@ class TestModelFloatValidation(TestCase):
 
         obj = 'nan'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'nan' (type 'str'), expected type 'float'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'nan' (type 'str'), expected type 'float'")
 
     # All validation modes - error - invalid value "inf"
     def test_validate_error_inf(self):
@@ -1506,12 +1363,9 @@ class TestModelFloatValidation(TestCase):
 
         obj = 'inf'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'inf' (type 'str'), expected type 'float'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'inf' (type 'str'), expected type 'float'")
 
     # All validation modes - error - bool
     def test_validate_error_bool(self):
@@ -1520,12 +1374,9 @@ class TestModelFloatValidation(TestCase):
 
         obj = True
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value True (type 'bool'), expected type 'float'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value True (type 'bool'), expected type 'float'")
 
 
 class TestModelBoolValidation(TestCase):
@@ -1544,17 +1395,13 @@ class TestModelBoolValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes())
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
     def test_validate(self):
@@ -1584,12 +1431,9 @@ class TestModelBoolValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'bool'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'bool'")
 
 
 class TestModelUuidValidation(TestCase):
@@ -1608,17 +1452,13 @@ class TestModelUuidValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes())
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - UUID object
     def test_validate(self):
@@ -1643,12 +1483,12 @@ class TestModelUuidValidation(TestCase):
                 self.assertTrue(isinstance(obj2, UUID))
                 self.assertEqual(obj2, UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     obj2 = type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3' (type 'str'), expected type 'uuid'")
-                else:
-                    pass
+                self.assertEqual(
+                    str(cm_exc.exception),
+                    "Invalid value 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3' (type 'str'), expected type 'uuid'"
+                )
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
@@ -1657,12 +1497,9 @@ class TestModelUuidValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
 
 
 class TestModelDateValidation(TestCase):
@@ -1681,17 +1518,13 @@ class TestModelDateValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes())
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - date object
     def test_validate(self):
@@ -1716,12 +1549,9 @@ class TestModelDateValidation(TestCase):
                 self.assertTrue(isinstance(obj2, date))
                 self.assertEqual(obj2, date(2013, 5, 26))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26' (type 'str'), expected type 'date'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26' (type 'str'), expected type 'date'")
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
@@ -1730,12 +1560,9 @@ class TestModelDateValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'date'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'date'")
 
 
 class TestModelDatetimeValidation(TestCase):
@@ -1754,17 +1581,13 @@ class TestModelDatetimeValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes())
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - datetime object
     def test_validate(self):
@@ -1804,12 +1627,9 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=TZUTC))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00+08:00' (type 'str'), expected type 'datetime'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01:00+08:00' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - zulu
     def test_validate_query_string_zulu(self):
@@ -1824,12 +1644,9 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - fraction second
     def test_validate_query_string_fracsec(self): # pylint: disable=invalid-name
@@ -1844,12 +1661,12 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=TZUTC))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'")
-                else:
-                    self.fail()
+                self.assertEqual(
+                    str(cm_exc.exception),
+                    "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'"
+                )
 
     # All validation modes - ISO datetime string - no seconds
     def test_validate_query_string_no_seconds(self): # pylint: disable=invalid-name
@@ -1864,12 +1681,9 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=TZUTC))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - no minutes
     def test_validate_query_string_no_minutes(self): # pylint: disable=invalid-name
@@ -1884,12 +1698,9 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertTrue(isinstance(obj2, datetime))
                 self.assertEqual(obj2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=TZUTC))
             else:
-                try:
+                with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                except ValidationError as exc:
-                    self.assertEqual(str(exc), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
-                else:
-                    self.fail()
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
@@ -1898,12 +1709,9 @@ class TestModelDatetimeValidation(TestCase):
 
         obj = 'abc'
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
 
 
 class TestModelObjectValidation(TestCase):
@@ -1922,17 +1730,13 @@ class TestModelObjectValidation(TestCase):
 
         type_.validate_attr(StructMemberAttributes())
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute '> 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
 
-        try:
+        with self.assertRaises(AttributeValidationError) as cm_exc:
             type_.validate_attr(StructMemberAttributes(op_len_gt=7))
-            self.fail()
-        except AttributeValidationError as exc:
-            self.assertEqual(str(exc), "Invalid attribute 'len > 7'")
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
 
     # All validation modes - success
     def test_validate(self):
@@ -1951,9 +1755,6 @@ class TestModelObjectValidation(TestCase):
 
         obj = None
         for mode in ValidationMode:
-            try:
+            with self.assertRaises(ValidationError) as cm_exc:
                 type_.validate(obj, mode)
-            except ValidationError as exc:
-                self.assertEqual(str(exc), "Invalid value None (type 'NoneType'), expected type 'object'")
-            else:
-                self.fail()
+            self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType'), expected type 'object'")

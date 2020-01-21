@@ -227,11 +227,11 @@ class TestApplication(TestCase):
 
             @staticmethod
             def formatTime(record, unused_datefmt=None): # pylint: disable=invalid-name
-                return record.getMessage()
+                return record.getMessage() # pragma: no cover
 
             @staticmethod
             def formatException(unused_exc_info): # pylint: disable=invalid-name
-                return 'Bad'
+                return 'Bad' # pragma: no cover
 
         app = Application()
         app.add_request(Request(my_wsgi))

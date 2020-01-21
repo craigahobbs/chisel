@@ -70,8 +70,8 @@ action my_action2
         # Application object
         self.app = Application()
         self.app.pretty_output = True
-        self.app.add_request(Action(lambda app, req: {}, name='my_action1', spec=spec_parser))
-        self.app.add_request(Action(lambda app, req: {}, name='my_action2', spec=spec_parser))
+        self.app.add_request(Action(None, name='my_action1', spec=spec_parser))
+        self.app.add_request(Action(None, name='my_action2', spec=spec_parser))
         self.app.add_request(DocAction())
 
     # Test documentation index HTML generation
@@ -234,13 +234,13 @@ action my_action5
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())
-        app.add_request(Action(lambda ctx, req: {}, name='my_action1', spec=spec_parser))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action2', spec=spec_parser))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action3', spec=spec_parser))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action4', spec=spec_parser))
-        app.add_request(Action(lambda ctx, req: {}, name='my_action5', spec=spec_parser))
-        app.add_request(Request(lambda environ, start_response: [], name='my_request1'))
-        app.add_request(Request(lambda environ, start_response: [], name='my_request2', doc_group='My  Group   2'))
+        app.add_request(Action(None, name='my_action1', spec=spec_parser))
+        app.add_request(Action(None, name='my_action2', spec=spec_parser))
+        app.add_request(Action(None, name='my_action3', spec=spec_parser))
+        app.add_request(Action(None, name='my_action4', spec=spec_parser))
+        app.add_request(Action(None, name='my_action5', spec=spec_parser))
+        app.add_request(Request(None, name='my_request1'))
+        app.add_request(Request(None, name='my_request2', doc_group='My  Group   2'))
 
         status, unused_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
@@ -956,7 +956,7 @@ This is the request documentation.
 And some other important information.
 ''')
         def my_request(unused_environ, unused_start_response):
-            pass
+            pass # pragma: no cover
         application = Application()
         application.add_request(DocAction())
         application.add_request(my_request)
@@ -1115,7 +1115,7 @@ The request is exposed at the following URL:
 This is the request documentation.
 ''')
         def my_request(unused_environ, unused_start_response):
-            pass
+            pass # pragma: no cover
         application = Application()
         application.add_request(DocAction())
         application.add_request(my_request)
@@ -1270,8 +1270,8 @@ action my_action
     output
         int c
 ''')
-        def my_action(unused_ctx, req):
-            return {'c': req['a'] + req['b']}
+        def my_action(unused_ctx, unused_req):
+            pass # pragma: no cover
 
         app.add_request(DocAction())
         app.add_request(DocPage(my_action))
@@ -1744,8 +1744,8 @@ action my_action
     output
         int c
 ''')
-        def my_action(unused_ctx, req):
-            return {'c': req['a'] + req['b']}
+        def my_action(unused_ctx, unused_req):
+            pass # pragma: no cover
 
         app.add_request(DocPage(my_action, request_urls=[('GET', 'https://foo.com/my_action')]))
 

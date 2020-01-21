@@ -17,6 +17,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request)
@@ -31,6 +32,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, name='foo')
@@ -45,6 +47,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, method='Get')
@@ -59,6 +62,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, method=('Get', 'POST'), urls=[None, '/other', ('PUT', None), ('DELETE', '/delete'), (None, '/all')])
@@ -81,6 +85,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
@@ -95,6 +100,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, method='Get', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
@@ -109,6 +115,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, urls='/bar')
@@ -137,6 +144,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
@@ -151,6 +159,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         req = Request(my_request, doc=('doc line 1', 'doc line 2'))
@@ -162,24 +171,18 @@ class TestRequest(TestCase):
 
     def test_request_none(self):
 
-        try:
+        with self.assertRaises(AssertionError) as cm_exc:
             Request()
-        except AssertionError as exc:
-            self.assertEqual(str(exc), 'must specify either wsgi_callback and/or name')
-        else:
-            self.fail()
+        self.assertEqual(str(cm_exc.exception), 'must specify either wsgi_callback and/or name')
 
         req = Request(name='my_request')
         self.assertEqual(req.wsgi_callback, None)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, ((None, '/my_request'),))
         self.assertEqual(req.doc, None)
-        try:
-            req({}, lambda status, headers: None)
-        except AssertionError as exc:
-            self.assertEqual(str(exc), 'must specify wsgi_callback when using Request directly')
-        else:
-            self.fail()
+        with self.assertRaises(AssertionError) as cm_exc:
+            req({}, None)
+        self.assertEqual(str(cm_exc.exception), 'must specify wsgi_callback when using Request directly')
 
     def test_decorator(self):
 
@@ -187,6 +190,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         self.assertTrue(isinstance(my_request, Request))
@@ -201,6 +205,7 @@ class TestRequest(TestCase):
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
+            start_response('OK', [])
             return [b'ok']
 
         self.assertTrue(isinstance(my_request, Request))
