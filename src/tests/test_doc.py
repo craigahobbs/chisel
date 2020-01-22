@@ -66,15 +66,12 @@ action my_action2
         MyError1
         MyError2
 ''')
-
-        # Application object
         self.app = Application()
         self.app.pretty_output = True
         self.app.add_request(Action(None, name='my_action1', spec=spec_parser))
         self.app.add_request(Action(None, name='my_action2', spec=spec_parser))
         self.app.add_request(DocAction())
 
-    # Test documentation index HTML generation
     def test_index(self):
 
         # Validate the HTML
@@ -230,7 +227,6 @@ group
 
 action my_action5
 ''')
-
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())
@@ -385,7 +381,6 @@ ul.chsl-constraint-list {
 </html>'''
         self.assertEqual(html_expected, html)
 
-    # Test action model HTML generation
     def test_action(self):
 
         # Validate the first my_action1's HTML
@@ -948,6 +943,213 @@ My Union
 </html>'''
         self.assertEqual(html_expected, html)
 
+    def test_member_attributes(self):
+
+        spec_parser = SpecParser('''\
+struct MyStruct
+    int (> 5, < 10) a
+    int (>= 5, <= 10) b
+    int (== 5) c
+    string (len > 5, len < 10) d
+    string (len >= 5, len <= 10) e
+    string (len == 5) f
+''')
+        app = Application()
+        app.pretty_output = True
+        app.add_request(DocPage(spec_parser.types['MyStruct']))
+
+        status, unused_headers, response = app.request('GET', '/doc_MyStruct')
+        html = response.decode('utf-8')
+        self.assertEqual(status, '200 OK')
+        html_expected = '''\
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>MyStruct</title>
+    <style type="text/css">
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}
+    </style>
+  </head>
+  <body class="chsl-request-body">
+    <h1 id="MyStruct"><a class="linktarget">struct MyStruct</a></h1>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Attributes</th>
+      </tr>
+      <tr>
+        <td>a</td>
+        <td>int</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">value</span> &gt; 5</li>
+            <li><span class="chsl-emphasis">value</span> &lt; 10</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>b</td>
+        <td>int</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">value</span> &gt;= 5</li>
+            <li><span class="chsl-emphasis">value</span> &lt;= 10</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>c</td>
+        <td>int</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">value</span> == 5</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>d</td>
+        <td>string</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">len(value)</span> &gt; 5</li>
+            <li><span class="chsl-emphasis">len(value)</span> &lt; 10</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>e</td>
+        <td>string</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">len(value)</span> &gt;= 5</li>
+            <li><span class="chsl-emphasis">len(value)</span> &lt;= 10</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>f</td>
+        <td>string</td>
+        <td>
+          <ul class="chsl-constraint-list">
+            <li><span class="chsl-emphasis">len(value)</span> == 5</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+    <div class="chsl-notes" />
+  </body>
+</html>'''
+        self.assertEqual(html_expected, html)
+
     def test_request(self):
 
         @request(doc='''
@@ -1124,7 +1326,6 @@ This is the request documentation.
         self.assertEqual(status, '404 Not Found')
         self.assertEqual(response, b'Unknown Request')
 
-    # Test doc generation element class
     def test_element(self):
 
         root = Element('a', children=[
@@ -1275,6 +1476,7 @@ action my_action
 
         app.add_request(DocAction())
         app.add_request(DocPage(my_action))
+        app.add_request(DocPage(my_action, name='my_action_docs'))
 
         status, unused_headers, response = app.request('GET', '/doc')
         html = response.decode('utf-8')
@@ -1401,6 +1603,7 @@ ul.chsl-constraint-list {
     <ul class="chsl-request-list">
       <li><a href="/doc?name=doc">doc</a></li>
       <li><a href="/doc?name=doc_my_action">doc_my_action</a></li>
+      <li><a href="/doc?name=my_action_docs">my_action_docs</a></li>
     </ul>
   </body>
 </html>'''
@@ -1731,6 +1934,176 @@ The action returns no custom error codes.
   </body>
 </html>'''
         self.assertEqual(html_expected, html)
+
+        status, unused_headers, response = app.request('GET', '/my_action_docs')
+        html = response.decode('utf-8')
+        self.assertEqual(status, '200 OK')
+        html_expected = '''\
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>my_action</title>
+    <style type="text/css">
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}
+    </style>
+  </head>
+  <body class="chsl-request-body">
+    <h1>my_action</h1>
+    <div class="chsl-notes">
+      <div class="chsl-note">
+        <p>
+          <b>Note: </b>
+The request is exposed at the following URL:
+        </p>
+        <ul>
+          <li><a href="/my_action">POST /my_action</a></li>
+        </ul>
+      </div>
+    </div>
+    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td>a</td>
+        <td>int</td>
+      </tr>
+      <tr>
+        <td>b</td>
+        <td>int</td>
+      </tr>
+    </table>
+    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td>c</td>
+        <td>int</td>
+      </tr>
+    </table>
+    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
+    <div class="chsl-text">
+      <p>
+The action returns no custom error codes.
+      </p>
+    </div>
+  </body>
+</html>'''
+        self.assertEqual(html_expected, html)
+
     def test_page_urls(self):
 
         app = Application()
@@ -1932,7 +2305,6 @@ struct MyOtherStruct
     int x
     int y
 ''')
-
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())
@@ -2120,7 +2492,6 @@ struct MyStruct
 # This is my typedef
 typedef MyStruct[len > 1] MyTypedef
 ''')
-
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())
@@ -2301,7 +2672,6 @@ enum MyEnum
     A
     B
 ''')
-
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())

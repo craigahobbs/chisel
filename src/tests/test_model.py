@@ -1,14 +1,13 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
 from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, ValidationMode, \
     IMMUTABLE_VALIDATION_MODES, Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
     TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT
-from chisel.util import TZUTC, TZLOCAL
 
 from . import TestCase
 
@@ -1594,7 +1593,7 @@ class TestModelDatetimeValidation(TestCase):
 
         type_ = TYPE_DATETIME
 
-        obj = datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC)
+        obj = datetime(2013, 5, 26, 11, 1, 0, tzinfo=timezone.utc)
         for mode in ValidationMode:
             obj2 = type_.validate(obj, mode)
             self.assertIs(obj, obj2, mode)
@@ -1606,13 +1605,8 @@ class TestModelDatetimeValidation(TestCase):
 
         obj = datetime(2013, 5, 26, 11, 1, 0)
         for mode in ValidationMode:
-            if mode in IMMUTABLE_VALIDATION_MODES:
-                obj2 = type_.validate(obj, mode)
-                self.assertIs(obj, obj2, mode)
-            else:
-                obj2 = type_.validate(obj, mode)
-                self.assertIsNot(obj, obj2)
-                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZLOCAL))
+            obj2 = type_.validate(obj, mode)
+            self.assertIs(obj, obj2, mode)
 
     # All validation modes - ISO datetime string
     def test_validate_query_string(self):
@@ -1625,7 +1619,7 @@ class TestModelDatetimeValidation(TestCase):
                 obj2 = type_.validate(obj, mode)
                 self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
-                self.assertEqual(obj2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=TZUTC))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 3, 1, 0, tzinfo=timezone.utc))
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
@@ -1642,7 +1636,7 @@ class TestModelDatetimeValidation(TestCase):
                 obj2 = type_.validate(obj, mode)
                 self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
-                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=TZUTC))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, tzinfo=timezone.utc))
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
@@ -1659,7 +1653,7 @@ class TestModelDatetimeValidation(TestCase):
                 obj2 = type_.validate(obj, mode)
                 self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
-                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=TZUTC))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 123400, tzinfo=timezone.utc))
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
@@ -1679,7 +1673,7 @@ class TestModelDatetimeValidation(TestCase):
                 obj2 = type_.validate(obj, mode)
                 self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
-                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=TZUTC))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 1, 0, 0, tzinfo=timezone.utc))
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
@@ -1696,7 +1690,7 @@ class TestModelDatetimeValidation(TestCase):
                 obj2 = type_.validate(obj, mode)
                 self.assertIsNot(obj, obj2)
                 self.assertTrue(isinstance(obj2, datetime))
-                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=TZUTC))
+                self.assertEqual(obj2, datetime(2013, 5, 26, 11, 0, 0, 0, tzinfo=timezone.utc))
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)

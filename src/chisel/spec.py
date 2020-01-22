@@ -389,18 +389,16 @@ class SpecParser:
             match = _RE_COMMENT.search(line)
             if match:
                 doc_string = match.group('doc')
-                if doc_string is not None:
+                if doc_string is not None: # pragma: no branch
                     self._doc.append(doc_string.strip())
-
                 continue
 
             # Documentation group?
             match = _RE_GROUP.search(line)
             if match:
                 self._doc_group = match.group('group')
-                if self._doc_group is not None:
+                if self._doc_group is not None: # pragma: no branch
                     self._doc_group = self._doc_group.strip()
-
                 continue
 
             # Action?

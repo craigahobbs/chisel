@@ -2,10 +2,10 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from functools import partial
+import importlib
 from itertools import chain
+import pkgutil
 import sys
-
-from .util import import_submodules
 
 
 REQUESTS_MODULE_ATTR = '__chisel_requests__'
@@ -74,7 +74,9 @@ class Request:
 
     @staticmethod
     def import_requests(package, parent_package=None):
-        for module in import_submodules(package, parent_package):
+        package = importlib.import_module(package, parent_package)
+        for _, name, _ in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
+            module = importlib.import_module(name)
             requests = getattr(module, REQUESTS_MODULE_ATTR, None)
             if requests is not None:
                 yield from iter(requests.values())

@@ -1,11 +1,11 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from uuid import UUID
 from urllib.parse import quote
 
-from chisel import decode_query_string, encode_query_string, TZLOCAL, TZUTC
+from chisel import decode_query_string, encode_query_string
 from chisel.url import encode_query_string_items, decode_query_string_items
 
 from . import TestCase
@@ -305,7 +305,7 @@ class TestUrl(TestCase):
     # Test datetime query string encoding
     def test_encode_query_string_datetime(self): # pylint: disable=invalid-name
 
-        obj = {'a': datetime(2013, 7, 18, 12, 31, tzinfo=TZUTC)}
+        obj = {'a': datetime(2013, 7, 18, 12, 31, tzinfo=timezone.utc)}
         query_string = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encode_query_string(obj), query_string)
 
@@ -313,7 +313,7 @@ class TestUrl(TestCase):
     def test_encode_query_string_datetime_naive(self): # pylint: disable=invalid-name
 
         obj = {'a': datetime(2013, 7, 18, 12, 31)}
-        query_string = 'a=' + quote(obj['a'].replace(tzinfo=TZLOCAL).isoformat(), encoding='utf-8')
+        query_string = 'a=' + quote(obj['a'].replace(tzinfo=timezone.utc).isoformat(), encoding='utf-8')
         self.assertEqual(encode_query_string(obj), query_string)
 
     # Test uuid query string encoding
@@ -338,7 +338,7 @@ class TestUrl(TestCase):
         obj = {
             'bool': True,
             'int': 19,
-            'datetime': datetime(2017, 8, 2, 8, 12, 0, tzinfo=TZUTC),
+            'datetime': datetime(2017, 8, 2, 8, 12, 0, tzinfo=timezone.utc),
             'date': date(2017, 8, 2),
             'uuid': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e'),
             'none': None,

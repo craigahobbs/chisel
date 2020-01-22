@@ -305,9 +305,7 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
 
 
 def _doc_text(doc):
-    if doc is None:
-        return None
-    elif isinstance(doc, str):
+    if isinstance(doc, str):
         doc = (line.strip() for line in doc.splitlines())
 
     # Join lines separated by one or more blank lines into paragraphs

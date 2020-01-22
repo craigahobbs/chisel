@@ -38,6 +38,4 @@ from .url import \
     encode_query_string
 
 from .util import \
-    JSONEncoder, \
-    TZLOCAL, \
-    TZUTC
+    JSONEncoder

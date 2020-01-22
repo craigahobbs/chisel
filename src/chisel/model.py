@@ -8,7 +8,7 @@ from itertools import chain
 from math import isnan, isinf
 from uuid import UUID
 
-from .util import TZLOCAL, parse_iso8601_date, parse_iso8601_datetime
+from .util import parse_iso8601_date, parse_iso8601_datetime
 
 
 # Validation mode
@@ -224,19 +224,19 @@ class TypeStruct:
             if member_name not in value_x:
                 if not member.optional:
                     raise ValidationError("Required member {0!r} missing".format(ValidationError.member_syntax((_member, member_name))))
-                continue
-            member_count += 1
-            member_value = value_x[member_name]
-            if member.nullable and (member_value is None or \
-                    (mode == ValidationMode.QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
-                member_value_x = None
             else:
-                member_path = (_member, member_name)
-                member_value_x = member.type.validate(member_value, mode, member_path)
-                if member.attr is not None:
-                    member.attr.validate(member_value_x, member_path)
-            if value_copy is not None:
-                value_copy[member_name] = member_value_x
+                member_count += 1
+                member_value = value_x[member_name]
+                if member.nullable and (member_value is None or \
+                        (mode == ValidationMode.QUERY_STRING and not isinstance(member.type, _TypeString) and member_value == 'null')):
+                    member_value_x = None
+                else:
+                    member_path = (_member, member_name)
+                    member_value_x = member.type.validate(member_value, mode, member_path)
+                    if member.attr is not None:
+                        member.attr.validate(member_value_x, member_path)
+                if value_copy is not None:
+                    value_copy[member_name] = member_value_x
 
         # Any unknown members?
         if member_count != len(value_x):
@@ -571,9 +571,6 @@ class _TypeDatetime:
 
         # Validate and translate the value
         if isinstance(value, datetime):
-            # Set a time zone, if necessary
-            if mode not in IMMUTABLE_VALIDATION_MODES and value.tzinfo is None:
-                return value.replace(tzinfo=TZLOCAL)
             return value
         elif mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:

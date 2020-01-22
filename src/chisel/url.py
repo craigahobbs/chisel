@@ -1,11 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from urllib.parse import quote, unquote
 from uuid import UUID
-
-from .util import TZLOCAL
 
 
 # Encode an object as a URL query string
@@ -36,7 +34,7 @@ def encode_query_string_items(obj, parent=None, encoding=None):
             yield parent, str(obj) # quote safe
         elif isinstance(obj, datetime):
             if not obj.tzinfo:
-                obj = obj.replace(tzinfo=TZLOCAL)
+                obj = obj.replace(tzinfo=timezone.utc)
             yield parent, quote(obj.isoformat(), encoding=encoding) if encoding else obj.isoformat()
         elif isinstance(obj, date):
             yield parent, obj.isoformat() # quote safe

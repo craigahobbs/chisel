@@ -60,6 +60,10 @@ class TestSpecParseSpec(TestCase):
     def _test_load_specs(self):
         return self.create_test_files((
             (
+                ('README.txt',),
+                ''
+            ),
+            (
                 ('module.chsl',),
                 '''\
 action my_action
@@ -102,7 +106,7 @@ action my_action3
     def test_load_finalize(self):
         with self._test_load_specs() as spec_dir:
             parser = SpecParser()
-            parser.load(spec_dir)
+            parser.load(spec_dir, finalize=False)
             parser.finalize()
             self.assertIn('my_action', parser.actions)
             self.assertIn('my_action2', parser.actions)
