@@ -3,26 +3,26 @@
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
-from json import JSONEncoder as json_JSONEncoder
+import json
 import re
 from uuid import UUID
 
 
-class JSONEncoder(json_JSONEncoder):
+class JSONEncoder(json.JSONEncoder):
     """
     JSON encoder class with support for encoding date, datetime, Decimal, and UUID.
     """
 
-    def default(self, obj): # pylint: disable=arguments-differ,method-hidden
-        if isinstance(obj, datetime):
-            return (obj if obj.tzinfo else obj.replace(tzinfo=timezone.utc)).isoformat()
-        elif isinstance(obj, date):
-            return obj.isoformat()
-        elif isinstance(obj, Decimal):
-            return float(obj)
-        elif isinstance(obj, UUID):
-            return str(obj)
-        return json_JSONEncoder.default(self, obj)
+    def default(self, o): # pylint: disable=method-hidden
+        if isinstance(o, datetime):
+            return (o if o.tzinfo else o.replace(tzinfo=timezone.utc)).isoformat()
+        elif isinstance(o, date):
+            return o.isoformat()
+        elif isinstance(o, Decimal):
+            return float(o)
+        elif isinstance(o, UUID):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
 
 
 # ISO 8601 regexes

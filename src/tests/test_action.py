@@ -37,9 +37,9 @@ action my_action_default
 
         with self.assertRaises(AssertionError) as cm_exc:
             @action
-            def my_action(unused_app, unused_req): # pylint: disable=unused-variable
+            def unused_my_action(unused_app, unused_req):
                 pass # pragma: no cover
-        self.assertEqual(str(cm_exc.exception), 'Unknown action "my_action"')
+        self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
 
     # Action decorator with spec
     def test_decorator_spec(self):
@@ -531,7 +531,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
 
     # Test action long query string decode error
-    def test_error_invalid_query_string_long(self): # pylint: disable=invalid-name
+    def test_error_invalid_query_string_long(self):
 
         @action(method='GET', spec='''\
 action my_action
@@ -555,7 +555,7 @@ action my_action
         )
 
     # Test action url arg
-    def test_url_arg(self): # pylint: disable=invalid-name
+    def test_url_arg(self):
 
         @action(method='GET', urls='/my_action/{a}', spec='''\
 action my_action
@@ -652,7 +652,7 @@ action my_action
                          'for member \'a\', expected type \'string\'"}')
 
     # Test action with invalid array input
-    def test_error_invalid_input_array_query_string(self): # pylint: disable=invalid-name
+    def test_error_invalid_input_array_query_string(self):
 
         @action(spec='''\
 action my_action

@@ -2,8 +2,8 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 from http import HTTPStatus
-import unittest.mock
 import sys
+import unittest.mock
 
 from chisel import request, Request
 

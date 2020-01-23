@@ -451,7 +451,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': 'abc', 'c': True})
 
     # All validation modes - optional member present
-    def test_validation_optional_present(self): # pylint: disable=invalid-name
+    def test_validation_optional_present(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, optional=True)
@@ -467,7 +467,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - optional member missing
-    def test_validation_optional_missing(self): # pylint: disable=invalid-name
+    def test_validation_optional_missing(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, optional=True)
@@ -483,7 +483,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7})
 
     # All validation modes - nullable member present and non-null
-    def test_validation_nullable_present_non_null(self): # pylint: disable=invalid-name
+    def test_validation_nullable_present_non_null(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -499,7 +499,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': 'abc'})
 
     # All validation modes - nullable member present and null
-    def test_validation_nullable_present_null(self): # pylint: disable=invalid-name
+    def test_validation_nullable_present_null(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -547,7 +547,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': None})
 
     # All validation modes - nullable member present and 'null' string for non-string member
-    def test_validation_nullable_present_null_string(self): # pylint: disable=invalid-name
+    def test_validation_nullable_present_null_string(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_INT, nullable=True)
@@ -565,7 +565,7 @@ class TestModelStructValidation(TestCase):
                 self.assertEqual(str(cm_exc.exception), "Invalid value 'null' (type 'str') for member 'b', expected type 'int'")
 
     # All validation modes - nullable member present and 'null' string for string member
-    def test_validation_nullable_present_null_string_type(self): # pylint: disable=invalid-name
+    def test_validation_nullable_present_null_string_type(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -581,7 +581,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': 'null'})
 
     # All validation modes - nullable member missing
-    def test_validation_nullable_missing(self): # pylint: disable=invalid-name
+    def test_validation_nullable_missing(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -593,7 +593,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Required member 'b' missing")
 
     # All validation modes - member with attributes - valid
-    def test_validation_member_attributes_valid(self): # pylint: disable=invalid-name
+    def test_validation_member_attributes_valid(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
@@ -608,7 +608,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': 4})
 
     # All validation modes - member with attributes - invalid
-    def test_validation_member_attributes_invalid(self): # pylint: disable=invalid-name
+    def test_validation_member_attributes_invalid(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
@@ -639,7 +639,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(obj2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_query_string_transformed_member(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -649,7 +649,7 @@ class TestModelStructValidation(TestCase):
         self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
+    def test_validation_query_string_empty_string(self):
         type_ = TypeStruct()
 
         obj = ''
@@ -658,7 +658,7 @@ class TestModelStructValidation(TestCase):
         self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
-    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_json_input_transformed_member(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_UUID)
 
@@ -668,7 +668,7 @@ class TestModelStructValidation(TestCase):
         self.assertEqual(obj2, {'a': UUID('184EAB31-4307-416C-AAC4-3B92B2358677')})
 
     # All validation modes - error - invalid value
-    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
+    def test_validation_error_invalid_value(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -679,7 +679,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'struct'")
 
     # All validation modes - error - optional none value
-    def test_validation_error_optional_none_value(self): # pylint: disable=invalid-name
+    def test_validation_error_optional_none_value(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, optional=True)
 
@@ -690,7 +690,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType') for member 'a', expected type 'int'")
 
     # All validation modes - error - member validation
-    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_member_validation(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -701,7 +701,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
 
     # All validation modes - error - struct with base type member validation
-    def test_validation_error_member_validation_base_types(self): # pylint: disable=invalid-name
+    def test_validation_error_member_validation_base_types(self):
         base_type = TypeStruct()
         base_type.add_member('a', TYPE_INT)
 
@@ -721,7 +721,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 8 (type 'int') for member 'b', expected type 'string'")
 
     # All validation modes - error - nested member validation
-    def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_nested_member_validation(self):
         type_ = TypeStruct()
         type2 = TypeStruct()
         type_.add_member('a', type2)
@@ -734,7 +734,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
 
     # All validation modes - error - unknown member
-    def test_validation_error_unknown_member(self): # pylint: disable=invalid-name
+    def test_validation_error_unknown_member(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -745,7 +745,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Unknown member 'b'")
 
     # All validation modes - error - long unknown member
-    def test_validation_error_unknown_member_long(self): # pylint: disable=invalid-name
+    def test_validation_error_unknown_member_long(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -756,7 +756,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Unknown member '" + 'b' * 99)
 
     # All validation modes - error - missing member
-    def test_validation_error_missing_member(self): # pylint: disable=invalid-name
+    def test_validation_error_missing_member(self):
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -767,7 +767,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Required member 'a' missing")
 
     # All validation modes - error - union with more than one member
-    def test_validation_error_union_multiple_members(self): # pylint: disable=invalid-name
+    def test_validation_error_union_multiple_members(self):
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('bb', TYPE_STRING)
@@ -780,7 +780,7 @@ class TestModelStructValidation(TestCase):
             self.assertTrue(str(cm_exc.exception).endswith("} (type 'dict'), expected type 'union'"))
 
     # All validation modes - error - empty union
-    def test_validation_error_union_zero_members(self): # pylint: disable=invalid-name
+    def test_validation_error_union_zero_members(self):
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -792,7 +792,7 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value {} (type 'dict'), expected type 'union'")
 
     # All validation modes - error - union unknown member
-    def test_validation_error_union_unknown_member(self): # pylint: disable=invalid-name
+    def test_validation_error_union_unknown_member(self):
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -853,7 +853,7 @@ class TestModelArrayValidation(TestCase):
             self.assertEqual(obj2, [1, 2, 3])
 
     # All validation modes - value attributes - invalid value
-    def test_validation_attributes_invalid(self): # pylint: disable=invalid-name
+    def test_validation_attributes_invalid(self):
         type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 7, 3]
@@ -877,7 +877,7 @@ class TestModelArrayValidation(TestCase):
             self.assertEqual(obj2, [[1, 2, 3], [4, 5, 6]])
 
     # Query string validation mode - transformed member
-    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_query_string_transformed_member(self):
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, '2', 3]
@@ -886,7 +886,7 @@ class TestModelArrayValidation(TestCase):
         self.assertEqual(obj2, [1, 2, 3])
 
     # Query string validation mode - empty string
-    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
+    def test_validation_query_string_empty_string(self):
         type_ = TypeArray(TYPE_INT)
 
         obj = ''
@@ -895,7 +895,7 @@ class TestModelArrayValidation(TestCase):
         self.assertEqual(obj2, [])
 
     # JSON input validation mode - transformed member
-    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_json_input_transformed_member(self):
         type_ = TypeArray(TYPE_UUID)
 
         obj = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
@@ -904,7 +904,7 @@ class TestModelArrayValidation(TestCase):
         self.assertEqual(obj2, [UUID('39E23A29-2BEA-4402-A4D2-BB3DC057D17A')])
 
     # All validation modes - error - invalid value
-    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
+    def test_validation_error_invalid_value(self):
         type_ = TypeArray(TYPE_INT)
 
         obj = 'abc'
@@ -914,7 +914,7 @@ class TestModelArrayValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'array'")
 
     # All validation modes - error - member validation
-    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_member_validation(self):
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, 'abc', 3]
@@ -979,7 +979,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(obj2, {'a': 7, 'b': 8})
 
     # All validation modes - value attributes - success
-    def test_validation_value_attributes(self): # pylint: disable=invalid-name
+    def test_validation_value_attributes(self):
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 2}
@@ -993,7 +993,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(obj2, {'a': 1, 'b': 2})
 
     # All validation modes - value attributes - invalid value
-    def test_validation_value_attributes_invalid(self): # pylint: disable=invalid-name
+    def test_validation_value_attributes_invalid(self):
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 7}
@@ -1017,7 +1017,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(obj2, {'a': 1, 'b': 2})
 
     # All validation modes - key attributes - invalid key
-    def test_validation_key_attributes_invalid(self): # pylint: disable=invalid-name
+    def test_validation_key_attributes_invalid(self):
         type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=2))
 
         obj = {'a': 1, 'bc': 2}
@@ -1041,7 +1041,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(obj2, {'a': {'b': 7}})
 
     # Query string validation mode - transformed member
-    def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_query_string_transformed_member(self):
         type_ = TypeDict(TYPE_INT)
 
         obj = {'a': '7'}
@@ -1050,7 +1050,7 @@ class TestModelDictValidation(TestCase):
         self.assertEqual(obj2, {'a': 7})
 
     # Query string validation mode - empty string
-    def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
+    def test_validation_query_string_empty_string(self):
         type_ = TypeDict(TYPE_INT)
 
         obj = ''
@@ -1059,7 +1059,7 @@ class TestModelDictValidation(TestCase):
         self.assertEqual(obj2, {})
 
     # JSON input validation mode - transformed member
-    def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
+    def test_validation_json_input_transformed_member(self):
         type_ = TypeDict(TYPE_UUID)
 
         obj = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
@@ -1068,7 +1068,7 @@ class TestModelDictValidation(TestCase):
         self.assertEqual(obj2, {'a': UUID('72D33C44-7D30-4F15-903C-56DCC6DECD75')})
 
     # All validation modes - error - invalid value
-    def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
+    def test_validation_error_invalid_value(self):
         type_ = TypeDict(TYPE_INT)
 
         obj = 'abc'
@@ -1078,7 +1078,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'dict'")
 
     # All validation modes - error - member key validation
-    def test_validation_error_member_key_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_member_key_validation(self):
         type_ = TypeDict(TYPE_INT)
 
         obj = {7: 7}
@@ -1088,7 +1088,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int') for member '[7]', expected type 'string'")
 
     # All validation modes - error - member validation
-    def test_validation_error_member_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_member_validation(self):
         type_ = TypeDict(TYPE_INT)
 
         obj = {'7': 'abc'}
@@ -1098,7 +1098,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member '7', expected type 'int'")
 
     # All validation modes - error - nested member validation
-    def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
+    def test_validation_error_nested_member_validation(self):
         type_ = TypeDict(TypeDict(TYPE_INT))
 
         obj = {'a': {'b': 'abc'}}
@@ -1705,7 +1705,7 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01:00+00:00' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - fraction second
-    def test_validate_query_string_fracsec(self): # pylint: disable=invalid-name
+    def test_validate_query_string_fracsec(self):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00.1234+00:00'
@@ -1724,7 +1724,7 @@ class TestModelDatetimeValidation(TestCase):
                 )
 
     # All validation modes - ISO datetime string - no seconds
-    def test_validate_query_string_no_seconds(self): # pylint: disable=invalid-name
+    def test_validate_query_string_no_seconds(self):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01Z'
@@ -1740,7 +1740,7 @@ class TestModelDatetimeValidation(TestCase):
                 self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - no minutes
-    def test_validate_query_string_no_minutes(self): # pylint: disable=invalid-name
+    def test_validate_query_string_no_minutes(self):
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11Z'

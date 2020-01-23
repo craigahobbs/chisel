@@ -80,7 +80,7 @@ class TestUrl(TestCase):
         obj = {'a': {'b': '0', '0': '0'}}
         self.assertEqual(decode_query_string(query_string), obj)
 
-    def test_decode_query_string_degenerate(self): # pylint: disable=invalid-name
+    def test_decode_query_string_degenerate(self):
 
         def assert_decode_error(query_string, err):
             with self.assertRaises(ValueError) as cm_exc:
@@ -303,14 +303,14 @@ class TestUrl(TestCase):
         self.assertEqual(encode_query_string(obj), query_string)
 
     # Test datetime query string encoding
-    def test_encode_query_string_datetime(self): # pylint: disable=invalid-name
+    def test_encode_query_string_datetime(self):
 
         obj = {'a': datetime(2013, 7, 18, 12, 31, tzinfo=timezone.utc)}
         query_string = 'a=2013-07-18T12%3A31%3A00%2B00%3A00'
         self.assertEqual(encode_query_string(obj), query_string)
 
     # Test naive datetime query string encoding
-    def test_encode_query_string_datetime_naive(self): # pylint: disable=invalid-name
+    def test_encode_query_string_datetime_naive(self):
 
         obj = {'a': datetime(2013, 7, 18, 12, 31)}
         query_string = 'a=' + quote(obj['a'].replace(tzinfo=timezone.utc).isoformat(), encoding='utf-8')

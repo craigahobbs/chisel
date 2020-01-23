@@ -759,7 +759,7 @@ struct MyStruct2
 
         self.assert_struct_by_name(parser, 'MyStruct2', ())
 
-    def test_typeref_invalid_nullable_order(self): # pylint: disable=invalid-name
+    def test_typeref_invalid_nullable_order(self):
 
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
@@ -955,9 +955,9 @@ output
 errors
 ''')
         self.assertEqual(str(cm_exc.exception), '''\
-:6: error: Action section outside of action scope
-:7: error: Action section outside of action scope
-:8: error: Action section outside of action scope
+:6: error: Syntax error
+:7: error: Syntax error
+:8: error: Syntax error
 :10: error: Syntax error
 :11: error: Syntax error
 :12: error: Syntax error''')
@@ -976,9 +976,9 @@ errors
 
         # Check errors
         self.assertEqual(parser.errors,
-                         [':6: error: Action section outside of action scope',
-                          ':7: error: Action section outside of action scope',
-                          ':8: error: Action section outside of action scope',
+                         [':6: error: Syntax error',
+                          ':7: error: Syntax error',
+                          ':8: error: Syntax error',
                           ':10: error: Syntax error',
                           ':11: error: Syntax error',
                           ':12: error: Syntax error'])
@@ -1003,7 +1003,7 @@ int cde
 ''')
         self.assertEqual(str(cm_exc.exception), '''\
 :2: error: Syntax error
-:8: error: Member definition outside of struct scope
+:8: error: Syntax error
 :10: error: Syntax error''')
 
         # Check counts
@@ -1021,7 +1021,7 @@ int cde
         # Check errors
         self.assertEqual(parser.errors,
                          [':2: error: Syntax error',
-                          ':8: error: Member definition outside of struct scope',
+                          ':8: error: Syntax error',
                           ':10: error: Syntax error'])
 
     # Error - enum value definition outside enum scope
@@ -1048,8 +1048,8 @@ action MyAction
 :2: error: Syntax error
 :3: error: Syntax error
 :4: error: Syntax error
-:8: error: Enumeration value outside of enum scope
-:12: error: Enumeration value outside of enum scope''')
+:8: error: Syntax error
+:12: error: Syntax error''')
 
         # Check counts
         self.assertEqual(len(parser.errors), 5)
@@ -1068,8 +1068,8 @@ action MyAction
                          [':2: error: Syntax error',
                           ':3: error: Syntax error',
                           ':4: error: Syntax error',
-                          ':8: error: Enumeration value outside of enum scope',
-                          ':12: error: Enumeration value outside of enum scope'])
+                          ':8: error: Syntax error',
+                          ':12: error: Syntax error'])
 
     @staticmethod
     def attr_tuple(attr=None, op_eq=None, op_lt=None, op_lte=None, op_gt=None, op_gte=None,
@@ -1285,7 +1285,7 @@ struct MyStruct
     float(len < 10, len > 10) f
 ''')
 
-    def test_error_attribute_len_lte_gte(self): # pylint: disable=invalid-name
+    def test_error_attribute_len_lte_gte(self):
         self._test_spec_error([":2: error: Invalid attribute 'len <= 10'",
                                ":3: error: Invalid attribute 'len >= 10'"], '''\
 struct MyStruct
@@ -1301,7 +1301,7 @@ struct MyStruct
 
     def test_error_member_invalid(self):
         self._test_spec_error([':1: error: Syntax error',
-                               ':5: error: Member definition outside of struct scope'], '''\
+                               ':5: error: Syntax error'], '''\
     string a
 
 enum MyEnum
@@ -1470,61 +1470,6 @@ struct Foo
 ''')
         self.assertEqual(parser.errors, [
             ':2: error: Invalid dictionary key type',
-        ])
-
-    def test_error_action_input_redefinition(self): # pylint: disable=invalid-name
-
-        parser = SpecParser()
-        with self.assertRaises(SpecParserError):
-            parser.parse_string('''\
-action Foo
-    input
-        int a
-    output
-        int b
-    input
-        int c
-''')
-        self.assertEqual(parser.errors, [
-            ':6: error: Redefinition of action input',
-            ':7: error: Syntax error',
-        ])
-
-    def test_error_action_output_redefinition(self): # pylint: disable=invalid-name
-
-        parser = SpecParser()
-        with self.assertRaises(SpecParserError):
-            parser.parse_string('''\
-action Foo
-    output
-        int a
-    input
-        int b
-    output
-        int c
-''')
-        self.assertEqual(parser.errors, [
-            ':6: error: Redefinition of action output',
-            ':7: error: Syntax error',
-        ])
-
-    def test_error_action_errors_redefinition(self): # pylint: disable=invalid-name
-
-        parser = SpecParser()
-        with self.assertRaises(SpecParserError):
-            parser.parse_string('''\
-action Foo
-    errors
-        A
-        B
-    input
-        int a
-    errors
-        C
-''')
-        self.assertEqual(parser.errors, [
-            ':7: error: Redefinition of action errors',
-            ':8: error: Syntax error',
         ])
 
     def test_action_input_base_types(self):
@@ -1732,6 +1677,80 @@ action MyDictAction
             ":25: error: Invalid action output base type 'MyDict'",
             ":2: error: Invalid action output base type 'Foo'",
             ":19: error: Redefinition of member 'a' from base type"
+        ])
+
+    def test_action_input_multiple(self):
+
+        parser = SpecParser('''\
+action Foo
+    input
+        int a
+    output
+        int b
+    input
+        int c
+''')
+
+        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
+        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
+            'a',
+            'c'
+        ])
+        self.assertEqual([m.name for m in parser.actions['Foo'].output_type.members()], [
+            'b'
+        ])
+        self.assertEqual(list(parser.actions['Foo'].error_type.values()), [])
+
+    def test_action_output_multiple(self):
+
+        parser = SpecParser('''\
+action Foo
+    output
+        int a
+    input
+        int b
+    output
+        int c
+''')
+
+        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
+        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
+            'b'
+        ])
+        self.assertEqual([m.name for m in parser.actions['Foo'].output_type.members()], [
+            'a',
+            'c'
+        ])
+        self.assertEqual(list(parser.actions['Foo'].error_type.values()), [])
+
+    def test_action_errors_multiple(self):
+
+        parser = SpecParser('''\
+action Foo
+    errors
+        A
+        B
+    input
+        int a
+    errors
+        C
+''')
+
+        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
+        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
+        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
+            'a'
+        ])
+        self.assertEqual(list(parser.actions['Foo'].output_type.members()), [])
+        self.assertEqual([(v.value, v.doc) for v in parser.actions['Foo'].error_type.values()], [
+            ('A', []),
+            ('B', []),
+            ('C', [])
         ])
 
     def test_action_errors_enum(self):

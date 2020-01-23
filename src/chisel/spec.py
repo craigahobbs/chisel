@@ -90,7 +90,6 @@ class SpecParser:
         '_parse_filename',
         '_parse_linenum',
         '_action',
-        '_action_sections',
         '_urls',
         '_type',
         '_doc',
@@ -106,7 +105,6 @@ class SpecParser:
         self._typerefs = []
         self._finalize_checks = []
         self._action = None
-        self._action_sections = None
         self._urls = None
         self._type = None
         self._doc = None
@@ -385,26 +383,44 @@ class SpecParser:
             else:
                 line = line_part
 
+            # Match syntax
+            matched = False
+            match_comment = _RE_COMMENT.search(line) if not matched else None
+            matched = matched or match_comment
+            match_group = _RE_GROUP.search(line) if not matched else None
+            matched = matched or match_group
+            match_action = _RE_ACTION.search(line) if not matched else None
+            matched = matched or match_action
+            match_definition = _RE_DEFINITION.search(line) if not matched else None
+            matched = matched or match_definition
+            match_section = _RE_SECTION.search(line) if not matched and self._action is not None else None
+            matched = matched or match_section
+            match_value = _RE_VALUE.search(line) if not matched and isinstance(self._type, TypeEnum) else None
+            matched = matched or match_value
+            match_member = _RE_MEMBER.search(line) if not matched and isinstance(self._type, TypeStruct) else None
+            matched = matched or match_member
+            match_url = _RE_URL.search(line) if not matched and self._urls is not None else None
+            matched = matched or match_url
+            match_typedef = _RE_TYPEDEF.search(line) if not matched else None
+            matched = matched or match_typedef
+
             # Comment?
-            match = _RE_COMMENT.search(line)
-            if match:
-                doc_string = match.group('doc')
-                if doc_string is not None: # pragma: no branch
+            if match_comment:
+                doc_string = match_comment.group('doc')
+                if doc_string is not None:
                     self._doc.append(doc_string.strip())
-                continue
 
             # Documentation group?
-            match = _RE_GROUP.search(line)
-            if match:
-                self._doc_group = match.group('group')
-                if self._doc_group is not None: # pragma: no branch
-                    self._doc_group = self._doc_group.strip()
-                continue
+            elif match_group:
+                doc_group = match_group.group('group')
+                if doc_group is not None:
+                    self._doc_group = doc_group.strip()
+                else:
+                    self._doc_group = None
 
             # Action?
-            match = _RE_ACTION.search(line)
-            if match:
-                action_id = match.group('id')
+            elif match_action:
+                action_id = match_action.group('id')
 
                 # Action already defined?
                 if action_id in self.actions:
@@ -412,20 +428,16 @@ class SpecParser:
 
                 # Create the new action
                 self._action = ActionModel(action_id, doc=self._doc, doc_group=self._doc_group)
-                self._action_sections = set()
                 self._urls = None
                 self._type = None
                 self._doc = []
                 self.actions[self._action.name] = self._action
 
-                continue
-
             # Definition?
-            match = _RE_DEFINITION.search(line)
-            if match:
-                definition_string = match.group('type')
-                definition_id = match.group('id')
-                definition_base_ids = match.group('base_ids')
+            elif match_definition:
+                definition_string = match_definition.group('type')
+                definition_id = match_definition.group('id')
+                definition_base_ids = match_definition.group('base_ids')
                 if definition_base_ids is not None:
                     definition_base_ids = _RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
@@ -467,28 +479,12 @@ class SpecParser:
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
-                continue # definition
-
             # Section?
-            match = _RE_SECTION.search(line)
-            if match:
-                section_string = match.group('type')
-                section_base_ids = match.group('base_ids')
+            elif match_section:
+                section_string = match_section.group('type')
+                section_base_ids = match_section.group('base_ids')
                 if section_base_ids is not None:
                     section_base_ids = _RE_BASE_IDS_SPLIT.split(section_base_ids)
-
-                # Not in an action scope?
-                if self._action is None:
-                    self._error('Action section outside of action scope')
-                    continue
-
-                # Action section redefinition?
-                if section_string in self._action_sections:
-                    self._error('Redefinition of action ' + section_string)
-                    self._urls = None
-                    self._type = None
-                    continue
-                self._action_sections.add(section_string)
 
                 # Set the action section type
                 if section_string == 'input':
@@ -525,17 +521,9 @@ class SpecParser:
                     self._urls = self._action.urls
                     self._type = None
 
-                continue # section
-
             # Enum value?
-            match = _RE_VALUE.search(line) if self._type is not None else None
-            if match:
-                value_string = match.group('id')
-
-                # Not in an enum scope?
-                if not isinstance(self._type, TypeEnum):
-                    self._error('Enumeration value outside of enum scope')
-                    continue
+            elif match_value:
+                value_string = match_value.group('id')
 
                 # Redefinition of enum value?
                 if value_string in self._type.values(include_base_types=False):
@@ -545,19 +533,11 @@ class SpecParser:
                 self._type.add_value(value_string, doc=self._doc)
                 self._doc = []
 
-                continue
-
             # Struct member?
-            match = _RE_MEMBER.search(line) if self._type is not None else None
-            if match:
-                optional = match.group('optional') is not None
-                nullable = match.group('nullable') is not None
-                member_name = match.group('id')
-
-                # Not in a struct scope?
-                if not isinstance(self._type, TypeStruct):
-                    self._error('Member definition outside of struct scope')
-                    continue
+            elif match_member:
+                optional = match_member.group('optional') is not None
+                nullable = match_member.group('nullable') is not None
+                member_name = match_member.group('id')
 
                 # Member name already defined?
                 if any(member.name == member_name for member in self._type.members(include_base_types=False)):
@@ -565,16 +545,13 @@ class SpecParser:
 
                 # Create the member
                 member = self._type.add_member(member_name, None, optional=optional, nullable=nullable, attr=None, doc=self._doc)
-                self._parse_typedef(member, 'type', 'attr', match)
+                self._parse_typedef(member, 'type', 'attr', match_member)
                 self._doc = []
 
-                continue
-
             # URL?
-            match = _RE_URL.search(line) if self._urls is not None else None
-            if match:
-                method = match.group('method')
-                path = match.group('path')
+            elif match_url:
+                method = match_url.group('method')
+                path = match_url.group('path')
                 url = (method if method != '*' else None, path)
 
                 # Duplicate URL?
@@ -585,13 +562,9 @@ class SpecParser:
                 self._urls.append(url)
                 self._doc = []
 
-                continue
-
             # Typedef?
-
-            match = _RE_TYPEDEF.search(line)
-            if match:
-                typedef_name = match.group('id')
+            elif match_typedef:
+                typedef_name = match_typedef.group('id')
 
                 # Type already defined?
                 if typedef_name in _TYPES or typedef_name in self.types:
@@ -599,7 +572,7 @@ class SpecParser:
 
                 # Create the typedef
                 typedef = Typedef(None, attr=None, type_name=typedef_name, doc=self._doc)
-                self._parse_typedef(typedef, 'type', 'attr', match)
+                self._parse_typedef(typedef, 'type', 'attr', match_typedef)
                 self.types[typedef_name] = typedef
 
                 # Reset current action/type
@@ -608,7 +581,6 @@ class SpecParser:
                 self._type = None
                 self._doc = []
 
-                continue
-
             # Unrecognized line syntax
-            self._error('Syntax error')
+            else:
+                self._error('Syntax error')

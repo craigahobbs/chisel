@@ -33,7 +33,7 @@ class TestApplication(TestCase):
             'request4': request4,
             'request5': request5
         })
-        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=no-member, protected-access
+        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=protected-access
             (None, '/request1'): request1,
             ('GET', '/request-two'): request2,
             ('GET', '/request3'): request3,
@@ -44,7 +44,7 @@ class TestApplication(TestCase):
         self.assertListEqual(
             [
                 (method, regex.pattern.replace('\\/', '/'), request)
-                for method, regex, request in app._Application__request_regex # pylint: disable=no-member, protected-access
+                for method, regex, request in app._Application__request_regex # pylint: disable= protected-access
             ],
             [
                 (None, '^/request4/(?P<arg>[^/]+)$', request4),
@@ -60,7 +60,7 @@ class TestApplication(TestCase):
             app.add_request(Request(name='my_request'))
         self.assertEqual(str(raises.exception), 'redefinition of request "my_request"')
 
-    def test_add_request_url_redefinition(self): # pylint: disable=invalid-name
+    def test_add_request_url_redefinition(self):
         app = Application()
         app.add_request(Request(name='my_request'))
         with self.assertRaises(ValueError) as raises:
@@ -224,14 +224,6 @@ class TestApplication(TestCase):
             @staticmethod
             def format(record):
                 return record.getMessage()
-
-            @staticmethod
-            def formatTime(record, unused_datefmt=None): # pylint: disable=invalid-name
-                return record.getMessage() # pragma: no cover
-
-            @staticmethod
-            def formatException(unused_exc_info): # pylint: disable=invalid-name
-                return 'Bad' # pragma: no cover
 
         app = Application()
         app.add_request(Request(my_wsgi))
