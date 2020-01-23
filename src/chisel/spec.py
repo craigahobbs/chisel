@@ -384,43 +384,43 @@ class SpecParser:
                 line = line_part
 
             # Match syntax
-            matched = False
-            match_comment = _RE_COMMENT.search(line) if not matched else None
-            matched = matched or match_comment
-            match_group = _RE_GROUP.search(line) if not matched else None
-            matched = matched or match_group
-            match_action = _RE_ACTION.search(line) if not matched else None
-            matched = matched or match_action
-            match_definition = _RE_DEFINITION.search(line) if not matched else None
-            matched = matched or match_definition
-            match_section = _RE_SECTION.search(line) if not matched and self._action is not None else None
-            matched = matched or match_section
-            match_value = _RE_VALUE.search(line) if not matched and isinstance(self._type, TypeEnum) else None
-            matched = matched or match_value
-            match_member = _RE_MEMBER.search(line) if not matched and isinstance(self._type, TypeStruct) else None
-            matched = matched or match_member
-            match_url = _RE_URL.search(line) if not matched and self._urls is not None else None
-            matched = matched or match_url
-            match_typedef = _RE_TYPEDEF.search(line) if not matched else None
-            matched = matched or match_typedef
+            match_name, match = 'comment', _RE_COMMENT.search(line)
+            if match is None:
+                match_name, match = 'group', _RE_GROUP.search(line)
+            if match is None:
+                match_name, match = 'action', _RE_ACTION.search(line)
+            if match is None:
+                match_name, match = 'definition', _RE_DEFINITION.search(line)
+            if match is None and self._action is not None:
+                match_name, match = 'section', _RE_SECTION.search(line)
+            if match is None and isinstance(self._type, TypeEnum):
+                match_name, match = 'value', _RE_VALUE.search(line)
+            if match is None and isinstance(self._type, TypeStruct):
+                match_name, match = 'member', _RE_MEMBER.search(line)
+            if match is None and self._urls is not None:
+                match_name, match = 'url', _RE_URL.search(line)
+            if match is None:
+                match_name, match = 'typedef', _RE_TYPEDEF.search(line)
+            if match is None:
+                match_name = None
 
             # Comment?
-            if match_comment:
-                doc_string = match_comment.group('doc')
+            if match_name == 'comment':
+                doc_string = match.group('doc')
                 if doc_string is not None:
                     self._doc.append(doc_string.strip())
 
             # Documentation group?
-            elif match_group:
-                doc_group = match_group.group('group')
+            elif match_name == 'group':
+                doc_group = match.group('group')
                 if doc_group is not None:
                     self._doc_group = doc_group.strip()
                 else:
                     self._doc_group = None
 
             # Action?
-            elif match_action:
-                action_id = match_action.group('id')
+            elif match_name == 'action':
+                action_id = match.group('id')
 
                 # Action already defined?
                 if action_id in self.actions:
@@ -434,10 +434,10 @@ class SpecParser:
                 self.actions[self._action.name] = self._action
 
             # Definition?
-            elif match_definition:
-                definition_string = match_definition.group('type')
-                definition_id = match_definition.group('id')
-                definition_base_ids = match_definition.group('base_ids')
+            elif match_name == 'definition':
+                definition_string = match.group('type')
+                definition_id = match.group('id')
+                definition_base_ids = match.group('base_ids')
                 if definition_base_ids is not None:
                     definition_base_ids = _RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
@@ -480,9 +480,9 @@ class SpecParser:
                     self.types[self._type.type_name] = self._type
 
             # Section?
-            elif match_section:
-                section_string = match_section.group('type')
-                section_base_ids = match_section.group('base_ids')
+            elif match_name == 'section':
+                section_string = match.group('type')
+                section_base_ids = match.group('base_ids')
                 if section_base_ids is not None:
                     section_base_ids = _RE_BASE_IDS_SPLIT.split(section_base_ids)
 
@@ -522,8 +522,8 @@ class SpecParser:
                     self._type = None
 
             # Enum value?
-            elif match_value:
-                value_string = match_value.group('id')
+            elif match_name == 'value':
+                value_string = match.group('id')
 
                 # Redefinition of enum value?
                 if value_string in self._type.values(include_base_types=False):
@@ -534,10 +534,10 @@ class SpecParser:
                 self._doc = []
 
             # Struct member?
-            elif match_member:
-                optional = match_member.group('optional') is not None
-                nullable = match_member.group('nullable') is not None
-                member_name = match_member.group('id')
+            elif match_name == 'member':
+                optional = match.group('optional') is not None
+                nullable = match.group('nullable') is not None
+                member_name = match.group('id')
 
                 # Member name already defined?
                 if any(member.name == member_name for member in self._type.members(include_base_types=False)):
@@ -545,13 +545,13 @@ class SpecParser:
 
                 # Create the member
                 member = self._type.add_member(member_name, None, optional=optional, nullable=nullable, attr=None, doc=self._doc)
-                self._parse_typedef(member, 'type', 'attr', match_member)
+                self._parse_typedef(member, 'type', 'attr', match)
                 self._doc = []
 
             # URL?
-            elif match_url:
-                method = match_url.group('method')
-                path = match_url.group('path')
+            elif match_name == 'url':
+                method = match.group('method')
+                path = match.group('path')
                 url = (method if method != '*' else None, path)
 
                 # Duplicate URL?
@@ -563,8 +563,8 @@ class SpecParser:
                 self._doc = []
 
             # Typedef?
-            elif match_typedef:
-                typedef_name = match_typedef.group('id')
+            elif match_name == 'typedef':
+                typedef_name = match.group('id')
 
                 # Type already defined?
                 if typedef_name in _TYPES or typedef_name in self.types:
@@ -572,7 +572,7 @@ class SpecParser:
 
                 # Create the typedef
                 typedef = Typedef(None, attr=None, type_name=typedef_name, doc=self._doc)
-                self._parse_typedef(typedef, 'type', 'attr', match_typedef)
+                self._parse_typedef(typedef, 'type', 'attr', match)
                 self.types[typedef_name] = typedef
 
                 # Reset current action/type
