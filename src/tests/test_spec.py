@@ -297,6 +297,30 @@ action MyAction
             ':7: error: Duplicate URL: GET'
         ])
 
+    def test_group(self):
+
+        parser = SpecParser()
+        parser.parse_string('''\
+action MyAction
+
+group "Stuff"
+
+action MyAction2
+
+group "Other Stuff"
+
+action MyAction3
+
+group
+
+action MyAction4
+''')
+
+        self.assertIsNone(parser.actions['MyAction'].doc_group)
+        self.assertEqual(parser.actions['MyAction2'].doc_group, 'Stuff')
+        self.assertEqual(parser.actions['MyAction3'].doc_group, 'Other Stuff')
+        self.assertIsNone(parser.actions['MyAction4'].doc_group)
+
     # Struct with base types
     def test_struct_base_types(self):
 

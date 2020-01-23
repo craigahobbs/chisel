@@ -80,12 +80,28 @@ class TestStructMemberAttributes(TestCase):
             attr.validate(4)
         self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [== 5]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '== 5'")
+        attr.validate_attr(allow_value=True)
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_length=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '== 5'")
+
     def test_validate_lt(self):
         attr = StructMemberAttributes(op_lt=5)
         attr.validate(4)
         with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(5)
         self.assertEqual(str(cm_exc.exception), "Invalid value 5 (type 'int') [< 5]")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '< 5'")
+        attr.validate_attr(allow_value=True)
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_length=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '< 5'")
 
     def test_validate_lte(self):
         attr = StructMemberAttributes(op_lte=5)
@@ -94,12 +110,28 @@ class TestStructMemberAttributes(TestCase):
             attr.validate(6)
         self.assertEqual(str(cm_exc.exception), "Invalid value 6 (type 'int') [<= 5]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '<= 5'")
+        attr.validate_attr(allow_value=True)
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_length=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '<= 5'")
+
     def test_validate_gt(self):
         attr = StructMemberAttributes(op_gt=5)
         attr.validate(6)
         with self.assertRaises(ValidationError) as cm_exc:
             attr.validate(5)
         self.assertEqual(str(cm_exc.exception), "Invalid value 5 (type 'int') [> 5]")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 5'")
+        attr.validate_attr(allow_value=True)
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_length=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 5'")
 
     def test_validate_gte(self):
         attr = StructMemberAttributes(op_gte=5)
@@ -108,12 +140,28 @@ class TestStructMemberAttributes(TestCase):
             attr.validate(4)
         self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [>= 5]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '>= 5'")
+        attr.validate_attr(allow_value=True)
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_length=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '>= 5'")
+
     def test_validate_len_eq(self):
         attr = StructMemberAttributes(op_len_eq=3)
         attr.validate('abc')
         with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('ab')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'ab' (type 'str') [len == 3]")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len == 3'")
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_value=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len == 3'")
+        attr.validate_attr(allow_length=True)
 
     def test_validate_len_lt(self):
         attr = StructMemberAttributes(op_len_lt=3)
@@ -122,12 +170,28 @@ class TestStructMemberAttributes(TestCase):
             attr.validate('abc')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') [len < 3]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len < 3'")
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_value=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len < 3'")
+        attr.validate_attr(allow_length=True)
+
     def test_validate_len_lte(self):
         attr = StructMemberAttributes(op_len_lte=3)
         attr.validate('abc')
         with self.assertRaises(ValidationError) as cm_exc:
             attr.validate('abcd')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'abcd' (type 'str') [len <= 3]")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len <= 3'")
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_value=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len <= 3'")
+        attr.validate_attr(allow_length=True)
 
     def test_validate_len_gt(self):
         attr = StructMemberAttributes(op_len_gt=3)
@@ -136,6 +200,14 @@ class TestStructMemberAttributes(TestCase):
             attr.validate('abc')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') [len > 3]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 3'")
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_value=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 3'")
+        attr.validate_attr(allow_length=True)
+
     def test_validate_len_gte(self):
         attr = StructMemberAttributes(op_len_gte=3)
         attr.validate('abc')
@@ -143,12 +215,19 @@ class TestStructMemberAttributes(TestCase):
             attr.validate('ab')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'ab' (type 'str') [len >= 3]")
 
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr()
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len >= 3'")
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            attr.validate_attr(allow_value=True)
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len >= 3'")
+        attr.validate_attr(allow_length=True)
+
 
 class TestModelTypedefValidation(TestCase):
 
     # Test typedef type construction
     def test_init(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
         self.assertEqual(type_.type_name, 'typedef')
         self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
@@ -161,13 +240,18 @@ class TestModelTypedefValidation(TestCase):
         self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
         self.assertEqual(type_.doc, ['A', 'B'])
 
+    def test_base_type(self):
+        type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
+        self.assertIs(Typedef.base_type(type_), TYPE_INT)
+
+        type_ = Typedef(type_)
+        self.assertIs(Typedef.base_type(type_), TYPE_INT)
+
     # Test typedef attribute validation
     def test_validate_attr(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
 
         type_.validate_attr(StructMemberAttributes())
-
         type_.validate_attr(StructMemberAttributes(op_gt=7))
 
         with self.assertRaises(AttributeValidationError) as cm_exc:
@@ -176,7 +260,6 @@ class TestModelTypedefValidation(TestCase):
 
     # All validation modes - success
     def test_validate(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 5
@@ -186,7 +269,6 @@ class TestModelTypedefValidation(TestCase):
 
     # All validation modes - success
     def test_validate_no_attr(self):
-
         type_ = Typedef(TYPE_INT)
 
         obj = 5
@@ -196,7 +278,6 @@ class TestModelTypedefValidation(TestCase):
 
     # Query string validation mode - transformed value
     def test_validate_transformed_value(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = '5'
@@ -206,7 +287,6 @@ class TestModelTypedefValidation(TestCase):
 
     # Query string validation mode - transformed value
     def test_validate_type_error(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 'abc'
@@ -217,7 +297,6 @@ class TestModelTypedefValidation(TestCase):
 
     # Query string validation mode - transformed value
     def test_validate_attr_error(self):
-
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gte=5))
 
         obj = 4
@@ -231,7 +310,6 @@ class TestModelStructValidation(TestCase):
 
     # Test struct type construction
     def test_init(self):
-
         type_ = TypeStruct()
         type_members = list(type_.members())
         self.assertEqual(type_.type_name, 'struct')
@@ -250,7 +328,6 @@ class TestModelStructValidation(TestCase):
 
     # Test union type construction
     def test_init_union(self):
-
         type_ = TypeStruct(union=True)
         type_members = list(type_.members())
         self.assertEqual(type_.type_name, 'union')
@@ -269,7 +346,6 @@ class TestModelStructValidation(TestCase):
 
     # Test struct with base types
     def test_base_types(self):
-
         base_type = TypeStruct()
         base_type.add_member('a', TYPE_INT)
         base_type.add_member('b', TYPE_FLOAT)
@@ -295,9 +371,24 @@ class TestModelStructValidation(TestCase):
             ('f', 'datetime', False, False, [])
         ])
 
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TypeStruct()
+        type_.add_member('a', TYPE_INT)
+        type_.add_member('b', TYPE_STRING)
+
+        type_.validate_attr(StructMemberAttributes())
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
+
     # All validation modes - success
     def test_validation(self):
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -314,7 +405,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - union success
     def test_validation_union(self):
-
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -341,7 +431,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - struct with base types success
     def test_validation_base_types(self):
-
         base_type = TypeStruct()
         base_type.add_member('a', TYPE_INT)
 
@@ -363,7 +452,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - optional member present
     def test_validation_optional_present(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, optional=True)
@@ -380,7 +468,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - optional member missing
     def test_validation_optional_missing(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, optional=True)
@@ -397,7 +484,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member present and non-null
     def test_validation_nullable_present_non_null(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -414,7 +500,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member present and null
     def test_validation_nullable_present_null(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -431,7 +516,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member with attributes present
     def test_validation_nullable_attr(self):
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_INT, nullable=True, attr=StructMemberAttributes(op_lt=5))
@@ -464,7 +548,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member present and 'null' string for non-string member
     def test_validation_nullable_present_null_string(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_INT, nullable=True)
@@ -483,7 +566,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member present and 'null' string for string member
     def test_validation_nullable_present_null_string_type(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -500,7 +582,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nullable member missing
     def test_validation_nullable_missing(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING, nullable=True)
@@ -513,7 +594,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - member with attributes - valid
     def test_validation_member_attributes_valid(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
@@ -529,7 +609,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - member with attributes - invalid
     def test_validation_member_attributes_invalid(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
@@ -541,7 +620,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - nested structure
     def test_validation_nested(self):
-
         type_ = TypeStruct()
         type2 = TypeStruct()
         type_.add_member('a', type2)
@@ -562,7 +640,6 @@ class TestModelStructValidation(TestCase):
 
     # Query string validation mode - transformed member
     def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -573,7 +650,6 @@ class TestModelStructValidation(TestCase):
 
     # Query string validation mode - empty string
     def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
 
         obj = ''
@@ -583,7 +659,6 @@ class TestModelStructValidation(TestCase):
 
     # JSON input validation mode - transformed member
     def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_UUID)
 
@@ -594,7 +669,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -606,7 +680,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - optional none value
     def test_validation_error_optional_none_value(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT, optional=True)
 
@@ -618,7 +691,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -630,7 +702,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - struct with base type member validation
     def test_validation_error_member_validation_base_types(self): # pylint: disable=invalid-name
-
         base_type = TypeStruct()
         base_type.add_member('a', TYPE_INT)
 
@@ -651,7 +722,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - nested member validation
     def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type2 = TypeStruct()
         type_.add_member('a', type2)
@@ -665,7 +735,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - unknown member
     def test_validation_error_unknown_member(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -677,7 +746,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - long unknown member
     def test_validation_error_unknown_member_long(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -689,7 +757,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - missing member
     def test_validation_error_missing_member(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct()
         type_.add_member('a', TYPE_INT)
 
@@ -701,7 +768,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - union with more than one member
     def test_validation_error_union_multiple_members(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('bb', TYPE_STRING)
@@ -715,7 +781,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - empty union
     def test_validation_error_union_zero_members(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -728,7 +793,6 @@ class TestModelStructValidation(TestCase):
 
     # All validation modes - error - union unknown member
     def test_validation_error_union_unknown_member(self): # pylint: disable=invalid-name
-
         type_ = TypeStruct(union=True)
         type_.add_member('a', TYPE_INT)
         type_.add_member('b', TYPE_STRING)
@@ -744,15 +808,24 @@ class TestModelArrayValidation(TestCase):
 
     # Test array type construction
     def test_init(self):
-
         type_ = TypeArray(TYPE_INT)
         self.assertEqual(type_.type_name, 'array')
         self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
         self.assertEqual(type_.attr, None)
 
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TypeArray(TYPE_INT)
+
+        type_.validate_attr(StructMemberAttributes())
+        type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
+
     # All validation modes - success
     def test_validation(self):
-
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, 2, 3]
@@ -767,7 +840,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - value attributes - success
     def test_validation_attributes(self):
-
         type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 2, 3]
@@ -782,7 +854,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - value attributes - invalid value
     def test_validation_attributes_invalid(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = [1, 7, 3]
@@ -793,7 +864,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - nested
     def test_validation_nested(self):
-
         type_ = TypeArray(TypeArray(TYPE_INT))
 
         obj = [[1, 2, 3], [4, 5, 6]]
@@ -808,7 +878,6 @@ class TestModelArrayValidation(TestCase):
 
     # Query string validation mode - transformed member
     def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, '2', 3]
@@ -818,7 +887,6 @@ class TestModelArrayValidation(TestCase):
 
     # Query string validation mode - empty string
     def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_INT)
 
         obj = ''
@@ -828,7 +896,6 @@ class TestModelArrayValidation(TestCase):
 
     # JSON input validation mode - transformed member
     def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_UUID)
 
         obj = ['39E23A29-2BEA-4402-A4D2-BB3DC057D17A']
@@ -838,7 +905,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_INT)
 
         obj = 'abc'
@@ -849,7 +915,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeArray(TYPE_INT)
 
         obj = [1, 'abc', 3]
@@ -860,7 +925,6 @@ class TestModelArrayValidation(TestCase):
 
     # All validation modes - error - error nested
     def test_validation_error_nested(self):
-
         type_ = TypeArray(TypeArray(TYPE_INT))
 
         obj = [[1, 2, 3], [4, 5, 'abc']]
@@ -874,14 +938,34 @@ class TestModelDictValidation(TestCase):
 
     # Test dict type construction
     def test_init(self):
-
         type_ = TypeDict(TYPE_INT)
         self.assertEqual(type_.type_name, 'dict')
         self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
 
+    def test_valid_key_type(self):
+        self.assertFalse(TypeDict.valid_key_type(TYPE_INT))
+        self.assertTrue(TypeDict.valid_key_type(TYPE_STRING))
+        self.assertTrue(TypeDict.valid_key_type(Typedef(TYPE_STRING)))
+
+    def test_has_default_key_type(self):
+        type_ = TypeDict(TYPE_INT)
+        self.assertTrue(type_.has_default_key_type())
+
+        type_ = TypeDict(TYPE_INT, key_type=Typedef(TYPE_STRING))
+        self.assertFalse(type_.has_default_key_type())
+
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TypeDict(TYPE_INT)
+        type_.validate_attr(StructMemberAttributes())
+        type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
+
     # All validation modes - success
     def test_validation(self):
-
         type_ = TypeDict(TYPE_INT)
 
         obj = {'a': 7, 'b': 8}
@@ -896,7 +980,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - value attributes - success
     def test_validation_value_attributes(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 2}
@@ -911,7 +994,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - value attributes - invalid value
     def test_validation_value_attributes_invalid(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT, attr=StructMemberAttributes(op_lt=5))
 
         obj = {'a': 1, 'b': 7}
@@ -922,7 +1004,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - key attributes - success
     def test_validation_key_attributes(self):
-
         type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=5))
 
         obj = {'a': 1, 'b': 2}
@@ -937,7 +1018,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - key attributes - invalid key
     def test_validation_key_attributes_invalid(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT, key_attr=StructMemberAttributes(op_len_lt=2))
 
         obj = {'a': 1, 'bc': 2}
@@ -948,7 +1028,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - nested
     def test_validation_nested(self):
-
         type_ = TypeDict(TypeDict(TYPE_INT))
 
         obj = {'a': {'b': 7}}
@@ -963,7 +1042,6 @@ class TestModelDictValidation(TestCase):
 
     # Query string validation mode - transformed member
     def test_validation_query_string_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT)
 
         obj = {'a': '7'}
@@ -973,7 +1051,6 @@ class TestModelDictValidation(TestCase):
 
     # Query string validation mode - empty string
     def test_validation_query_string_empty_string(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT)
 
         obj = ''
@@ -983,7 +1060,6 @@ class TestModelDictValidation(TestCase):
 
     # JSON input validation mode - transformed member
     def test_validation_json_input_transformed_member(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_UUID)
 
         obj = {'a': '72D33C44-7D30-4F15-903C-56DCC6DECD75'}
@@ -993,7 +1069,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validation_error_invalid_value(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT)
 
         obj = 'abc'
@@ -1004,7 +1079,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - error - member key validation
     def test_validation_error_member_key_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT)
 
         obj = {7: 7}
@@ -1015,7 +1089,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - error - member validation
     def test_validation_error_member_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TYPE_INT)
 
         obj = {'7': 'abc'}
@@ -1026,7 +1099,6 @@ class TestModelDictValidation(TestCase):
 
     # All validation modes - error - nested member validation
     def test_validation_error_nested_member_validation(self): # pylint: disable=invalid-name
-
         type_ = TypeDict(TypeDict(TYPE_INT))
 
         obj = {'a': {'b': 'abc'}}
@@ -1040,7 +1112,6 @@ class TestModelEnumValidation(TestCase):
 
     # Test enum type construction
     def test_init(self):
-
         type_ = TypeEnum()
         type_.add_value('a')
         type_.add_value('b')
@@ -1055,7 +1126,6 @@ class TestModelEnumValidation(TestCase):
 
     # Test enum type construction
     def test_base_types(self):
-
         base_type = TypeEnum()
         base_type.add_value('a')
         base_type.add_value('b')
@@ -1081,9 +1151,24 @@ class TestModelEnumValidation(TestCase):
             ('f', [])
         ])
 
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TypeEnum()
+        type_.add_value('a')
+        type_.add_value('b')
+
+        type_.validate_attr(StructMemberAttributes())
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
+
     # All validation modes - valid enumeration value
     def test_validate(self):
-
         type_ = TypeEnum()
         type_.add_value('a')
         type_.add_value('b')
@@ -1095,7 +1180,6 @@ class TestModelEnumValidation(TestCase):
 
     # All validation modes - valid enumeration value with base types
     def test_validate_base_types(self):
-
         base_type = TypeEnum()
         base_type.add_value('a')
 
@@ -1112,7 +1196,6 @@ class TestModelEnumValidation(TestCase):
 
     # All validation modes - valid enumeration value
     def test_validate_error(self):
-
         type_ = TypeEnum()
         type_.add_value('a')
         type_.add_value('b')
@@ -1125,7 +1208,6 @@ class TestModelEnumValidation(TestCase):
 
     # All validation modes - valid enumeration value
     def test_validate_error_base_types(self):
-
         base_type = TypeEnum()
         base_type.add_value('a')
 
@@ -1143,14 +1225,23 @@ class TestModelStringValidation(TestCase):
 
     # Test string type construction
     def test_init(self):
-
         type_ = TYPE_STRING
 
         self.assertEqual(type_.type_name, 'string')
 
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TYPE_STRING
+
+        type_.validate_attr(StructMemberAttributes())
+        type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute '> 7'")
+
     # All validation modes - success
     def test_validate(self):
-
         type_ = TYPE_STRING
 
         obj = 'abc'
@@ -1160,7 +1251,6 @@ class TestModelStringValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_STRING
 
         obj = 7
@@ -1174,14 +1264,12 @@ class TestModelIntValidation(TestCase):
 
     # Test int type construction
     def test_init(self):
-
         type_ = TYPE_INT
 
         self.assertEqual(type_.type_name, 'int')
 
     # All validation modes - success
     def test_validate(self):
-
         type_ = TYPE_INT
 
         obj = 7
@@ -1191,7 +1279,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - float
     def test_validate_float(self):
-
         type_ = TYPE_INT
 
         obj = 7.
@@ -1206,7 +1293,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - decimal
     def test_validate_decimal(self):
-
         type_ = TYPE_INT
 
         obj = Decimal('7')
@@ -1221,7 +1307,6 @@ class TestModelIntValidation(TestCase):
 
     # Query string validation mode - string
     def test_query_string(self):
-
         type_ = TYPE_INT
 
         obj = '7'
@@ -1231,7 +1316,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_INT
 
         obj = 'abc'
@@ -1242,7 +1326,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - error - not-integer float
     def test_validate_error_float(self):
-
         type_ = TYPE_INT
 
         obj = 7.5
@@ -1253,7 +1336,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - error - not-integer decimal
     def test_validate_error_decimal(self):
-
         type_ = TYPE_INT
 
         obj = Decimal('7.5')
@@ -1264,7 +1346,6 @@ class TestModelIntValidation(TestCase):
 
     # All validation modes - error - bool
     def test_validate_error_bool(self):
-
         type_ = TYPE_INT
 
         obj = True
@@ -1278,14 +1359,23 @@ class TestModelFloatValidation(TestCase):
 
     # Test float type construction
     def test_init(self):
-
         type_ = TYPE_FLOAT
 
         self.assertEqual(type_.type_name, 'float')
 
+    # Test typedef attribute validation
+    def test_validate_attr(self):
+        type_ = TYPE_FLOAT
+
+        type_.validate_attr(StructMemberAttributes())
+        type_.validate_attr(StructMemberAttributes(op_gt=7))
+
+        with self.assertRaises(AttributeValidationError) as cm_exc:
+            type_.validate_attr(StructMemberAttributes(op_len_gt=7))
+        self.assertEqual(str(cm_exc.exception), "Invalid attribute 'len > 7'")
+
     # All validation modes - success
     def test_validate(self):
-
         type_ = TYPE_FLOAT
 
         obj = 7.5
@@ -1295,7 +1385,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - int
     def test_validate_int(self):
-
         type_ = TYPE_FLOAT
 
         obj = 7
@@ -1310,7 +1399,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - decimal
     def test_validate_decimal(self):
-
         type_ = TYPE_FLOAT
 
         obj = Decimal('7.5')
@@ -1325,7 +1413,6 @@ class TestModelFloatValidation(TestCase):
 
     # Query string validation mode - string
     def test_query_string(self):
-
         type_ = TYPE_FLOAT
 
         obj = '7.5'
@@ -1335,7 +1422,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_FLOAT
 
         obj = 'abc'
@@ -1346,7 +1432,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - error - invalid value "nan"
     def test_validate_error_nan(self):
-
         type_ = TYPE_FLOAT
 
         obj = 'nan'
@@ -1357,7 +1442,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - error - invalid value "inf"
     def test_validate_error_inf(self):
-
         type_ = TYPE_FLOAT
 
         obj = 'inf'
@@ -1368,7 +1452,6 @@ class TestModelFloatValidation(TestCase):
 
     # All validation modes - error - bool
     def test_validate_error_bool(self):
-
         type_ = TYPE_FLOAT
 
         obj = True
@@ -1382,14 +1465,12 @@ class TestModelBoolValidation(TestCase):
 
     # Test bool type construction
     def test_init(self):
-
         type_ = TYPE_BOOL
 
         self.assertEqual(type_.type_name, 'bool')
 
     # Test attribute validation
     def test_validate_attr(self):
-
         type_ = TYPE_BOOL
 
         type_.validate_attr(StructMemberAttributes())
@@ -1404,7 +1485,6 @@ class TestModelBoolValidation(TestCase):
 
     # All validation modes - success
     def test_validate(self):
-
         type_ = TYPE_BOOL
 
         obj = False
@@ -1414,7 +1494,6 @@ class TestModelBoolValidation(TestCase):
 
     # Query string validation mode - string
     def test_validate_query_string(self):
-
         type_ = TYPE_BOOL
 
         for obj, expected in (('false', False), ('true', True)):
@@ -1425,7 +1504,6 @@ class TestModelBoolValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_BOOL
 
         obj = 'abc'
@@ -1439,14 +1517,12 @@ class TestModelUuidValidation(TestCase):
 
     # Test uuid type construction
     def test_init(self):
-
         type_ = TYPE_UUID
 
         self.assertEqual(type_.type_name, 'uuid')
 
     # Test attribute validation
     def test_validate_attr(self):
-
         type_ = TYPE_UUID
 
         type_.validate_attr(StructMemberAttributes())
@@ -1461,7 +1537,6 @@ class TestModelUuidValidation(TestCase):
 
     # All validation modes - UUID object
     def test_validate(self):
-
         type_ = TYPE_UUID
 
         obj = UUID('AED91C7B-DCFD-49B3-A483-DBC9EA2031A3')
@@ -1471,7 +1546,6 @@ class TestModelUuidValidation(TestCase):
 
     # All validation modes - UUID string
     def test_validate_string(self):
-
         type_ = TYPE_UUID
 
         obj = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3'
@@ -1491,7 +1565,6 @@ class TestModelUuidValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_UUID
 
         obj = 'abc'
@@ -1505,14 +1578,12 @@ class TestModelDateValidation(TestCase):
 
     # Test date type construction
     def test_init(self):
-
         type_ = TYPE_DATE
 
         self.assertEqual(type_.type_name, 'date')
 
     # Test attribute validation
     def test_validate_attr(self):
-
         type_ = TYPE_DATE
 
         type_.validate_attr(StructMemberAttributes())
@@ -1527,7 +1598,6 @@ class TestModelDateValidation(TestCase):
 
     # All validation modes - date object
     def test_validate(self):
-
         type_ = TYPE_DATE
 
         obj = date(2013, 5, 26)
@@ -1537,7 +1607,6 @@ class TestModelDateValidation(TestCase):
 
     # All validation modes - ISO date string
     def test_validate_query_string(self):
-
         type_ = TYPE_DATE
 
         obj = '2013-05-26'
@@ -1554,7 +1623,6 @@ class TestModelDateValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_DATE
 
         obj = 'abc'
@@ -1568,14 +1636,12 @@ class TestModelDatetimeValidation(TestCase):
 
     # Test datetime type construction
     def test_init(self):
-
         type_ = TYPE_DATETIME
 
         self.assertEqual(type_.type_name, 'datetime')
 
     # Test attribute validation
     def test_validate_attr(self):
-
         type_ = TYPE_DATETIME
 
         type_.validate_attr(StructMemberAttributes())
@@ -1590,7 +1656,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - datetime object
     def test_validate(self):
-
         type_ = TYPE_DATETIME
 
         obj = datetime(2013, 5, 26, 11, 1, 0, tzinfo=timezone.utc)
@@ -1600,7 +1665,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - datetime object with no timezone
     def test_validate_no_timezone(self):
-
         type_ = TYPE_DATETIME
 
         obj = datetime(2013, 5, 26, 11, 1, 0)
@@ -1610,7 +1674,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - ISO datetime string
     def test_validate_query_string(self):
-
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00+08:00'
@@ -1627,7 +1690,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - ISO datetime string - zulu
     def test_validate_query_string_zulu(self):
-
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00+00:00'
@@ -1644,7 +1706,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - ISO datetime string - fraction second
     def test_validate_query_string_fracsec(self): # pylint: disable=invalid-name
-
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01:00.1234+00:00'
@@ -1664,7 +1725,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - ISO datetime string - no seconds
     def test_validate_query_string_no_seconds(self): # pylint: disable=invalid-name
-
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11:01Z'
@@ -1681,7 +1741,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - ISO datetime string - no minutes
     def test_validate_query_string_no_minutes(self): # pylint: disable=invalid-name
-
         type_ = TYPE_DATETIME
 
         obj = '2013-05-26T11Z'
@@ -1698,7 +1757,6 @@ class TestModelDatetimeValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_DATETIME
 
         obj = 'abc'
@@ -1712,14 +1770,12 @@ class TestModelObjectValidation(TestCase):
 
     # Test object type construction
     def test_init(self):
-
         type_ = TYPE_OBJECT
 
         self.assertEqual(type_.type_name, 'object')
 
     # Test attribute validation
     def test_validate_attr(self):
-
         type_ = TYPE_OBJECT
 
         type_.validate_attr(StructMemberAttributes())
@@ -1734,7 +1790,6 @@ class TestModelObjectValidation(TestCase):
 
     # All validation modes - success
     def test_validate(self):
-
         type_ = TYPE_OBJECT
 
         for mode in ValidationMode:
@@ -1744,7 +1799,6 @@ class TestModelObjectValidation(TestCase):
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
-
         type_ = TYPE_OBJECT
 
         obj = None
