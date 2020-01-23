@@ -252,8 +252,7 @@ action MyAction4 \\
 
     def test_action_url(self):
 
-        parser = SpecParser()
-        parser.parse_string('''\
+        parser = SpecParser('''\
 action MyAction
 
 action MyActionUrl
@@ -299,8 +298,7 @@ action MyAction
 
     def test_group(self):
 
-        parser = SpecParser()
-        parser.parse_string('''\
+        parser = SpecParser('''\
 action MyAction
 
 group "Stuff"
@@ -684,8 +682,7 @@ enum MyEnum2
     def test_multiple_finalize(self):
 
         # Parse spec strings
-        parser = SpecParser()
-        parser.parse_string('''\
+        parser = SpecParser('''\
 struct MyStruct
     MyEnum a
 
@@ -722,8 +719,7 @@ enum MyEnum2
 
     def test_typeref_array_attr(self):
 
-        parser = SpecParser()
-        parser.parse_string('''\
+        parser = SpecParser('''\
 struct MyStruct
     MyStruct2[len > 0] a
 struct MyStruct2
@@ -740,8 +736,7 @@ struct MyStruct2
 
     def test_typeref_dict_attr(self):
 
-        parser = SpecParser()
-        parser.parse_string('''\
+        parser = SpecParser('''\
 struct MyStruct
     MyEnum : MyStruct2{len > 0} a
 enum MyEnum
@@ -761,9 +756,8 @@ struct MyStruct2
 
     def test_typeref_invalid_nullable_order(self):
 
-        parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
-            parser.parse_string('''\
+            SpecParser('''\
 struct MyStruct
     nullable optional int a
 ''')

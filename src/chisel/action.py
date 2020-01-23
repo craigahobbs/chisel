@@ -57,15 +57,18 @@ class Action(Request):
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
     def __init__(self, action_callback, name=None, method='POST', urls=None, doc=None, doc_group=None,
-                 spec=None, wsgi_response=False, jsonp=None):
+                 spec_parser=None, spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
         if name is None:
             name = action_callback.__name__
 
         # Spec provided?
-        parser = spec if isinstance(spec, SpecParser) else SpecParser(spec=spec)
-        model = parser.actions.get(name)
+        if spec_parser is None:
+            spec_parser = SpecParser(spec=spec)
+        elif spec is not None:
+            spec_parser.parse_string(spec)
+        model = spec_parser.actions.get(name)
         assert model is not None, 'Unknown action "{0}"'.format(name)
 
         super().__init__(name=name, method=method,

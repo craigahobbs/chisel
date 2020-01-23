@@ -68,8 +68,8 @@ action my_action2
 ''')
         self.app = Application()
         self.app.pretty_output = True
-        self.app.add_request(Action(None, name='my_action1', spec=spec_parser))
-        self.app.add_request(Action(None, name='my_action2', spec=spec_parser))
+        self.app.add_request(Action(None, name='my_action1', spec_parser=spec_parser))
+        self.app.add_request(Action(None, name='my_action2', spec_parser=spec_parser))
         self.app.add_request(DocAction())
 
     def test_index(self):
@@ -230,11 +230,11 @@ action my_action5
         app = Application()
         app.pretty_output = True
         app.add_request(DocAction())
-        app.add_request(Action(None, name='my_action1', spec=spec_parser))
-        app.add_request(Action(None, name='my_action2', spec=spec_parser))
-        app.add_request(Action(None, name='my_action3', spec=spec_parser))
-        app.add_request(Action(None, name='my_action4', spec=spec_parser))
-        app.add_request(Action(None, name='my_action5', spec=spec_parser))
+        app.add_request(Action(None, name='my_action1', spec_parser=spec_parser))
+        app.add_request(Action(None, name='my_action2', spec_parser=spec_parser))
+        app.add_request(Action(None, name='my_action3', spec_parser=spec_parser))
+        app.add_request(Action(None, name='my_action4', spec_parser=spec_parser))
+        app.add_request(Action(None, name='my_action5', spec_parser=spec_parser))
         app.add_request(Request(None, name='my_request1'))
         app.add_request(Request(None, name='my_request2', doc_group='My  Group   2'))
 

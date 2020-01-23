@@ -4,8 +4,8 @@
 from http import HTTPStatus
 from io import StringIO
 
-from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
-from chisel.spec import ActionModel
+from chisel import action, Action, ActionError, Application, Request, SpecParserError
+from chisel.spec import ActionModel, SpecParser
 
 from . import TestCase
 
@@ -61,14 +61,58 @@ action my_action
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
+    # Action decorator with spec parser
+    def test_decorator_spec_parser(self):
+
+        spec_parser = SpecParser('''\
+action my_action
+''')
+        @action(spec_parser=spec_parser)
+        def my_action(unused_app, unused_req):
+            pass # pragma: no cover
+
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
+
+        app = Application()
+        app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertEqual(my_action.wsgi_response, False)
+
+    # Action decorator with spec parser and a spec
+    def test_decorator_spec_parser_and_spec(self):
+
+        spec_parser = SpecParser('''\
+typedef int(> 0) PositiveInteger
+''')
+        @action(spec_parser=spec_parser, spec='''\
+action my_action
+  input
+    PositiveInteger value
+''')
+        def my_action(unused_app, unused_req):
+            pass # pragma: no cover
+
+        self.assertTrue(isinstance(my_action, Action))
+        self.assertTrue(isinstance(my_action, Request))
+
+        app = Application()
+        app.add_request(my_action)
+        self.assertEqual(my_action.name, 'my_action')
+        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
+        self.assertTrue(isinstance(my_action.model, ActionModel))
+        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertEqual(my_action.wsgi_response, False)
+
     # Action decorator with parser
     def test_decorator_parser(self):
 
-        parser = SpecParser()
-        parser.parse_string('''\
+        @action(spec='''\
 action my_action
 ''')
-        @action(spec=parser)
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
 
