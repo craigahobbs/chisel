@@ -10,7 +10,7 @@ from .app import Context
 from .model import ValidationError, ValidationMode, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
-from .url import decode_query_string
+from .util import decode_query_string
 
 
 def action(action_callback=None, **kwargs):

@@ -8,8 +8,7 @@ import logging
 import re
 from urllib.parse import quote, unquote
 
-from .url import encode_query_string
-from .util import JSONEncoder
+from .util import encode_query_string, JSONEncoder
 
 
 # Regular expression for matching URL arguments

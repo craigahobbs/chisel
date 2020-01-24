@@ -29,11 +29,9 @@ from .spec import \
     SpecParser, \
     SpecParserError
 
-from .url import \
-    decode_query_string, \
-    encode_query_string
-
 from .util import \
+    decode_query_string, \
+    encode_query_string, \
     JSONEncoder, \
     parse_iso8601_date, \
     parse_iso8601_datetime
