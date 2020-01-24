@@ -29,7 +29,7 @@ class Request:
 
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'doc_group')
 
-    def __init__(self, wsgi_callback=None, name=None, method=None, urls=None, doc=None, doc_group=None):
+    def __init__(self, wsgi_callback=None, name=None, urls=None, doc=None, doc_group=None):
         assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
 
         self.wsgi_callback = wsgi_callback
@@ -37,23 +37,13 @@ class Request:
         self.doc = doc
         self.doc_group = doc_group
 
-        # Normalize methods into list of uppercase strings (or None)
-        if method is None:
-            methods = (None,)
-        elif isinstance(method, str):
-            methods = (method.upper(),)
-        else:
-            methods = tuple(method.upper() for method in method)
-
-        # Normalize urls into list of uppercase-method/url tuple pairs
+        # Normalize urls into list of uppercase-method/path tuple pairs
         if urls is None:
-            self.urls = tuple((method, '/' + self.name) for method in methods)
-        elif isinstance(urls, str):
-            self.urls = tuple((method, urls) for method in methods)
+            self.urls = ((None, '/' + self.name),)
         else:
+            assert not any(isinstance(url, str) for url in urls), 'OH SHIT ITS A STR!'
             self.urls = tuple(chain.from_iterable(
-                ((method, '/' + self.name) for method in methods) if url is None else \
-                ((method, url) for method in methods) if isinstance(url, str) else \
+                ((None, '/' + self.name),) if url is None else \
                 ((url[0] and url[0].upper(), url[1] or '/' + self.name),)
                 for url in urls
             ))

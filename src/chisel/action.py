@@ -56,7 +56,7 @@ class Action(Request):
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, method='POST', urls=None, doc=None, doc_group=None,
+    def __init__(self, action_callback, name=None, urls=(('POST', None),), doc=None, doc_group=None,
                  spec_parser=None, spec=None, wsgi_response=False, jsonp=None):
 
         # Use the action model name, if available
@@ -71,8 +71,8 @@ class Action(Request):
         model = spec_parser.actions.get(name)
         assert model is not None, 'Unknown action "{0}"'.format(name)
 
-        super().__init__(name=name, method=method,
-                         urls=urls if urls is not None else model.urls or None,
+        super().__init__(name=name,
+                         urls=model.urls or urls,
                          doc=doc if doc is not None else model.doc,
                          doc_group=doc_group if doc_group is not None else model.doc_group)
         self.action_callback = action_callback

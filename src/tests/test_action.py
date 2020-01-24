@@ -173,7 +173,7 @@ action theAction
     def test_decorator_other(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
-        @action(urls=('/foo',), wsgi_response=True, spec='''\
+        @action(urls=(('POST', '/foo'),), wsgi_response=True, spec='''\
 action my_action_default
 ''')
         def my_action_default(unused_ctx, unused_req):
@@ -209,16 +209,12 @@ action my_action
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertFalse(my_action.wsgi_response)
 
-    def test_decorator_url_spec_override(self):
+    def test_decorator_url_spec_default(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
-        @action(urls='/', spec='''\
+        @action(spec='''\
 action my_action
     url
-        GET
-        GET /
-        *
-        * /star
 ''')
         def my_action(unused_ctx, unused_req):
             pass # pragma: no cover
@@ -226,7 +222,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, (('POST', '/'),))
+        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
         self.assertTrue(isinstance(my_action.model, ActionModel))
         self.assertEqual(my_action.model.name, 'my_action')
         self.assertFalse(my_action.wsgi_response)
@@ -234,7 +230,7 @@ action my_action
     # Test successful action get
     def test_get(self):
 
-        @action(method='GET', spec='''\
+        @action(urls=(('GET', None),), spec='''\
 action my_action
   input
     int a
@@ -256,7 +252,7 @@ action my_action
     # Test successful action get
     def test_get_no_validate_output(self):
 
-        @action(method='GET', spec='''\
+        @action(urls=(('GET', None),), spec='''\
 action my_action
   input
     int a
@@ -279,7 +275,7 @@ action my_action
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
-        @action(method='GET', jsonp='jsonp', spec='''\
+        @action(urls=(('GET', None),), jsonp='jsonp', spec='''\
 action my_action
   input
     int a
@@ -301,7 +297,7 @@ action my_action
     # Test successful action post
     def test_post(self):
 
-        @action(urls=(None, '/my/{a}'), spec='''\
+        @action(urls=(None, (None, '/my/{a}')), spec='''\
 action my_action
   input
     int a
@@ -558,7 +554,7 @@ action my_action
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 
-        @action(method='GET', spec='''\
+        @action(urls=(('GET', None),), spec='''\
 action my_action
   input
     int a
@@ -577,7 +573,7 @@ action my_action
     # Test action long query string decode error
     def test_error_invalid_query_string_long(self):
 
-        @action(method='GET', spec='''\
+        @action(urls=(('GET', None),), spec='''\
 action my_action
   input
     int a
@@ -601,7 +597,7 @@ action my_action
     # Test action url arg
     def test_url_arg(self):
 
-        @action(method='GET', urls='/my_action/{a}', spec='''\
+        @action(urls=(('GET', '/my_action/{a}'),), spec='''\
 action my_action
   input
     int a

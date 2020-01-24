@@ -17,9 +17,12 @@ class TestApplication(TestCase):
     def test_add_request(self):
         app = Application()
         request1 = Request(name='request1')
-        request2 = Request(name='request2', method='GET', urls='/request-two')
-        request3 = Request(name='request3', method=('GET', 'POST'), urls=('/request3', '/request3/'))
-        request4 = Request(name='request4', urls='/request4/{arg}')
+        request2 = Request(name='request2', urls=(('GET', '/request-two'),))
+        request3 = Request(
+            name='request3',
+            urls=(('GET', '/request3'), ('POST', '/request3'), ('GET', '/request3/'), ('POST', '/request3/'))
+        )
+        request4 = Request(name='request4', urls=((None, '/request4/{arg}'),))
         request5 = Request(name='request5', urls=(('GET', '/request5/{arg}'), ('POST', '/request5/{arg}/foo')))
         app.add_request(request1)
         app.add_request(request2)
@@ -64,7 +67,7 @@ class TestApplication(TestCase):
         app = Application()
         app.add_request(Request(name='my_request'))
         with self.assertRaises(ValueError) as raises:
-            app.add_request(Request(name='my_request2', urls='/my_request'))
+            app.add_request(Request(name='my_request2', urls=[(None, '/my_request')]))
         self.assertEqual(str(raises.exception), 'redefinition of request URL "/my_request"')
 
     def test_request(self):
@@ -130,7 +133,7 @@ class TestApplication(TestCase):
             return ctx.response_text(HTTPStatus.OK, 'the response')
 
         app = Application()
-        app.add_request(Request(request, method='GET'))
+        app.add_request(Request(request, urls=(('GET', None),)))
 
         status, headers, response = app.request('GET', '/request')
         self.assertEqual(status, '200 OK')

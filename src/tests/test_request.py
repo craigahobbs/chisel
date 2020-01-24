@@ -42,44 +42,6 @@ class TestRequest(TestCase):
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
-    def test_request_method(self):
-
-        def my_request(environ, start_response):
-            assert isinstance(environ, dict)
-            assert callable(start_response)
-            start_response('OK', [])
-            return [b'ok']
-
-        req = Request(my_request, method='Get')
-        self.assertEqual(req.wsgi_callback, my_request)
-        self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (('GET', '/my_request'),))
-        self.assertEqual(req.doc, None)
-        self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
-
-    def test_request_method_multiple(self):
-
-        def my_request(environ, start_response):
-            assert isinstance(environ, dict)
-            assert callable(start_response)
-            start_response('OK', [])
-            return [b'ok']
-
-        req = Request(my_request, method=('Get', 'POST'), urls=[None, '/other', ('PUT', None), ('DELETE', '/delete'), (None, '/all')])
-        self.assertEqual(req.wsgi_callback, my_request)
-        self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (
-            ('GET', '/my_request'),
-            ('POST', '/my_request'),
-            ('GET', '/other'),
-            ('POST', '/other'),
-            ('PUT', '/my_request'),
-            ('DELETE', '/delete'),
-            (None, '/all'),
-        ))
-        self.assertEqual(req.doc, None)
-        self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
-
     def test_request_urls(self):
 
         def my_request(environ, start_response):
@@ -88,10 +50,10 @@ class TestRequest(TestCase):
             start_response('OK', [])
             return [b'ok']
 
-        req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
+        req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), None])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/my_request')))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
@@ -103,10 +65,10 @@ class TestRequest(TestCase):
             start_response('OK', [])
             return [b'ok']
 
-        req = Request(my_request, method='Get', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
+        req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), None])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), ('GET', '/thud')))
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/my_request')))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
@@ -118,21 +80,21 @@ class TestRequest(TestCase):
             start_response('OK', [])
             return [b'ok']
 
-        req = Request(my_request, urls='/bar')
+        req = Request(my_request, urls=[(None, '/bar')])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, ((None, '/bar'),))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
-        req = Request(my_request, method='get', urls='/bar')
+        req = Request(my_request, urls=[('get', '/bar')])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, (('GET', '/bar'),))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
-        req = Request(my_request, method=('get', 'POST'), urls='/bar')
+        req = Request(my_request, urls=[('get', '/bar'), ('POST', '/bar')])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'my_request')
         self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/bar')))
@@ -147,10 +109,10 @@ class TestRequest(TestCase):
             start_response('OK', [])
             return [b'ok']
 
-        req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'])
+        req = Request(my_request, name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), None])
         self.assertEqual(req.wsgi_callback, my_request)
         self.assertEqual(req.name, 'foo')
-        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/foo')))
         self.assertEqual(req.doc, None)
         self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
 
@@ -201,7 +163,7 @@ class TestRequest(TestCase):
 
     def test_decorator_complete(self):
 
-        @request(name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), '/thud'], doc=('doc line 1', 'doc line 2'))
+        @request(name='foo', urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), None], doc=('doc line 1', 'doc line 2'))
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
             assert callable(start_response)
@@ -210,7 +172,7 @@ class TestRequest(TestCase):
 
         self.assertTrue(isinstance(my_request, Request))
         self.assertEqual(my_request.name, 'foo')
-        self.assertEqual(my_request.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/thud')))
+        self.assertEqual(my_request.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/foo')))
         self.assertEqual(my_request.doc, ('doc line 1', 'doc line 2'))
         self.assertEqual(my_request({}, lambda status, headers: None), [b'ok'])
 
