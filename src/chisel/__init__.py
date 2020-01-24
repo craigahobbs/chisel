@@ -12,10 +12,6 @@ from .app import \
     Application, \
     Context
 
-from .app_defs import \
-    Environ, \
-    StartResponse
-
 from .doc import \
     DocAction, \
     DocPage, \

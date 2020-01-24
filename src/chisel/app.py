@@ -3,11 +3,11 @@
 
 from datetime import datetime, timedelta
 from http import HTTPStatus
+from io import BytesIO
 import logging
 import re
 from urllib.parse import quote, unquote
 
-from .app_defs import Environ, StartResponse
 from .url import encode_query_string
 from .util import JSONEncoder
 
@@ -112,7 +112,7 @@ class Application:
                     )
 
         # Create the request context
-        ctx = environ[Environ.CTX] = Context(self, environ, start_response, url_args)
+        ctx = environ[Context.ENVIRON_CTX] = Context(self, environ, start_response, url_args)
 
         # Request not found?
         if request is None:
@@ -134,7 +134,7 @@ class Application:
         return response
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
-        request_environ = Environ.create(request_method, path_info, query_string, wsgi_input, environ=environ)
+        request_environ = Context.create_environ(request_method, path_info, query_string, wsgi_input, environ=environ)
         start_response = StartResponse()
         response = self(request_environ, start_response)
         return start_response.status, start_response.headers, b''.join(response)
@@ -146,6 +146,8 @@ class Context:
     """
 
     __slots__ = ('app', 'environ', '_start_response', 'url_args', 'log', 'headers')
+
+    ENVIRON_CTX = 'chisel.ctx'
 
     def __init__(self, app, environ=None, start_response=None, url_args=None):
         self.app = app
@@ -167,6 +169,20 @@ class Context:
         else:
             handler.setFormatter(logging.Formatter(app.log_format))
         self.log.addHandler(handler)
+
+    @staticmethod
+    def create_environ(request_method, path_info, query_string='', wsgi_input=b'', environ=None):
+        if environ is None:
+            environ = {}
+        environ.setdefault('REQUEST_METHOD', request_method)
+        environ.setdefault('PATH_INFO', path_info)
+        environ.setdefault('QUERY_STRING', query_string if isinstance(query_string, str) else encode_query_string(query_string))
+        environ.setdefault('SCRIPT_NAME', '')
+        environ.setdefault('SERVER_NAME', 'localhost')
+        environ.setdefault('SERVER_PORT', '80')
+        environ.setdefault('wsgi.input', BytesIO(wsgi_input))
+        environ.setdefault('wsgi.url_scheme', 'http')
+        return environ
 
     def start_response(self, status, headers):
         if not isinstance(status, str):
@@ -279,3 +295,16 @@ class Context:
                     url += '?' + encode_query_string(query_string)
 
         return url
+
+
+class StartResponse:
+    __slots__ = ('status', 'headers')
+
+    def __init__(self):
+        self.status = None
+        self.headers = None
+
+    def __call__(self, status, headers):
+        assert self.status is None and self.headers is None
+        self.status = status
+        self.headers = headers

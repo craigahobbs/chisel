@@ -6,7 +6,7 @@ from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
-from .app_defs import Environ
+from .app import Context
 from .model import ValidationError, ValidationMode, TypeStruct, TYPE_STRING
 from .request import Request
 from .spec import SpecParser
@@ -81,7 +81,7 @@ class Action(Request):
         self.jsonp = jsonp
 
     def __call__(self, environ, unused_start_response):
-        ctx = environ[Environ.CTX]
+        ctx = environ[Context.ENVIRON_CTX]
 
         # Handle the action
         is_get = (environ['REQUEST_METHOD'] == 'GET')

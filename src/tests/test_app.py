@@ -6,8 +6,8 @@ from http import HTTPStatus
 from io import StringIO
 import unittest.mock
 
-from chisel import Application, Context, Environ, Request
-from chisel.app_defs import StartResponse
+from chisel import Application, Context, Request
+from chisel.app import StartResponse
 
 from . import TestCase
 
@@ -73,11 +73,11 @@ class TestApplication(TestCase):
     def test_request(self):
 
         def request1(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             return ctx.response_text(HTTPStatus.OK, 'request1')
 
         def request2(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             return ctx.response_text(HTTPStatus.OK, 'request2 ' + ctx.url_args['arg'] + ' ' + ctx.url_args.get('arg2', '?'))
 
         app = Application()
@@ -129,7 +129,7 @@ class TestApplication(TestCase):
 
         def request(environ, unused_start_response):
             assert environ['REQUEST_METHOD'] == 'GET'
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             return ctx.response_text(HTTPStatus.OK, 'the response')
 
         app = Application()
@@ -148,7 +148,7 @@ class TestApplication(TestCase):
     def test_request_args(self):
 
         def request1(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             self.assertEqual(environ['QUERY_STRING'], 'a=1&b=2')
             self.assertEqual(environ['wsgi.input'].read(), b'hello')
             ctx.log.warning('in request1')
@@ -166,11 +166,11 @@ class TestApplication(TestCase):
     def test_request_nested(self):
 
         def request1(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             return ctx.response_text(HTTPStatus.OK, '7')
 
         def request2(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             unused_status, _, response = ctx.app.request('GET', '/request1')
             return ctx.response_text(HTTPStatus.OK, str(5 + int(response)))
 
@@ -198,7 +198,7 @@ class TestApplication(TestCase):
     def test_request_string_response(self):
 
         def string_response(environ, unused_start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             return ctx.response(HTTPStatus.OK, 'text/plain', 'Hello World')
 
         app = Application()
@@ -214,7 +214,7 @@ class TestApplication(TestCase):
     def test_log_format_callable(self):
 
         def my_wsgi(environ, start_response):
-            ctx = environ[Environ.CTX]
+            ctx = environ[Context.ENVIRON_CTX]
             ctx.log.warning('Hello log')
             start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
             return ['Hello'.encode('utf-8')]
@@ -247,7 +247,7 @@ class TestContext(TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[Environ.CTX] = ctx
+        ctx.environ[Context.ENVIRON_CTX] = ctx
 
         ctx.add_cache_headers()
         self.assertEqual(ctx.headers['Cache-Control'], 'no-cache')
@@ -258,7 +258,7 @@ class TestContext(TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[Environ.CTX] = ctx
+        ctx.environ[Context.ENVIRON_CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
             mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
@@ -271,7 +271,7 @@ class TestContext(TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[Environ.CTX] = ctx
+        ctx.environ[Context.ENVIRON_CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
             mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
@@ -284,7 +284,7 @@ class TestContext(TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'POST'
         })
-        ctx.environ[Environ.CTX] = ctx
+        ctx.environ[Context.ENVIRON_CTX] = ctx
 
         ctx.add_cache_headers('private', 60)
         self.assertNotIn('Cache-Control', ctx.headers)
@@ -295,7 +295,7 @@ class TestContext(TestCase):
         ctx = Context(app, environ={
             'REQUEST_METHOD': 'GET'
         })
-        ctx.environ[Environ.CTX] = ctx
+        ctx.environ[Context.ENVIRON_CTX] = ctx
 
         ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32))
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
