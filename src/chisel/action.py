@@ -71,10 +71,12 @@ class Action(Request):
         model = spec_parser.actions.get(name)
         assert model is not None, 'Unknown action "{0}"'.format(name)
 
-        super().__init__(name=name,
-                         urls=model.urls or urls,
-                         doc=doc if doc is not None else model.doc,
-                         doc_group=doc_group if doc_group is not None else model.doc_group)
+        super().__init__(
+            name=name,
+            urls=model.urls or urls,
+            doc=doc if doc is not None else model.doc,
+            doc_group=doc_group if doc_group is not None else model.doc_group
+        )
         self.action_callback = action_callback
         self.model = model
         self.wsgi_response = wsgi_response
