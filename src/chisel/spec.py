@@ -278,41 +278,45 @@ class SpecParser:
     # Parse an attributes string
     @classmethod
     def _parse_attr(cls, attrs_string):
-        attr = None
+        has_attrs = False
+        op_lt, op_lte, op_gt, op_gte, op_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte, op_len_eq = \
+            None, None, None, None, None, None, None, None, None, None
         if attrs_string is not None:
             for attr_string in _RE_FIND_ATTRS.findall(attrs_string):
+                has_attrs = True
                 match_attr = _RE_ATTR_GROUP.match(attr_string)
                 attr_op = match_attr.group('op')
                 attr_length_op = match_attr.group('lop') if attr_op is None else None
 
-                if attr is None:
-                    attr = StructMemberAttributes()
-
                 if attr_op is not None:
                     attr_value = float(match_attr.group('opnum'))
                     if attr_op == '<':
-                        attr.op_lt = attr_value
+                        op_lt = attr_value
                     elif attr_op == '<=':
-                        attr.op_lte = attr_value
+                        op_lte = attr_value
                     elif attr_op == '>':
-                        attr.op_gt = attr_value
+                        op_gt = attr_value
                     elif attr_op == '>=':
-                        attr.op_gte = attr_value
+                        op_gte = attr_value
                     else:  # ==
-                        attr.op_eq = attr_value
+                        op_eq = attr_value
                 else:  # attr_length_op is not None:
                     attr_value = int(match_attr.group('lopnum'))
                     if attr_length_op == '<':
-                        attr.op_len_lt = attr_value
+                        op_len_lt = attr_value
                     elif attr_length_op == '<=':
-                        attr.op_len_lte = attr_value
+                        op_len_lte = attr_value
                     elif attr_length_op == '>':
-                        attr.op_len_gt = attr_value
+                        op_len_gt = attr_value
                     elif attr_length_op == '>=':
-                        attr.op_len_gte = attr_value
+                        op_len_gte = attr_value
                     else:  # ==
-                        attr.op_len_eq = attr_value
-        return attr
+                        op_len_eq = attr_value
+
+        if has_attrs:
+            return StructMemberAttributes(op_eq, op_lt, op_lte, op_gt, op_gte, op_len_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte)
+        else:
+            return None
 
     # Construct typedef parts
     def _parse_typedef(self, parent, parent_type_attr, parent_attr_attr, match_typedef):
