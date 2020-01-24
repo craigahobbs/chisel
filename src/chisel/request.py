@@ -41,7 +41,6 @@ class Request:
         if urls is None:
             self.urls = ((None, '/' + self.name),)
         else:
-            assert not any(isinstance(url, str) for url in urls), 'OH SHIT ITS A STR!'
             self.urls = tuple(chain.from_iterable(
                 ((None, '/' + self.name),) if url is None else \
                 ((url[0] and url[0].upper(), url[1] or '/' + self.name),)
