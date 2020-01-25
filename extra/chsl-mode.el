@@ -30,7 +30,10 @@
         "nullable"
         "optional"
         "output"
+        "path"
+        "query"
         "struct"
+        "typedef"
         "union"
         "url"
         )
