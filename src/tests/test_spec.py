@@ -10,7 +10,7 @@ from chisel.model import TypeArray, Typedef, TypeDict, TypeEnum, TypeStruct, \
 from . import TestCase
 
 
-class TestSpecParseSpec(TestCase):
+class TestSpec(TestCase):
 
     # Helper method to assert struct type member properties
     def assert_struct(self, struct_type, members):
@@ -49,10 +49,14 @@ class TestSpecParseSpec(TestCase):
         self.assert_enum(parser.types[type_name], values)
 
     # Helper method to assert action properties
-    def assert_action(self, parser, action_name, input_members, output_members, error_values):
+    def assert_action(self, parser, action_name, input_members, output_members, error_values, path_members=(), query_members=()):
+        self.assertEqual(parser.actions[action_name].path_type.type_name, action_name + '_path')
+        self.assertEqual(parser.actions[action_name].query_type.type_name, action_name + '_query')
         self.assertEqual(parser.actions[action_name].input_type.type_name, action_name + '_input')
         self.assertEqual(parser.actions[action_name].output_type.type_name, action_name + '_output')
         self.assertEqual(parser.actions[action_name].error_type.type_name, action_name + '_error')
+        self.assert_struct(parser.actions[action_name].path_type, path_members)
+        self.assert_struct(parser.actions[action_name].query_type, query_members)
         self.assert_struct(parser.actions[action_name].input_type, input_members)
         self.assert_struct(parser.actions[action_name].output_type, output_members)
         self.assert_enum(parser.actions[action_name].error_type, error_values)
@@ -114,8 +118,6 @@ action my_action3
 
     # Test valid spec parsing
     def test_simple(self):
-
-        # Parse the spec
         parser = SpecParser()
         parser.parse_string('''\
 # This is an enum
@@ -169,12 +171,18 @@ action MyAction
 
 # The second action
 action MyAction2
+    query
+        int a
     input
         MyStruct foo
         MyStruct2[] bar
 
 # The third action
 action MyAction3
+    url
+        GET /MyAction3/{d}
+    path
+        int d
     output
         int a
         datetime b
@@ -224,34 +232,61 @@ action MyAction4 \\
         self.assertTrue(isinstance(mystruct2_members[9].type.key_type, TypeEnum))
 
         # Check actions
-        self.assert_action(parser, 'MyAction',
-                           (('a', type(TYPE_INT), False),
-                            ('b', type(TYPE_STRING), True)),
-                           (('c', type(TYPE_BOOL), False),),
-                           ('Error1',
-                            'Error2',
-                            'Error 3'))
-        self.assert_action(parser, 'MyAction2',
-                           (('foo', parser.types['MyStruct'], False),
-                            ('bar', TypeArray, False)),
-                           (),
-                           ())
+        self.assert_action(
+            parser,
+            'MyAction',
+            (
+                ('a', type(TYPE_INT), False),
+                ('b', type(TYPE_STRING), True)
+            ),
+            (
+                ('c', type(TYPE_BOOL), False),
+            ),
+            (
+                'Error1',
+                'Error2',
+                'Error 3'
+            )
+        )
+        self.assert_action(
+            parser,
+            'MyAction2',
+            (
+                ('foo', parser.types['MyStruct'], False),
+                ('bar', TypeArray, False)
+            ),
+            (),
+            (),
+            query_members=(
+                ('a', type(TYPE_INT), False),
+            )
+        )
         myaction2_input_members = list(parser.actions['MyAction2'].input_type.members())
         self.assertTrue(isinstance(myaction2_input_members[1].type.type, TypeStruct))
         self.assertEqual(myaction2_input_members[1].type.type.type_name, 'MyStruct2')
-        self.assert_action(parser, 'MyAction3',
-                           (),
-                           (('a', type(TYPE_INT), False),
-                            ('b', type(TYPE_DATETIME), False),
-                            ('c', type(TYPE_DATE), False)),
-                           ())
-        self.assert_action(parser, 'MyAction4',
-                           (),
-                           (),
-                           ())
+        self.assert_action(
+            parser,
+            'MyAction3',
+            (),
+            (
+                ('a', type(TYPE_INT), False),
+                ('b', type(TYPE_DATETIME), False),
+                ('c', type(TYPE_DATE), False)
+            ),
+            (),
+            path_members=(
+                ('d', type(TYPE_INT), False),
+            )
+        )
+        self.assert_action(
+            parser,
+            'MyAction4',
+            (),
+            (),
+            ()
+        )
 
     def test_action_url(self):
-
         parser = SpecParser('''\
 action MyAction
 
@@ -279,7 +314,6 @@ action MyActionUrl
         self.assertEqual(list(parser.actions['MyActionUrl'].error_type.values()), [])
 
     def test_action_url_duplicate(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -289,15 +323,29 @@ action MyAction
         GET /
         GET
         POST
+    url
         GET
 ''')
         self.assertEqual(parser.errors, [
             ':4: error: Duplicate URL: GET /',
-            ':7: error: Duplicate URL: GET'
+            ':7: error: Redefinition of action url',
+            ':8: error: Duplicate URL: GET'
+        ])
+
+    def test_action_url_typed(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action MyAction
+    url (BaseType)
+        GET /
+''')
+        self.assertEqual(parser.errors, [
+            ':2: error: Syntax error',
+            ':3: error: Syntax error'
         ])
 
     def test_group(self):
-
         parser = SpecParser('''\
 action MyAction
 
@@ -321,7 +369,6 @@ action MyAction4
 
     # Struct with base types
     def test_struct_base_types(self):
-
         parser = SpecParser(spec='''\
 struct MyStruct (MyStruct2)
     int c
@@ -410,7 +457,6 @@ struct MyStruct5 (MyStruct2, MyTypedef)
 
     # Struct with base types error cases
     def test_struct_base_types_error(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -440,7 +486,6 @@ struct MyStruct5 (MyStruct4, MyDict)
 
     # Struct with circular base types error case
     def test_struct_base_types_circular(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -461,7 +506,6 @@ struct MyStruct3 (MyStruct)
 
     # Enum with base types
     def test_enum_base_types(self):
-
         parser = SpecParser(spec='''\
 enum MyEnum (MyEnum2)
     c
@@ -550,7 +594,6 @@ enum MyEnum5 (MyEnum2, MyTypedef)
 
     # Enum with base types error cases
     def test_enum_base_types_error(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -580,7 +623,6 @@ enum MyEnum5 (MyEnum4, MyDict)
 
     # Enum with circular base types error case
     def test_enum_base_types_circular(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -601,8 +643,6 @@ enum MyEnum3 (MyEnum)
 
     # Test multiple parse calls per parser instance
     def test_multiple(self):
-
-        # Parse spec strings
         parser = SpecParser()
         parser.parse_string('''\
 enum MyEnum
@@ -680,8 +720,6 @@ enum MyEnum2
 
     # Test multiple finalize
     def test_multiple_finalize(self):
-
-        # Parse spec strings
         parser = SpecParser('''\
 struct MyStruct
     MyEnum a
@@ -718,7 +756,6 @@ enum MyEnum2
                                     ('c', parser.types['MyEnum2'], False)))
 
     def test_typeref_array_attr(self):
-
         parser = SpecParser('''\
 struct MyStruct
     MyStruct2[len > 0] a
@@ -735,7 +772,6 @@ struct MyStruct2
         self.assert_struct_by_name(parser, 'MyStruct2', ())
 
     def test_typeref_dict_attr(self):
-
         parser = SpecParser('''\
 struct MyStruct
     MyEnum : MyStruct2{len > 0} a
@@ -765,7 +801,6 @@ struct MyStruct
 :2: error: Syntax error""")
 
     def test_typeref_invalid_attr(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -778,8 +813,6 @@ struct MyStruct2
 
     # Test members referencing unknown user types
     def test_error_unknown_type(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -810,8 +843,6 @@ foo:8: error: Unknown member type 'MyBadType'""")
 
     # Error - redefinition of struct
     def test_error_struct_redefinition(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -838,8 +869,6 @@ enum Foo
 
     # Error - redefinition of enum
     def test_error_enum_redefinition(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -867,8 +896,6 @@ struct Foo
 
     # Error - redefinition of typedef
     def test_error_typedef_redefinition(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -898,8 +925,6 @@ typedef int(> 5) Foo
 
     # Error - redefinition of user type
     def test_error_action_redefinition(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -930,8 +955,6 @@ action MyAction
 
     # Error - invalid action section usage
     def test_error_action_section(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -979,8 +1002,6 @@ errors
 
     # Error - member definition outside struct scope
     def test_error_member(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -1020,8 +1041,6 @@ int cde
 
     # Error - enum value definition outside enum scope
     def test_error_enum(self):
-
-        # Parse spec string
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.parse_string('''\
@@ -1081,8 +1100,6 @@ action MyAction
 
     # Test valid attribute usage
     def test_attributes(self):
-
-        # Parse spec string
         parser = SpecParser()
         parser.parse_string('''\
 struct MyStruct
@@ -1320,8 +1337,6 @@ enum MyEnum
 ''')
 
     def test_doc(self):
-
-        # Parse spec string
         parser = SpecParser()
         parser.parse_string('''\
 # My enum
@@ -1414,7 +1429,6 @@ action MyAction
                          ['My output member'])
 
     def test_typedef(self):
-
         parser = SpecParser()
         parser.parse_string('''\
 typedef MyEnum MyTypedef2
@@ -1455,7 +1469,6 @@ struct MyStruct
         self.assertEqual(typedef2.attr, None)
 
     def test_error_dict_non_string_key(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -1466,8 +1479,275 @@ struct Foo
             ':2: error: Invalid dictionary key type',
         ])
 
-    def test_action_input_base_types(self):
+    def test_error_action_section_redefinition(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action Foo
+    url
+        POST
+    path
+        int a
+    query
+        int b
+    input
+        int c
+    output
+        int e
 
+    url
+        GET
+    path
+        int a2
+    query
+        int b2
+    input
+        optional int c2
+    output
+        int e2
+''')
+        self.assertListEqual(parser.errors, [
+            ':13: error: Redefinition of action url',
+            ':15: error: Redefinition of action path',
+            ':17: error: Redefinition of action query',
+            ':19: error: Redefinition of action input',
+            ':21: error: Redefinition of action output'
+        ])
+
+    def test_error_action_input_member_redefinition(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action MyAction
+    path
+        int a
+        int b
+    query
+        int a
+    input
+        int b
+
+action MyAction2
+    path (Base)
+    query
+        int a
+    input
+        int b
+
+struct Base
+    int a
+    int b
+''')
+        self.assertListEqual(parser.errors, [
+            ":6: error: Redefinition of member 'a'",
+            ":8: error: Redefinition of member 'b'",
+            ":11: error: Redefinition of member 'a' from base type",
+            ":11: error: Redefinition of member 'b' from base type"
+        ])
+
+    def test_action_path_base_types(self):
+        parser = SpecParser()
+        parser.parse_string('''\
+struct Foo
+    int a
+    optional string b
+
+struct Bonk
+    nullable float c
+
+typedef Bonk Bar
+
+action FooAction
+    path (Foo)
+        bool c
+
+action BarAction
+    path (Foo, Bar)
+        datetime d
+''')
+
+        self.assertEqual(parser.actions['FooAction'].path_type.base_types, [parser.types['Foo']])
+        self.assertEqual(parser.actions['FooAction'].output_type.base_types, None)
+        self.assertEqual(parser.actions['FooAction'].error_type.base_types, None)
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['FooAction'].path_type.members()
+        ], [
+            ('a', 'int', False, False, []),
+            ('b', 'string', True, False, []),
+            ('c', 'bool', False, False, [])
+        ])
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['FooAction'].path_type.members(include_base_types=False)
+        ], [
+            ('c', 'bool', False, False, [])
+        ])
+        self.assertEqual(list(parser.actions['FooAction'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['FooAction'].error_type.values()), [])
+
+        self.assertEqual(parser.actions['BarAction'].path_type.base_types, [parser.types['Foo'], parser.types['Bar']])
+        self.assertEqual(parser.actions['BarAction'].output_type.base_types, None)
+        self.assertEqual(parser.actions['BarAction'].error_type.base_types, None)
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['BarAction'].path_type.members()
+        ], [
+            ('a', 'int', False, False, []),
+            ('b', 'string', True, False, []),
+            ('c', 'float', False, True, []),
+            ('d', 'datetime', False, False, [])
+        ])
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['BarAction'].path_type.members(include_base_types=False)
+        ], [
+            ('d', 'datetime', False, False, [])
+        ])
+        self.assertEqual(list(parser.actions['BarAction'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['BarAction'].error_type.values()), [])
+
+    def test_action_path_non_struct(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action FooAction
+    path (Foo)
+        #- will not error
+        float a
+
+enum Foo
+    A
+    B
+
+struct MyStruct
+    int a
+
+action BarAction
+    path (Foo, MyStruct)
+
+union MyUnion
+
+action BonkAction
+    path (MyStruct, MyUnion)
+        float a
+
+typedef string{} MyDict
+
+action MyDictAction
+    path (MyDict)
+        int a
+''')
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action path base type 'Foo'",
+            ":19: error: Invalid action path base type 'MyUnion'",
+            ":25: error: Invalid action path base type 'MyDict'",
+            ":2: error: Invalid action path base type 'Foo'",
+            ":19: error: Redefinition of member 'a' from base type"
+        ])
+
+    def test_action_query_base_types(self):
+        parser = SpecParser()
+        parser.parse_string('''\
+struct Foo
+    int a
+    optional string b
+
+struct Bonk
+    nullable float c
+
+typedef Bonk Bar
+
+action FooAction
+    query (Foo)
+        bool c
+
+action BarAction
+    query (Foo, Bar)
+        datetime d
+''')
+
+        self.assertEqual(parser.actions['FooAction'].query_type.base_types, [parser.types['Foo']])
+        self.assertEqual(parser.actions['FooAction'].output_type.base_types, None)
+        self.assertEqual(parser.actions['FooAction'].error_type.base_types, None)
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['FooAction'].query_type.members()
+        ], [
+            ('a', 'int', False, False, []),
+            ('b', 'string', True, False, []),
+            ('c', 'bool', False, False, [])
+        ])
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['FooAction'].query_type.members(include_base_types=False)
+        ], [
+            ('c', 'bool', False, False, [])
+        ])
+        self.assertEqual(list(parser.actions['FooAction'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['FooAction'].error_type.values()), [])
+
+        self.assertEqual(parser.actions['BarAction'].query_type.base_types, [parser.types['Foo'], parser.types['Bar']])
+        self.assertEqual(parser.actions['BarAction'].output_type.base_types, None)
+        self.assertEqual(parser.actions['BarAction'].error_type.base_types, None)
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['BarAction'].query_type.members()
+        ], [
+            ('a', 'int', False, False, []),
+            ('b', 'string', True, False, []),
+            ('c', 'float', False, True, []),
+            ('d', 'datetime', False, False, [])
+        ])
+        self.assertEqual([
+            (m.name, m.type.type_name, m.optional, m.nullable, m.doc)
+            for m in parser.actions['BarAction'].query_type.members(include_base_types=False)
+        ], [
+            ('d', 'datetime', False, False, [])
+        ])
+        self.assertEqual(list(parser.actions['BarAction'].output_type.members()), [])
+        self.assertEqual(list(parser.actions['BarAction'].error_type.values()), [])
+
+    def test_action_query_non_struct(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action FooAction
+    query (Foo)
+        #- will not error
+        float a
+
+enum Foo
+    A
+    B
+
+struct MyStruct
+    int a
+
+action BarAction
+    query (Foo, MyStruct)
+
+union MyUnion
+
+action BonkAction
+    query (MyStruct, MyUnion)
+        float a
+
+typedef string{} MyDict
+
+action MyDictAction
+    query (MyDict)
+        int a
+''')
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action query base type 'Foo'",
+            ":19: error: Invalid action query base type 'MyUnion'",
+            ":25: error: Invalid action query base type 'MyDict'",
+            ":2: error: Invalid action query base type 'Foo'",
+            ":19: error: Redefinition of member 'a' from base type"
+        ])
+
+    def test_action_input_base_types(self):
         parser = SpecParser()
         parser.parse_string('''\
 struct Foo
@@ -1530,7 +1810,45 @@ action BarAction
         self.assertEqual(list(parser.actions['BarAction'].error_type.values()), [])
 
     def test_action_input_non_struct(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError):
+            parser.parse_string('''\
+action FooAction
+    input (Foo)
+        #- will not error
+        float a
 
+enum Foo
+    A
+    B
+
+struct MyStruct
+    int a
+
+action BarAction
+    input (Foo, MyStruct)
+
+union MyUnion
+
+action BonkAction
+    input (MyStruct, MyUnion)
+        float a
+
+typedef string{} MyDict
+
+action MyDictAction
+    input (MyDict)
+        int a
+''')
+        self.assertEqual(parser.errors, [
+            ":14: error: Invalid action input base type 'Foo'",
+            ":19: error: Invalid action input base type 'MyUnion'",
+            ":25: error: Invalid action input base type 'MyDict'",
+            ":2: error: Invalid action input base type 'Foo'",
+            ":19: error: Redefinition of member 'a' from base type"
+        ])
+
+    def test_action_input_member_redef(self):
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -1570,7 +1888,6 @@ action MyDictAction
         ])
 
     def test_action_output_struct(self):
-
         parser = SpecParser()
         parser.parse_string('''\
 struct Foo
@@ -1633,7 +1950,6 @@ action BarAction
         self.assertEqual(list(parser.actions['BarAction'].error_type.values()), [])
 
     def test_action_output_non_struct(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\
@@ -1673,82 +1989,7 @@ action MyDictAction
             ":19: error: Redefinition of member 'a' from base type"
         ])
 
-    def test_action_input_multiple(self):
-
-        parser = SpecParser('''\
-action Foo
-    input
-        int a
-    output
-        int b
-    input
-        int c
-''')
-
-        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
-        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
-            'a',
-            'c'
-        ])
-        self.assertEqual([m.name for m in parser.actions['Foo'].output_type.members()], [
-            'b'
-        ])
-        self.assertEqual(list(parser.actions['Foo'].error_type.values()), [])
-
-    def test_action_output_multiple(self):
-
-        parser = SpecParser('''\
-action Foo
-    output
-        int a
-    input
-        int b
-    output
-        int c
-''')
-
-        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
-        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
-            'b'
-        ])
-        self.assertEqual([m.name for m in parser.actions['Foo'].output_type.members()], [
-            'a',
-            'c'
-        ])
-        self.assertEqual(list(parser.actions['Foo'].error_type.values()), [])
-
-    def test_action_errors_multiple(self):
-
-        parser = SpecParser('''\
-action Foo
-    errors
-        A
-        B
-    input
-        int a
-    errors
-        C
-''')
-
-        self.assertEqual(parser.actions['Foo'].input_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].output_type.base_types, None)
-        self.assertEqual(parser.actions['Foo'].error_type.base_types, None)
-        self.assertEqual([m.name for m in parser.actions['Foo'].input_type.members()], [
-            'a'
-        ])
-        self.assertEqual(list(parser.actions['Foo'].output_type.members()), [])
-        self.assertEqual([(v.value, v.doc) for v in parser.actions['Foo'].error_type.values()], [
-            ('A', []),
-            ('B', []),
-            ('C', [])
-        ])
-
     def test_action_errors_enum(self):
-
         parser = SpecParser()
         parser.parse_string('''\
 action FooAction
@@ -1799,7 +2040,6 @@ action BarAction
         ])
 
     def test_action_errors_non_enum(self):
-
         parser = SpecParser()
         with self.assertRaises(SpecParserError):
             parser.parse_string('''\

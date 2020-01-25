@@ -187,8 +187,13 @@ class TypeStruct:
         self.doc = [] if doc is None else doc
 
     def members(self, include_base_types=True):
-        return iter(self._members) if self.base_types is None or not include_base_types else \
-            chain(chain.from_iterable(Typedef.base_type(base_type).members() for base_type in self.base_types if base_type), self._members)
+        if include_base_types and self.base_types is not None:
+            return chain(
+                chain.from_iterable(Typedef.base_type(base_type).members() for base_type in self.base_types if base_type),
+                self._members
+            )
+        else:
+            return iter(self._members)
 
     def add_member(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
         member = StructMember(name, type_, optional or self.union, nullable, attr, doc)

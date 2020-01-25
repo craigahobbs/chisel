@@ -97,7 +97,6 @@ class Action(Request):
                 raise _ActionErrorInternal(HTTPStatus.REQUEST_TIMEOUT, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
-            validation_mode = ValidationMode.JSON_INPUT
             try:
                 if content:
                     content_type = environ.get('CONTENT_TYPE')
@@ -110,59 +109,61 @@ class Action(Request):
                 ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message='Invalid request JSON: ' + str(exc))
 
-            # Fail non-dictionary requests
-            if not isinstance(request, dict):
-                ctx.log.warning("Invalid top-level JSON object of type '%s': %.1000r", type(request).__name__, content_json)
+            # Validate the content
+            try:
+                request = self.model.input_type.validate(request, ValidationMode.JSON_INPUT)
+            except ValidationError as exc:
+                ctx.log.warning("Invalid content for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
-                    message="Invalid top-level JSON object of type '{0}'".format(type(request).__name__)
+                    message=str(exc) + ' (content)',
+                    member=exc.member
                 )
 
             # Decode the query string
-            query_string = environ.get('QUERY_STRING')
-            if query_string:
-                validation_mode = ValidationMode.QUERY_STRING
-                try:
-                    request_query_string = decode_query_string(query_string)
-                except Exception as exc:
-                    ctx.log.warning("Error decoding query string for action '%s': %.1000r", self.name, environ.get('QUERY_STRING', ''))
-                    raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc))
-
-                for request_key, request_value in request_query_string.items():
-                    if request_key in request:
-                        ctx.log.warning("Duplicate query string argument member %.100r for action '%s'", request_key, self.name)
-                        raise _ActionErrorInternal(
-                            HTTPStatus.BAD_REQUEST,
-                            'InvalidInput',
-                            message="Duplicate query string argument member {0!r:.100s}".format(request_key)
-                        )
-                    request[request_key] = request_value
-
-            # Add url arguments
-            if ctx.url_args is not None:
-                validation_mode = ValidationMode.QUERY_STRING
-                for url_arg, url_value in ctx.url_args.items():
-                    if url_arg in request:
-                        ctx.log.warning("Duplicate URL argument member %r for action '%s'", url_arg, self.name)
-                        raise _ActionErrorInternal(
-                            HTTPStatus.BAD_REQUEST,
-                            'InvalidInput',
-                            message="Duplicate URL argument member {0!r}".format(url_arg)
-                        )
-                    request[url_arg] = url_value
+            query_string = environ.get('QUERY_STRING', '')
+            try:
+                request_query = decode_query_string(query_string)
+            except Exception as exc:
+                ctx.log.warning("Error decoding query string for action '%s': %.1000r", self.name, query_string)
+                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc))
 
             # JSONP?
-            if is_get and self.jsonp and self.jsonp in request:
-                jsonp = str(request[self.jsonp])
-                del request[self.jsonp]
+            if is_get and self.jsonp and self.jsonp in request_query:
+                jsonp = str(request_query[self.jsonp])
+                del request_query[self.jsonp]
 
-            # Validate the request
+            # Validate the query string
             try:
-                request = self.model.input_type.validate(request, validation_mode)
+                request_query = self.model.query_type.validate(request_query, ValidationMode.QUERY_STRING)
             except ValidationError as exc:
-                ctx.log.warning("Invalid input for action '%s': %s", self.name, str(exc))
-                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc), member=exc.member)
+                ctx.log.warning("Invalid query string for action '%s': %s", self.name, str(exc))
+                raise _ActionErrorInternal(
+                    HTTPStatus.BAD_REQUEST,
+                    'InvalidInput',
+                    message=str(exc) + ' (query string)',
+                    member=exc.member
+                )
+
+            # Validate the path args
+            request_path = ctx.url_args if ctx.url_args is not None else {}
+            try:
+                request_path = self.model.path_type.validate(request_path, ValidationMode.QUERY_STRING)
+            except ValidationError as exc:
+                ctx.log.warning("Invalid path for action '%s': %s", self.name, str(exc))
+                raise _ActionErrorInternal(
+                    HTTPStatus.BAD_REQUEST,
+                    'InvalidInput',
+                    message=str(exc) + ' (path)',
+                    member=exc.member
+                )
+
+            # Copy top-level path keys and query string keys
+            for request_key, request_value in request_path.items():
+                request[request_key] = request_value
+            for request_key, request_value in request_query.items():
+                request[request_key] = request_value
 
             # Call the action callback
             try:

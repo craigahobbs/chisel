@@ -232,7 +232,7 @@ action my_action
 
         @action(urls=(('GET', None),), spec='''\
 action my_action
-  input
+  query
     int a
     int b
   output
@@ -254,7 +254,7 @@ action my_action
 
         @action(urls=(('GET', None),), spec='''\
 action my_action
-  input
+  query
     int a
     int b
   output
@@ -277,7 +277,7 @@ action my_action
 
         @action(urls=(('GET', None),), jsonp='jsonp', spec='''\
 action my_action
-  input
+  query
     int a
     int b
   output
@@ -299,72 +299,43 @@ action my_action
 
         @action(urls=(None, (None, '/my/{a}')), spec='''\
 action my_action
-  input
+  path
     int a
+  query
     int b
-  output
+  input
     int c
+  output
+    int d
 ''')
         def my_action(unused_app, req):
-            return {'c': req['a'] + req['b']}
+            return {'d': req['a'] + req['b'] + req['c']}
 
         app = Application()
         app.add_request(my_action)
 
-        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": 7, "b": 8}')
+        status, headers, response = app.request('POST', '/my/5', query_string='b=7', wsgi_input=b'{"c": 8}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
+        self.assertEqual(response.decode('utf-8'), '{"d":20}')
 
         # Mixed content and query string
         status, headers, response = app.request('POST', '/my_action', query_string='a=7', wsgi_input=b'{"b": 8}')
-        self.assertEqual(status, '200 OK')
+        self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'c\' missing (content)"}')
 
         # Mixed content and query string #2
-        status, headers, response = app.request('POST', '/my_action', query_string='a=7&b=8', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
+        status, headers, response = app.request('POST', '/my_action', query_string='b=8', wsgi_input=b'{"c": 8}')
+        self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'a\' missing (path)"}')
 
         # Mixed content and query string #3
-        status, headers, response = app.request('POST', '/my_action', query_string='a=7&b=8')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
-
-        # Duplicate query string argument
-        status, headers, response = app.request('POST', '/my_action', query_string='a=7', wsgi_input=b'{"a": 7, "b": 8}')
+        status, headers, response = app.request('POST', '/my/5', wsgi_input=b'{"c": 8}')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate query string argument member \'a\'"}')
-
-        # Duplicate query string argument - long key
-        environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request(
-            'POST',
-            '/my_action',
-            query_string='a' * 200 + '=7',
-            wsgi_input=b'{"' + b'a' * 200 + b'": 7, "b": 8}',
-            environ=environ
-        )
-        self.assertEqual(status, '400 Bad Request')
-        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(
-            response.decode('utf-8'),
-            '{"error":"InvalidInput","message":"Duplicate query string argument member \'' + 'a' * 99 + '"}'
-        )
-        self.assertRegex(
-            environ['wsgi.errors'].getvalue(),
-            r"^WARNING \[\d+ / \d+\] Duplicate query string argument member 'a{99} for action 'my_action'$"
-        )
-
-        # Duplicate URL argument
-        status, headers, response = app.request('POST', '/my/7', wsgi_input=b'{"a": 7, "b": 8}')
-        self.assertEqual(status, '400 Bad Request')
-        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'a\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'b\' missing (query string)"}')
 
     # Test successful action get with headers
     def test_headers(self):
@@ -556,7 +527,7 @@ action my_action
 
         @action(urls=(('GET', None),), spec='''\
 action my_action
-  input
+  query
     int a
 ''')
         def my_action(unused_app, unused_req):
@@ -575,7 +546,7 @@ action my_action
 
         @action(urls=(('GET', None),), spec='''\
 action my_action
-  input
+  query
     int a
 ''')
         def my_action(unused_app, unused_req):
@@ -599,8 +570,9 @@ action my_action
 
         @action(urls=(('GET', '/my_action/{a}'),), spec='''\
 action my_action
-  input
+  path
     int a
+  query
     int b
   output
     int sum
@@ -623,10 +595,10 @@ action my_action
         status, headers, response = app.request('GET', '/my_action/5', query_string='a=3&b=7', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Duplicate URL argument member \'a\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Unknown member \'a\' (query string)"}')
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
-            r"WARNING \[\d+ / \d+\] Duplicate URL argument member 'a' for action 'my_action'"
+            r"WARNING \[\d+ / \d+\] Invalid query string for action 'my_action': Unknown member 'a'"
         )
 
     # Test action with invalid json content
@@ -689,7 +661,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
-                         'for member \'a\', expected type \'string\'"}')
+                         'for member \'a\', expected type \'string\' (content)"}')
 
     # Test action with invalid array input
     def test_error_invalid_input_array_query_string(self):
@@ -709,11 +681,12 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(
             response.decode('utf-8'),
-            '{"error":"InvalidInput","message":"Invalid top-level JSON object of type \'list\'"}'
+            '{"error":"InvalidInput","message":"Invalid value [] (type \'list\'), expected type \'my_action_input\' (content)"}'
         )
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
-            r"WARNING \[\d+ / \d+\] Invalid top-level JSON object of type 'list': '\[\]'"
+            r"WARNING \[\d+ / \d+\] Invalid content for action 'my_action': "
+            r"Invalid value \[\] \(type 'list'\), expected type 'my_action_input'"
         )
 
     # Test action with invalid output

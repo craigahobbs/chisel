@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+from functools import partial
 from itertools import chain
 import os
 import re
@@ -12,17 +13,27 @@ from .model import AttributeValidationError, StructMemberAttributes, TypeArray, 
 
 # Action model
 class ActionModel:
-    __slots__ = ('name', 'urls', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
+    __slots__ = ('name', 'urls', 'path_type', 'query_type', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
 
     def __init__(self, name, doc=None, doc_group=None):
         self.name = name
         self.urls = []
+        self.path_type = TypeStruct(type_name=name + '_path')
+        self.query_type = TypeStruct(type_name=name + '_query')
         self.input_type = TypeStruct(type_name=name + '_input')
         self.output_type = TypeStruct(type_name=name + '_output')
         self.error_type = TypeEnum(type_name=name + '_error')
         self.doc = [] if doc is None else doc
         self.doc_group = doc_group
 
+    @staticmethod
+    def effective_members(action, type_, include_base_types=True):
+        if action and (type_ is action.path_type or type_ is action.query_type or type_ is action.input_type):
+            yield from chain.from_iterable(
+                t.members(include_base_types=include_base_types) for t in (action.path_type, action.query_type, action.input_type)
+            )
+        else:
+            yield from type_.members(include_base_types=include_base_types)
 
 # Spec parser exception
 class SpecParserError(Exception):
@@ -47,8 +58,9 @@ _RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
 _RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
 _RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
 _RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
-_RE_DEFINITION = re.compile(r'^(?P<type>action|struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
-_RE_SECTION = re.compile(r'^\s+(?P<type>url|input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_DEFINITION = re.compile(r'^(?P<type>struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_SECTION = re.compile(r'^\s+(?P<type>path|query|input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
+_RE_SECTION_PLAIN = re.compile(r'^\s+(?P<type>url)\s*$')
 _RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
                    r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
                    r'(?:' \
@@ -90,6 +102,7 @@ class SpecParser:
         '_parse_filename',
         '_parse_linenum',
         '_action',
+        '_action_sections',
         '_urls',
         '_type',
         '_doc',
@@ -105,6 +118,7 @@ class SpecParser:
         self._typerefs = []
         self._finalize_checks = []
         self._action = None
+        self._action_sections = None
         self._urls = None
         self._type = None
         self._doc = None
@@ -212,24 +226,6 @@ class SpecParser:
                 def_type = 'enum'
             self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
 
-    def _validate_input_base_type(self, *args):
-        self._validate_struct_base_type(*args, def_type='action input')
-
-    def _validate_output_base_type(self, *args):
-        self._validate_struct_base_type(*args, def_type='action output')
-
-    def _validate_errors_base_type(self, *args):
-        self._validate_enum_base_type(*args, def_type='action errors')
-
-    def _set_finalize(self, type_, finalize_fn):
-        filename = self._parse_filename
-        linenum = self._parse_linenum
-
-        def finalize_check():
-            finalize_fn(type_, filename, linenum)
-
-        self._finalize_checks.append(finalize_check)
-
     def _finalize_circular_base_type(self, type_, filename, linenum):
         is_circular = False
         base_types = {}
@@ -247,15 +243,15 @@ class SpecParser:
                 self._error("Circular base type detected for type '" + base_type_name + "'", filename, linenum)
         return is_circular
 
-    def _finalize_struct_base_type(self, struct_type, filename, linenum):
+    def _finalize_struct_base_type(self, action, struct_type, filename, linenum):
         if struct_type.base_types is not None and not self._finalize_circular_base_type(struct_type, filename, linenum):
             members = {}
-            for member in struct_type.members():
+            for member in ActionModel.effective_members(action, struct_type):
                 member_count = members[member.name] = members.get(member.name, 0) + 1
                 if member_count == 2:
                     self._error("Redefinition of member '" + member.name + "' from base type", filename, linenum)
 
-    def _finalize_enum_base_type(self, enum_type, filename, linenum):
+    def _finalize_enum_base_type(self, unused_action, enum_type, filename, linenum):
         if enum_type.base_types is not None and not self._finalize_circular_base_type(enum_type, filename, linenum):
             values = {}
             for value in enum_type.values():
@@ -397,6 +393,8 @@ class SpecParser:
                 match_name, match = 'definition', _RE_DEFINITION.search(line)
             if match is None and self._action is not None:
                 match_name, match = 'section', _RE_SECTION.search(line)
+            if match is None and self._action is not None:
+                match_name, match = 'section_plain', _RE_SECTION_PLAIN.search(line)
             if match is None and isinstance(self._type, TypeEnum):
                 match_name, match = 'value', _RE_VALUE.search(line)
             if match is None and isinstance(self._type, TypeStruct):
@@ -432,6 +430,7 @@ class SpecParser:
 
                 # Create the new action
                 self._action = ActionModel(action_id, doc=self._doc, doc_group=self._doc_group)
+                self._action_sections = set()
                 self._urls = None
                 self._type = None
                 self._doc = []
@@ -460,7 +459,9 @@ class SpecParser:
                         self._type.base_types = [None for _ in definition_base_ids]
                         for base_index, base_id in enumerate(definition_base_ids):
                             self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_struct_base_type)
-                        self._set_finalize(self._type, self._finalize_struct_base_type)
+                        self._finalize_checks.append(
+                            partial(self._finalize_struct_base_type, None, self._type, self._parse_filename, self._parse_linenum)
+                        )
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
@@ -479,7 +480,9 @@ class SpecParser:
                         self._type.base_types = [None for _ in definition_base_ids]
                         for base_index, base_id in enumerate(definition_base_ids):
                             self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_enum_base_type)
-                        self._set_finalize(self._type, self._finalize_enum_base_type)
+                        self._finalize_checks.append(
+                            partial(self._finalize_enum_base_type, None, self._type, self._parse_filename, self._parse_linenum)
+                        )
                     self._doc = []
                     self.types[self._type.type_name] = self._type
 
@@ -490,40 +493,53 @@ class SpecParser:
                 if section_base_ids is not None:
                     section_base_ids = _RE_BASE_IDS_SPLIT.split(section_base_ids)
 
+                # Action section redefinition?
+                if section_string in self._action_sections:
+                    self._error('Redefinition of action ' + section_string)
+                self._action_sections.add(section_string)
+
                 # Set the action section type
-                if section_string == 'input':
-                    self._urls = None
+                self._urls = None
+                if section_string == 'path':
+                    self._type = self._action.path_type
+                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
+                elif section_string == 'query':
+                    self._type = self._action.query_type
+                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
+                elif section_string == 'input':
                     self._type = self._action.input_type
-                    if section_base_ids is not None:
-                        self._type.base_types = [None for _ in section_base_ids]
-                        for base_index, base_id in enumerate(section_base_ids):
-                            self._set_type(self._action.input_type, self._action.input_type.base_types, base_index, base_id,
-                                           None, self._validate_input_base_type)
-                        self._set_finalize(self._type, self._finalize_struct_base_type)
-
+                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
                 elif section_string == 'output':
-                    self._urls = None
                     self._type = self._action.output_type
-                    if section_base_ids is not None:
-                        self._type.base_types = [None for _ in section_base_ids]
-                        for base_index, base_id in enumerate(section_base_ids):
-                            self._set_type(self._action.output_type, self._action.output_type.base_types, base_index, base_id,
-                                           None, self._validate_output_base_type)
-                        self._set_finalize(self._type, self._finalize_struct_base_type)
-
-                elif section_string == 'errors':
-                    self._urls = None
+                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
+                else: # section_string == 'errors':
                     self._type = self._action.error_type
-                    if section_base_ids is not None:
-                        self._type.base_types = [None for _ in section_base_ids]
-                        for base_index, base_id in enumerate(section_base_ids):
-                            self._set_type(self._action.error_type, self._action.error_type.base_types, base_index, base_id,
-                                           None, self._validate_errors_base_type)
-                        self._set_finalize(self._type, self._finalize_enum_base_type)
+                    validate_base_type_fn, finalize_base_type_fn = self._validate_enum_base_type, self._finalize_enum_base_type
 
-                else: # section_string == 'url':
-                    self._urls = self._action.urls
-                    self._type = None
+                if section_base_ids is not None:
+                    self._type.base_types = [None for _ in section_base_ids]
+                    for base_index, base_id in enumerate(section_base_ids):
+                        self._set_type(
+                            self._type, self._type.base_types, base_index, base_id, None,
+                            partial(validate_base_type_fn, def_type='action ' + section_string)
+                        )
+                    self._finalize_checks.append(
+                        partial(finalize_base_type_fn, self._action, self._type, self._parse_filename, self._parse_linenum)
+                    )
+
+            # Plain section?
+            elif match_name == 'section_plain':
+                section_string = match.group('type')
+
+                # Action section redefinition?
+                if section_string in self._action_sections:
+                    self._error('Redefinition of action ' + section_string)
+                self._action_sections.add(section_string)
+
+                # Set the action section data
+                assert section_string == 'url'
+                self._urls = self._action.urls
+                self._type = None
 
             # Enum value?
             elif match_name == 'value':
@@ -544,7 +560,7 @@ class SpecParser:
                 member_name = match.group('id')
 
                 # Member name already defined?
-                if any(member.name == member_name for member in self._type.members(include_base_types=False)):
+                if member_name in (mem.name for mem in ActionModel.effective_members(self._action, self._type, include_base_types=False)):
                     self._error("Redefinition of member '" + member_name + "'")
 
                 # Create the member

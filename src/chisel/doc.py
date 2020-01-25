@@ -27,7 +27,7 @@ class DocAction(Action):
                          wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
-  input
+  query
     # The request name. If the name is not specified the documentation index is generated.
     optional string name
 
