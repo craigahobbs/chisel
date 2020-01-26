@@ -91,13 +91,13 @@ endef
 
 # Generate test rules
 define TEST_COMMANDS_FN
-	$(1)/python3 -m unittest discover -v -t src -s src/tests $(if $(TEST),-p test_$(TEST).py)
+	$(1)/python3 -m unittest $(if $(TEST),-v $(TEST),discover -v -t src -s src/tests)
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e ., TEST_COMMANDS_FN, $(X))))
 
 # Generate coverage rules
 define COVER_COMMANDS_FN
-	$(1)/python3 -m coverage run --branch --source src -m unittest discover -v -t src -s src/tests $(if $(TEST),-p test_$(TEST).py)
+	$(1)/python3 -m coverage run --branch --source src -m unittest $(if $(TEST),-v $(TEST),discover -v -t src -s src/tests)
 	$(1)/python3 -m coverage html -d $(BUILD)/coverage
 	$(1)/python3 -m coverage report $(COVERAGE_REPORT_ARGS)
 	@echo
