@@ -1392,41 +1392,41 @@ action MyAction
 
         # Check documentation comments
         self.assertEqual(parser.types['MyEnum'].doc,
-                         ['My enum'])
+                         [' My enum'])
         myenum_values = list(parser.types['MyEnum'].values())
         self.assertEqual(myenum_values[0].doc,
-                         ['MyEnum value 1'])
+                         [' MyEnum value 1'])
         self.assertEqual(myenum_values[1].doc,
-                         ['', 'MyEnum value 2', '', 'Second line', ''])
+                         ['', ' MyEnum value 2', '', ' Second line', ''])
         self.assertEqual(parser.types['MyEnum2'].doc,
                          [])
         myenum2_values = list(parser.types['MyEnum2'].values())
         self.assertEqual(myenum2_values[0].doc,
                          [])
         self.assertEqual(parser.types['MyStruct'].doc,
-                         ['My struct'])
+                         [' My struct'])
         mystruct_members = list(parser.types['MyStruct'].members())
         self.assertEqual(mystruct_members[0].doc,
-                         ['MyStruct member a'])
+                         [' MyStruct member a'])
         self.assertEqual(mystruct_members[1].doc,
-                         ['', 'MyStruct member b', ''])
+                         ['', ' MyStruct member b', ''])
         self.assertEqual(parser.types['MyStruct2'].doc,
                          [])
         mystruct2_members = list(parser.types['MyStruct2'].members())
         self.assertEqual(mystruct2_members[0].doc,
                          [])
         self.assertEqual(parser.actions['MyAction'].doc,
-                         ['My action'])
+                         [' My action'])
         self.assertEqual(parser.actions['MyAction'].input_type.doc,
                          [])
         myaction_input_members = list(parser.actions['MyAction'].input_type.members())
         myaction_output_members = list(parser.actions['MyAction'].output_type.members())
         self.assertEqual(myaction_input_members[0].doc,
-                         ['My input member'])
+                         [' My input member'])
         self.assertEqual(parser.actions['MyAction'].output_type.doc,
                          [])
         self.assertEqual(myaction_output_members[0].doc,
-                         ['My output member'])
+                         [' My output member'])
 
     def test_typedef(self):
         parser = SpecParser()
@@ -1450,7 +1450,7 @@ struct MyStruct
         typedef = parser.types['MyTypedef']
         self.assertTrue(isinstance(typedef, Typedef))
         self.assertEqual(typedef.type_name, 'MyTypedef')
-        self.assertEqual(typedef.doc, ['My typedef'])
+        self.assertEqual(typedef.doc, [' My typedef'])
         self.assertTrue(isinstance(typedef.type, TypeDict))
         self.assertEqual(self.attr_tuple(typedef.attr), self.attr_tuple(op_len_gt=0))
         self.assertTrue(typedef.type.key_type is parser.types['MyEnum'])

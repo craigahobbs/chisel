@@ -17,7 +17,7 @@ help:
 define COVER_TEST_COMMANDS
 .PHONY: cover_test_$(1)
 cover_test_$(1): $(COVER_PYTHON_3_8_VENV_BUILD)
-	$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage run --branch --source src -m unittest discover -v -t src -s src/tests -p test_$(1).py
+	$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage run --branch --source src -m unittest src.tests.test_$(1)
 	$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage html -d $(BUILD)/coverage
 	$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage report | grep '/$(1).py.*100%'
 

@@ -4,7 +4,6 @@
 from html import escape
 from http import HTTPStatus
 from itertools import chain
-import re
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
@@ -12,7 +11,104 @@ from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 from .request import Request
 
 
-_RE_WHITESPACE_CLEANUP = re.compile(r'\s{2,}')
+class SimpleMarkdown:
+    __slots__ = ()
+
+    def __call__(self, markdown_text):
+        paragraphs = []
+        lines = []
+        for line in (line.strip() for line in markdown_text.splitlines()):
+            if line:
+                lines.append(line)
+            elif lines:
+                paragraphs.append(lines)
+                lines = []
+        if lines:
+            paragraphs.append(lines)
+
+        # Do a simple markdown-like rendering
+        if paragraphs:
+            return '\n'.join('<p>\n' + escape('\n'.join(paragraph)) + '\n</p>' for paragraph in paragraphs)
+        else:
+            return ''
+
+
+# Create the markdown object
+try:
+    import mistune
+    MARKDOWN = mistune.create_markdown(plugins=['strikethrough', 'table', 'url'])
+except ImportError: # pragma: no cover
+    MARKDOWN = SimpleMarkdown()
+
+
+class Element:
+    """
+    HTML5 DOM element
+    """
+
+    __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
+
+    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
+        self.name = name
+        self.text = text
+        self.text_raw = text_raw
+        self.closed = closed
+        self.indent = indent
+        self.inline = inline
+        self.attrs = attrs
+        self.children = children
+
+    def serialize(self, indent='  ', html=True):
+        return ''.join(chain(['<!doctype html>\n'] if html else [], self.serialize_chunks(indent=indent)))
+
+    def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
+
+        # Initial newline and indent as necessary...
+        if indent is not None and not inline and indent_index > 0 and self.indent:
+            yield '\n'
+            if indent and not self.text and not self.text_raw:
+                yield indent * indent_index
+
+        # Text element?
+        if self.text:
+            yield escape(self.name)
+            return
+        elif self.text_raw:
+            yield self.name
+            return
+
+        # Element open
+        yield '<' + self.name
+        for attr_key, attr_value in sorted((key_value[0].lstrip('_'), key_value[1]) for key_value in self.attrs.items()):
+            if attr_value is not None:
+                yield ' ' + attr_key + '=' + quoteattr(attr_value)
+
+        # Child elements
+        has_children = False
+        for child in self._iterate_children_helper(self.children):
+            if not has_children:
+                has_children = True
+                yield '>'
+            yield from child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
+
+        # Element close
+        if not has_children:
+            yield ' />' if self.closed else '>'
+            return
+        if indent is not None and not inline and not self.inline:
+            yield '\n' + indent * indent_index
+        yield '</' + self.name + '>'
+
+    @classmethod
+    def _iterate_children_helper(cls, children):
+        if isinstance(children, Element):
+            yield children
+        elif children is not None:
+            for child in children:
+                if isinstance(child, Element):
+                    yield child
+                elif child is not None:
+                    yield from cls._iterate_children_helper(child)
 
 
 class DocAction(Action):
@@ -77,76 +173,6 @@ action {name}
         return root.serialize(indent='  ' if ctx.app.pretty_output else '')
 
 
-class Element:
-    """
-    HTML5 DOM element
-    """
-
-    __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
-
-    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
-        self.name = name
-        self.text = text
-        self.text_raw = text_raw
-        self.closed = closed
-        self.indent = indent
-        self.inline = inline
-        self.attrs = attrs
-        self.children = children
-
-    def serialize(self, indent='  ', html=True):
-        return ''.join(chain(['<!doctype html>\n'] if html else [], self.serialize_chunks(indent=indent)))
-
-    def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
-
-        # Initial newline and indent as necessary...
-        if indent is not None and not inline and indent_index > 0 and self.indent:
-            yield '\n'
-            if indent and not self.text and not self.text_raw:
-                yield indent * indent_index
-
-        # Text element?
-        if self.text:
-            yield escape(self.name)
-            return
-        elif self.text_raw:
-            yield self.name
-            return
-
-        # Element open
-        yield '<' + self.name
-        for attr_key, attr_value in sorted(self.attrs.items(), key=lambda x: x[0].lstrip('_')):
-            if attr_value is not None:
-                yield ' ' + attr_key.lstrip('_') + '=' + quoteattr(attr_value)
-
-        # Child elements
-        has_children = False
-        for child in self._iterate_children_helper(self.children):
-            if not has_children:
-                has_children = True
-                yield '>'
-            yield from child.serialize_chunks(indent=indent, indent_index=indent_index + 1, inline=inline or self.inline)
-
-        # Element close
-        if not has_children:
-            yield ' />' if self.closed else '>'
-            return
-        if indent is not None and not inline and not self.inline:
-            yield '\n' + indent * indent_index
-        yield '</' + self.name + '>'
-
-    @classmethod
-    def _iterate_children_helper(cls, children):
-        if isinstance(children, Element):
-            yield children
-        elif children is not None:
-            for child in children:
-                if isinstance(child, Element):
-                    yield child
-                elif child is not None:
-                    yield from cls._iterate_children_helper(child)
-
-
 def _index_html(ctx, requests):
     title = ctx.environ.get('HTTP_HOST') or (ctx.environ['SERVER_NAME'] + ':' + ctx.environ['SERVER_PORT'])
 
@@ -155,7 +181,7 @@ def _index_html(ctx, requests):
     group_requests = {}
     for request in requests:
         has_groups = has_groups or request.doc_group is not None
-        group_name = _RE_WHITESPACE_CLEANUP.sub(' ', request.doc_group or 'Uncategorized').strip()
+        group_name = request.doc_group or 'Uncategorized'
         if group_name not in group_requests:
             group_requests[group_name] = []
         group_requests[group_name].append(request)
@@ -305,24 +331,13 @@ def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=
 
 
 def _doc_text(doc):
-    if isinstance(doc, str):
-        doc = (line.strip() for line in doc.splitlines())
-
-    # Join lines separated by one or more blank lines into paragraphs
-    paragraphs = []
-    lines = []
-    for line in doc:
-        if line:
-            lines.append(line)
-        elif lines:
-            paragraphs.append('\n'.join(lines))
-            lines = []
-    if lines:
-        paragraphs.append('\n'.join(lines))
-
-    return None if not paragraphs else Element('div', _class='chsl-text', children=[
-        Element('p', children=Element(paragraph, text=True)) for paragraph in paragraphs
-    ])
+    if not isinstance(doc, str):
+        doc = '\n'.join(doc)
+    markdown_html = MARKDOWN(doc).strip()
+    if markdown_html:
+        return Element('div', _class='chsl-text', children=Element(markdown_html, text_raw=True))
+    else:
+        return None
 
 
 def _type_name(type_):
@@ -470,7 +485,10 @@ def _enum_section(type_, title_tag, title=None, empty_doc=None):
 
 
 def _style_element():
-    return Element('style', _type='text/css', children=Element('''\
+    return Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
+
+
+STYLE_TEXT = '''\
 html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
     margin: 0;
     padding: 0;
@@ -578,4 +596,4 @@ ul.chsl-constraint-list {
 }
 .chsl-emphasis {
     font-style:italic;
-}''', text_raw=True))
+}'''

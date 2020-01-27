@@ -7,6 +7,7 @@ import os
 from setuptools import setup
 
 PACKAGE_NAME = MODULE_NAME = 'chisel'
+TESTS_REQUIRE = ['mistune >= 2.0.0a2']
 
 def main():
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src', MODULE_NAME, '__init__.py'), encoding='utf-8') as init_file:
@@ -37,7 +38,11 @@ def main():
         ],
         package_dir={'': 'src'},
         packages=[MODULE_NAME],
-        test_suite='tests'
+        test_suite='tests',
+        tests_require=TESTS_REQUIRE,
+        extras_require={
+            'tests': TESTS_REQUIRE
+        }
     )
 
 if __name__ == '__main__':
