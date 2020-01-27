@@ -367,6 +367,14 @@ The request is exposed at the following URL:
         </ul>
       </div>
     </div>
+    <h2 id="my_action1_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="my_action1_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
+    </div>
     <h2 id="my_action1_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
       <tr>
@@ -599,6 +607,14 @@ The request is exposed at the following URL:
         </ul>
       </div>
     </div>
+    <h2 id="my_action2_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="my_action2_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
+    </div>
     <h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
 <p>The action has no input parameters.</p>
@@ -732,6 +748,18 @@ The request is exposed at the following URL:
         </ul>
       </div>
     </div>
+    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>
+The action has no path parameters.
+</p>
+    </div>
+    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>
+The action has no query parameters.
+</p>
+    </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
 <p>
@@ -784,6 +812,18 @@ The request is exposed at the following URL:
 <li><a href="/my_action2">POST /my_action2</a></li>
 </ul>
 </div>
+</div>
+<h2 id="my_action2_path"><a class="linktarget">Path Parameters</a></h2>
+<div class="chsl-text">
+<p>
+The action has no path parameters.
+</p>
+</div>
+<h2 id="my_action2_query"><a class="linktarget">Query Parameters</a></h2>
+<div class="chsl-text">
+<p>
+The action has no query parameters.
+</p>
 </div>
 <h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
 <div class="chsl-text">
@@ -1046,6 +1086,14 @@ The action has a non-default response. See documentation for details.
         </p>
       </div>
     </div>
+    <h2 id="doc_my_action_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="doc_my_action_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
+    </div>
     <h2 id="doc_my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
 <p>The action has no input parameters.</p>
@@ -1077,6 +1125,14 @@ The request is exposed at the following URL:
           <li><a href="/my_action">POST /my_action</a></li>
         </ul>
       </div>
+    </div>
+    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -1135,6 +1191,14 @@ The request is exposed at the following URL:
           <li><a href="/my_action">POST /my_action</a></li>
         </ul>
       </div>
+    </div>
+    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -1211,6 +1275,14 @@ The request is exposed at the following URL:
           <li><a href="https://foo.com/my_action">GET https://foo.com/my_action</a></li>
         </ul>
       </div>
+    </div>
+    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no path parameters.</p>
+    </div>
+    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
+    <div class="chsl-text">
+<p>The action has no query parameters.</p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>

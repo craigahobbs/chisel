@@ -225,6 +225,8 @@ def _request_html(ctx, request, request_urls, nonav):
     enum_types = {}
     typedef_types = {}
     if is_action:
+        _referenced_types(struct_types, enum_types, typedef_types, request.model.path_type)
+        _referenced_types(struct_types, enum_types, typedef_types, request.model.query_type)
         _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
         _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
     elif not is_request:
@@ -283,6 +285,8 @@ def _request_html(ctx, request, request_urls, nonav):
 
             # Request input and output structs
             None if not is_action else [
+                _struct_section(request.model.path_type, 'h2', 'Path Parameters', ('The action has no path parameters.',)),
+                _struct_section(request.model.query_type, 'h2', 'Query Parameters', ('The action has no query parameters.',)),
                 _struct_section(request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
                 None if request.wsgi_response else [
                     _struct_section(request.model.output_type, 'h2', 'Output Parameters', ('The action has no output parameters.',)),
