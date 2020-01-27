@@ -4,6 +4,7 @@
 from html import escape
 from http import HTTPStatus
 from itertools import chain
+import re
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
@@ -14,12 +15,19 @@ from .request import Request
 class SimpleMarkdown:
     __slots__ = ()
 
+    RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
+
     def __call__(self, markdown_text):
         paragraphs = []
         lines = []
         for line in (line.strip() for line in markdown_text.splitlines()):
             if line:
-                lines.append(line)
+                if self.RE_MARKDOWN_NEW_PARAGRAPH.match(line):
+                    if lines:
+                        paragraphs.append(lines)
+                    lines = [line]
+                else:
+                    lines.append(line)
             elif lines:
                 paragraphs.append(lines)
                 lines = []

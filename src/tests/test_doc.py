@@ -9,7 +9,7 @@ from . import TestCase
 
 class TestSimpleMarkdown(TestCase):
 
-    def test_markdown(self):
+    def test_basic(self):
         markdown = chisel.doc.SimpleMarkdown()
         self.assertEqual(
             markdown('''\
@@ -22,6 +22,8 @@ P2.
 P3
 ''' + '  P3 2.  ' + '''
 P3 3.
+
+P4
 '''),
             '''\
 <p>
@@ -35,7 +37,58 @@ P2.
 P3
 P3 2.
 P3 3.
+</p>
+<p>
+P4
 </p>''')
+
+    def test_new_paragraph(self):
+        markdown = chisel.doc.SimpleMarkdown()
+        self.assertEqual(
+            markdown('''\
+# h1
+## h2
+* list1
++ list2
+- list3
+
+- list4
+1. list5
+2. list6
+'''),
+            '''\
+<p>
+# h1
+</p>
+<p>
+## h2
+</p>
+<p>
+* list1
+</p>
+<p>
++ list2
+</p>
+<p>
+- list3
+</p>
+<p>
+- list4
+</p>
+<p>
+1. list5
+</p>
+<p>
+2. list6
+</p>'''
+        )
+
+    def test_empty(self):
+        markdown = chisel.doc.SimpleMarkdown()
+        self.assertEqual(
+            markdown('   '),
+            ''
+        )
 
 
 class TestElement(TestCase):
