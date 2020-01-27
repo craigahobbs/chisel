@@ -20,6 +20,7 @@ PYLINT_ARGS ?= -j 0
 
 # sphinx
 SPHINX_VERSION ?= 2.3.1
+SPHINX_RTD_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@a732d61
 SPHINX_DOC ?=
 
 # Build directory
@@ -34,7 +35,7 @@ UPPER_FN = $(strip $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$
     $(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$(1))))))))))))))))))))))))))))
 PYTHON_VERSION_FN = $(if $(strip $(1)),$(strip $(1)),$(firstword $(PYTHON_VERSIONS)))
 PYTHON_NAME_FN = $(call UPPER_FN, Python_$(subst .,_,$(call PYTHON_VERSION_FN,$(1))))
-PYTHON_IMAGE_FN = $(if $(ARCH),$(ARCH)/)python:$(call PYTHON_VERSION_FN,$(1))-slim
+PYTHON_IMAGE_FN = $(if $(ARCH),$(ARCH)/)python:$(call PYTHON_VERSION_FN,$(1))
 PIP_VERSION_FN = $(if $(findstring git+,$(2)),-e $(strip $(2))\#egg=$(strip $(1)),$(strip $(1))==$(strip $(2)))
 
 .PHONY: help
@@ -118,7 +119,7 @@ define DOC_COMMANDS_FN
 	@echo
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
-$(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)), DOC_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_VERSION)), DOC_COMMANDS_FN))
 else
 .PHONY: doc
 doc:
