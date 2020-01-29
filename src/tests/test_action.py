@@ -1,11 +1,14 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+# pylint: disable=missing-docstring
+
 from http import HTTPStatus
 from io import StringIO
 
 from chisel import action, Action, ActionError, Application, Request, SpecParserError
-from chisel.spec import ActionModel, SpecParser
+from chisel.model import ActionModel
+from chisel.spec import SpecParser
 
 from . import TestCase
 

@@ -1,6 +1,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 import re
 import os
 
@@ -10,6 +14,10 @@ PACKAGE_NAME = MODULE_NAME = 'chisel'
 TESTS_REQUIRE = ['mistune >= 2.0.0a2']
 
 def main():
+    """
+    TODO
+    """
+
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src', MODULE_NAME, '__init__.py'), encoding='utf-8') as init_file:
         version = re.search(r"__version__ = '(.+?)'", init_file.read()).group(1)
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'), encoding='utf-8') as readme_file:

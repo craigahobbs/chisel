@@ -1,6 +1,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from io import BytesIO
@@ -18,7 +22,7 @@ RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 class Application:
     """
-    Chisel application
+    TODO
     """
 
     __slots__ = (
@@ -32,17 +36,31 @@ class Application:
     )
 
     def __init__(self):
+        """
+        TODO
+        """
+
+        #: TODO
         self.log_level = logging.WARNING
+
+        #: TODO
         self.log_format = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
+
+        #: TODO
         self.pretty_output = False
+
+        #: TODO
         self.validate_output = True
+
+        #: TODO
         self.requests = {}
+
         self.__request_urls = {}
         self.__request_regex = []
 
     def add_request(self, request):
         """
-        Add a request object
+        TODO
         """
 
         # Duplicate request name?
@@ -65,7 +83,7 @@ class Application:
 
     def __call__(self, environ, start_response):
         """
-        Chisel application WSGI entry point
+        TODO
         """
 
         # Match the request by method and exact URL
@@ -133,6 +151,10 @@ class Application:
         return response
 
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
+        """
+        TODO
+        """
+
         request_environ = Context.create_environ(request_method, path_info, query_string, wsgi_input, environ=environ)
         start_response = StartResponse()
         response = self(request_environ, start_response)
@@ -141,21 +163,34 @@ class Application:
 
 class Context:
     """
-    Chisel request context
+    TODO
     """
 
     __slots__ = ('app', 'environ', '_start_response', 'url_args', 'log', 'headers')
 
+    #: TODO
     ENVIRON_CTX = 'chisel.ctx'
 
     def __init__(self, app, environ=None, start_response=None, url_args=None):
+        """
+        TODO
+        """
+
+        #: TODO
         self.app = app
+
+        #: TODO
         self.environ = environ or {}
+
         self._start_response = start_response
+
+        #: TODO
         self.url_args = url_args
+
+        #: TODO
         self.headers = {}
 
-        # Create the logger
+        #: TODO
         self.log = logging.getLoggerClass()('')
         self.log.setLevel(app.log_level)
         wsgi_errors = environ.get('wsgi.errors') if environ else None
@@ -171,6 +206,10 @@ class Context:
 
     @staticmethod
     def create_environ(request_method, path_info, query_string='', wsgi_input=b'', environ=None):
+        """
+        TODO
+        """
+
         if environ is None:
             environ = {}
         environ.setdefault('REQUEST_METHOD', request_method)
@@ -184,6 +223,10 @@ class Context:
         return environ
 
     def start_response(self, status, headers):
+        """
+        TODO
+        """
+
         if not isinstance(status, str):
             status = str(status.value) + ' ' + status.phrase
         for key, value in headers:
@@ -192,7 +235,7 @@ class Context:
 
     def add_header(self, key, value):
         """
-        Add a response header
+        TODO
         """
 
         assert isinstance(key, str), 'header key must be of type str'
@@ -200,6 +243,10 @@ class Context:
         self.headers[key] = value
 
     def add_cache_headers(self, control=None, ttl_seconds=None, utcnow=None):
+        """
+        TODO
+        """
+
         if self.environ.get('REQUEST_METHOD') == 'GET':
             if control is None:
                 assert ttl_seconds is None
@@ -214,7 +261,7 @@ class Context:
 
     def response(self, status, content_type, content, headers=None):
         """
-        Send an HTTP response
+        TODO
         """
 
         assert not isinstance(content, (str, bytes)), 'response content cannot be of type str or bytes'
@@ -226,7 +273,7 @@ class Context:
 
     def response_text(self, status, text=None, content_type='text/plain', encoding='utf-8', headers=None):
         """
-        Send a plain-text response
+        TODO
         """
 
         if text is None:
@@ -238,7 +285,7 @@ class Context:
 
     def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None, jsonp=None):
         """
-        Send a JSON response
+        TODO
         """
 
         encoder = JSONEncoder(
@@ -257,7 +304,7 @@ class Context:
 
     def reconstruct_url(self, path_info=None, query_string=None, relative=False):
         """
-        Reconstructs the request URL using the algorithm provided by PEP3333
+        TODO
         """
 
         environ = self.environ
@@ -297,6 +344,10 @@ class Context:
 
 
 class StartResponse:
+    """
+    TODO
+    """
+
     __slots__ = ('status', 'headers')
 
     def __init__(self):

@@ -1,6 +1,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 from html import escape
 from http import HTTPStatus
 from itertools import chain
@@ -8,21 +12,29 @@ import re
 from xml.sax.saxutils import quoteattr
 
 from .action import Action
-from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
+from .model import get_referenced_types, Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict
 from .request import Request
 
 
 class SimpleMarkdown:
+    """
+    TODO
+    """
+
     __slots__ = ()
 
-    RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
+    _RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
 
     def __call__(self, markdown_text):
+        """
+        TODO
+        """
+
         paragraphs = []
         lines = []
         for line in (line.strip() for line in markdown_text.splitlines()):
             if line:
-                if self.RE_MARKDOWN_NEW_PARAGRAPH.match(line):
+                if self._RE_MARKDOWN_NEW_PARAGRAPH.match(line):
                     if lines:
                         paragraphs.append(lines)
                     lines = [line]
@@ -35,10 +47,9 @@ class SimpleMarkdown:
             paragraphs.append(lines)
 
         # Do a simple markdown-like rendering
-        if paragraphs:
-            return '\n'.join('<p>\n' + escape('\n'.join(paragraph)) + '\n</p>' for paragraph in paragraphs)
-        else:
+        if not paragraphs:
             return ''
+        return '\n'.join('<p>\n' + escape('\n'.join(paragraph)) + '\n</p>' for paragraph in paragraphs)
 
 
 # Create the markdown object
@@ -51,25 +62,51 @@ except ImportError: # pragma: no cover
 
 class Element:
     """
-    HTML5 DOM element
+    TODO
     """
 
     __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
 
     def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
+        """
+        TODO
+        """
+
+        #: TODO
         self.name = name
+
+        #: TODO
         self.text = text
+
+        #: TODO
         self.text_raw = text_raw
+
+        #: TODO
         self.closed = closed
+
+        #: TODO
         self.indent = indent
+
+        #: TODO
         self.inline = inline
+
+        #: TODO
         self.attrs = attrs
+
+        #: TODO
         self.children = children
 
     def serialize(self, indent='  ', html=True):
+        """
+        TODO
+        """
+
         return ''.join(chain(['<!doctype html>\n'] if html else [], self.serialize_chunks(indent=indent)))
 
     def serialize_chunks(self, indent='  ', indent_index=0, inline=False):
+        """
+        TODO
+        """
 
         # Initial newline and indent as necessary...
         if indent is not None and not inline and indent_index > 0 and self.indent:
@@ -81,7 +118,7 @@ class Element:
         if self.text:
             yield escape(self.name)
             return
-        elif self.text_raw:
+        if self.text_raw:
             yield self.name
             return
 
@@ -121,12 +158,16 @@ class Element:
 
 class DocAction(Action):
     """
-    Chisel documentation request
+    TODO
     """
 
     __slots__ = ()
 
     def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None):
+        """
+        TODO
+        """
+
         super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group,
                          wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
@@ -146,21 +187,24 @@ action {name}
             root = _index_html(ctx, sorted(ctx.app.requests.values(), key=lambda x: x.name.lower()))
             content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
             return ctx.response_text(HTTPStatus.OK, content, content_type='text/html')
-        elif request_name in ctx.app.requests:
+        if request_name in ctx.app.requests:
             content = DocPage.content(ctx, ctx.app.requests[request_name], nonav=req.get('nonav'))
             return ctx.response_text(HTTPStatus.OK, content, content_type='text/html')
-        else:
-            return ctx.response_text(HTTPStatus.NOT_FOUND, 'Unknown Request')
+        return ctx.response_text(HTTPStatus.NOT_FOUND, 'Unknown Request')
 
 
 class DocPage(Action):
     """
-    Chisel single-request documentation request
+    TODO
     """
 
     __slots__ = ('request', 'request_urls')
 
     def __init__(self, request, request_urls=None, name=None, urls=(('GET', None),), doc=None, doc_group=None):
+        """
+        TODO
+        """
+
         request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
@@ -169,7 +213,11 @@ class DocPage(Action):
 # Documentation page for {request_name}.
 action {name}
 '''.format(name=name, request_name=request_name))
+
+        #: TODO
         self.request = request
+
+        #: TODO
         self.request_urls = request_urls
 
     def _action_callback(self, ctx, unused_req):
@@ -177,6 +225,10 @@ action {name}
 
     @staticmethod
     def content(ctx, request, request_urls=None, nonav=True):
+        """
+        TODO
+        """
+
         root = _request_html(ctx, request, request_urls, nonav)
         return root.serialize(indent='  ' if ctx.app.pretty_output else '')
 
@@ -198,7 +250,7 @@ def _index_html(ctx, requests):
         Element('head', children=[
             Element('meta', closed=False, charset='UTF-8'),
             Element('title', inline=True, children=Element(title, text=True)),
-            _style_element()
+            Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
         ]),
         Element('body', _class='chsl-index-body', children=[
             Element('h1', inline=True, children=Element(title, text=True)),
@@ -229,22 +281,22 @@ def _request_html(ctx, request, request_urls, nonav):
         reconstruct_urls = False
 
     # Find all user types referenced by the action
-    struct_types = {}
-    enum_types = {}
-    typedef_types = {}
     if is_action:
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.path_type)
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.query_type)
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.input_type)
-        _referenced_types(struct_types, enum_types, typedef_types, request.model.output_type)
+        struct_types = [typ for typ in get_referenced_types(request.model) if isinstance(typ, TypeStruct)]
+        enum_types = [typ for typ in get_referenced_types(request.model) if isinstance(typ, TypeEnum)]
+        typedef_types = [typ for typ in get_referenced_types(request.model) if isinstance(typ, Typedef)]
     elif not is_request:
-        _referenced_types(struct_types, enum_types, typedef_types, request)
+        struct_types = [typ for typ in get_referenced_types(request) if isinstance(typ, TypeStruct)]
+        enum_types = [typ for typ in get_referenced_types(request) if isinstance(typ, TypeEnum)]
+        typedef_types = [typ for typ in get_referenced_types(request) if isinstance(typ, Typedef)]
+    else:
+        struct_types = enum_types = typedef_types = None
 
     return Element('html', children=[
         Element('head', children=[
             Element('meta', closed=False, charset='UTF-8'),
             Element('title', inline=True, children=Element(request.name if is_request else request.type_name, text=True)),
-            _style_element()
+            Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
         ]),
         Element('body', _class='chsl-request-body', children=[
 
@@ -305,51 +357,27 @@ def _request_html(ctx, request, request_urls, nonav):
             # User types
             None if not typedef_types else [
                 Element('h2', inline=True, children=Element('Typedefs', text=True)),
-                [_typedef_section(type_, 'h3')
-                 for type_ in sorted(typedef_types.values(), key=lambda x: x.type_name.lower())]
+                [_typedef_section(type_, 'h3') for type_ in typedef_types]
             ],
             None if not struct_types else [
                 Element('h2', inline=True, children=Element('Struct Types', text=True)),
-                [_struct_section(type_, 'h3')
-                 for type_ in sorted(struct_types.values(), key=lambda x: x.type_name.lower())]
+                [_struct_section(type_, 'h3') for type_ in struct_types]
             ],
             None if not enum_types else [
                 Element('h2', inline=True, children=Element('Enum Types', text=True)),
-                [_enum_section(type_, 'h3')
-                 for type_ in sorted(enum_types.values(), key=lambda x: x.type_name.lower())]
+                [_enum_section(type_, 'h3') for type_ in enum_types]
             ]
         ])
     ])
-
-
-def _referenced_types(struct_types, enum_types, typedef_types, type_, top_level=True):
-    if isinstance(type_, TypeStruct) and type_.type_name not in struct_types:
-        if not top_level:
-            struct_types[type_.type_name] = type_
-        for member in type_.members():
-            _referenced_types(struct_types, enum_types, typedef_types, member.type, top_level=False)
-    elif isinstance(type_, TypeEnum) and type_.type_name not in enum_types:
-        if not top_level:
-            enum_types[type_.type_name] = type_
-    elif isinstance(type_, Typedef) and type_.type_name not in typedef_types:
-        if not top_level:
-            typedef_types[type_.type_name] = type_
-        _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
-    elif isinstance(type_, TypeArray):
-        _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
-    elif isinstance(type_, TypeDict):
-        _referenced_types(struct_types, enum_types, typedef_types, type_.type, top_level=False)
-        _referenced_types(struct_types, enum_types, typedef_types, type_.key_type, top_level=False)
 
 
 def _doc_text(doc):
     if not isinstance(doc, str):
         doc = '\n'.join(doc)
     markdown_html = MARKDOWN(doc).strip()
-    if markdown_html:
-        return Element('div', _class='chsl-text', children=Element(markdown_html, text_raw=True))
-    else:
+    if not markdown_html:
         return None
+    return Element('div', _class='chsl-text', children=Element(markdown_html, text_raw=True))
 
 
 def _type_name(type_):
@@ -361,42 +389,37 @@ def _type_name(type_):
 def _type_decl(type_):
     if isinstance(type_, TypeArray):
         return [_type_name(type_.type), Element('&nbsp;[]', text_raw=True)]
-    elif isinstance(type_, TypeDict):
+    if isinstance(type_, TypeDict):
         return [
             None if type_.has_default_key_type() else [_type_name(type_.key_type), Element('&nbsp;:&nbsp;', text_raw=True)],
             _type_name(type_.type), Element('&nbsp;{}', text_raw=True)
         ]
-    else:
-        return _type_name(type_)
-
-
-def _format_float(value):
-    return '{0:.6f}'.format(value).rstrip('0').rstrip('.')
+    return _type_name(type_)
 
 
 def _type_attr_helper(attr, value_name, len_name):
     if attr is None:
         return
     if attr.op_gt is not None:
-        yield (value_name, '>', _format_float(attr.op_gt))
+        yield (value_name, '>', '{0:.6f}'.format(attr.op_gt).rstrip('0').rstrip('.'))
     if attr.op_gte is not None:
-        yield (value_name, '>=', _format_float(attr.op_gte))
+        yield (value_name, '>=', '{0:.6f}'.format(attr.op_gte).rstrip('0').rstrip('.'))
     if attr.op_lt is not None:
-        yield (value_name, '<', _format_float(attr.op_lt))
+        yield (value_name, '<', '{0:.6f}'.format(attr.op_lt).rstrip('0').rstrip('.'))
     if attr.op_lte is not None:
-        yield (value_name, '<=', _format_float(attr.op_lte))
+        yield (value_name, '<=', '{0:.6f}'.format(attr.op_lte).rstrip('0').rstrip('.'))
     if attr.op_eq is not None:
-        yield (value_name, '==', _format_float(attr.op_eq))
+        yield (value_name, '==', '{0:.6f}'.format(attr.op_eq).rstrip('0').rstrip('.'))
     if attr.op_len_gt is not None:
-        yield (len_name, '>', _format_float(attr.op_len_gt))
+        yield (len_name, '>', '{0:.6f}'.format(attr.op_len_gt).rstrip('0').rstrip('.'))
     if attr.op_len_gte is not None:
-        yield (len_name, '>=', _format_float(attr.op_len_gte))
+        yield (len_name, '>=', '{0:.6f}'.format(attr.op_len_gte).rstrip('0').rstrip('.'))
     if attr.op_len_lt is not None:
-        yield (len_name, '<', _format_float(attr.op_len_lt))
+        yield (len_name, '<', '{0:.6f}'.format(attr.op_len_lt).rstrip('0').rstrip('.'))
     if attr.op_len_lte is not None:
-        yield (len_name, '<=', _format_float(attr.op_len_lte))
+        yield (len_name, '<=', '{0:.6f}'.format(attr.op_len_lte).rstrip('0').rstrip('.'))
     if attr.op_len_eq is not None:
-        yield (len_name, '==', _format_float(attr.op_len_eq))
+        yield (len_name, '==', '{0:.6f}'.format(attr.op_len_eq).rstrip('0').rstrip('.'))
 
 
 def _type_attr(type_, attr, optional, nullable):
@@ -494,10 +517,6 @@ def _enum_section(type_, title_tag, title=None, empty_doc=None):
             ]
         ])
     ]
-
-
-def _style_element():
-    return Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
 
 
 STYLE_TEXT = '''\

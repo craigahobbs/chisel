@@ -1,6 +1,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 from cgi import parse_header
 from functools import partial
 from http import HTTPStatus
@@ -15,30 +19,40 @@ from .util import decode_query_string
 
 def action(action_callback=None, **kwargs):
     """
-    Chisel action decorator
+    TODO
     """
 
     if action_callback is None:
         return partial(action, **kwargs)
-    else:
-        return Action(action_callback, **kwargs).decorate_module(action_callback)
+    return Action(action_callback, **kwargs).decorate_module(action_callback)
 
 
 class ActionError(Exception):
     """
-    Action error response exception
+    TODO
     """
 
     __slots__ = ('error', 'message', 'status')
 
     def __init__(self, error, message=None, status=None):
+        """
+        TODO
+        """
+
         super().__init__(error)
+
+        #: TODO
         self.error = error
+
+        #: TODO
         self.message = message
+
+        #: TODO
         self.status = status
 
 
 class _ActionErrorInternal(Exception):
+
     __slots__ = ('status', 'error', 'message', 'member')
 
     def __init__(self, status, error, message=None, member=None):
@@ -51,13 +65,16 @@ class _ActionErrorInternal(Exception):
 
 class Action(Request):
     """
-    Chisel action request
+    TODO
     """
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
 
     def __init__(self, action_callback, name=None, urls=(('POST', None),), doc=None, doc_group=None,
                  spec_parser=None, spec=None, wsgi_response=False, jsonp=None):
+        """
+        TODO
+        """
 
         # Use the action model name, if available
         if name is None:
@@ -77,12 +94,24 @@ class Action(Request):
             doc=doc if doc is not None else model.doc,
             doc_group=doc_group if doc_group is not None else model.doc_group
         )
+
+        #: TODO
         self.action_callback = action_callback
+
+        #: TODO
         self.model = model
+
+        #: TODO
         self.wsgi_response = wsgi_response
+
+        #: TODO
         self.jsonp = jsonp
 
     def __call__(self, environ, unused_start_response):
+        """
+        TODO
+        """
+
         ctx = environ[Context.ENVIRON_CTX]
 
         # Handle the action
@@ -171,7 +200,7 @@ class Action(Request):
                 response = self.action_callback(ctx, request)
                 if self.wsgi_response:
                     return response
-                elif response is None:
+                if response is None:
                     response = {}
                 response_type = self.model.output_type
             except ActionError as exc:

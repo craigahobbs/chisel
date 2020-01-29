@@ -5,7 +5,7 @@ Welcome to chisel's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   Module Reference <chisel>
 
 
 Indices and tables

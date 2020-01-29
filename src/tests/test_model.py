@@ -1,18 +1,87 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+# pylint: disable=missing-docstring
+
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
-from chisel.model import StructMemberAttributes, ValidationError, AttributeValidationError, ValidationMode, \
-    IMMUTABLE_VALIDATION_MODES, Typedef, TypeStruct, TypeArray, TypeDict, TypeEnum, \
-    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT
+from chisel.model import ActionModel, StructMemberAttributes, Typedef, TypeStruct, TypeArray, TypeDict, \
+    TypeEnum, TypeInt, ValidationError, AttributeValidationError, ValidationMode, IMMUTABLE_VALIDATION_MODES, \
+    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT, \
+    get_referenced_types
 
 from . import TestCase
 
 
-class TestModelValidationError(TestCase):
+class TestReferencedTypes(TestCase):
+
+    def test_struct(self):
+        array_struct = TypeStruct('ArrayStruct')
+        array = TypeArray(array_struct)
+        dict_key = Typedef(TYPE_STRING, type_name='DictKey')
+        dict_struct = TypeStruct('DictStruct')
+        dict_ = TypeDict(dict_struct, key_type=dict_key)
+        enum = TypeEnum('MyEnum')
+        typedef = Typedef(TYPE_INT, type_name='MyTypedef')
+        base = TypeStruct('MyBase')
+        base.add_member('a', TYPE_INT)
+        base.add_member('b', enum)
+        struct2 = TypeStruct('MyStruct2')
+        struct2.add_member('a', typedef)
+        struct2.add_member('b', array)
+        struct2.add_member('c', dict_)
+        struct = TypeStruct('MyStruct', base_types=(base,))
+        struct.add_member('d', TYPE_INT)
+        struct.add_member('e', struct)
+        struct.add_member('f', struct2)
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(struct)],
+            ['ArrayStruct', 'DictKey', 'DictStruct', 'MyEnum', 'MyStruct2', 'MyTypedef']
+        )
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(struct2)],
+            ['ArrayStruct', 'DictKey', 'DictStruct', 'MyTypedef']
+        )
+
+    def test_enum(self):
+        enum2 = TypeEnum('MyEnum2')
+        enum = TypeEnum('MyEnum', base_types=(enum2,))
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(enum)],
+            []
+        )
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(enum2)],
+            []
+        )
+
+    def test_typedef(self):
+        typedef2 = Typedef(TYPE_INT, type_name='MyTypedef2')
+        typedef = Typedef(typedef2, type_name='MyTypedef')
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(typedef)],
+            ['MyTypedef2']
+        )
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(typedef2)],
+            []
+        )
+
+    def test_action_model(self):
+        action_model = ActionModel('MyAction')
+        action_model.path_type.add_member('a', TypeStruct('Struct1'))
+        action_model.query_type.add_member('b', TypeStruct('Struct2'))
+        action_model.input_type.add_member('c', TypeStruct('Struct3'))
+        action_model.output_type.add_member('d', TypeStruct('Struct4'))
+        self.assertListEqual(
+            [t.type_name for t in get_referenced_types(action_model)],
+            ['Struct1', 'Struct2', 'Struct3', 'Struct4']
+        )
+
+
+class TestValidationError(TestCase):
 
     def test_member_syntax_dict_single(self):
         self.assertEqual(ValidationError.member_syntax(('a',)), 'a')
@@ -69,6 +138,64 @@ class TestModelValidationError(TestCase):
         self.assertTrue(isinstance(exc, ValidationError))
         self.assertEqual(str(exc), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
         self.assertEqual(exc.member, 'a')
+
+
+class TestActionModel(TestCase):
+
+    def test_init(self):
+        action_model = ActionModel('MyAction')
+        self.assertEqual(action_model.name, 'MyAction')
+        self.assertListEqual(action_model.urls, [])
+        for section, type_ in (
+                ('path', action_model.path_type),
+                ('query', action_model.query_type),
+                ('input', action_model.input_type),
+                ('output', action_model.output_type)
+        ):
+            self.assertEqual(type_.type_name, 'MyAction_' + section)
+            self.assertFalse(type_.union)
+            self.assertIsNone(type_.base_types)
+            self.assertListEqual(list(type_.members()), [])
+            self.assertListEqual(type_.doc, [])
+
+        self.assertEqual(action_model.path_type.type_name, 'MyAction_path')
+        self.assertFalse(action_model.path_type.union)
+        self.assertIsNone(action_model.path_type.base_types)
+        self.assertListEqual(list(action_model.path_type.members()), [])
+        self.assertListEqual(action_model.path_type.doc, [])
+
+        self.assertEqual(action_model.path_type.type_name, 'MyAction_path')
+        self.assertFalse(action_model.path_type.union)
+        self.assertIsNone(action_model.path_type.base_types)
+        self.assertListEqual(list(action_model.path_type.members()), [])
+        self.assertListEqual(action_model.path_type.doc, [])
+
+    def test_input_members(self):
+        action_model = ActionModel('MyAction')
+        base1 = TypeStruct('Base1')
+        base1.add_member('e', TYPE_INT)
+        action_model.path_type.base_types = (base1,)
+        base2 = TypeStruct('Base2')
+        base2.add_member('f', TYPE_INT)
+        action_model.query_type.base_types = (base2,)
+        base3 = TypeStruct('Base3')
+        base3.add_member('g', TYPE_INT)
+        action_model.input_type.base_types = (base3,)
+        base4 = TypeStruct('Base4')
+        base4.add_member('h', TYPE_INT)
+        action_model.output_type.base_types = (base4,)
+        action_model.path_type.add_member('a', TYPE_INT)
+        action_model.query_type.add_member('b', TYPE_INT)
+        action_model.input_type.add_member('c', TYPE_INT)
+        action_model.output_type.add_member('d', TYPE_INT)
+        self.assertListEqual(
+            [m.name for m in action_model.input_members()],
+            ['e', 'a', 'f', 'b', 'g', 'c']
+        )
+        self.assertListEqual(
+            [m.name for m in action_model.input_members(include_base_types=False)],
+            ['a', 'b', 'c']
+        )
 
 
 class TestStructMemberAttributes(TestCase):
@@ -224,19 +351,19 @@ class TestStructMemberAttributes(TestCase):
         attr.validate_attr(allow_length=True)
 
 
-class TestModelTypedefValidation(TestCase):
+class TestTypedef(TestCase):
 
     # Test typedef type construction
     def test_init(self):
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5))
         self.assertEqual(type_.type_name, 'typedef')
-        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, TypeInt))
         self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
         self.assertEqual(type_.doc, [])
 
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
         self.assertEqual(type_.type_name, 'Foo')
-        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, TypeInt))
         self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
         self.assertEqual(type_.doc, ['A', 'B'])
 
@@ -306,7 +433,7 @@ class TestModelTypedefValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int') [>= 5]")
 
 
-class TestModelStructValidation(TestCase):
+class TestStruct(TestCase):
 
     # Test struct type construction
     def test_init(self):
@@ -804,13 +931,13 @@ class TestModelStructValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Unknown member 'c'")
 
 
-class TestModelArrayValidation(TestCase):
+class TestArray(TestCase):
 
     # Test array type construction
     def test_init(self):
         type_ = TypeArray(TYPE_INT)
         self.assertEqual(type_.type_name, 'array')
-        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, TypeInt))
         self.assertEqual(type_.attr, None)
 
     # Test typedef attribute validation
@@ -934,13 +1061,13 @@ class TestModelArrayValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member '[1][2]', expected type 'int'")
 
 
-class TestModelDictValidation(TestCase):
+class TestDict(TestCase):
 
     # Test dict type construction
     def test_init(self):
         type_ = TypeDict(TYPE_INT)
         self.assertEqual(type_.type_name, 'dict')
-        self.assertTrue(isinstance(type_.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(type_.type, TypeInt))
 
     def test_valid_key_type(self):
         self.assertFalse(TypeDict.valid_key_type(TYPE_INT))
@@ -1108,7 +1235,7 @@ class TestModelDictValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str') for member 'a.b', expected type 'int'")
 
 
-class TestModelEnumValidation(TestCase):
+class TestEnum(TestCase):
 
     # Test enum type construction
     def test_init(self):
@@ -1221,7 +1348,7 @@ class TestModelEnumValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'c' (type 'str'), expected type 'enum'")
 
 
-class TestModelStringValidation(TestCase):
+class TestString(TestCase):
 
     # Test string type construction
     def test_init(self):
@@ -1260,7 +1387,7 @@ class TestModelStringValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 7 (type 'int'), expected type 'string'")
 
 
-class TestModelIntValidation(TestCase):
+class TestInt(TestCase):
 
     # Test int type construction
     def test_init(self):
@@ -1355,7 +1482,7 @@ class TestModelIntValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value True (type 'bool'), expected type 'int'")
 
 
-class TestModelFloatValidation(TestCase):
+class TestFloat(TestCase):
 
     # Test float type construction
     def test_init(self):
@@ -1461,7 +1588,7 @@ class TestModelFloatValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value True (type 'bool'), expected type 'float'")
 
 
-class TestModelBoolValidation(TestCase):
+class TestBool(TestCase):
 
     # Test bool type construction
     def test_init(self):
@@ -1513,7 +1640,7 @@ class TestModelBoolValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'bool'")
 
 
-class TestModelUuidValidation(TestCase):
+class TestUuid(TestCase):
 
     # Test uuid type construction
     def test_init(self):
@@ -1574,7 +1701,7 @@ class TestModelUuidValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'uuid'")
 
 
-class TestModelDateValidation(TestCase):
+class TestDate(TestCase):
 
     # Test date type construction
     def test_init(self):
@@ -1632,7 +1759,7 @@ class TestModelDateValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'date'")
 
 
-class TestModelDatetimeValidation(TestCase):
+class TestDatetime(TestCase):
 
     # Test datetime type construction
     def test_init(self):
@@ -1766,7 +1893,7 @@ class TestModelDatetimeValidation(TestCase):
             self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'datetime'")
 
 
-class TestModelObjectValidation(TestCase):
+class TestObject(TestCase):
 
     # Test object type construction
     def test_init(self):

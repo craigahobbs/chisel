@@ -1,11 +1,13 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+# pylint: disable=missing-docstring
+
 import os
 
 from chisel import SpecParser, SpecParserError
-from chisel.model import TypeArray, Typedef, TypeDict, TypeEnum, TypeStruct, \
-    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_INT, TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TYPE_UUID
+from chisel.model import TypeArray, Typedef, TypeBool, TypeDate, TypeDatetime, \
+    TypeDict, TypeEnum, TypeFloat, TypeInt, TypeObject, TypeString, TypeStruct, TypeUuid
 
 from . import TestCase
 
@@ -205,29 +207,29 @@ action MyAction4 \\
 
         # Check struct types
         self.assert_struct_by_name(parser, 'MyStruct',
-                                   (('a', type(TYPE_STRING), False),
-                                    ('b', type(TYPE_INT), False)))
+                                   (('a', TypeString, False),
+                                    ('b', TypeInt, False)))
         self.assert_struct_by_name(parser, 'MyStruct2',
-                                   (('a', type(TYPE_INT), False),
-                                    ('b', type(TYPE_FLOAT), True),
-                                    ('c', type(TYPE_STRING), False, True),
-                                    ('d', type(TYPE_BOOL), False),
+                                   (('a', TypeInt, False),
+                                    ('b', TypeFloat, True),
+                                    ('c', TypeString, False, True),
+                                    ('d', TypeBool, False),
                                     ('e', TypeArray, False),
                                     ('f', TypeArray, True),
                                     ('g', TypeDict, True),
-                                    ('h', type(TYPE_DATETIME), True),
-                                    ('i', type(TYPE_UUID), True),
+                                    ('h', TypeDatetime, True),
+                                    ('i', TypeUuid, True),
                                     ('j', TypeDict, True),
-                                    ('k', type(TYPE_DATE), True, True),
-                                    ('l', type(TYPE_OBJECT), True)))
+                                    ('k', TypeDate, True, True),
+                                    ('l', TypeObject, True)))
         self.assert_struct_by_name(parser, 'MyUnion',
-                                   (('a', type(TYPE_INT), True),
-                                    ('b', type(TYPE_STRING), True)))
+                                   (('a', TypeInt, True),
+                                    ('b', TypeString, True)))
         mystruct2_members = list(parser.types['MyStruct2'].members())
-        self.assertTrue(isinstance(mystruct2_members[4].type.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(mystruct2_members[4].type.type, TypeInt))
         self.assertTrue(isinstance(mystruct2_members[5].type.type, TypeStruct))
         self.assertEqual(mystruct2_members[5].type.type.type_name, 'MyStruct')
-        self.assertTrue(isinstance(mystruct2_members[6].type.type, type(TYPE_FLOAT)))
+        self.assertTrue(isinstance(mystruct2_members[6].type.type, TypeFloat))
         self.assertTrue(isinstance(mystruct2_members[9].type.type, TypeStruct))
         self.assertTrue(isinstance(mystruct2_members[9].type.key_type, TypeEnum))
 
@@ -236,11 +238,11 @@ action MyAction4 \\
             parser,
             'MyAction',
             (
-                ('a', type(TYPE_INT), False),
-                ('b', type(TYPE_STRING), True)
+                ('a', TypeInt, False),
+                ('b', TypeString, True)
             ),
             (
-                ('c', type(TYPE_BOOL), False),
+                ('c', TypeBool, False),
             ),
             (
                 'Error1',
@@ -258,7 +260,7 @@ action MyAction4 \\
             (),
             (),
             query_members=(
-                ('a', type(TYPE_INT), False),
+                ('a', TypeInt, False),
             )
         )
         myaction2_input_members = list(parser.actions['MyAction2'].input_type.members())
@@ -269,13 +271,13 @@ action MyAction4 \\
             'MyAction3',
             (),
             (
-                ('a', type(TYPE_INT), False),
-                ('b', type(TYPE_DATETIME), False),
-                ('c', type(TYPE_DATE), False)
+                ('a', TypeInt, False),
+                ('b', TypeDatetime, False),
+                ('c', TypeDate, False)
             ),
             (),
             path_members=(
-                ('d', type(TYPE_INT), False),
+                ('d', TypeInt, False),
             )
         )
         self.assert_action(
@@ -692,11 +694,11 @@ enum MyEnum2
 
         # Check struct types
         self.assert_struct_by_name(parser, 'MyStruct',
-                                   (('c', type(TYPE_STRING), False),
+                                   (('c', TypeString, False),
                                     ('d', parser.types['MyEnum2'], False),
                                     ('e', parser.types['MyStruct2'], False)))
         self.assert_struct_by_name(parser, 'MyStruct2',
-                                   (('f', type(TYPE_STRING), False),
+                                   (('f', TypeString, False),
                                     ('g', parser.types['MyEnum2'], False)))
 
         # Check actions
@@ -751,7 +753,7 @@ enum MyEnum2
         self.assert_struct_by_name(parser, 'MyStruct',
                                    (('a', parser.types['MyEnum'], False),))
         self.assert_struct_by_name(parser, 'MyStruct2',
-                                   (('a', type(TYPE_INT), False),
+                                   (('a', TypeInt, False),
                                     ('b', parser.types['MyEnum'], False),
                                     ('c', parser.types['MyEnum2'], False)))
 
@@ -888,7 +890,7 @@ struct Foo
 
         # Check types
         self.assert_struct_by_name(parser, 'Foo',
-                                   (('a', type(TYPE_INT), False),))
+                                   (('a', TypeInt, False),))
 
         # Check errors
         self.assertEqual(parser.errors,
@@ -916,7 +918,7 @@ typedef int(> 5) Foo
         self.assertTrue(isinstance(typedef, Typedef))
         self.assertEqual(typedef.type_name, 'Foo')
         self.assertEqual(typedef.doc, [])
-        self.assertTrue(isinstance(typedef.type, type(TYPE_INT)))
+        self.assertTrue(isinstance(typedef.type, TypeInt))
         self.assertEqual(self.attr_tuple(typedef.attr), self.attr_tuple(op_gt=5))
 
         # Check errors
@@ -945,7 +947,7 @@ action MyAction
 
         # Check actions
         self.assert_action(parser, 'MyAction',
-                           (('b', type(TYPE_STRING), False),),
+                           (('b', TypeString, False),),
                            (),
                            ())
 
@@ -986,7 +988,7 @@ errors
 
         # Check types
         self.assert_struct_by_name(parser, 'MyStruct',
-                                   (('a', type(TYPE_INT), False),))
+                                   (('a', TypeInt, False),))
 
         # Check actions
         self.assert_action(parser, 'MyAction', (), (), ())
@@ -1130,16 +1132,16 @@ struct MyStruct
 
         # Check struct members
         self.assert_struct_by_name(parser, 'MyStruct',
-                                   (('i1', type(TYPE_INT), True),
-                                    ('i2', type(TYPE_INT), True),
-                                    ('i3', type(TYPE_INT), False),
-                                    ('i4', type(TYPE_INT), False),
-                                    ('i5', type(TYPE_INT), False),
-                                    ('f1', type(TYPE_FLOAT), False),
-                                    ('f2', type(TYPE_FLOAT), False),
-                                    ('s1', type(TYPE_STRING), False),
-                                    ('s2', type(TYPE_STRING), False),
-                                    ('s3', type(TYPE_STRING), False),
+                                   (('i1', TypeInt, True),
+                                    ('i2', TypeInt, True),
+                                    ('i3', TypeInt, False),
+                                    ('i4', TypeInt, False),
+                                    ('i5', TypeInt, False),
+                                    ('f1', TypeFloat, False),
+                                    ('f2', TypeFloat, False),
+                                    ('s1', TypeString, False),
+                                    ('s2', TypeString, False),
+                                    ('s3', TypeString, False),
                                     ('ai1', TypeArray, False),
                                     ('as1', TypeArray, False),
                                     ('as2', TypeArray, False),

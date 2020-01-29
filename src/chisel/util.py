@@ -1,6 +1,10 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import json
@@ -11,17 +15,21 @@ from uuid import UUID
 
 class JSONEncoder(json.JSONEncoder):
     """
-    JSON encoder class with support for encoding date, datetime, Decimal, and UUID.
+    TODO
     """
 
     def default(self, o): # pylint: disable=method-hidden
+        """
+        TODO
+        """
+
         if isinstance(o, datetime):
             return (o if o.tzinfo else o.replace(tzinfo=timezone.utc)).isoformat()
-        elif isinstance(o, date):
+        if isinstance(o, date):
             return o.isoformat()
-        elif isinstance(o, Decimal):
+        if isinstance(o, Decimal):
             return float(o)
-        elif isinstance(o, UUID):
+        if isinstance(o, UUID):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
@@ -35,7 +43,7 @@ _RE_ISO8601_DATETIME = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day
 
 def parse_iso8601_date(string):
     """
-    Parse an ISO 8601 date string
+    TODO
     """
 
     # Match ISO 8601?
@@ -53,7 +61,7 @@ def parse_iso8601_date(string):
 
 def parse_iso8601_datetime(string):
     """
-    Parse an ISO 8601 date/time string
+    TODO
     """
 
     # Match ISO 8601?
@@ -77,10 +85,18 @@ def parse_iso8601_datetime(string):
 
 # Encode an object as a URL query string
 def encode_query_string(obj, encoding='utf-8'):
+    """
+    TODO
+    """
+
     return '&'.join(k + '=' + v for k, v in encode_query_string_items(obj, encoding=encoding))
 
 
 def encode_query_string_items(obj, parent=None, encoding=None):
+    """
+    TODO
+    """
+
     if isinstance(obj, dict):
         if obj:
             for member, value in sorted(obj.items()):
@@ -117,6 +133,10 @@ def encode_query_string_items(obj, parent=None, encoding=None):
 
 # Decode an object from a URL query string
 def decode_query_string(query_string, encoding='utf-8'):
+    """
+    TODO
+    """
+
     return decode_query_string_items(
         (key_value_str.split('=') for key_value_str in query_string.split('&') if key_value_str),
         encoding=encoding
@@ -124,6 +144,9 @@ def decode_query_string(query_string, encoding='utf-8'):
 
 
 def decode_query_string_items(query_string_items, encoding=None):
+    """
+    TODO
+    """
 
     # Build the object
     result = [None]

@@ -1,46 +1,35 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+"""
+TODO
+"""
+
 from functools import partial
 from itertools import chain
 import os
 import re
 
-from .model import AttributeValidationError, StructMemberAttributes, TypeArray, \
-    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
+from .model import ActionModel, AttributeValidationError, StructMemberAttributes, \
+    TypeArray, TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
     TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TypeStruct, TYPE_UUID
 
 
-# Action model
-class ActionModel:
-    __slots__ = ('name', 'urls', 'path_type', 'query_type', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
-
-    def __init__(self, name, doc=None, doc_group=None):
-        self.name = name
-        self.urls = []
-        self.path_type = TypeStruct(type_name=name + '_path')
-        self.query_type = TypeStruct(type_name=name + '_query')
-        self.input_type = TypeStruct(type_name=name + '_input')
-        self.output_type = TypeStruct(type_name=name + '_output')
-        self.error_type = TypeEnum(type_name=name + '_error')
-        self.doc = [] if doc is None else doc
-        self.doc_group = doc_group
-
-    @staticmethod
-    def effective_members(action, type_, include_base_types=True):
-        if action and (type_ is action.path_type or type_ is action.query_type or type_ is action.input_type):
-            yield from chain.from_iterable(
-                t.members(include_base_types=include_base_types) for t in (action.path_type, action.query_type, action.input_type)
-            )
-        else:
-            yield from type_.members(include_base_types=include_base_types)
-
-# Spec parser exception
 class SpecParserError(Exception):
+    """
+    TODO
+    """
+
     __slots__ = ('errors',)
 
     def __init__(self, errors):
+        """
+        TODO
+        """
+
         super().__init__('\n'.join(errors))
+
+        #: TODO
         self.errors = errors
 
 
@@ -94,6 +83,10 @@ _TYPES = {
 
 # Specification language parser class
 class SpecParser:
+    """
+    TODO
+    """
+
     __slots__ = (
         'types',
         'actions',
@@ -112,9 +105,19 @@ class SpecParser:
     )
 
     def __init__(self, spec=None):
+        """
+        TODO
+        """
+
+        #: TODO
         self.types = {}
+
+        #: TODO
         self.actions = {}
+
+        #: TODO
         self.errors = []
+
         self._typerefs = []
         self._finalize_checks = []
         self._action = None
@@ -131,6 +134,9 @@ class SpecParser:
 
     # Parse a specification from an iterator of spec lines (e.g an input stream)
     def parse(self, lines, filename='', finalize=True):
+        """
+        TODO
+        """
 
         # Set the parser state
         self._action = None
@@ -149,10 +155,17 @@ class SpecParser:
 
     # Parse a specification string
     def parse_string(self, spec, filename='', finalize=True):
+        """
+        TODO
+        """
+
         self.parse(spec.splitlines(), finalize=finalize, filename=filename)
 
     # Finalize parsing (must call after calling parse one or more times - can be repeated)
     def finalize(self):
+        """
+        TODO
+        """
 
         # Fixup type refs
         for typeref in self._typerefs:
@@ -169,6 +182,10 @@ class SpecParser:
             raise SpecParserError(self.errors)
 
     def load(self, path, spec_ext='.chsl', finalize=True):
+        """
+        TODO
+        """
+
         if os.path.isdir(path):
             for dirpath, _, filenames in os.walk(path):
                 for filename in filenames:
@@ -246,7 +263,11 @@ class SpecParser:
     def _finalize_struct_base_type(self, action, struct_type, filename, linenum):
         if struct_type.base_types is not None and not self._finalize_circular_base_type(struct_type, filename, linenum):
             members = {}
-            for member in ActionModel.effective_members(action, struct_type):
+            if action is None or struct_type is action.output_type:
+                struct_members = struct_type.members
+            else:
+                struct_members = action.input_members
+            for member in struct_members():
                 member_count = members[member.name] = members.get(member.name, 0) + 1
                 if member_count == 2:
                     self._error("Redefinition of member '" + member.name + "' from base type", filename, linenum)
@@ -309,10 +330,9 @@ class SpecParser:
                     else:  # ==
                         op_len_eq = attr_value
 
-        if has_attrs:
-            return StructMemberAttributes(op_eq, op_lt, op_lte, op_gt, op_gte, op_len_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte)
-        else:
+        if not has_attrs:
             return None
+        return StructMemberAttributes(op_eq, op_lt, op_lte, op_gt, op_gte, op_len_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte)
 
     # Construct typedef parts
     def _parse_typedef(self, parent, parent_type_attr, parent_attr_attr, match_typedef):
@@ -560,7 +580,11 @@ class SpecParser:
                 member_name = match.group('id')
 
                 # Member name already defined?
-                if member_name in (mem.name for mem in ActionModel.effective_members(self._action, self._type, include_base_types=False)):
+                if self._action is None or self._type is self._action.output_type:
+                    struct_members = self._type.members
+                else:
+                    struct_members = self._action.input_members
+                if member_name in (mem.name for mem in struct_members(include_base_types=False)):
                     self._error("Redefinition of member '" + member_name + "'")
 
                 # Create the member

@@ -1,6 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+# pylint: disable=missing-docstring
+
 from chisel import action, request, Action, Application, DocAction, DocPage, Element, Request, SpecParser
 import chisel.doc
 

@@ -1,6 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+# pylint: disable=missing-docstring
+
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from urllib.parse import quote
