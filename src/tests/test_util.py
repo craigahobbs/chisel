@@ -8,7 +8,7 @@ from decimal import Decimal
 from urllib.parse import quote
 from uuid import UUID
 
-from chisel import decode_query_string, encode_query_string, JSONEncoder, parse_iso8601_date, parse_iso8601_datetime
+from chisel import Element, JSONEncoder, decode_query_string, encode_query_string, parse_iso8601_date, parse_iso8601_datetime
 from chisel.util import encode_query_string_items, decode_query_string_items
 
 from . import TestCase
@@ -54,6 +54,147 @@ class TestJSONEncoder(TestCase):
         encoder = JSONEncoder(indent=2, sort_keys=True, separators=(',', ': '))
         with self.assertRaises(TypeError):
             encoder.encode({'my_type': MyType()})
+
+
+class TestElement(TestCase):
+
+    TEST_ELEMENTS = Element('a', children=[
+        Element('b', inline=True, children=[
+            Element('Hello!', text=True),
+            Element('Text &\nRaw', text_raw=True),
+            Element('span', children=Element(' There!', text=True)),
+            Element('span', children=[
+                [
+                    Element(' Again,', text=True),
+                    None,
+                    Element(' again!', text=True)
+                ]
+            ])
+        ]),
+        Element('c', closed=False, foo='bar', bar=None),
+        Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
+    ])
+
+    def test_element(self):
+        expected_chunks = [
+            '<!doctype html>\n',
+            '<a',
+            '>',
+            '\n',
+            '  ',
+            '<b',
+            '>',
+            'Hello!',
+            'Text &\nRaw',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '<span',
+            '>',
+            ' Again,',
+            ' again!',
+            '</span>',
+            '</b>',
+            '\n',
+            '  ',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '\n',
+            '  ',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '\n',
+            '    ',
+            '<e',
+            ' />',
+            '\n  ',
+            '</d>',
+            '\n',
+            '</a>'
+        ]
+        self.assertEqual(list(self.TEST_ELEMENTS.serialize_chunks()), expected_chunks)
+        self.assertEqual(self.TEST_ELEMENTS.serialize(), ''.join(expected_chunks))
+        self.assertEqual(self.TEST_ELEMENTS.serialize(html=False), ''.join(expected_chunks[1:]))
+
+    def test_element_indent_empty(self):
+        expected_chunks = [
+            '<!doctype html>\n',
+            '<a',
+            '>',
+            '\n',
+            '<b',
+            '>',
+            'Hello!',
+            'Text &\nRaw',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '<span',
+            '>',
+            ' Again,',
+            ' again!',
+            '</span>',
+            '</b>',
+            '\n',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '\n',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '\n',
+            '<e',
+            ' />',
+            '\n',
+            '</d>',
+            '\n',
+            '</a>'
+        ]
+        self.assertEqual(list(self.TEST_ELEMENTS.serialize_chunks(indent='')), expected_chunks)
+        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=''), ''.join(expected_chunks))
+        self.assertEqual(self.TEST_ELEMENTS.serialize(indent='', html=False), ''.join(expected_chunks[1:]))
+
+    def test_element_indent_none(self):
+        expected_chunks = [
+            '<!doctype html>\n',
+            '<a',
+            '>',
+            '<b',
+            '>',
+            'Hello!',
+            'Text &\nRaw',
+            '<span',
+            '>',
+            ' There!',
+            '</span>',
+            '<span',
+            '>',
+            ' Again,',
+            ' again!',
+            '</span>',
+            '</b>',
+            '<c',
+            ' foo="bar"',
+            '>',
+            '<d',
+            ' attr1="asdf"',
+            ' attr2="sdfg"',
+            '>',
+            '<e',
+            ' />',
+            '</d>',
+            '</a>'
+        ]
+        self.assertEqual(list(self.TEST_ELEMENTS.serialize_chunks(indent=None)), expected_chunks)
+        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=None), ''.join(expected_chunks))
+        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=None, html=False), ''.join(expected_chunks[1:]))
 
 
 class TestISO8601(TestCase):

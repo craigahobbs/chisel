@@ -18,8 +18,7 @@ from .app import \
 
 from .doc import \
     DocAction, \
-    DocPage, \
-    Element
+    DocPage
 
 from .model import \
     ActionModel, \
@@ -61,6 +60,7 @@ from .spec import \
     SpecParserError
 
 from .util import \
+    Element, \
     JSONEncoder, \
     decode_query_string, \
     encode_query_string, \

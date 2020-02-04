@@ -7,10 +7,12 @@ TODO
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from html import escape
 import json
 import re
 from urllib.parse import quote, unquote
 from uuid import UUID
+from xml.sax.saxutils import quoteattr
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -32,6 +34,106 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, UUID):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
+
+class Element:
+    """
+    TODO
+    """
+
+    __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
+
+    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
+        """
+        TODO
+        """
+
+        #: TODO
+        self.name = name
+
+        #: TODO
+        self.text = text
+
+        #: TODO
+        self.text_raw = text_raw
+
+        #: TODO
+        self.closed = closed
+
+        #: TODO
+        self.indent = indent
+
+        #: TODO
+        self.inline = inline
+
+        #: TODO
+        self.attrs = attrs
+
+        #: TODO
+        self.children = children
+
+    def serialize(self, indent='  ', html=True):
+        """
+        TODO
+        """
+
+        return ''.join(self.serialize_chunks(indent, html))
+
+    def serialize_chunks(self, indent='  ', html=True, indent_index=0, inline=False):
+        """
+        TODO
+        """
+
+        # HTML5 doctype, if requested
+        if html and indent_index == 0:
+            yield '<!doctype html>\n'
+
+        # Initial newline and indent as necessary...
+        if indent is not None and not inline and indent_index != 0 and self.indent:
+            yield '\n'
+            if indent and not self.text and not self.text_raw:
+                yield indent * indent_index
+
+        # Text element?
+        if self.text:
+            yield escape(self.name)
+            return
+        if self.text_raw:
+            yield self.name
+            return
+
+        # Element open
+        yield '<' + self.name
+        for attr_key, attr_value in sorted((key_value[0].lstrip('_'), key_value[1]) for key_value in self.attrs.items()):
+            if attr_value is not None:
+                yield ' ' + attr_key + '=' + quoteattr(attr_value)
+
+        # Child elements
+        has_children = False
+        for child in self._iterate_children_helper(self.children):
+            if not has_children:
+                has_children = True
+                yield '>'
+            yield from child.serialize_chunks(indent, html, indent_index + 1, inline or self.inline)
+
+        # Element close
+        if not has_children:
+            yield ' />' if self.closed else '>'
+            return
+        if indent is not None and not inline and not self.inline:
+            yield '\n' + indent * indent_index
+        yield '</' + self.name + '>'
+
+    @classmethod
+    def _iterate_children_helper(cls, children):
+        if isinstance(children, Element):
+            yield children
+        elif children is not None:
+            for child in children:
+                if isinstance(child, Element):
+                    yield child
+                elif child is not None:
+                    yield from cls._iterate_children_helper(child)
 
 
 # ISO 8601 regexes
@@ -83,7 +185,6 @@ def parse_iso8601_datetime(string):
     return datetime(year, month, day, hour, minute, sec, microsec, timezone.utc) - timedelta(hours=offhour, minutes=offmin)
 
 
-# Encode an object as a URL query string
 def encode_query_string(obj, encoding='utf-8'):
     """
     TODO
@@ -131,7 +232,6 @@ def encode_query_string_items(obj, parent=None, encoding=None):
             yield parent, quote(str(obj), encoding=encoding) if encoding else str(obj)
 
 
-# Decode an object from a URL query string
 def decode_query_string(query_string, encoding='utf-8'):
     """
     TODO
