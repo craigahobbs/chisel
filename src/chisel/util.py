@@ -41,9 +41,9 @@ class Element:
     TODO
     """
 
-    __slots__ = ('name', 'text', 'text_raw', 'closed', 'indent', 'inline', 'attrs', 'children')
+    __slots__ = ('name', 'text', 'text_raw', 'closed', 'inline', 'attrs', 'children')
 
-    def __init__(self, name, text=False, text_raw=False, closed=True, indent=True, inline=False, children=None, **attrs):
+    def __init__(self, name, text=False, text_raw=False, closed=True, inline=False, children=None, **attrs):
         """
         TODO
         """
@@ -61,9 +61,6 @@ class Element:
         self.closed = closed
 
         #: TODO
-        self.indent = indent
-
-        #: TODO
         self.inline = inline
 
         #: TODO
@@ -77,19 +74,16 @@ class Element:
         TODO
         """
 
-        return ''.join(self.serialize_chunks(indent, html))
+        return ''.join(self._serialize_chunks(indent, html, 0, False))
 
-    def serialize_chunks(self, indent='  ', html=True, indent_index=0, inline=False):
-        """
-        TODO
-        """
+    def _serialize_chunks(self, indent, html, indent_index, inline):
 
         # HTML5 doctype, if requested
         if html and indent_index == 0:
             yield '<!doctype html>\n'
 
         # Initial newline and indent as necessary...
-        if indent is not None and not inline and indent_index != 0 and self.indent:
+        if indent is not None and not inline and indent_index != 0:
             yield '\n'
             if indent and not self.text and not self.text_raw:
                 yield indent * indent_index
@@ -114,7 +108,7 @@ class Element:
             if not has_children:
                 has_children = True
                 yield '>'
-            yield from child.serialize_chunks(indent, html, indent_index + 1, inline or self.inline)
+            yield from child._serialize_chunks(indent, html, indent_index + 1, inline or self.inline) # pylint: disable=protected-access
 
         # Element close
         if not has_children:
