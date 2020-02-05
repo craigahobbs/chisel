@@ -22,7 +22,7 @@ class SimpleMarkdown:
 
     __slots__ = ()
 
-    _RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
+    RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
 
     def __call__(self, markdown_text):
         """
@@ -33,7 +33,7 @@ class SimpleMarkdown:
         lines = []
         for line in (line.strip() for line in markdown_text.splitlines()):
             if line:
-                if self._RE_MARKDOWN_NEW_PARAGRAPH.match(line):
+                if self.RE_MARKDOWN_NEW_PARAGRAPH.match(line):
                     if lines:
                         paragraphs.append(lines)
                     lines = [line]
@@ -67,12 +67,7 @@ class DocAction(Action):
     __slots__ = ()
 
     def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None):
-        """
-        TODO
-        """
-
-        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group,
-                         wsgi_response=True, spec='''\
+        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
   query
@@ -104,15 +99,10 @@ class DocPage(Action):
     __slots__ = ('request', 'request_urls')
 
     def __init__(self, request, request_urls=None, name=None, urls=(('GET', None),), doc=None, doc_group=None):
-        """
-        TODO
-        """
-
         request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
-        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group,
-                         wsgi_response=True, spec='''\
+        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
 # Documentation page for {request_name}.
 action {name}
 '''.format(name=name, request_name=request_name))

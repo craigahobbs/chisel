@@ -23,10 +23,6 @@ class SpecParserError(Exception):
     __slots__ = ('errors',)
 
     def __init__(self, errors):
-        """
-        TODO
-        """
-
         super().__init__('\n'.join(errors))
 
         #: TODO
@@ -105,9 +101,6 @@ class SpecParser:
     )
 
     def __init__(self, spec=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.types = {}

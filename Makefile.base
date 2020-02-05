@@ -20,7 +20,8 @@ PYLINT_ARGS ?= -j 0
 
 # sphinx
 SPHINX_VERSION ?= 2.3.1
-SPHINX_RTD_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@a732d61
+SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@a732d61
+SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
 
 # Build directory
@@ -115,11 +116,12 @@ $(eval $(call VENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT
 # Generate sphinx rules
 ifneq '$(SPHINX_DOC)' ''
 define DOC_COMMANDS_FN
-	$(1)/sphinx-build -b html -d $(BUILD)/doc/doctrees $(SPHINX_DOC) $(BUILD)/doc/html
+	$(1)/sphinx-build $(SPHINX_ARGS) -b doctest -d $(BUILD)/doc/doctrees $(SPHINX_DOC) $(BUILD)/doc/html
+	$(1)/sphinx-build $(SPHINX_ARGS) -b html -d $(BUILD)/doc/doctrees $(SPHINX_DOC) $(BUILD)/doc/html
 	@echo
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
-$(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_VERSION)), DOC_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_THEME_VERSION)), DOC_COMMANDS_FN))
 else
 .PHONY: doc
 doc:

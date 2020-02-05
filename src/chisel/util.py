@@ -17,12 +17,16 @@ from xml.sax.saxutils import quoteattr
 
 class JSONEncoder(json.JSONEncoder):
     """
-    TODO
+    A :class:`~json.JSONEncoder` sub-class with support for :class:`~datetime.datetime`, :class:`~datetime.date`, :class:`~decimal.Decimal`,
+    and :class:`~uuid.UUID` objects.
     """
+
+    __slots__ = ()
 
     def default(self, o): # pylint: disable=method-hidden
         """
-        TODO
+        The override of the :meth:`~json.JSONEncoder.default` method to add support for :class:`~datetime.datetime`,
+        :class:`~datetime.date`, :class:`~decimal.Decimal`, and :class:`~uuid.UUID` objects.
         """
 
         if isinstance(o, datetime):
@@ -38,40 +42,54 @@ class JSONEncoder(json.JSONEncoder):
 
 class Element:
     """
-    TODO
+    A structured markup language document model element.
+
+    :param str name: The element name.
+    :param bool text: If ``True``, the element :attr:`name` is the text of a text element.
+    :param bool text_raw: If ``True``, the element :attr:`name` is the raw text of a text element.
+    :param bool closed: If ``True``, the element is "closed".
+    :param bool inline: If ``True``, the element and its children serialized in-line.
+    :param children: A list of child :class:`Element` objects (or list objects or ``None``),
+                     or :class:`Element` objects, or ``None``.
+    :type children: list or Element
+    :param dict attrs: The element's attributes. For built-ins (e.g. ``'class'``), prefix the attribute name with an
+                       underscore (e.g. ``'_class'``). Key/value pairs with a value of ``None`` are ignored.
     """
 
-    __slots__ = ('name', 'text', 'text_raw', 'closed', 'inline', 'attrs', 'children')
+    __slots__ = ('name', 'text', 'text_raw', 'closed', 'inline', 'children', 'attrs')
 
     def __init__(self, name, text=False, text_raw=False, closed=True, inline=False, children=None, **attrs):
-        """
-        TODO
-        """
 
-        #: TODO
+        #: :class:`str` - The element name.
         self.name = name
 
-        #: TODO
+        #: :class:`bool` - If ``True``, the element :attr:`name` is the text of a text element.
         self.text = text
 
-        #: TODO
+        #: :class:`bool` - If ``True``, the element :attr:`name` is the raw text of a text element.
         self.text_raw = text_raw
 
-        #: TODO
+        #: :class:`bool` - If ``True``, the element is "closed".
         self.closed = closed
 
-        #: TODO
+        #: :class:`bool` - If ``True``, the element and its children serialized in-line.
         self.inline = inline
 
-        #: TODO
-        self.attrs = attrs
-
-        #: TODO
+        #: :class:`list` or :class:`Element` - A list of child :class:`Element` objects (or list objects or ``None``),
+        #: or :class:`Element` objects, or ``None``.
         self.children = children
+
+        #: :class:`dict` - The element's attributes. For built-ins (e.g. ``'class'``), prefix the attribute name with an
+        #: underscore (e.g. ``'_class'``). Key/value pairs with a value of ``None`` are ignored.
+        self.attrs = attrs
 
     def serialize(self, indent='  ', html=True):
         """
-        TODO
+        Serialize an element and its children.
+
+        :param str indent: The indent string, or ``None``.
+        :param bool html: If ``True``, include the `HTML5 <https://en.wikipedia.org/wiki/HTML5>`_ doctype in the serialized element.
+        :rtype: str
         """
 
         return ''.join(self._serialize_chunks(indent, html, 0, False))
@@ -131,19 +149,26 @@ class Element:
 
 
 # ISO 8601 regexes
-_RE_ISO8601_DATE = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s*$')
-_RE_ISO8601_DATETIME = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-                                  r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
-                                  r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
+RE_ISO8601_DATE = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s*$')
+RE_ISO8601_DATETIME = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+                                 r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
+                                 r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
 
 
 def parse_iso8601_date(string):
     """
-    TODO
+    Parse an `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ date string.
+
+    :param str string: The `ISO-8601`_ date string.
+    :rtype: ~datetime.date
+
+    >>> import chisel
+    >>> chisel.parse_iso8601_date('2020-02-04')
+    datetime.date(2020, 2, 4)
     """
 
     # Match ISO 8601?
-    match = _RE_ISO8601_DATE.search(string)
+    match = RE_ISO8601_DATE.search(string)
     if not match:
         raise ValueError('Expected ISO 8601 date')
 
@@ -157,11 +182,18 @@ def parse_iso8601_date(string):
 
 def parse_iso8601_datetime(string):
     """
-    TODO
+    Parse an `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ date/time string.
+
+    :param str string: The `ISO-8601`_ date/time string.
+    :rtype: ~datetime.datetime
+
+    >>> import chisel
+    >>> chisel.parse_iso8601_datetime('2020-02-04T07:41:00+07:00')
+    datetime.datetime(2020, 2, 4, 0, 41, tzinfo=datetime.timezone.utc)
     """
 
     # Match ISO 8601?
-    match = _RE_ISO8601_DATETIME.search(string)
+    match = RE_ISO8601_DATETIME.search(string)
     if not match:
         raise ValueError('Expected ISO 8601 date/time')
 
@@ -184,27 +216,22 @@ def encode_query_string(obj, encoding='utf-8'):
     TODO
     """
 
-    return '&'.join(k + '=' + v for k, v in encode_query_string_items(obj, encoding=encoding))
+    return '&'.join(k + '=' + v for k, v in _encode_query_string_items(obj, None, encoding))
 
-
-def encode_query_string_items(obj, parent=None, encoding=None):
-    """
-    TODO
-    """
-
+def _encode_query_string_items(obj, parent, encoding):
     if isinstance(obj, dict):
         if obj:
             for member, value in sorted(obj.items()):
                 member_quoted = quote(str(member), encoding=encoding) if encoding else str(member)
                 parent_member = parent + '.' + member_quoted if parent else member_quoted
-                yield from encode_query_string_items(value, parent=parent_member, encoding=encoding)
+                yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
             yield parent, ''
     elif isinstance(obj, (list, tuple)):
         if obj:
             for idx, value in enumerate(obj):
                 parent_member = parent + '.' + str(idx) if parent else str(idx)
-                yield from encode_query_string_items(value, parent=parent_member, encoding=encoding)
+                yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
             yield parent, ''
     else:
@@ -231,16 +258,12 @@ def decode_query_string(query_string, encoding='utf-8'):
     TODO
     """
 
-    return decode_query_string_items(
+    return _decode_query_string_items(
         (key_value_str.split('=') for key_value_str in query_string.split('&') if key_value_str),
-        encoding=encoding
+        encoding
     )
 
-
-def decode_query_string_items(query_string_items, encoding=None):
-    """
-    TODO
-    """
+def _decode_query_string_items(query_string_items, encoding):
 
     # Build the object
     result = [None]

@@ -43,10 +43,6 @@ class AttributeValidationError(Exception):
     __slots__ = ('attr',)
 
     def __init__(self, attr):
-        """
-        TODO
-        """
-
         super().__init__("Invalid attribute '" + attr + "'")
 
         #: TODO
@@ -61,10 +57,6 @@ class ValidationError(Exception):
     __slots__ = ('member',)
 
     def __init__(self, msg, member=None):
-        """
-        TODO
-        """
-
         super().__init__(msg)
 
         #: TODO
@@ -151,9 +143,6 @@ class ActionModel:
     __slots__ = ('name', 'urls', 'path_type', 'query_type', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
 
     def __init__(self, name, doc=None, doc_group=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.name = name
@@ -203,9 +192,6 @@ class StructMemberAttributes:
 
     def __init__(self, op_eq=None, op_lt=None, op_lte=None, op_gt=None, op_gte=None,
                  op_len_eq=None, op_len_lt=None, op_len_lte=None, op_len_gt=None, op_len_gte=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.op_eq = op_eq
@@ -304,9 +290,6 @@ class Typedef:
     __slots__ = ('type_name', 'type', 'attr', 'doc')
 
     def __init__(self, type_, attr=None, type_name=None, doc=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.type_name = 'typedef' if type_name is None else type_name
@@ -356,10 +339,6 @@ class StructMember:
     __slots__ = ('name', 'type', 'optional', 'nullable', 'attr', 'doc')
 
     def __init__(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
-        """
-        TODO
-        """
-
 
         #: TODO
         self.name = name
@@ -388,10 +367,6 @@ class TypeStruct:
     __slots__ = ('type_name', 'union', 'base_types', '_members', 'doc')
 
     def __init__(self, type_name=None, union=False, base_types=None, doc=None):
-        """
-        TODO
-        """
-
 
         #: TODO
         self.type_name = ('union' if union else 'struct') if type_name is None else type_name
@@ -498,9 +473,6 @@ class TypeArray:
     type_name = 'array'
 
     def __init__(self, type_, attr=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.type = type_
@@ -557,9 +529,6 @@ class TypeDict:
     type_name = 'dict'
 
     def __init__(self, type_, attr=None, key_type=None, key_attr=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.type = type_
@@ -642,9 +611,6 @@ class EnumValue:
     __slots__ = ('value', 'doc')
 
     def __init__(self, valueString, doc=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.value = valueString
@@ -664,10 +630,6 @@ class TypeEnum:
     __slots__ = ('type_name', 'base_types', '_values', 'doc')
 
     def __init__(self, type_name='enum', base_types=None, doc=None):
-        """
-        TODO
-        """
-
 
         #: TODO
         self.type_name = type_name

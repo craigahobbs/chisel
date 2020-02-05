@@ -9,7 +9,6 @@ from urllib.parse import quote
 from uuid import UUID
 
 from chisel import Element, JSONEncoder, decode_query_string, encode_query_string, parse_iso8601_date, parse_iso8601_datetime
-from chisel.util import encode_query_string_items, decode_query_string_items
 
 from . import TestCase
 
@@ -308,67 +307,6 @@ class TestUrl(TestCase):
         query_string = 'a' * 2000 + '.0=0&' + 'a' * 2000 + '.b=0'
         assert_decode_error(query_string, "Invalid key/value pair '" + 'a' * 999)
 
-    def test_decode_query_string_items(self):
-
-        query_string_items = []
-        self.assertDictEqual(decode_query_string_items(query_string_items), {})
-
-        query_string_items = [
-            ('a&b=c', 'a&b=c'),
-            ('bool', 'true'),
-            ('date', '2017-08-02'),
-            ('datetime', '2017-08-02T08:12:00+00:00'),
-            ('dict.a', '1'),
-            ('dict.b', '2'),
-            ('float', '3.1459'),
-            ('int', '19'),
-            ('list.0', '1'),
-            ('list.1', '2'),
-            ('list.2', '3'),
-            ('none', 'null'),
-            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
-        ]
-        self.assertDictEqual(decode_query_string_items(query_string_items), {
-            'a&b=c': 'a&b=c',
-            'bool': 'true',
-            'date': '2017-08-02',
-            'datetime': '2017-08-02T08:12:00+00:00',
-            'dict': {'a': '1', 'b': '2'},
-            'float': '3.1459',
-            'int': '19',
-            'list': ['1', '2', '3'],
-            'none': 'null',
-            'uuid': '7da81f83-a656-42f1-aeb3-ab207809fb0e'
-        })
-
-        query_string_items = [
-            ('a%26b%3Dc', 'a%26b%3Dc'),
-            ('bool', 'true'),
-            ('date', '2017-08-02'),
-            ('datetime', '2017-08-02T08%3A12%3A00%2B00%3A00'),
-            ('dict.a', '1'),
-            ('dict.b', '2'),
-            ('float', '3.1459'),
-            ('int', '19'),
-            ('list.0', '1'),
-            ('list.1', '2'),
-            ('list.2', '3'),
-            ('none', 'null'),
-            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
-        ]
-        self.assertDictEqual(decode_query_string_items(query_string_items, encoding='utf-8'), {
-            'a&b=c': 'a&b=c',
-            'bool': 'true',
-            'date': '2017-08-02',
-            'datetime': '2017-08-02T08:12:00+00:00',
-            'dict': {'a': '1', 'b': '2'},
-            'float': '3.1459',
-            'int': '19',
-            'list': ['1', '2', '3'],
-            'none': 'null',
-            'uuid': '7da81f83-a656-42f1-aeb3-ab207809fb0e'
-        })
-
     def test_encode_query_string(self):
 
         # Complex dict
@@ -467,51 +405,3 @@ class TestUrl(TestCase):
         obj = {'a': None}
         query_string = 'a=null'
         self.assertEqual(encode_query_string(obj), query_string)
-
-    def test_encode_query_string_items(self):
-
-        obj = {}
-        self.assertListEqual(list(encode_query_string_items(obj)), [])
-
-        obj = {
-            'bool': True,
-            'int': 19,
-            'datetime': datetime(2017, 8, 2, 8, 12, 0, tzinfo=timezone.utc),
-            'date': date(2017, 8, 2),
-            'uuid': UUID('7da81f83-a656-42f1-aeb3-ab207809fb0e'),
-            'none': None,
-            'float': 3.1459,
-            'a&b=c': 'a&b=c', # string
-            'list': [1, 2, 3],
-            'dict': {'a': 1, 'b': 2}
-        }
-        self.assertListEqual(list(encode_query_string_items(obj)), [
-            ('a&b=c', 'a&b=c'),
-            ('bool', 'true'),
-            ('date', '2017-08-02'),
-            ('datetime', '2017-08-02T08:12:00+00:00'),
-            ('dict.a', '1'),
-            ('dict.b', '2'),
-            ('float', '3.1459'),
-            ('int', '19'),
-            ('list.0', '1'),
-            ('list.1', '2'),
-            ('list.2', '3'),
-            ('none', 'null'),
-            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
-        ])
-        self.assertListEqual(list(encode_query_string_items(obj, encoding='utf-8')), [
-            ('a%26b%3Dc', 'a%26b%3Dc'),
-            ('bool', 'true'),
-            ('date', '2017-08-02'),
-            ('datetime', '2017-08-02T08%3A12%3A00%2B00%3A00'),
-            ('dict.a', '1'),
-            ('dict.b', '2'),
-            ('float', '3.1459'),
-            ('int', '19'),
-            ('list.0', '1'),
-            ('list.1', '2'),
-            ('list.2', '3'),
-            ('none', 'null'),
-            ('uuid', '7da81f83-a656-42f1-aeb3-ab207809fb0e')
-        ])

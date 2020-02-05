@@ -1,17 +1,9 @@
-Utility
--------
-
-.. autoclass:: chisel.Element
-   :show-inheritance:
-   :members:
-   :undoc-members:
-
-   .. automethod:: __init__
+Encoding / Decoding Utilities
+=============================
 
 .. autoclass:: chisel.JSONEncoder
    :show-inheritance:
    :members:
-   :undoc-members:
 
 .. autofunction:: chisel.decode_query_string
 

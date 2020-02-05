@@ -33,10 +33,6 @@ class Request:
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'doc_group')
 
     def __init__(self, wsgi_callback=None, name=None, urls=None, doc=None, doc_group=None):
-        """
-        TODO
-        """
-
         assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
 
         #: TODO

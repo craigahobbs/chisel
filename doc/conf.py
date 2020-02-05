@@ -36,6 +36,8 @@ release = chisel.__version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,3 +63,5 @@ html_theme = 'sphinx_rtd_theme'
 
 
 # -- Extension configuration -------------------------------------------------
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}

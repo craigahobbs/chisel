@@ -2,10 +2,14 @@ Welcome to chisel's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 2
    :caption: Contents:
 
-   Module Reference <chisel>
+   app
+   action
+   doc
+   spec
+   markup
+   encode
 
 
 Indices and tables

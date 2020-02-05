@@ -6,7 +6,7 @@ TODO
 """
 
 import os
-import tempfile
+from tempfile import TemporaryDirectory
 import unittest
 
 
@@ -21,7 +21,7 @@ class TestCase(unittest.TestCase):
         TODO
         """
 
-        tempdir = tempfile.TemporaryDirectory()
+        tempdir = TemporaryDirectory()
         for path_parts, content in file_defs:
             path = os.path.join(tempdir.name, *path_parts)
             os.makedirs(os.path.dirname(path), exist_ok=True)

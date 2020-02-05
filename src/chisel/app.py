@@ -36,9 +36,6 @@ class Application:
     )
 
     def __init__(self):
-        """
-        TODO
-        """
 
         #: TODO
         self.log_level = logging.WARNING
@@ -172,9 +169,6 @@ class Context:
     ENVIRON_CTX = 'chisel.ctx'
 
     def __init__(self, app, environ=None, start_response=None, url_args=None):
-        """
-        TODO
-        """
 
         #: TODO
         self.app = app

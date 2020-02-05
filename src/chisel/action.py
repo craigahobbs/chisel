@@ -35,10 +35,6 @@ class ActionError(Exception):
     __slots__ = ('error', 'message', 'status')
 
     def __init__(self, error, message=None, status=None):
-        """
-        TODO
-        """
-
         super().__init__(error)
 
         #: TODO
@@ -72,9 +68,6 @@ class Action(Request):
 
     def __init__(self, action_callback, name=None, urls=(('POST', None),), doc=None, doc_group=None,
                  spec_parser=None, spec=None, wsgi_response=False, jsonp=None):
-        """
-        TODO
-        """
 
         # Use the action model name, if available
         if name is None:
