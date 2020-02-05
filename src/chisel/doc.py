@@ -5,7 +5,6 @@
 TODO
 """
 
-from html import escape
 from http import HTTPStatus
 import re
 
@@ -15,48 +14,34 @@ from .request import Request
 from .util import Element
 
 
-class SimpleMarkdown:
+RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
+
+def simple_markdown(markdown_text):
     """
     TODO
     """
 
-    __slots__ = ()
-
-    RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
-
-    def __call__(self, markdown_text):
-        """
-        TODO
-        """
-
-        paragraphs = []
-        lines = []
-        for line in (line.strip() for line in markdown_text.splitlines()):
-            if line:
-                if self.RE_MARKDOWN_NEW_PARAGRAPH.match(line):
-                    if lines:
-                        paragraphs.append(lines)
-                    lines = [line]
-                else:
-                    lines.append(line)
-            elif lines:
-                paragraphs.append(lines)
-                lines = []
-        if lines:
+    # Separate text lines into paragraphs
+    paragraphs = []
+    lines = []
+    for line in (line.strip() for line in markdown_text.splitlines()):
+        if line:
+            if RE_MARKDOWN_NEW_PARAGRAPH.match(line):
+                if lines:
+                    paragraphs.append(lines)
+                lines = [line]
+            else:
+                lines.append(line)
+        elif lines:
             paragraphs.append(lines)
+            lines = []
+    if lines:
+        paragraphs.append(lines)
 
-        # Do a simple markdown-like rendering
-        if not paragraphs:
-            return ''
-        return '\n'.join('<p>\n' + escape('\n'.join(paragraph)) + '\n</p>' for paragraph in paragraphs)
-
-
-# Create the markdown object
-try:
-    import mistune
-    MARKDOWN = mistune.create_markdown(plugins=['strikethrough', 'table', 'url'])
-except ImportError: # pragma: no cover
-    MARKDOWN = SimpleMarkdown()
+    # Create the paragraph elements
+    if not paragraphs:
+        return None
+    return [Element('p', children=Element('\n'.join(paragraph), text=True)) for paragraph in paragraphs]
 
 
 class DocAction(Action):
@@ -267,10 +252,10 @@ def _request_html(ctx, request, request_urls, nonav):
 def _doc_text(doc):
     if not isinstance(doc, str):
         doc = '\n'.join(doc)
-    markdown_html = MARKDOWN(doc).strip()
-    if not markdown_html:
+    markdown_elements = simple_markdown(doc)
+    if not markdown_elements:
         return None
-    return Element('div', _class='chsl-text', children=Element(markdown_html, text_raw=True))
+    return Element('div', _class='chsl-text', children=markdown_elements)
 
 
 def _type_name(type_):

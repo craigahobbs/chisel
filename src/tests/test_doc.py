@@ -3,7 +3,7 @@
 
 # pylint: disable=missing-docstring
 
-from chisel import action, request, Action, Application, DocAction, DocPage, Request, SpecParser
+from chisel import action, request, Action, Application, DocAction, DocPage, Element, Request, SpecParser
 import chisel.doc
 
 from . import TestCase
@@ -12,9 +12,8 @@ from . import TestCase
 class TestSimpleMarkdown(TestCase):
 
     def test_basic(self):
-        markdown = chisel.doc.SimpleMarkdown()
         self.assertEqual(
-            markdown('''\
+            Element('div', children=chisel.doc.simple_markdown('''\
 P1.
 P1 2.
 
@@ -26,28 +25,30 @@ P3
 P3 3.
 
 P4
-'''),
+''')).serialize(html=False),
             '''\
-<p>
+<div>
+  <p>
 P1.
 P1 2.
-</p>
-<p>
+  </p>
+  <p>
 P2.
-</p>
-<p>
+  </p>
+  <p>
 P3
 P3 2.
 P3 3.
-</p>
-<p>
+  </p>
+  <p>
 P4
-</p>''')
+  </p>
+</div>'''
+        )
 
     def test_new_paragraph(self):
-        markdown = chisel.doc.SimpleMarkdown()
         self.assertEqual(
-            markdown('''\
+            Element('div', children=chisel.doc.simple_markdown('''\
 # h1
 ## h2
 * list1
@@ -57,40 +58,38 @@ P4
 - list4
 1. list5
 2. list6
-'''),
+''')).serialize(html=False),
             '''\
-<p>
+<div>
+  <p>
 # h1
-</p>
-<p>
+  </p>
+  <p>
 ## h2
-</p>
-<p>
+  </p>
+  <p>
 * list1
-</p>
-<p>
+  </p>
+  <p>
 + list2
-</p>
-<p>
+  </p>
+  <p>
 - list3
-</p>
-<p>
+  </p>
+  <p>
 - list4
-</p>
-<p>
+  </p>
+  <p>
 1. list5
-</p>
-<p>
+  </p>
+  <p>
 2. list6
-</p>'''
+  </p>
+</div>'''
         )
 
     def test_empty(self):
-        markdown = chisel.doc.SimpleMarkdown()
-        self.assertEqual(
-            markdown('   '),
-            ''
-        )
+        self.assertIsNone(chisel.doc.simple_markdown('   '))
 
 
 class TestDoc(TestCase):
@@ -289,11 +288,15 @@ The request is exposed at the following URL:
     </div>
     <h2 id="my_action1_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="my_action1_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="my_action1_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -312,16 +315,22 @@ The request is exposed at the following URL:
     </table>
     <h2 id="my_action1_output"><a class="linktarget">Output Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no output parameters.</p>
+      <p>
+The action has no output parameters.
+      </p>
     </div>
     <h2 id="my_action1_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
-<p>The action returns no custom error codes.</p>
+      <p>
+The action returns no custom error codes.
+      </p>
     </div>
     <h2>Typedefs</h2>
     <h3 id="MyTypedef"><a class="linktarget">typedef MyTypedef</a></h3>
     <div class="chsl-text">
-<p>A typedef</p>
+      <p>
+A typedef
+      </p>
     </div>
     <table>
       <tr>
@@ -341,11 +350,15 @@ The request is exposed at the following URL:
     <h2>Struct Types</h2>
     <h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>
     <div class="chsl-text">
-<p>My struct</p>
-<ul>
-<li>continuing</li>
-</ul>
-<p>Another paragraph</p>
+      <p>
+My struct
+      </p>
+      <p>
+- continuing
+      </p>
+      <p>
+Another paragraph
+      </p>
     </div>
     <table>
       <tr>
@@ -365,11 +378,15 @@ The request is exposed at the following URL:
         </td>
         <td>
           <div class="chsl-text">
-<p>My int member</p>
-<ul>
-<li>continuing</li>
-</ul>
-<p>Another paragraph</p>
+            <p>
+My int member
+            </p>
+            <p>
+- continuing
+            </p>
+            <p>
+Another paragraph
+            </p>
           </div>
         </td>
       </tr>
@@ -384,7 +401,9 @@ The request is exposed at the following URL:
         </td>
         <td>
           <div class="chsl-text">
-<p>My float member</p>
+            <p>
+My float member
+            </p>
           </div>
         </td>
       </tr>
@@ -475,7 +494,9 @@ The request is exposed at the following URL:
     <h2>Enum Types</h2>
     <h3 id="MyEnum"><a class="linktarget">enum MyEnum</a></h3>
     <div class="chsl-text">
-<p>My enum</p>
+      <p>
+My enum
+      </p>
     </div>
     <table>
       <tr>
@@ -486,7 +507,9 @@ The request is exposed at the following URL:
         <td>Value1</td>
         <td>
           <div class="chsl-text">
-<p>A value</p>
+            <p>
+A value
+            </p>
           </div>
         </td>
       </tr>
@@ -529,15 +552,21 @@ The request is exposed at the following URL:
     </div>
     <h2 id="my_action2_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="my_action2_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no input parameters.</p>
+      <p>
+The action has no input parameters.
+      </p>
     </div>
     <h2 id="my_action2_output"><a class="linktarget">Output Parameters</a></h2>
     <table>
@@ -565,8 +594,10 @@ The request is exposed at the following URL:
     <h2>Struct Types</h2>
     <h3 id="MyUnion"><a class="linktarget">union MyUnion</a></h3>
     <div class="chsl-text">
-<p>An unused struct
- My Union</p>
+      <p>
+An unused struct
+My Union
+      </p>
     </div>
     <table>
       <tr>
@@ -594,176 +625,6 @@ The request is exposed at the following URL:
       </tr>
     </table>
   </body>
-</html>''')
-
-    def test_action_no_markdown(self):
-
-        @action(spec='''\
-# This is an action. It does:
-#
-# - One thing
-#
-#
-# - Another thing
-action my_action
-''')
-        def my_action(unused_ctx, unused_req):
-            pass # pragma: no cover
-        @action(doc='Another action', spec='''\
-action my_action2
-''')
-        def my_action2(unused_ctx, unused_req):
-            pass # pragma: no cover
-        application = Application()
-        application.pretty_output = True
-        application.add_request(DocAction())
-        application.add_request(my_action)
-        application.add_request(my_action2)
-
-        # Generate the docs without markdown
-        try:
-            chisel_doc_markdown = chisel.doc.MARKDOWN
-            chisel.doc.MARKDOWN = chisel.doc.SimpleMarkdown()
-            status, _, response = application.request('GET', '/doc', query_string={'name': 'my_action'})
-            application.pretty_output = False
-            status2, _, response2 = application.request('GET', '/doc', query_string={'name': 'my_action2'})
-        finally:
-            chisel.doc.MARKDOWN = chisel_doc_markdown
-
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
-    </div>
-    <h1>my_action</h1>
-    <div class="chsl-text">
-<p>
-This is an action. It does:
-</p>
-<p>
-- One thing
-</p>
-<p>
-- Another thing
-</p>
-    </div>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/my_action">POST /my_action</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-<p>
-The action has no path parameters.
-</p>
-    </div>
-    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-<p>
-The action has no query parameters.
-</p>
-    </div>
-    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
-    <div class="chsl-text">
-<p>
-The action has no input parameters.
-</p>
-    </div>
-    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
-    <div class="chsl-text">
-<p>
-The action has no output parameters.
-</p>
-    </div>
-    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
-    <div class="chsl-text">
-<p>
-The action returns no custom error codes.
-</p>
-    </div>
-  </body>
-</html>''')
-
-        self.assertEqual(status2, '200 OK')
-        self.assertEqual(response2.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>my_action2</title>
-<style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-</style>
-</head>
-<body class="chsl-request-body">
-<div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
-</div>
-<h1>my_action2</h1>
-<div class="chsl-text">
-<p>
-Another action
-</p>
-</div>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/my_action2">POST /my_action2</a></li>
-</ul>
-</div>
-</div>
-<h2 id="my_action2_path"><a class="linktarget">Path Parameters</a></h2>
-<div class="chsl-text">
-<p>
-The action has no path parameters.
-</p>
-</div>
-<h2 id="my_action2_query"><a class="linktarget">Query Parameters</a></h2>
-<div class="chsl-text">
-<p>
-The action has no query parameters.
-</p>
-</div>
-<h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
-<div class="chsl-text">
-<p>
-The action has no input parameters.
-</p>
-</div>
-<h2 id="my_action2_output"><a class="linktarget">Output Parameters</a></h2>
-<div class="chsl-text">
-<p>
-The action has no output parameters.
-</p>
-</div>
-<h2 id="my_action2_error"><a class="linktarget">Error Codes</a></h2>
-<div class="chsl-text">
-<p>
-The action returns no custom error codes.
-</p>
-</div>
-</body>
 </html>''')
 
     def test_member_attributes(self):
@@ -895,8 +756,12 @@ And some other important information.
 </div>
 <h1>my_request</h1>
 <div class="chsl-text">
-<p>This is the request documentation.</p>
-<p>And some other important information.</p>
+<p>
+This is the request documentation.
+</p>
+<p>
+And some other important information.
+</p>
 </div>
 <div class="chsl-notes">
 <div class="chsl-note">
@@ -987,7 +852,9 @@ action my_action
     </div>
     <h1>doc_my_action</h1>
     <div class="chsl-text">
-<p>Documentation page for my_action.</p>
+      <p>
+Documentation page for my_action.
+      </p>
     </div>
     <div class="chsl-notes">
       <div class="chsl-note">
@@ -1008,15 +875,21 @@ The action has a non-default response. See documentation for details.
     </div>
     <h2 id="doc_my_action_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="doc_my_action_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="doc_my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no input parameters.</p>
+      <p>
+The action has no input parameters.
+      </p>
     </div>
   </body>
 </html>''')
@@ -1048,11 +921,15 @@ The request is exposed at the following URL:
     </div>
     <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -1082,7 +959,9 @@ The request is exposed at the following URL:
     </table>
     <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
-<p>The action returns no custom error codes.</p>
+      <p>
+The action returns no custom error codes.
+      </p>
     </div>
   </body>
 </html>''')
@@ -1114,11 +993,15 @@ The request is exposed at the following URL:
     </div>
     <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -1148,7 +1031,9 @@ The request is exposed at the following URL:
     </table>
     <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
-<p>The action returns no custom error codes.</p>
+      <p>
+The action returns no custom error codes.
+      </p>
     </div>
   </body>
 </html>''')
@@ -1198,11 +1083,15 @@ The request is exposed at the following URL:
     </div>
     <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no path parameters.</p>
+      <p>
+The action has no path parameters.
+      </p>
     </div>
     <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
     <div class="chsl-text">
-<p>The action has no query parameters.</p>
+      <p>
+The action has no query parameters.
+      </p>
     </div>
     <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
     <table>
@@ -1232,7 +1121,9 @@ The request is exposed at the following URL:
     </table>
     <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
     <div class="chsl-text">
-<p>The action returns no custom error codes.</p>
+      <p>
+The action returns no custom error codes.
+      </p>
     </div>
   </body>
 </html>''')
@@ -1271,7 +1162,9 @@ struct MyOtherStruct
   <body class="chsl-request-body">
     <h1 id="MyStruct"><a class="linktarget">struct MyStruct</a></h1>
     <div class="chsl-text">
-<p>This is my struct</p>
+      <p>
+This is my struct
+      </p>
     </div>
     <table>
       <tr>
@@ -1295,7 +1188,9 @@ struct MyOtherStruct
     <h2>Struct Types</h2>
     <h3 id="MyOtherStruct"><a class="linktarget">struct MyOtherStruct</a></h3>
     <div class="chsl-text">
-<p>This is my other struct</p>
+      <p>
+This is my other struct
+      </p>
     </div>
     <table>
       <tr>
@@ -1345,7 +1240,9 @@ typedef MyStruct[len > 1] MyTypedef
   <body class="chsl-request-body">
     <h1 id="MyTypedef"><a class="linktarget">typedef MyTypedef</a></h1>
     <div class="chsl-text">
-<p>This is my typedef</p>
+      <p>
+This is my typedef
+      </p>
     </div>
     <table>
       <tr>
@@ -1365,7 +1262,9 @@ typedef MyStruct[len > 1] MyTypedef
     <h2>Struct Types</h2>
     <h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>
     <div class="chsl-text">
-<p>This is my struct</p>
+      <p>
+This is my struct
+      </p>
     </div>
     <table>
       <tr>
@@ -1412,7 +1311,9 @@ enum MyEnum
   <body class="chsl-request-body">
     <h1 id="MyEnum"><a class="linktarget">enum MyEnum</a></h1>
     <div class="chsl-text">
-<p>This is my enum</p>
+      <p>
+This is my enum
+      </p>
     </div>
     <table>
       <tr>

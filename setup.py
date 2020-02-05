@@ -11,7 +11,7 @@ import os
 from setuptools import setup
 
 PACKAGE_NAME = MODULE_NAME = 'chisel'
-TESTS_REQUIRE = ['mistune >= 2.0.0a2']
+TESTS_REQUIRE = []
 
 def main():
     """
