@@ -19,7 +19,7 @@ class DocAction(Action):
     TODO
     """
 
-    __slots__ = ('markdown', 'styles')
+    __slots__ = ('_markdown', '_styles')
 
     def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None, markdown=None, styles=None):
         super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
@@ -32,12 +32,8 @@ action {name}
     # Remove navigation links.
     optional bool nonav
 '''.format(name=name))
-
-        #: TODO
-        self.markdown = markdown
-
-        #: TODO
-        self.styles = styles
+        self._markdown = markdown
+        self._styles = styles
 
     def _action_callback(self, ctx, req):
         request_name = req.get('name')
@@ -45,8 +41,7 @@ action {name}
         if request_name is None:
             root = self._index_html(ctx)
         elif request_name in ctx.app.requests:
-            elements = DocElements(ctx.app.requests[request_name], nonav=req.get('nonav'), markdown=self.markdown, styles=self.styles)
-            root = elements.get_elements(ctx)
+            root = _DocElements(ctx.app.requests[request_name], nonav=req.get('nonav'), markdown=self._markdown, styles=self._styles)(ctx)
         if root is None:
             return ctx.response_text(HTTPStatus.NOT_FOUND, 'Unknown Request')
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
@@ -69,7 +64,7 @@ action {name}
             Element('head', children=[
                 Element('meta', closed=False, charset='UTF-8'),
                 Element('title', inline=True, children=Element(title, text=True)),
-                Element('style', _type='text/css', children=Element(self.styles or STYLE_TEXT, text_raw=True))
+                Element('style', _type='text/css', children=Element(self._styles or STYLE_TEXT, text_raw=True))
             ]),
             Element('body', _class='chsl-index-body', children=[
                 Element('h1', inline=True, children=Element(title, text=True)),
@@ -95,7 +90,7 @@ class DocPage(Action):
     TODO
     """
 
-    __slots__ = ('request', 'request_urls', 'markdown', 'styles')
+    __slots__ = ('_request', '_request_urls', '_markdown', '_styles')
 
     def __init__(self, request, request_urls=None, markdown=None, styles=None, name=None, urls=(('GET', None),), doc=None, doc_group=None):
         request_name = request.name if isinstance(request, Request) else request.type_name
@@ -105,89 +100,72 @@ class DocPage(Action):
 # Documentation page for {request_name}.
 action {name}
 '''.format(name=name, request_name=request_name))
-
-        #: TODO
-        self.request = request
-
-        #: TODO
-        self.request_urls = request_urls
-
-        #: TODO
-        self.markdown = markdown
-
-        #: TODO
-        self.styles = styles
+        self._request = request
+        self._request_urls = request_urls
+        self._markdown = markdown
+        self._styles = styles
 
     def _action_callback(self, ctx, unused_req):
-        elements = DocElements(self.request, request_urls=self.request_urls, markdown=self.markdown, styles=self.styles)
-        root = elements.get_elements(ctx)
+        root = _DocElements(self._request, request_urls=self._request_urls, markdown=self._markdown, styles=self._styles)(ctx)
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
         return ctx.response_text(HTTPStatus.OK, content, content_type='text/html')
 
 
-class DocElements:
-    """
-    TODO
-    """
-
-    __slots__ = ('request', 'request_urls', 'nonav', 'markdown', 'styles')
+class _DocElements:
+    __slots__ = ('_request', '_request_urls', '_nonav', '_markdown', '_styles')
 
     def __init__(self, request, request_urls=None, nonav=True, markdown=None, styles=None):
-        self.request = request
-        self.request_urls = request_urls
-        self.nonav = nonav
-        self.markdown = markdown
-        self.styles = styles
+        self._request = request
+        self._request_urls = request_urls
+        self._nonav = nonav
+        self._markdown = markdown
+        self._styles = styles
 
-    def get_elements(self, ctx):
-        """
-        TODO
-        """
-
-        is_request = isinstance(self.request, Request)
-        is_action = isinstance(self.request, Action)
-        if is_request and self.request_urls is None:
-            request_urls = self.request.urls
-        elif is_request and self.request_urls is not None:
+    def __call__(self, ctx):
+        is_request = isinstance(self._request, Request)
+        is_action = isinstance(self._request, Action)
+        if is_request and self._request_urls is None:
+            request_urls = self._request.urls
+        elif is_request and self._request_urls is not None:
             request_urls = [
                 (method, ctx.reconstruct_url(path_info=url, query_string='', relative=True))
-                for method, url in self.request_urls
+                for method, url in self._request_urls
             ]
         else:
             request_urls = None
 
         # Find all user types referenced by the action
         if is_action:
-            struct_types = [typ for typ in get_referenced_types(self.request.model) if isinstance(typ, TypeStruct)]
-            enum_types = [typ for typ in get_referenced_types(self.request.model) if isinstance(typ, TypeEnum)]
-            typedef_types = [typ for typ in get_referenced_types(self.request.model) if isinstance(typ, Typedef)]
+            struct_types = [typ for typ in get_referenced_types(self._request.model) if isinstance(typ, TypeStruct)]
+            enum_types = [typ for typ in get_referenced_types(self._request.model) if isinstance(typ, TypeEnum)]
+            typedef_types = [typ for typ in get_referenced_types(self._request.model) if isinstance(typ, Typedef)]
         elif not is_request:
-            struct_types = [typ for typ in get_referenced_types(self.request) if isinstance(typ, TypeStruct)]
-            enum_types = [typ for typ in get_referenced_types(self.request) if isinstance(typ, TypeEnum)]
-            typedef_types = [typ for typ in get_referenced_types(self.request) if isinstance(typ, Typedef)]
+            struct_types = [typ for typ in get_referenced_types(self._request) if isinstance(typ, TypeStruct)]
+            enum_types = [typ for typ in get_referenced_types(self._request) if isinstance(typ, TypeEnum)]
+            typedef_types = [typ for typ in get_referenced_types(self._request) if isinstance(typ, Typedef)]
         else:
             struct_types = enum_types = typedef_types = None
 
         return Element('html', children=[
             Element('head', children=[
                 Element('meta', closed=False, charset='UTF-8'),
-                Element('title', inline=True, children=Element(self.request.name if is_request else self.request.type_name, text=True)),
-                Element('style', _type='text/css', children=Element(self.styles or STYLE_TEXT, text_raw=True))
+                Element('title', inline=True, children=Element(self._request.name if is_request else self._request.type_name, text=True)),
+                Element('style', _type='text/css', children=Element(self._styles or STYLE_TEXT, text_raw=True))
             ]),
             Element('body', _class='chsl-request-body', children=[
 
                 # Request page header
-                None if self.nonav else Element('div', _class='chsl-header', children=[
+                None if self._nonav else Element('div', _class='chsl-header', children=[
                     Element('a', inline=True, href=ctx.reconstruct_url(query_string='', relative=True),
                             children=Element('Back to documentation index', text=True))
                 ]),
                 [
-                    Element('h1', inline=True, children=Element(self.request.name, text=True)),
-                    self._doc_text(self.request.doc)
+                    Element('h1', inline=True, children=Element(self._request.name, text=True)),
+                    self._doc_text(self._request.doc)
                 ] if is_request else [
-                    self._typedef_section(self.request, 'h1') if isinstance(self.request, Typedef) else None,
-                    self._struct_section(self.request, 'h1') if isinstance(self.request, TypeStruct) else None,
-                    self._enum_section(self.request, 'h1') if isinstance(self.request, TypeEnum) else None
+                    self._typedef_section(self._request, 'h1') if isinstance(self._request, Typedef) else None,
+                    self._struct_section(self._request, 'h1') if isinstance(self._request, TypeStruct) else None,
+                    self._enum_section(self._request, 'h1') if isinstance(self._request, TypeEnum) else None
                 ],
 
                 # Notes
@@ -211,7 +189,7 @@ class DocElements:
                     ]),
 
                     # Non-default response
-                    None if not (is_action and self.request.wsgi_response) else [
+                    None if not (is_action and self._request.wsgi_response) else [
                         Element('div', _class='chsl-note', children=Element('p', children=[
                             Element('b', inline=True, children=Element('Note: ', text=True)),
                             Element('The action has a non-default response. See documentation for details.', text=True)
@@ -221,13 +199,16 @@ class DocElements:
 
                 # Request input and output structs
                 None if not is_action else [
-                    self._struct_section(self.request.model.path_type, 'h2', 'Path Parameters', ('The action has no path parameters.',)),
-                    self._struct_section(self.request.model.query_type, 'h2', 'Query Parameters', ('The action has no query parameters.',)),
-                    self._struct_section(self.request.model.input_type, 'h2', 'Input Parameters', ('The action has no input parameters.',)),
-                    None if self.request.wsgi_response else [
-                        self._struct_section(self.request.model.output_type, 'h2', 'Output Parameters',
+                    self._struct_section(self._request.model.path_type, 'h2', 'Path Parameters',
+                                         ('The action has no path parameters.',)),
+                    self._struct_section(self._request.model.query_type, 'h2', 'Query Parameters',
+                                         ('The action has no query parameters.',)),
+                    self._struct_section(self._request.model.input_type, 'h2', 'Input Parameters',
+                                         ('The action has no input parameters.',)),
+                    None if self._request.wsgi_response else [
+                        self._struct_section(self._request.model.output_type, 'h2', 'Output Parameters',
                                              ('The action has no output parameters.',)),
-                        self._enum_section(self.request.model.error_type, 'h2', 'Error Codes',
+                        self._enum_section(self._request.model.error_type, 'h2', 'Error Codes',
                                            ('The action returns no custom error codes.',))
                     ]
                 ],
@@ -253,10 +234,10 @@ class DocElements:
     def _doc_text(self, doc):
 
         # User-provided markdown?
-        if self.markdown is not None:
+        if self._markdown is not None:
             if not isinstance(doc, str):
                 doc = '\n'.join(doc)
-            markdown_text = self.markdown(doc).strip()
+            markdown_text = self._markdown(doc).strip()
             if not markdown_text:
                 return None
             return Element('div', _class='chsl-text', children=Element(markdown_text, text_raw=True))

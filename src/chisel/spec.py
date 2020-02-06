@@ -10,9 +10,10 @@ from itertools import chain
 import os
 import re
 
-from .model import ActionModel, AttributeValidationError, StructMemberAttributes, \
-    TypeArray, TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, Typedef, TypeDict, TypeEnum, TYPE_INT, \
-    TYPE_FLOAT, TYPE_OBJECT, TYPE_STRING, TypeStruct, TYPE_UUID
+from .model import \
+    ActionModel, AttributeValidationError, StructMemberAttributes, \
+    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_FLOAT, TYPE_INT, TYPE_OBJECT, TYPE_STRING, TYPE_UUID, \
+    TypeArray, TypeDict, TypeEnum, TypeStruct, Typedef
 
 
 class SpecParserError(Exception):
@@ -30,42 +31,44 @@ class SpecParserError(Exception):
 
 
 # Spec language regex
-_RE_PART_ID = r'(?:[A-Za-z]\w*)'
-_RE_PART_ATTR_GROUP = r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
-                      r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
-_RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', _RE_PART_ATTR_GROUP)
-_RE_PART_ATTRS = r'(?:' + _RE_PART_ATTR + r'(?:\s*,\s*' + _RE_PART_ATTR + r')*)'
-_RE_ATTR_GROUP = re.compile(_RE_PART_ATTR_GROUP)
-_RE_FIND_ATTRS = re.compile(_RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
-_RE_LINE_CONT = re.compile(r'\\s*$')
-_RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
-_RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
-_RE_ACTION = re.compile(r'^action\s+(?P<id>' + _RE_PART_ID + r')')
-_RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + _RE_PART_ID + r'(?:\s*,\s*' + _RE_PART_ID + r')*)\s*\)\s*)'
-_RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
-_RE_DEFINITION = re.compile(r'^(?P<type>struct|union|enum)\s+(?P<id>' + _RE_PART_ID + r')' + _RE_PART_BASE_IDS + r'?\s*$')
-_RE_SECTION = re.compile(r'^\s+(?P<type>path|query|input|output|errors)' + _RE_PART_BASE_IDS + r'?\s*$')
-_RE_SECTION_PLAIN = re.compile(r'^\s+(?P<type>url)\s*$')
-_RE_PART_TYPEDEF = r'(?P<type>' + _RE_PART_ID + r')' \
-                   r'(?:\s*\(\s*(?P<attrs>' + _RE_PART_ATTRS + r')\s*\))?' \
-                   r'(?:' \
-                   r'(?:\s*\[\s*(?P<array>' + _RE_PART_ATTRS + r'?)\s*\])?' \
-                   r'|' \
-                   r'(?:' \
-                   r'\s*:\s*(?P<dictValueType>' + _RE_PART_ID + r')' \
-                   r'(?:\s*\(\s*(?P<dictValueAttrs>' + _RE_PART_ATTRS + r')\s*\))?' \
-                   r')?' \
-                   r'(?:\s*\{\s*(?P<dict>' + _RE_PART_ATTRS + r'?)\s*\})?' \
-                   r')' \
-                   r'\s+(?P<id>' + _RE_PART_ID + r')'
-_RE_TYPEDEF = re.compile(r'^typedef\s+' + _RE_PART_TYPEDEF + r'\s*$')
-_RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + _RE_PART_TYPEDEF + r'\s*$')
-_RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + _RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
-_RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
+RE_PART_ID = r'(?:[A-Za-z]\w*)'
+RE_PART_ATTR_GROUP = \
+    r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
+    r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
+RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', RE_PART_ATTR_GROUP)
+RE_PART_ATTRS = r'(?:' + RE_PART_ATTR + r'(?:\s*,\s*' + RE_PART_ATTR + r')*)'
+RE_ATTR_GROUP = re.compile(RE_PART_ATTR_GROUP)
+RE_FIND_ATTRS = re.compile(RE_PART_ATTR + r'(?:\s*,\s*|\s*\Z)')
+RE_LINE_CONT = re.compile(r'\\s*$')
+RE_COMMENT = re.compile(r'^\s*(?:#-.*|#(?P<doc>.*))?$')
+RE_GROUP = re.compile(r'^group(?:\s+"(?P<group>.+?)")?\s*$')
+RE_ACTION = re.compile(r'^action\s+(?P<id>' + RE_PART_ID + r')')
+RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + RE_PART_ID + r'(?:\s*,\s*' + RE_PART_ID + r')*)\s*\)\s*)'
+RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
+RE_DEFINITION = re.compile(r'^(?P<type>struct|union|enum)\s+(?P<id>' + RE_PART_ID + r')' + RE_PART_BASE_IDS + r'?\s*$')
+RE_SECTION = re.compile(r'^\s+(?P<type>path|query|input|output|errors)' + RE_PART_BASE_IDS + r'?\s*$')
+RE_SECTION_PLAIN = re.compile(r'^\s+(?P<type>url)\s*$')
+RE_PART_TYPEDEF = \
+    r'(?P<type>' + RE_PART_ID + r')' \
+    r'(?:\s*\(\s*(?P<attrs>' + RE_PART_ATTRS + r')\s*\))?' \
+    r'(?:' \
+    r'(?:\s*\[\s*(?P<array>' + RE_PART_ATTRS + r'?)\s*\])?' \
+    r'|' \
+    r'(?:' \
+    r'\s*:\s*(?P<dictValueType>' + RE_PART_ID + r')' \
+    r'(?:\s*\(\s*(?P<dictValueAttrs>' + RE_PART_ATTRS + r')\s*\))?' \
+    r')?' \
+    r'(?:\s*\{\s*(?P<dict>' + RE_PART_ATTRS + r'?)\s*\})?' \
+    r')' \
+    r'\s+(?P<id>' + RE_PART_ID + r')'
+RE_TYPEDEF = re.compile(r'^typedef\s+' + RE_PART_TYPEDEF + r'\s*$')
+RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + RE_PART_TYPEDEF + r'\s*$')
+RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
+RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
 
 
 # Built-in types
-_TYPES = {
+TYPES = {
     'bool': TYPE_BOOL,
     'date': TYPE_DATE,
     'datetime': TYPE_DATETIME,
@@ -200,7 +203,7 @@ class SpecParser:
         linenum = self._parse_linenum
 
         def set_type(error):
-            type_ = _TYPES.get(type_name) or self.types.get(type_name)
+            type_ = TYPES.get(type_name) or self.types.get(type_name)
             if type_ is not None:
                 error_count = len(self.errors)
                 if validate_fn is not None:
@@ -292,9 +295,9 @@ class SpecParser:
         op_lt, op_lte, op_gt, op_gte, op_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte, op_len_eq = \
             None, None, None, None, None, None, None, None, None, None
         if attrs_string is not None:
-            for attr_string in _RE_FIND_ATTRS.findall(attrs_string):
+            for attr_string in RE_FIND_ATTRS.findall(attrs_string):
                 has_attrs = True
-                match_attr = _RE_ATTR_GROUP.match(attr_string)
+                match_attr = RE_ATTR_GROUP.match(attr_string)
                 attr_op = match_attr.group('op')
                 attr_length_op = match_attr.group('lop') if attr_op is None else None
 
@@ -385,7 +388,7 @@ class SpecParser:
             self._parse_linenum += 1
 
             # Line continuation?
-            line_part_no_continuation = _RE_LINE_CONT.sub('', line_part)
+            line_part_no_continuation = RE_LINE_CONT.sub('', line_part)
             if line_continuation or line_part_no_continuation is not line_part:
                 line_continuation.append(line_part_no_continuation)
             if line_part_no_continuation is not line_part:
@@ -397,25 +400,25 @@ class SpecParser:
                 line = line_part
 
             # Match syntax
-            match_name, match = 'comment', _RE_COMMENT.search(line)
+            match_name, match = 'comment', RE_COMMENT.search(line)
             if match is None:
-                match_name, match = 'group', _RE_GROUP.search(line)
+                match_name, match = 'group', RE_GROUP.search(line)
             if match is None:
-                match_name, match = 'action', _RE_ACTION.search(line)
+                match_name, match = 'action', RE_ACTION.search(line)
             if match is None:
-                match_name, match = 'definition', _RE_DEFINITION.search(line)
+                match_name, match = 'definition', RE_DEFINITION.search(line)
             if match is None and self._action is not None:
-                match_name, match = 'section', _RE_SECTION.search(line)
+                match_name, match = 'section', RE_SECTION.search(line)
             if match is None and self._action is not None:
-                match_name, match = 'section_plain', _RE_SECTION_PLAIN.search(line)
+                match_name, match = 'section_plain', RE_SECTION_PLAIN.search(line)
             if match is None and isinstance(self._type, TypeEnum):
-                match_name, match = 'value', _RE_VALUE.search(line)
+                match_name, match = 'value', RE_VALUE.search(line)
             if match is None and isinstance(self._type, TypeStruct):
-                match_name, match = 'member', _RE_MEMBER.search(line)
+                match_name, match = 'member', RE_MEMBER.search(line)
             if match is None and self._urls is not None:
-                match_name, match = 'url', _RE_URL.search(line)
+                match_name, match = 'url', RE_URL.search(line)
             if match is None:
-                match_name, match = 'typedef', _RE_TYPEDEF.search(line)
+                match_name, match = 'typedef', RE_TYPEDEF.search(line)
             if match is None:
                 match_name = None
 
@@ -455,13 +458,13 @@ class SpecParser:
                 definition_id = match.group('id')
                 definition_base_ids = match.group('base_ids')
                 if definition_base_ids is not None:
-                    definition_base_ids = _RE_BASE_IDS_SPLIT.split(definition_base_ids)
+                    definition_base_ids = RE_BASE_IDS_SPLIT.split(definition_base_ids)
 
                 # Struct definition
                 if definition_string in ('struct', 'union'):
 
                     # Type already defined?
-                    if definition_id in _TYPES or definition_id in self.types:
+                    if definition_id in TYPES or definition_id in self.types:
                         self._error("Redefinition of type '" + definition_id + "'")
 
                     # Create the new struct type
@@ -482,7 +485,7 @@ class SpecParser:
                 else:  # definition_string == 'enum':
 
                     # Type already defined?
-                    if definition_id in _TYPES or definition_id in self.types:
+                    if definition_id in TYPES or definition_id in self.types:
                         self._error("Redefinition of type '" + definition_id + "'")
 
                     # Create the new enum type
@@ -504,7 +507,7 @@ class SpecParser:
                 section_string = match.group('type')
                 section_base_ids = match.group('base_ids')
                 if section_base_ids is not None:
-                    section_base_ids = _RE_BASE_IDS_SPLIT.split(section_base_ids)
+                    section_base_ids = RE_BASE_IDS_SPLIT.split(section_base_ids)
 
                 # Action section redefinition?
                 if section_string in self._action_sections:
@@ -604,7 +607,7 @@ class SpecParser:
                 typedef_name = match.group('id')
 
                 # Type already defined?
-                if typedef_name in _TYPES or typedef_name in self.types:
+                if typedef_name in TYPES or typedef_name in self.types:
                     self._error("Redefinition of type '" + typedef_name + "'")
 
                 # Create the typedef

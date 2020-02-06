@@ -7,9 +7,29 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
-from chisel.model import ActionModel, StructMemberAttributes, Typedef, TypeStruct, TypeArray, TypeDict, \
-    TypeEnum, TypeInt, ValidationError, AttributeValidationError, ValidationMode, IMMUTABLE_VALIDATION_MODES, \
-    TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_UUID, TYPE_DATE, TYPE_DATETIME, TYPE_OBJECT, \
+from chisel.model import \
+    ActionModel, \
+    AttributeValidationError, \
+    IMMUTABLE_VALIDATION_MODES, \
+    StructMemberAttributes, \
+    TYPE_BOOL, \
+    TYPE_DATE, \
+    TYPE_DATETIME, \
+    TYPE_FLOAT, \
+    TYPE_INT, \
+    TYPE_OBJECT, \
+    TYPE_STRING, \
+    TYPE_UUID, \
+    TypeArray, \
+    TypeDict, \
+    TypeEnum, \
+    TypeInt, \
+    TypeStruct, \
+    Typedef, \
+    ValidationError, \
+    ValidationMode, \
+    _member_error, \
+    _member_syntax, \
     get_referenced_types
 
 from . import TestCase
@@ -84,32 +104,32 @@ class TestReferencedTypes(TestCase):
 class TestValidationError(TestCase):
 
     def test_member_syntax_dict_single(self):
-        self.assertEqual(ValidationError.member_syntax(('a',)), 'a')
+        self.assertEqual(_member_syntax(('a',)), 'a')
 
     def test_member_syntax_dict_nested(self):
-        self.assertEqual(ValidationError.member_syntax(('a', 'b', 'c')), 'a.b.c')
+        self.assertEqual(_member_syntax(('a', 'b', 'c')), 'a.b.c')
 
     def test_member_syntax_array_single(self):
-        self.assertEqual(ValidationError.member_syntax((0,)), '[0]')
+        self.assertEqual(_member_syntax((0,)), '[0]')
 
     def test_member_syntax_array_nested(self):
-        self.assertEqual(ValidationError.member_syntax((0, 1, 0)), '[0][1][0]')
+        self.assertEqual(_member_syntax((0, 1, 0)), '[0][1][0]')
 
     def test_member_syntax_mixed(self):
-        self.assertEqual(ValidationError.member_syntax(('a', 1, 'b')), 'a[1].b')
+        self.assertEqual(_member_syntax(('a', 1, 'b')), 'a[1].b')
 
     def test_member_syntax_mixed2(self):
-        self.assertEqual(ValidationError.member_syntax((1, 'a', 0)), '[1].a[0]')
+        self.assertEqual(_member_syntax((1, 'a', 0)), '[1].a[0]')
 
     def test_member_syntax_empty(self):
-        self.assertEqual(ValidationError.member_syntax(()), None)
+        self.assertEqual(_member_syntax(()), None)
 
     def test_member_syntax_none(self):
-        self.assertEqual(ValidationError.member_syntax(None), None)
+        self.assertEqual(_member_syntax(None), None)
 
     def test_member_error_basic(self):
 
-        exc = ValidationError.member_error(TYPE_INT, 'abc', ('a',))
+        exc = _member_error(TYPE_INT, 'abc', ('a',))
         self.assertTrue(isinstance(exc, Exception))
         self.assertTrue(isinstance(exc, ValidationError))
         self.assertEqual(str(exc), "Invalid value 'abc' (type 'str') for member 'a', expected type 'int'")
@@ -117,7 +137,7 @@ class TestValidationError(TestCase):
 
     def test_member_error_long(self):
 
-        exc = ValidationError.member_error(TYPE_INT, 'abc' * 1000, ('a',))
+        exc = _member_error(TYPE_INT, 'abc' * 1000, ('a',))
         self.assertTrue(isinstance(exc, Exception))
         self.assertTrue(isinstance(exc, ValidationError))
         self.assertEqual(str(exc), "Invalid value '" + 'abc' * 333 + " (type 'str') for member 'a', expected type 'int'")
@@ -125,7 +145,7 @@ class TestValidationError(TestCase):
 
     def test_member_error_no_member(self):
 
-        exc = ValidationError.member_error(TYPE_INT, 'abc', ())
+        exc = _member_error(TYPE_INT, 'abc', ())
         self.assertTrue(isinstance(exc, Exception))
         self.assertTrue(isinstance(exc, ValidationError))
         self.assertEqual(str(exc), "Invalid value 'abc' (type 'str'), expected type 'int'")
@@ -133,7 +153,7 @@ class TestValidationError(TestCase):
 
     def test_member_error_constraint(self):
 
-        exc = ValidationError.member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
+        exc = _member_error(TYPE_INT, 6, ('a',), constraint_syntax='< 5')
         self.assertTrue(isinstance(exc, Exception))
         self.assertTrue(isinstance(exc, ValidationError))
         self.assertEqual(str(exc), "Invalid value 6 (type 'int') for member 'a', expected type 'int' [< 5]")
