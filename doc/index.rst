@@ -1,9 +1,12 @@
-Welcome to chisel's documentation!
-==================================
+chisel
+======
+
+TODO - brief introduction, feature list, link to source code, and link to getting started page
 
 .. toctree::
    :caption: Contents:
 
+   basics
    app
    action
    doc
@@ -11,9 +14,8 @@ Welcome to chisel's documentation!
    markup
    encode
 
-
-Indices and tables
-==================
+Index
+-----
 
 * :ref:`genindex`
 * :ref:`search`

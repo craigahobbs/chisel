@@ -5,7 +5,6 @@ Schemas
    :members:
 
 .. autoexception:: chisel.SpecParserError
-   :show-inheritance:
    :members:
 
 .. autoclass:: chisel.ValidationMode
@@ -13,7 +12,6 @@ Schemas
    :members:
 
 .. autoexception:: chisel.ValidationError
-   :show-inheritance:
    :members:
 
 .. autofunction:: chisel.get_referenced_types
@@ -23,7 +21,6 @@ Schemas
 
 .. autoexception:: chisel.AttributeValidationError
    :members:
-   :show-inheritance:
 
 .. autoclass:: chisel.EnumValue
    :members:

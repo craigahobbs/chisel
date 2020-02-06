@@ -63,7 +63,7 @@ class Request:
         TODO
         """
 
-        assert self.wsgi_callback is not None, 'must specify wsgi_callback when using Request directly'
+        assert self.wsgi_callback is not None, 'wsgi_callback required when using Request directly'
         return self.wsgi_callback(environ, start_response)
 
     def decorate_module(self, callback):

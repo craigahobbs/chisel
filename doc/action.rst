@@ -10,5 +10,4 @@ JSON APIs
    .. automethod:: __call__
 
 .. autoexception:: chisel.ActionError
-   :show-inheritance:
    :members:

@@ -146,7 +146,7 @@ class TestRequest(TestCase):
         self.assertEqual(req.doc, None)
         with self.assertRaises(AssertionError) as cm_exc:
             req({}, None)
-        self.assertEqual(str(cm_exc.exception), 'must specify wsgi_callback when using Request directly')
+        self.assertEqual(str(cm_exc.exception), 'wsgi_callback required when using Request directly')
 
     def test_decorator(self):
 
