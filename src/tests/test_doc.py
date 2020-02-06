@@ -3,93 +3,10 @@
 
 # pylint: disable=missing-docstring
 
-from chisel import action, request, Action, Application, DocAction, DocPage, Element, Request, SpecParser
+from chisel import action, request, Action, Application, DocAction, DocPage, Request, SpecParser
 import chisel.doc
 
 from . import TestCase
-
-
-class TestSimpleMarkdown(TestCase):
-
-    def test_basic(self):
-        self.assertEqual(
-            Element('div', children=chisel.doc.simple_markdown('''\
-P1.
-P1 2.
-
-P2.
-
-
-P3
-''' + '  P3 2.  ' + '''
-P3 3.
-
-P4
-''')).serialize(html=False),
-            '''\
-<div>
-  <p>
-P1.
-P1 2.
-  </p>
-  <p>
-P2.
-  </p>
-  <p>
-P3
-P3 2.
-P3 3.
-  </p>
-  <p>
-P4
-  </p>
-</div>'''
-        )
-
-    def test_new_paragraph(self):
-        self.assertEqual(
-            Element('div', children=chisel.doc.simple_markdown('''\
-# h1
-## h2
-* list1
-+ list2
-- list3
-
-- list4
-1. list5
-2. list6
-''')).serialize(html=False),
-            '''\
-<div>
-  <p>
-# h1
-  </p>
-  <p>
-## h2
-  </p>
-  <p>
-* list1
-  </p>
-  <p>
-+ list2
-  </p>
-  <p>
-- list3
-  </p>
-  <p>
-- list4
-  </p>
-  <p>
-1. list5
-  </p>
-  <p>
-2. list6
-  </p>
-</div>'''
-        )
-
-    def test_empty(self):
-        self.assertIsNone(chisel.doc.simple_markdown('   '))
 
 
 class TestDoc(TestCase):
@@ -112,6 +29,8 @@ struct MyStruct
 
     # My int member
     # - continuing
+    #
+    # * continuing2
     #
     # Another paragraph
     #
@@ -383,6 +302,9 @@ My int member
             </p>
             <p>
 - continuing
+            </p>
+            <p>
+* continuing2
             </p>
             <p>
 Another paragraph
