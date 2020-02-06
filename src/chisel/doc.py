@@ -19,9 +19,9 @@ class DocAction(Action):
     TODO
     """
 
-    __slots__ = ()
+    __slots__ = ('markdown', 'styles')
 
-    def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None):
+    def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None, markdown=None, styles=None):
         super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
 # Generate the application's documentation HTML page.
 action {name}
@@ -33,21 +33,26 @@ action {name}
     optional bool nonav
 '''.format(name=name))
 
-    @classmethod
-    def _action_callback(cls, ctx, req):
+        #: TODO
+        self.markdown = markdown
+
+        #: TODO
+        self.styles = styles
+
+    def _action_callback(self, ctx, req):
         request_name = req.get('name')
         root = None
         if request_name is None:
-            root = cls._index_html(ctx)
+            root = self._index_html(ctx)
         elif request_name in ctx.app.requests:
-            root = _DocPageElements(ctx.app.requests[request_name], nonav=req.get('nonav')).get_elements(ctx)
+            elements = DocElements(ctx.app.requests[request_name], nonav=req.get('nonav'), markdown=self.markdown, styles=self.styles)
+            root = elements.get_elements(ctx)
         if root is None:
             return ctx.response_text(HTTPStatus.NOT_FOUND, 'Unknown Request')
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
         return ctx.response_text(HTTPStatus.OK, content, content_type='text/html')
 
-    @staticmethod
-    def _index_html(ctx):
+    def _index_html(self, ctx):
         title = ctx.environ.get('HTTP_HOST') or (ctx.environ['SERVER_NAME'] + ':' + ctx.environ['SERVER_PORT'])
 
         # Group requests
@@ -64,7 +69,7 @@ action {name}
             Element('head', children=[
                 Element('meta', closed=False, charset='UTF-8'),
                 Element('title', inline=True, children=Element(title, text=True)),
-                Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
+                Element('style', _type='text/css', children=Element(self.styles or STYLE_TEXT, text_raw=True))
             ]),
             Element('body', _class='chsl-index-body', children=[
                 Element('h1', inline=True, children=Element(title, text=True)),
@@ -90,9 +95,9 @@ class DocPage(Action):
     TODO
     """
 
-    __slots__ = ('request', 'request_urls')
+    __slots__ = ('request', 'request_urls', 'markdown', 'styles')
 
-    def __init__(self, request, request_urls=None, name=None, urls=(('GET', None),), doc=None, doc_group=None):
+    def __init__(self, request, request_urls=None, markdown=None, styles=None, name=None, urls=(('GET', None),), doc=None, doc_group=None):
         request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
@@ -107,19 +112,32 @@ action {name}
         #: TODO
         self.request_urls = request_urls
 
+        #: TODO
+        self.markdown = markdown
+
+        #: TODO
+        self.styles = styles
+
     def _action_callback(self, ctx, unused_req):
-        root = _DocPageElements(self.request, request_urls=self.request_urls).get_elements(ctx)
+        elements = DocElements(self.request, request_urls=self.request_urls, markdown=self.markdown, styles=self.styles)
+        root = elements.get_elements(ctx)
         content = root.serialize(indent='  ' if ctx.app.pretty_output else '')
         return ctx.response_text(HTTPStatus.OK, content, content_type='text/html')
 
 
-class _DocPageElements:
-    __slots__ = ('request', 'request_urls', 'nonav')
+class DocElements:
+    """
+    TODO
+    """
 
-    def __init__(self, request, request_urls=None, nonav=True):
+    __slots__ = ('request', 'request_urls', 'nonav', 'markdown', 'styles')
+
+    def __init__(self, request, request_urls=None, nonav=True, markdown=None, styles=None):
         self.request = request
         self.request_urls = request_urls
         self.nonav = nonav
+        self.markdown = markdown
+        self.styles = styles
 
     def get_elements(self, ctx):
         """
@@ -154,7 +172,7 @@ class _DocPageElements:
             Element('head', children=[
                 Element('meta', closed=False, charset='UTF-8'),
                 Element('title', inline=True, children=Element(self.request.name if is_request else self.request.type_name, text=True)),
-                Element('style', _type='text/css', children=Element(STYLE_TEXT, text_raw=True))
+                Element('style', _type='text/css', children=Element(self.styles or STYLE_TEXT, text_raw=True))
             ]),
             Element('body', _class='chsl-request-body', children=[
 
@@ -233,10 +251,19 @@ class _DocPageElements:
     RE_MARKDOWN_NEW_PARAGRAPH = re.compile(r'^\s*([#=\+\-\*]|[0-9]\.)')
 
     def _doc_text(self, doc):
-        if isinstance(doc, str):
-            doc = doc.splitlines()
+
+        # User-provided markdown?
+        if self.markdown is not None:
+            if not isinstance(doc, str):
+                doc = '\n'.join(doc)
+            markdown_text = self.markdown(doc).strip()
+            if not markdown_text:
+                return None
+            return Element('div', _class='chsl-text', children=Element(markdown_text, text_raw=True))
 
         # Separate text lines into paragraphs
+        if isinstance(doc, str):
+            doc = doc.splitlines()
         paragraphs = []
         lines = []
         for line in (line.strip() for line in doc):

@@ -102,6 +102,174 @@ action my_action2
   </body>
 </html>''')
 
+    def test_markdown_styles(self):
+
+        def really_simple_markdown(markdown_text):
+            if not markdown_text.strip():
+                return markdown_text
+            return '<p>' + markdown_text + '</p>'
+
+        my_styles = 'a { color: #004B91; }'
+
+        app = Application()
+        app.add_request(DocAction(markdown=really_simple_markdown, styles=my_styles))
+        app.add_request(Request(name='request1', doc=['Does this &', 'that']))
+        app.add_request(Request(name='request2', doc='Does this & that'))
+        app.add_request(Request(name='request3', doc=' '))
+        app.add_request(DocPage(app.requests['request3'], markdown=really_simple_markdown, styles=my_styles))
+
+        status, _, response = app.request('GET', '/doc')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>localhost:80</title>
+<style type="text/css">
+a { color: #004B91; }
+</style>
+</head>
+<body class="chsl-index-body">
+<h1>localhost:80</h1>
+<ul class="chsl-request-list">
+<li><a href="/doc?name=doc">doc</a></li>
+<li><a href="/doc?name=doc_request3">doc_request3</a></li>
+<li><a href="/doc?name=request1">request1</a></li>
+<li><a href="/doc?name=request2">request2</a></li>
+<li><a href="/doc?name=request3">request3</a></li>
+</ul>
+</body>
+</html>''')
+
+        status, _, response = app.request('GET', '/doc', query_string='name=request1')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>request1</title>
+<style type="text/css">
+a { color: #004B91; }
+</style>
+</head>
+<body class="chsl-request-body">
+<div class="chsl-header">
+<a href="/doc">Back to documentation index</a>
+</div>
+<h1>request1</h1>
+<div class="chsl-text">
+<p>Does this &
+that</p>
+</div>
+<div class="chsl-notes">
+<div class="chsl-note">
+<p>
+<b>Note: </b>
+The request is exposed at the following URL:
+</p>
+<ul>
+<li><a href="/request1">/request1</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>''')
+
+        status, _, response = app.request('GET', '/doc', query_string='name=request2')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>request2</title>
+<style type="text/css">
+a { color: #004B91; }
+</style>
+</head>
+<body class="chsl-request-body">
+<div class="chsl-header">
+<a href="/doc">Back to documentation index</a>
+</div>
+<h1>request2</h1>
+<div class="chsl-text">
+<p>Does this & that</p>
+</div>
+<div class="chsl-notes">
+<div class="chsl-note">
+<p>
+<b>Note: </b>
+The request is exposed at the following URL:
+</p>
+<ul>
+<li><a href="/request2">/request2</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>''')
+
+        status, _, response = app.request('GET', '/doc', query_string='name=request3')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>request3</title>
+<style type="text/css">
+a { color: #004B91; }
+</style>
+</head>
+<body class="chsl-request-body">
+<div class="chsl-header">
+<a href="/doc">Back to documentation index</a>
+</div>
+<h1>request3</h1>
+<div class="chsl-notes">
+<div class="chsl-note">
+<p>
+<b>Note: </b>
+The request is exposed at the following URL:
+</p>
+<ul>
+<li><a href="/request3">/request3</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>''')
+
+        status, _, response = app.request('GET', '/doc_request3')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '''\
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>request3</title>
+<style type="text/css">
+a { color: #004B91; }
+</style>
+</head>
+<body class="chsl-request-body">
+<h1>request3</h1>
+<div class="chsl-notes">
+<div class="chsl-note">
+<p>
+<b>Note: </b>
+The request is exposed at the following URL:
+</p>
+<ul>
+<li><a href="/request3">/request3</a></li>
+</ul>
+</div>
+</div>
+</body>
+</html>''')
+
     def test_doc_group(self):
 
         spec_parser = SpecParser('''\
