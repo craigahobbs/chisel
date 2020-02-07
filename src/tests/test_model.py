@@ -56,6 +56,8 @@ class TestReferencedTypes(TestCase):
         struct.add_member('d', TYPE_INT)
         struct.add_member('e', struct)
         struct.add_member('f', struct2)
+        struct.add_member('g', TypeArray(enum))
+        struct.add_member('h', TypeArray(typedef))
         self.assertListEqual(
             [t.type_name for t in get_referenced_types(struct)],
             ['ArrayStruct', 'DictKey', 'DictStruct', 'MyEnum', 'MyStruct2', 'MyTypedef']

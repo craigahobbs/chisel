@@ -93,23 +93,24 @@ def get_referenced_types(type_):
     return sorted(_get_referenced_types(type_, set(), True), key=lambda type_: type_.type_name)
 
 def _get_referenced_types(type_, visited, top_level):
-    if not isinstance(type_, ActionModel):
-        if type_.type_name in visited:
-            return
-        visited.add(type_.type_name)
-
     if isinstance(type_, TypeStruct):
-        if not top_level:
-            yield type_
-        for member in type_.members():
-            yield from _get_referenced_types(member.type, visited, False)
+        if type_.type_name not in visited:
+            visited.add(type_.type_name)
+            if not top_level:
+                yield type_
+            for member in type_.members():
+                yield from _get_referenced_types(member.type, visited, False)
     elif isinstance(type_, TypeEnum):
-        if not top_level:
-            yield type_
+        if type_.type_name not in visited:
+            visited.add(type_.type_name)
+            if not top_level:
+                yield type_
     elif isinstance(type_, Typedef):
-        if not top_level:
-            yield type_
-        yield from _get_referenced_types(type_.type, visited, False)
+        if type_.type_name not in visited:
+            visited.add(type_.type_name)
+            if not top_level:
+                yield type_
+            yield from _get_referenced_types(type_.type, visited, False)
     elif isinstance(type_, TypeArray):
         yield from _get_referenced_types(type_.type, visited, False)
     elif isinstance(type_, TypeDict):
