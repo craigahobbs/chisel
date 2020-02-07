@@ -25,7 +25,7 @@ def main():
 
     setup(
         name=PACKAGE_NAME,
-        description=('Schema-validated JSON web APIs for humans.'),
+        description=('Lightweight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
         long_description=long_description,
         long_description_content_type='text/markdown',
         version=version,
@@ -42,7 +42,10 @@ def main():
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8'
+            'Programming Language :: Python :: 3.8',
+            'Topic :: Internet :: WWW/HTTP :: WSGI',
+            'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+            'Topic :: Software Development :: Libraries :: Application Frameworks'
         ],
         package_dir={'': 'src'},
         packages=[MODULE_NAME],
