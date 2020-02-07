@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: make commit
 
 on: [push]
 
@@ -10,5 +10,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Run the commit tests
+    - name: Run "make commit"
       run: make commit
