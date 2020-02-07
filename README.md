@@ -1,3 +1,3 @@
-![](https://github.com/craigahobbs/chisel/workflows/.github/workflows/pythonpackage.yml/badge.svg)
+![](https://github.com/craigahobbs/chisel/workflows/commit/badge.svg)
 
 TODO
