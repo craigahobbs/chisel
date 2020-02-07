@@ -78,13 +78,10 @@ def _member_syntax(members):
 
 def _member_error(type_, value, members, constraint_syntax=None):
     member_syntax = _member_syntax(members)
-    msg = "Invalid value {0!r:.1000s} (type '{1}'){2}{3}{4}".format(
-        value,
-        value.__class__.__name__,
-        " for member '" + member_syntax + "'" if member_syntax else '',
-        ", expected type '" + type_.type_name + "'" if type_ else '',
-        ' [' + constraint_syntax + ']' if constraint_syntax else ''
-    )
+    member_part = f" for member '{member_syntax}'" if member_syntax else ''
+    type_part = f", expected type '{type_.type_name}'" if type_ else ''
+    constraint_part = f' [{constraint_syntax}]' if constraint_syntax else ''
+    msg = f"Invalid value {value!r:.1000s} (type '{value.__class__.__name__}'){member_part}{type_part}{constraint_part}"
     return ValidationError(msg, member=member_syntax)
 
 
@@ -215,7 +212,7 @@ class StructMemberAttributes:
 
     @staticmethod
     def _format_float(value):
-        return '{0:.6f}'.format(value).rstrip('0').rstrip('.')
+        return f'{value:.6f}'.rstrip('0').rstrip('.')
 
     def validate(self, value, _member=()):
         """
@@ -428,7 +425,7 @@ class TypeStruct:
             member_name = member.name
             if member_name not in value_x:
                 if not member.optional:
-                    raise ValidationError("Required member {0!r} missing".format(_member_syntax((_member, member_name))))
+                    raise ValidationError(f"Required member {_member_syntax((_member, member_name))!r} missing")
             else:
                 member_count += 1
                 member_value = value_x[member_name]
@@ -447,7 +444,7 @@ class TypeStruct:
         if member_count != len(value_x):
             member_set = {member.name for member in self.members()}
             unknown_value_names = [value_name for value_name in value_x.keys() if value_name not in member_set]
-            raise ValidationError("Unknown member {0!r:.100s}".format(_member_syntax((_member, unknown_value_names[0]))))
+            raise ValidationError(f"Unknown member {_member_syntax((_member, unknown_value_names[0]))!r:.100s}")
 
         return value if value_copy is None else value_copy
 

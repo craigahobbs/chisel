@@ -79,7 +79,7 @@ class Action(Request):
         elif spec is not None:
             spec_parser.parse_string(spec)
         model = spec_parser.actions.get(name)
-        assert model is not None, 'Unknown action "{0}"'.format(name)
+        assert model is not None, f'Unknown action "{name}"'
 
         super().__init__(
             name=name,

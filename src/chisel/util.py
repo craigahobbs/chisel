@@ -274,7 +274,7 @@ def _decode_query_string_items(query_string_items, encoding):
             key_str, value_str = key_value
             value = unquote(value_str, encoding=encoding) if encoding else value_str
         except ValueError:
-            raise ValueError("Invalid key/value pair {0!r:.1000s}".format('='.join(key_value)))
+            raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
 
         # Find/create the object on which to set the value
         parent = result
@@ -293,11 +293,11 @@ def _decode_query_string_items(query_string_items, encoding):
                 try:
                     key = int(key)
                 except:
-                    raise ValueError("Invalid key/value pair {0!r:.1000s}".format('='.join(key_value)))
+                    raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
                 if key == len(obj):
                     obj.append(None)
                 elif key < 0 or key > len(obj):
-                    raise ValueError("Invalid key/value pair {0!r:.1000s}".format('='.join(key_value)))
+                    raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
 
             # Dictionary key
             else:
@@ -316,7 +316,7 @@ def _decode_query_string_items(query_string_items, encoding):
 
         # Set the value
         if parent[key_parent] is not None:
-            raise ValueError("Duplicate key {0!r:.1000s}".format('='.join(key_value)))
+            raise ValueError(f"Duplicate key {'='.join(key_value)!r:.1000s}")
         parent[key_parent] = value
 
     return result[0] if (result[0] is not None) else {}

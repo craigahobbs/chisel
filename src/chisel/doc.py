@@ -22,7 +22,7 @@ class DocAction(Action):
     __slots__ = ('_markdown', '_styles')
 
     def __init__(self, name='doc', urls=(('GET', None),), doc=None, doc_group=None, markdown=None, styles=None):
-        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
+        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec=f'''\
 # Generate the application's documentation HTML page.
 action {name}
   query
@@ -31,7 +31,7 @@ action {name}
 
     # Remove navigation links.
     optional bool nonav
-'''.format(name=name))
+''')
         self._markdown = markdown
         self._styles = styles
 
@@ -96,10 +96,10 @@ class DocPage(Action):
         request_name = request.name if isinstance(request, Request) else request.type_name
         if name is None:
             name = 'doc_' + request_name
-        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec='''\
+        super().__init__(self._action_callback, name=name, urls=urls, doc=doc, doc_group=doc_group, wsgi_response=True, spec=f'''\
 # Documentation page for {request_name}.
 action {name}
-'''.format(name=name, request_name=request_name))
+''')
         self._request = request
         self._request_urls = request_urls
         self._markdown = markdown
@@ -294,25 +294,25 @@ class _DocElements:
         if attr is None:
             return
         if attr.op_gt is not None:
-            yield (value_name, '>', '{0:.6f}'.format(attr.op_gt).rstrip('0').rstrip('.'))
+            yield (value_name, '>', f'{attr.op_gt:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_gte is not None:
-            yield (value_name, '>=', '{0:.6f}'.format(attr.op_gte).rstrip('0').rstrip('.'))
+            yield (value_name, '>=', f'{attr.op_gte:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_lt is not None:
-            yield (value_name, '<', '{0:.6f}'.format(attr.op_lt).rstrip('0').rstrip('.'))
+            yield (value_name, '<', f'{attr.op_lt:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_lte is not None:
-            yield (value_name, '<=', '{0:.6f}'.format(attr.op_lte).rstrip('0').rstrip('.'))
+            yield (value_name, '<=', f'{attr.op_lte:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_eq is not None:
-            yield (value_name, '==', '{0:.6f}'.format(attr.op_eq).rstrip('0').rstrip('.'))
+            yield (value_name, '==', f'{attr.op_eq:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_len_gt is not None:
-            yield (len_name, '>', '{0:.6f}'.format(attr.op_len_gt).rstrip('0').rstrip('.'))
+            yield (len_name, '>', f'{attr.op_len_gt:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_len_gte is not None:
-            yield (len_name, '>=', '{0:.6f}'.format(attr.op_len_gte).rstrip('0').rstrip('.'))
+            yield (len_name, '>=', f'{attr.op_len_gte:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_len_lt is not None:
-            yield (len_name, '<', '{0:.6f}'.format(attr.op_len_lt).rstrip('0').rstrip('.'))
+            yield (len_name, '<', f'{attr.op_len_lt:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_len_lte is not None:
-            yield (len_name, '<=', '{0:.6f}'.format(attr.op_len_lte).rstrip('0').rstrip('.'))
+            yield (len_name, '<=', f'{attr.op_len_lte:.6f}'.rstrip('0').rstrip('.'))
         if attr.op_len_eq is not None:
-            yield (len_name, '==', '{0:.6f}'.format(attr.op_len_eq).rstrip('0').rstrip('.'))
+            yield (len_name, '==', f'{attr.op_len_eq:.6f}'.rstrip('0').rstrip('.'))
 
     @classmethod
     def _type_attr(cls, type_, attr, optional, nullable):

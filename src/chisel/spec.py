@@ -278,7 +278,7 @@ class SpecParser:
 
     # Record an error
     def _error(self, msg, filename=None, linenum=None):
-        self.errors.append('{0}:{1}: error: {2}'.format(filename or self._parse_filename, linenum or self._parse_linenum, msg))
+        self.errors.append(f'{filename or self._parse_filename}:{linenum or self._parse_linenum}: error: {msg}')
 
     # Validate a type's attributes
     def _validate_attr(self, type_, attr, filename=None, linenum=None):

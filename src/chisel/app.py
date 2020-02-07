@@ -62,7 +62,7 @@ class Application:
 
         # Duplicate request name?
         if request.name in self.requests:
-            raise ValueError('redefinition of request "{0}"'.format(request.name))
+            raise ValueError(f'redefinition of request "{request.name}"')
         self.requests[request.name] = request
 
         # Add the request URLs
@@ -75,7 +75,7 @@ class Application:
             else:
                 request_key = (method, url)
                 if request_key in self.__request_urls:
-                    raise ValueError('redefinition of request URL "{0}"'.format(url))
+                    raise ValueError(f'redefinition of request URL "{url}"')
                 self.__request_urls[request_key] = request
 
     def __call__(self, environ, start_response):
@@ -248,7 +248,7 @@ class Context:
             else:
                 assert control in ('public', 'private')
                 assert isinstance(ttl_seconds, int) and ttl_seconds > 0
-                self.add_header('Cache-Control', '{0},max-age={1}'.format(control, ttl_seconds))
+                self.add_header('Cache-Control', f'{control},max-age={ttl_seconds}')
                 if utcnow is None:
                     utcnow = datetime.utcnow()
                 self.add_header('Expires', (utcnow + timedelta(seconds=ttl_seconds)).strftime('%a, %d %b %Y %H:%M:%S GMT'))
