@@ -1,3 +1,3 @@
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/craigahobbs/chisel/make%20commit)
+![](https://github.com/craigahobbs/chisel/workflows/.github/workflows/pythonpackage.yml/badge.svg)
 
 TODO
