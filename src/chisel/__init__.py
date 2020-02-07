@@ -63,6 +63,4 @@ from .util import \
     Element, \
     JSONEncoder, \
     decode_query_string, \
-    encode_query_string, \
-    parse_iso8601_date, \
-    parse_iso8601_datetime
+    encode_query_string

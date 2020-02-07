@@ -12,8 +12,6 @@ from itertools import chain
 from math import isnan, isinf
 from uuid import UUID
 
-from .util import parse_iso8601_date, parse_iso8601_datetime
-
 
 # Validation mode
 class ValidationMode(Enum):
@@ -735,7 +733,7 @@ class TypeInt:
             try:
                 value_x = int(value)
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         else:
             raise _member_error(self, value, _member)
 
@@ -776,7 +774,7 @@ class TypeFloat:
                 if isnan(value_x) or isinf(value_x):
                     raise ValueError()
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         else:
             raise _member_error(self, value, _member)
 
@@ -819,7 +817,7 @@ class TypeBool:
             try:
                 return self.VALUES[value]
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         raise _member_error(self, value, _member)
 
 
@@ -853,7 +851,7 @@ class TypeUuid:
             try:
                 return UUID(value)
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         raise _member_error(self, value, _member)
 
 
@@ -885,9 +883,9 @@ class TypeDate:
             return value
         if mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:
-                return parse_iso8601_date(value)
+                return date.fromisoformat(value)
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         raise _member_error(self, value, _member)
 
 
@@ -919,9 +917,9 @@ class TypeDatetime:
             return value
         if mode not in IMMUTABLE_VALIDATION_MODES and isinstance(value, str):
             try:
-                return parse_iso8601_datetime(value)
+                return datetime.fromisoformat(value)
             except:
-                raise _member_error(self, value, _member)
+                raise _member_error(self, value, _member) from None
         raise _member_error(self, value, _member)
 
 

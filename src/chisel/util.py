@@ -5,11 +5,10 @@
 TODO
 """
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from html import escape
 import json
-import re
 from urllib.parse import quote, unquote
 from uuid import UUID
 from xml.sax.saxutils import quoteattr
@@ -146,69 +145,6 @@ class Element:
                     yield child
                 elif child is not None:
                     yield from cls._iterate_children_helper(child)
-
-
-# ISO 8601 regexes
-RE_ISO8601_DATE = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\s*$')
-RE_ISO8601_DATETIME = re.compile(r'^\s*(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-                                 r'(T(?P<hour>\d{2})(:(?P<min>\d{2})(:(?P<sec>\d{2})([.,](?P<fracsec>\d{1,7}))?)?)?'
-                                 r'(Z|(?P<offsign>[+-])(?P<offhour>\d{2})(:?(?P<offmin>\d{2}))?))?\s*$')
-
-
-def parse_iso8601_date(string):
-    """
-    Parse an `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ date string.
-
-    :param str string: The `ISO-8601`_ date string.
-    :rtype: ~datetime.date
-
-    >>> import chisel
-    >>> chisel.parse_iso8601_date('2020-02-04')
-    datetime.date(2020, 2, 4)
-    """
-
-    # Match ISO 8601?
-    match = RE_ISO8601_DATE.search(string)
-    if not match:
-        raise ValueError('Expected ISO 8601 date')
-
-    # Extract ISO 8601 components
-    year = int(match.group('year'))
-    month = int(match.group('month'))
-    day = int(match.group('day'))
-
-    return date(year, month, day)
-
-
-def parse_iso8601_datetime(string):
-    """
-    Parse an `ISO-8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ date/time string.
-
-    :param str string: The `ISO-8601`_ date/time string.
-    :rtype: ~datetime.datetime
-
-    >>> import chisel
-    >>> chisel.parse_iso8601_datetime('2020-02-04T07:41:00+07:00')
-    datetime.datetime(2020, 2, 4, 0, 41, tzinfo=datetime.timezone.utc)
-    """
-
-    # Match ISO 8601?
-    match = RE_ISO8601_DATETIME.search(string)
-    if not match:
-        raise ValueError('Expected ISO 8601 date/time')
-
-    # Extract ISO 8601 components
-    year = int(match.group('year'))
-    month = int(match.group('month'))
-    day = int(match.group('day'))
-    hour = int(match.group('hour')) if match.group('hour') else 0
-    minute = int(match.group('min')) if match.group('min') else 0
-    sec = int(match.group('sec')) if match.group('sec') else 0
-    microsec = int(float('.' + match.group('fracsec')) * 1000000) if match.group('fracsec') else 0
-    offhour = int(match.group('offsign') + match.group('offhour')) if match.group('offhour') else 0
-    offmin = int(match.group('offsign') + match.group('offmin')) if match.group('offmin') else 0
-
-    return datetime(year, month, day, hour, minute, sec, microsec, timezone.utc) - timedelta(hours=offhour, minutes=offmin)
 
 
 def encode_query_string(obj, encoding='utf-8'):

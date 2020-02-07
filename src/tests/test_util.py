@@ -8,7 +8,7 @@ from decimal import Decimal
 from urllib.parse import quote
 from uuid import UUID
 
-from chisel import Element, JSONEncoder, decode_query_string, encode_query_string, parse_iso8601_date, parse_iso8601_datetime
+from chisel import Element, JSONEncoder, decode_query_string, encode_query_string
 
 from . import TestCase
 
@@ -124,28 +124,6 @@ Raw<span> There!</span><span> Again, again!</span></b><c foo="bar"><d attr1="asd
         self.assertEqual(self.TEST_ELEMENTS.serialize(indent=None, html=False), '''\
 <a><b>Hello!Text &
 Raw<span> There!</span><span> Again, again!</span></b><c foo="bar"><d attr1="asdf" attr2="sdfg"><e /></d></a>''')
-
-
-class TestISO8601(TestCase):
-
-    def test_parse_iso8601_date(self):
-        self.assertEqual(parse_iso8601_date('2020-01-22'), date(2020, 1, 22))
-
-    def test_parse_iso8601_date_invalid(self):
-        with self.assertRaises(ValueError) as cm_exc:
-            parse_iso8601_date('asdf')
-        self.assertEqual(str(cm_exc.exception), 'Expected ISO 8601 date')
-
-    def test_parse_iso8601_datetime(self):
-        self.assertEqual(parse_iso8601_datetime('2020-01-22T09:37:00-07:00'), datetime(2020, 1, 22, 16, 37, tzinfo=timezone.utc))
-
-    def test_parse_iso8601_datetime_zulu(self):
-        self.assertEqual(parse_iso8601_datetime('2020-01-22T09:37:00Z'), datetime(2020, 1, 22, 9, 37, tzinfo=timezone.utc))
-
-    def test_parse_iso8601_datetime_invalid(self):
-        with self.assertRaises(ValueError) as cm_exc:
-            parse_iso8601_datetime('asdf')
-        self.assertEqual(str(cm_exc.exception), 'Expected ISO 8601 date/time')
 
 
 class TestUrl(TestCase):

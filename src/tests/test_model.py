@@ -1857,7 +1857,7 @@ class TestDatetime(TestCase):
     def test_validate_query_string_fracsec(self):
         type_ = TYPE_DATETIME
 
-        obj = '2013-05-26T11:01:00.1234+00:00'
+        obj = '2013-05-26T11:01:00.123400+00:00'
         for mode in ValidationMode:
             if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
@@ -1869,14 +1869,14 @@ class TestDatetime(TestCase):
                     type_.validate(obj, mode)
                 self.assertEqual(
                     str(cm_exc.exception),
-                    "Invalid value '2013-05-26T11:01:00.1234+00:00' (type 'str'), expected type 'datetime'"
+                    "Invalid value '2013-05-26T11:01:00.123400+00:00' (type 'str'), expected type 'datetime'"
                 )
 
     # All validation modes - ISO datetime string - no seconds
     def test_validate_query_string_no_seconds(self):
         type_ = TYPE_DATETIME
 
-        obj = '2013-05-26T11:01Z'
+        obj = '2013-05-26T11:01+00:00'
         for mode in ValidationMode:
             if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
@@ -1886,13 +1886,13 @@ class TestDatetime(TestCase):
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01Z' (type 'str'), expected type 'datetime'")
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11:01+00:00' (type 'str'), expected type 'datetime'")
 
     # All validation modes - ISO datetime string - no minutes
     def test_validate_query_string_no_minutes(self):
         type_ = TYPE_DATETIME
 
-        obj = '2013-05-26T11Z'
+        obj = '2013-05-26T11+00:00'
         for mode in ValidationMode:
             if mode in (ValidationMode.QUERY_STRING, ValidationMode.JSON_INPUT):
                 obj2 = type_.validate(obj, mode)
@@ -1902,7 +1902,7 @@ class TestDatetime(TestCase):
             else:
                 with self.assertRaises(ValidationError) as cm_exc:
                     type_.validate(obj, mode)
-                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11Z' (type 'str'), expected type 'datetime'")
+                self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T11+00:00' (type 'str'), expected type 'datetime'")
 
     # All validation modes - error - invalid value
     def test_validate_error(self):
