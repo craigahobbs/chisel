@@ -122,13 +122,4 @@ define DOC_COMMANDS_FN
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
 $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_THEME_VERSION)), DOC_COMMANDS_FN))
-
-# Publish to GitHub Pages (gh-pages)
-.PHONY: gh-pages
-gh-pages: doc
-	if [ ! -d $(BUILD)/gh-pages ]; then git clone --branch gh-pages . $(BUILD)/gh-pages; fi
-	cd $(BUILD)/gh-pages && git pull
-	cp -RT $(BUILD)/doc/html $(BUILD)/gh-pages
-	@echo
-	@echo gh-pages is at $(BUILD)/gh-pages
 endif
