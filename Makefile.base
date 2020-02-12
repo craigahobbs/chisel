@@ -122,6 +122,11 @@ define DOC_COMMANDS_FN
 	@echo Doc index is $(BUILD)/doc/html/index.html
 endef
 $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_THEME_VERSION)), DOC_COMMANDS_FN))
+
+.PHONY: gh-pages
+gh-pages: doc
+	if [ ! -d ../$(notdir $(CURDIR)).doc ]; then git clone -b gh-pages `git config --get remote.origin.url` ../$(notdir $(CURDIR)).doc; fi
+	rsync -av $(BUILD)/doc/html/ ../$(notdir $(CURDIR)).doc
 else
 .PHONY: doc
 doc:
