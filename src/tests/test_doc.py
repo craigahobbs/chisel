@@ -35,20 +35,20 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
-                    'urls': (('GET', '/doc/chisel.js'),)
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
                     'name': 'static_chisel_static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
-                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
                     'name': 'static_chisel_static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
+                },
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
         )
@@ -68,20 +68,20 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
-                    'urls': (('GET', '/doc/chisel.js'),)
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
                     'name': 'static_chisel_static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
-                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
                     'name': 'static_chisel_static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
+                },
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
         )
@@ -93,7 +93,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in get_doc_requests(static=False)
+                for request in get_doc_requests(doc=False)
             ],
             [
                 {
@@ -114,7 +114,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls,
                 }
-                for request in get_doc_requests(static_css=False)
+                for request in get_doc_requests(doc_css=False)
             ],
             [
                 {
@@ -130,16 +130,43 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
-                    'urls': (('GET', '/doc/chisel.js'),)
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
                     'name': 'static_chisel_static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
-                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
+                }
+            ]
+        )
+
+    def test_none(self):
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls,
+                }
+                for request in get_doc_requests(request_api=False, doc=False)
+            ],
+            []
+        )
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls,
+                }
+                for request in get_doc_requests(request_api=False, doc=False, chisel_js=True)
+            ],
+            [
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
         )

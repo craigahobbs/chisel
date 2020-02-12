@@ -12,28 +12,23 @@ from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, get_refer
 from .request import RedirectRequest, StaticRequest
 
 
-def get_doc_requests(root_path='/doc', request_api=True, request_names=None, static=True, static_css=True, cache=True):
+def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc=True, doc_css=True, chisel_js=False, cache=True):
     """
     TODO
-
-    :param str root_path: TODO
-    :param bool request_api: TODO
-    :param list[str] request_names: TODO
-    :param bool static: TODO
-    :param bool static_css: TODO
     """
 
     if request_api and request_names is None:
         yield DocIndex(urls=(('GET', root_path + '/doc_index'),))
     if request_api:
         yield DocRequest(urls=(('GET', root_path + '/doc_request'),), request_names=request_names)
-    if static:
+    if doc:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
-        yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
-        if static_css:
+        yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
+        if doc_css:
             yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
+    if doc or chisel_js:
+        yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
 
 
 class DocIndex(Action):
