@@ -126,6 +126,7 @@ $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION
 .PHONY: gh-pages
 gh-pages: doc
 	if [ ! -d ../$(notdir $(CURDIR)).doc ]; then git clone -b gh-pages `git config --get remote.origin.url` ../$(notdir $(CURDIR)).doc; fi
+	cd ../$(notdir $(CURDIR)).doc && git pull
 	rsync -av $(BUILD)/doc/html/ ../$(notdir $(CURDIR)).doc
 else
 .PHONY: doc
