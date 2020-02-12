@@ -328,10 +328,10 @@ action MyAction
     url
         GET
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ':4: error: Duplicate URL: GET /',
             ':7: error: Redefinition of action url',
-            ':8: error: Duplicate URL: GET'
+            ':8: error: Duplicate URL: GET '
         ])
 
     def test_action_url_typed(self):
@@ -342,7 +342,7 @@ action MyAction
     url (BaseType)
         GET /
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ':2: error: Syntax error',
             ':3: error: Syntax error'
         ])
@@ -479,7 +479,7 @@ struct MyStruct4
 struct MyStruct5 (MyStruct4, MyDict)
     int b
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":15: error: Invalid struct base type 'MyDict'",
             ":1: error: Invalid struct base type 'MyEnum'",
             ":7: error: Redefinition of member 'a' from base type",
@@ -500,7 +500,7 @@ struct MyStruct2 (MyStruct3)
 struct MyStruct3 (MyStruct)
     int c
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":1: error: Circular base type detected for type 'MyStruct2'",
             ":4: error: Circular base type detected for type 'MyStruct3'",
             ":7: error: Circular base type detected for type 'MyStruct'"
@@ -616,7 +616,7 @@ enum MyEnum4
 enum MyEnum5 (MyEnum4, MyDict)
     B
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":15: error: Invalid enum base type 'MyDict'",
             ":1: error: Invalid enum base type 'MyStruct'",
             ":7: error: Redefinition of enumeration value 'A' from base type",
@@ -637,7 +637,7 @@ enum MyEnum2 (MyEnum3)
 enum MyEnum3 (MyEnum)
     c
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":1: error: Circular base type detected for type 'MyEnum2'",
             ":4: error: Circular base type detected for type 'MyEnum3'",
             ":7: error: Circular base type detected for type 'MyEnum'"
@@ -838,10 +838,11 @@ foo:8: error: Unknown member type 'MyBadType'""")
         self.assertEqual(len(parser.actions), 1)
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         ["foo:2: error: Unknown member type 'MyBadType'",
-                          "foo:6: error: Unknown member type 'MyBadType2'",
-                          "foo:8: error: Unknown member type 'MyBadType'"])
+        self.assertListEqual(parser.errors, [
+            "foo:2: error: Unknown member type 'MyBadType'",
+            "foo:6: error: Unknown member type 'MyBadType2'",
+            "foo:8: error: Unknown member type 'MyBadType'"
+        ])
 
     # Error - redefinition of struct
     def test_error_struct_redefinition(self):
@@ -866,8 +867,9 @@ enum Foo
         self.assert_enum_by_name(parser, 'Foo', ('A', 'B'))
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [":4: error: Redefinition of type 'Foo'"])
+        self.assertListEqual(parser.errors, [
+            ":4: error: Redefinition of type 'Foo'"
+        ])
 
     # Error - redefinition of enum
     def test_error_enum_redefinition(self):
@@ -893,8 +895,9 @@ struct Foo
                                    (('a', TypeInt, False),))
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [":5: error: Redefinition of type 'Foo'"])
+        self.assertListEqual(parser.errors, [
+            ":5: error: Redefinition of type 'Foo'"
+        ])
 
     # Error - redefinition of typedef
     def test_error_typedef_redefinition(self):
@@ -922,8 +925,9 @@ typedef int(> 5) Foo
         self.assertEqual(self.attr_tuple(typedef.attr), self.attr_tuple(op_gt=5))
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [":4: error: Redefinition of type 'Foo'"])
+        self.assertListEqual(parser.errors, [
+            ":4: error: Redefinition of type 'Foo'"
+        ])
 
     # Error - redefinition of user type
     def test_error_action_redefinition(self):
@@ -952,8 +956,9 @@ action MyAction
                            ())
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [":5: error: Redefinition of action 'MyAction'"])
+        self.assertListEqual(parser.errors, [
+            ":5: error: Redefinition of action 'MyAction'"
+        ])
 
     # Error - invalid action section usage
     def test_error_action_section(self):
@@ -994,13 +999,14 @@ errors
         self.assert_action(parser, 'MyAction', (), (), ())
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [':6: error: Syntax error',
-                          ':7: error: Syntax error',
-                          ':8: error: Syntax error',
-                          ':10: error: Syntax error',
-                          ':11: error: Syntax error',
-                          ':12: error: Syntax error'])
+        self.assertListEqual(parser.errors, [
+            ':6: error: Syntax error',
+            ':7: error: Syntax error',
+            ':8: error: Syntax error',
+            ':10: error: Syntax error',
+            ':11: error: Syntax error',
+            ':12: error: Syntax error'
+        ])
 
     # Error - member definition outside struct scope
     def test_error_member(self):
@@ -1036,10 +1042,11 @@ int cde
         self.assert_action(parser, 'MyAction', (), (), ())
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [':2: error: Syntax error',
-                          ':8: error: Syntax error',
-                          ':10: error: Syntax error'])
+        self.assertListEqual(parser.errors, [
+            ':2: error: Syntax error',
+            ':8: error: Syntax error',
+            ':10: error: Syntax error'
+        ])
 
     # Error - enum value definition outside enum scope
     def test_error_enum(self):
@@ -1079,12 +1086,13 @@ action MyAction
         self.assert_action(parser, 'MyAction', (), (), ())
 
         # Check errors
-        self.assertEqual(parser.errors,
-                         [':2: error: Syntax error',
-                          ':3: error: Syntax error',
-                          ':4: error: Syntax error',
-                          ':8: error: Syntax error',
-                          ':12: error: Syntax error'])
+        self.assertListEqual(parser.errors, [
+            ':2: error: Syntax error',
+            ':3: error: Syntax error',
+            ':4: error: Syntax error',
+            ':8: error: Syntax error',
+            ':12: error: Syntax error'
+        ])
 
     @staticmethod
     def attr_tuple(attr=None, op_eq=None, op_lt=None, op_lte=None, op_gt=None, op_gte=None,
@@ -1236,7 +1244,7 @@ struct MyStruct
             parser.parse_string(spec)
         self.assertEqual(str(cm_exc.exception), '\n'.join(errors))
         self.assertEqual(len(parser.errors), len(errors))
-        self.assertEqual(parser.errors, errors)
+        self.assertListEqual(parser.errors, errors)
 
     def test_error_attribute_eq(self):
         self._test_spec_error([":2: error: Invalid attribute '== 7'"], '''\
@@ -1477,7 +1485,7 @@ struct MyStruct
 struct Foo
     int : int {} a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ':2: error: Invalid dictionary key type',
         ])
 
@@ -1640,7 +1648,7 @@ action MyDictAction
     path (MyDict)
         int a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action path base type 'Foo'",
             ":19: error: Invalid action path base type 'MyUnion'",
             ":25: error: Invalid action path base type 'MyDict'",
@@ -1741,7 +1749,7 @@ action MyDictAction
     query (MyDict)
         int a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action query base type 'Foo'",
             ":19: error: Invalid action query base type 'MyUnion'",
             ":25: error: Invalid action query base type 'MyDict'",
@@ -1842,7 +1850,7 @@ action MyDictAction
     input (MyDict)
         int a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action input base type 'Foo'",
             ":19: error: Invalid action input base type 'MyUnion'",
             ":25: error: Invalid action input base type 'MyDict'",
@@ -1881,7 +1889,7 @@ action MyDictAction
     input (MyDict)
         int a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action input base type 'Foo'",
             ":19: error: Invalid action input base type 'MyUnion'",
             ":25: error: Invalid action input base type 'MyDict'",
@@ -1983,7 +1991,7 @@ action MyDictAction
         #- will not error
         int a
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action output base type 'Foo'",
             ":19: error: Invalid action output base type 'MyUnion'",
             ":25: error: Invalid action output base type 'MyDict'",
@@ -2065,7 +2073,7 @@ action BonkAction
     errors (MyEnum)
         A
 ''')
-        self.assertEqual(parser.errors, [
+        self.assertListEqual(parser.errors, [
             ":14: error: Invalid action errors base type 'Bar'",
             ":2: error: Invalid action errors base type 'Foo'",
             ":14: error: Redefinition of enumeration value 'A' from base type",

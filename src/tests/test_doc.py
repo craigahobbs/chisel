@@ -3,1419 +3,853 @@
 
 # pylint: disable=missing-docstring
 
-from chisel import action, request, Action, Application, DocAction, DocPage, Request, SpecParser
-import chisel.doc
+import json
+
+from chisel import Action, Application, Request, get_doc_requests
 
 from . import TestCase
 
 
-class TestDoc(TestCase):
+class TestGetDocRequests(TestCase):
 
-    def setUp(self):
+    def test_default(self):
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in get_doc_requests()
+            ],
+            [
+                {
+                    'name': 'chisel_doc_index',
+                    'urls': (('GET', '/doc/doc_index'),)
+                },
+                {
+                    'name': 'chisel_doc_request',
+                    'urls': (('GET', '/doc/doc_request'),)
+                },
+                {
+                    'name': 'redirect_doc',
+                    'urls': (('GET', '/doc'),)
+                },
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                },
+                {
+                    'name': 'static_chisel_static_doc_css',
+                    'urls': (('GET', '/doc/doc.css'),)
+                }
+            ]
+        )
 
-        spec_parser = SpecParser('''\
-# My enum
+    def test_no_request_api(self):
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in get_doc_requests(request_api=False)
+            ],
+            [
+                {
+                    'name': 'redirect_doc',
+                    'urls': (('GET', '/doc'),)
+                },
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                },
+                {
+                    'name': 'static_chisel_static_doc_css',
+                    'urls': (('GET', '/doc/doc.css'),)
+                }
+            ]
+        )
+
+    def test_no_static(self):
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in get_doc_requests(static=False)
+            ],
+            [
+                {
+                    'name': 'chisel_doc_index',
+                    'urls': (('GET', '/doc/doc_index'),)
+                },
+                {
+                    'name': 'chisel_doc_request',
+                    'urls': (('GET', '/doc/doc_request'),)
+                }
+            ]
+        )
+
+    def test_no_static_css(self):
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls,
+                }
+                for request in get_doc_requests(static_css=False)
+            ],
+            [
+                {
+                    'name': 'chisel_doc_index',
+                    'urls': (('GET', '/doc/doc_index'),)
+                },
+                {
+                    'name': 'chisel_doc_request',
+                    'urls': (('GET', '/doc/doc_request'),)
+                },
+                {
+                    'name': 'redirect_doc',
+                    'urls': (('GET', '/doc'),)
+                },
+                {
+                    'name': 'static_chisel_static_chisel_js',
+                    'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
+                },
+                {
+                    'name': 'static_chisel_static_doc_html',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                }
+            ]
+        )
+
+
+class TestIndex(TestCase):
+
+    def test_doc_index(self):
+        app = Application()
+        app.add_requests(get_doc_requests())
+
+        status, _, response = app.request('GET', '/doc/doc_index')
+        self.assertEqual(status, '200 OK')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'groups': {
+                'Documentation': [
+                    'chisel_doc_index',
+                    'chisel_doc_request'
+                ],
+                'Redirects': [
+                    'redirect_doc'
+                ],
+                'Statics': [
+                    'static_chisel_static_chisel_js',
+                    'static_chisel_static_doc_css',
+                    'static_chisel_static_doc_html',
+                    'static_chisel_static_doc_js'
+                ]
+            }
+        })
+
+
+class TestRequest(TestCase):
+
+    def test_types(self):
+        app = Application()
+        app.add_requests(get_doc_requests())
+        app.add_request(Action(None, name='my_action', spec='''\
+# Enum doc.
+#
+# Another enum paragraph.
 enum MyEnum
-    # A value
-    Value1
-    Value2
 
+    # Enum value doc.
+    #
+    # Another enum value paragraph.
+    V1
+
+    # Enum value2 doc.
+    V2
+
+    #- Enum value3 with no doc.
+    V3
+
+#- Enum with values or doc
+enum MyEnum2
+
+# Struct doc.
 #
-# My struct
-# - continuing
-#
-# Another paragraph
+# Another doc paragraph.
 struct MyStruct
 
-    # My int member
-    # - continuing
-    #
-    # * continuing2
-    #
-    # Another paragraph
-    #
-    optional int(> 5) member1
+    # Struct member doc.
+    int m1
 
-    # My float member
-    nullable float(< 6.5) member2
+    # Struct member2 doc.
+    int m2
 
-    optional nullable bool member3
-    string(len > 0) member4
-    datetime member5
-    MyEnum member6
-    MyStruct member7
-    MyEnum[len > 0] member8
-    MyStruct{} member9
-    MyEnum : MyStruct{len > 0} member10
-    string(len == 2) : int(> 5){len > 0} member11
-    date member12
+    #- Struct member3 with no doc.
+    int m3
 
-# An unused struct
-# My Union
+#- Struct with no members or doc
+struct MyStruct2
+
+# Typedef doc.
+#
+# Another typedef paragraph.
+typedef MyEnum : MyStruct{} MyTypedef
+
+#- Typedef with no doc.
+typedef int MyTypedef2
+
+# Union doc.
+#
+# Another doc paragraph.
 union MyUnion
-    int a
-    string b
 
-# A typedef
-typedef string(len == 2) : MyStruct {len > 0} MyTypedef
+    # Union member doc.
+    int m1
 
-action my_action1
-    input
-        MyStruct struct
-        MyTypedef typedef
+    # Union member2 doc.
+    float m2
 
-action my_action2
-    output
-        MyUnion union
-    errors
-        MyError1
-        MyError2
-''')
-        self.app = Application()
-        self.app.pretty_output = True
-        self.app.add_request(Action(None, name='my_action1', spec_parser=spec_parser))
-        self.app.add_request(Action(None, name='my_action2', spec_parser=spec_parser))
-        self.app.add_request(DocAction())
+    #- Union member2 with no doc.
+    string m3
 
-    def test_index(self):
-
-        # Validate the HTML
-        status, _, response = self.app.request('GET', '/doc')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>localhost:80</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-index-body">
-    <h1>localhost:80</h1>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=my_action1">my_action1</a></li>
-      <li><a href="/doc?name=my_action2">my_action2</a></li>
-    </ul>
-  </body>
-</html>''')
-
-    def test_markdown_styles(self):
-
-        def really_simple_markdown(markdown_text):
-            if not markdown_text.strip():
-                return markdown_text
-            return '<p>' + markdown_text + '</p>'
-
-        my_styles = 'a { color: #004B91; }'
-
-        app = Application()
-        app.add_request(DocAction(markdown=really_simple_markdown, styles=my_styles))
-        app.add_request(Request(name='request1', doc=['Does this &', 'that']))
-        app.add_request(Request(name='request2', doc='Does this & that'))
-        app.add_request(Request(name='request3', doc=' '))
-        app.add_request(DocPage(app.requests['request3'], markdown=really_simple_markdown, styles=my_styles))
-
-        status, _, response = app.request('GET', '/doc')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>localhost:80</title>
-<style type="text/css">
-a { color: #004B91; }
-</style>
-</head>
-<body class="chsl-index-body">
-<h1>localhost:80</h1>
-<ul class="chsl-request-list">
-<li><a href="/doc?name=doc">doc</a></li>
-<li><a href="/doc?name=doc_request3">doc_request3</a></li>
-<li><a href="/doc?name=request1">request1</a></li>
-<li><a href="/doc?name=request2">request2</a></li>
-<li><a href="/doc?name=request3">request3</a></li>
-</ul>
-</body>
-</html>''')
-
-        status, _, response = app.request('GET', '/doc', query_string='name=request1')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>request1</title>
-<style type="text/css">
-a { color: #004B91; }
-</style>
-</head>
-<body class="chsl-request-body">
-<div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
-</div>
-<h1>request1</h1>
-<div class="chsl-text">
-<p>Does this &
-that</p>
-</div>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/request1">/request1</a></li>
-</ul>
-</div>
-</div>
-</body>
-</html>''')
-
-        status, _, response = app.request('GET', '/doc', query_string='name=request2')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>request2</title>
-<style type="text/css">
-a { color: #004B91; }
-</style>
-</head>
-<body class="chsl-request-body">
-<div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
-</div>
-<h1>request2</h1>
-<div class="chsl-text">
-<p>Does this & that</p>
-</div>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/request2">/request2</a></li>
-</ul>
-</div>
-</div>
-</body>
-</html>''')
-
-        status, _, response = app.request('GET', '/doc', query_string='name=request3')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>request3</title>
-<style type="text/css">
-a { color: #004B91; }
-</style>
-</head>
-<body class="chsl-request-body">
-<div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
-</div>
-<h1>request3</h1>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/request3">/request3</a></li>
-</ul>
-</div>
-</div>
-</body>
-</html>''')
-
-        status, _, response = app.request('GET', '/doc_request3')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>request3</title>
-<style type="text/css">
-a { color: #004B91; }
-</style>
-</head>
-<body class="chsl-request-body">
-<h1>request3</h1>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/request3">/request3</a></li>
-</ul>
-</div>
-</div>
-</body>
-</html>''')
-
-    def test_doc_group(self):
-
-        spec_parser = SpecParser('''\
-action my_action1
-
-group "My  Group   1"
-
-action my_action2
-
-group "My Group 1"
-
-action my_action3
-
-group "My Group 2"
-
-action my_action4
-
-group
-
-action my_action5
-''')
-        app = Application()
-        app.pretty_output = True
-        app.add_request(DocAction())
-        app.add_request(Action(None, name='my_action1', spec_parser=spec_parser))
-        app.add_request(Action(None, name='my_action2', spec_parser=spec_parser))
-        app.add_request(Action(None, name='my_action3', spec_parser=spec_parser))
-        app.add_request(Action(None, name='my_action4', spec_parser=spec_parser))
-        app.add_request(Action(None, name='my_action5', spec_parser=spec_parser))
-        app.add_request(Request(None, name='my_request1'))
-        app.add_request(Request(None, name='my_request2', doc_group='My  Group   2'))
-
-        status, _, response = app.request('GET', '/doc')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>localhost:80</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-index-body">
-    <h1>localhost:80</h1>
-    <h2>My  Group   1</h2>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_action2">my_action2</a></li>
-    </ul>
-    <h2>My  Group   2</h2>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_request2">my_request2</a></li>
-    </ul>
-    <h2>My Group 1</h2>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_action3">my_action3</a></li>
-    </ul>
-    <h2>My Group 2</h2>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=my_action4">my_action4</a></li>
-    </ul>
-    <h2>Uncategorized</h2>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=my_action1">my_action1</a></li>
-      <li><a href="/doc?name=my_action5">my_action5</a></li>
-      <li><a href="/doc?name=my_request1">my_request1</a></li>
-    </ul>
-  </body>
-</html>''')
-
-    def test_action(self):
-
-        # Validate the first my_action1's HTML
-        status, _, response = self.app.request('GET', '/doc', query_string={'name': 'my_action1'})
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action1</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
-    </div>
-    <h1>my_action1</h1>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/my_action1">POST /my_action1</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action1_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="my_action1_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="my_action1_input"><a class="linktarget">Input Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>struct</td>
-        <td><a href="#MyStruct">MyStruct</a></td>
-      </tr>
-      <tr>
-        <td>typedef</td>
-        <td><a href="#MyTypedef">MyTypedef</a></td>
-      </tr>
-    </table>
-    <h2 id="my_action1_output"><a class="linktarget">Output Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no output parameters.
-      </p>
-    </div>
-    <h2 id="my_action1_error"><a class="linktarget">Error Codes</a></h2>
-    <div class="chsl-text">
-      <p>
-The action returns no custom error codes.
-      </p>
-    </div>
-    <h2>Typedefs</h2>
-    <h3 id="MyTypedef"><a class="linktarget">typedef MyTypedef</a></h3>
-    <div class="chsl-text">
-      <p>
-A typedef
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Type</th>
-        <th>Attributes</th>
-      </tr>
-      <tr>
-        <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
-            <li><span class="chsl-emphasis">len(key)</span> == 2</li>
-          </ul>
-        </td>
-      </tr>
-    </table>
-    <h2>Struct Types</h2>
-    <h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>
-    <div class="chsl-text">
-      <p>
-My struct
-      </p>
-      <p>
-- continuing
-      </p>
-      <p>
-Another paragraph
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Attributes</th>
-        <th>Description</th>
-      </tr>
-      <tr>
-        <td>member1</td>
-        <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">optional</span></li>
-            <li><span class="chsl-emphasis">value</span> &gt; 5</li>
-          </ul>
-        </td>
-        <td>
-          <div class="chsl-text">
-            <p>
-My int member
-            </p>
-            <p>
-- continuing
-            </p>
-            <p>
-* continuing2
-            </p>
-            <p>
-Another paragraph
-            </p>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>member2</td>
-        <td>float</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">nullable</span></li>
-            <li><span class="chsl-emphasis">value</span> &lt; 6.5</li>
-          </ul>
-        </td>
-        <td>
-          <div class="chsl-text">
-            <p>
-My float member
-            </p>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>member3</td>
-        <td>bool</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">optional</span></li>
-            <li><span class="chsl-emphasis">nullable</span></li>
-          </ul>
-        </td>
-        <td />
-      </tr>
-      <tr>
-        <td>member4</td>
-        <td>string</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(value)</span> &gt; 0</li>
-          </ul>
-        </td>
-        <td />
-      </tr>
-      <tr>
-        <td>member5</td>
-        <td>datetime</td>
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td>member6</td>
-        <td><a href="#MyEnum">MyEnum</a></td>
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td>member7</td>
-        <td><a href="#MyStruct">MyStruct</a></td>
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td>member8</td>
-        <td><a href="#MyEnum">MyEnum</a>&nbsp;[]</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(array)</span> &gt; 0</li>
-          </ul>
-        </td>
-        <td />
-      </tr>
-      <tr>
-        <td>member9</td>
-        <td><a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td>member10</td>
-        <td><a href="#MyEnum">MyEnum</a>&nbsp;:&nbsp;<a href="#MyStruct">MyStruct</a>&nbsp;{}</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
-          </ul>
-        </td>
-        <td />
-      </tr>
-      <tr>
-        <td>member11</td>
-        <td>int&nbsp;{}</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(dict)</span> &gt; 0</li>
-            <li><span class="chsl-emphasis">len(key)</span> == 2</li>
-            <li><span class="chsl-emphasis">elem</span> &gt; 5</li>
-          </ul>
-        </td>
-        <td />
-      </tr>
-      <tr>
-        <td>member12</td>
-        <td>date</td>
-        <td />
-        <td />
-      </tr>
-    </table>
-    <h2>Enum Types</h2>
-    <h3 id="MyEnum"><a class="linktarget">enum MyEnum</a></h3>
-    <div class="chsl-text">
-      <p>
-My enum
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Value</th>
-        <th>Description</th>
-      </tr>
-      <tr>
-        <td>Value1</td>
-        <td>
-          <div class="chsl-text">
-            <p>
-A value
-            </p>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>Value2</td>
-        <td />
-      </tr>
-    </table>
-  </body>
-</html>''')
-
-        # Validate the my_action2's HTML
-        status, _, response = self.app.request('GET', '/doc', query_string={'name': 'my_action2'})
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action2</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
-    </div>
-    <h1>my_action2</h1>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/my_action2">POST /my_action2</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action2_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="my_action2_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="my_action2_input"><a class="linktarget">Input Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no input parameters.
-      </p>
-    </div>
-    <h2 id="my_action2_output"><a class="linktarget">Output Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>union</td>
-        <td><a href="#MyUnion">MyUnion</a></td>
-      </tr>
-    </table>
-    <h2 id="my_action2_error"><a class="linktarget">Error Codes</a></h2>
-    <table>
-      <tr>
-        <th>Value</th>
-      </tr>
-      <tr>
-        <td>MyError1</td>
-      </tr>
-      <tr>
-        <td>MyError2</td>
-      </tr>
-    </table>
-    <h2>Struct Types</h2>
-    <h3 id="MyUnion"><a class="linktarget">union MyUnion</a></h3>
-    <div class="chsl-text">
-      <p>
-An unused struct
-My Union
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Attributes</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">optional</span></li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>string</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">optional</span></li>
-          </ul>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>''')
-
-    def test_member_attributes(self):
-
-        spec_parser = SpecParser('''\
-struct MyStruct
-    int (> 5, < 10) a
-    int (>= 5, <= 10) b
-    int (== 5) c
-    string (len > 5, len < 10) d
-    string (len >= 5, len <= 10) e
-    string (len == 5) f
-''')
-        app = Application()
-        app.pretty_output = True
-        app.add_request(DocPage(spec_parser.types['MyStruct']))
-
-        status, _, response = app.request('GET', '/doc_MyStruct')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>MyStruct</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1 id="MyStruct"><a class="linktarget">struct MyStruct</a></h1>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Attributes</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">value</span> &gt; 5</li>
-            <li><span class="chsl-emphasis">value</span> &lt; 10</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">value</span> &gt;= 5</li>
-            <li><span class="chsl-emphasis">value</span> &lt;= 10</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>c</td>
-        <td>int</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">value</span> == 5</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>d</td>
-        <td>string</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(value)</span> &gt; 5</li>
-            <li><span class="chsl-emphasis">len(value)</span> &lt; 10</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>e</td>
-        <td>string</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(value)</span> &gt;= 5</li>
-            <li><span class="chsl-emphasis">len(value)</span> &lt;= 10</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td>f</td>
-        <td>string</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(value)</span> == 5</li>
-          </ul>
-        </td>
-      </tr>
-    </table>
-    <div class="chsl-notes" />
-  </body>
-</html>''')
-
-    def test_request(self):
-
-        @request(doc='''
-This is the request documentation.
-
-And some other important information.
-''')
-        def my_request(unused_environ, unused_start_response):
-            pass # pragma: no cover
-        application = Application()
-        application.add_request(DocAction())
-        application.add_request(my_request)
-
-        status, _, response = application.request('GET', '/doc', query_string='name=my_request')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>my_request</title>
-<style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-</style>
-</head>
-<body class="chsl-request-body">
-<div class="chsl-header">
-<a href="/doc">Back to documentation index</a>
-</div>
-<h1>my_request</h1>
-<div class="chsl-text">
-<p>
-This is the request documentation.
-</p>
-<p>
-And some other important information.
-</p>
-</div>
-<div class="chsl-notes">
-<div class="chsl-note">
-<p>
-<b>Note: </b>
-The request is exposed at the following URL:
-</p>
-<ul>
-<li><a href="/my_request">/my_request</a></li>
-</ul>
-</div>
-</div>
-</body>
-</html>''')
-
-    def test_request_not_found(self):
-
-        @request(doc='''
-This is the request documentation.
-''')
-        def my_request(unused_environ, unused_start_response):
-            pass # pragma: no cover
-        application = Application()
-        application.add_request(DocAction())
-        application.add_request(my_request)
-
-        status, _, response = application.request('GET', '/doc', query_string='name=my_unknown_request')
-        self.assertEqual(status, '404 Not Found')
-        self.assertEqual(response, b'Unknown Request')
-
-    def test_page(self):
-
-        app = Application()
-        app.pretty_output = True
-
-        @action(spec='''\
+# Action doc.
+#
+# Another doc paragraph.
 action my_action
+    url
+        POST /my_action/{a}
+
+    path
+        # Action path member doc.
+        MyEnum2 m1
+
+        # Action path member2 doc.
+        MyStruct2 m2
+
+        #- Action path member3 with no doc.
+        MyTypedef2 m3
+
+    query
+        # Action path member doc.
+        MyEnum2 m4
+
+        # Action path member2 doc.
+        MyStruct2 m5
+
+        #- Action path member3 with no doc.
+        MyTypedef2 m6
+
     input
-        int a
-        int b
+        # Action path member doc.
+        MyEnum2 m7
+
+        # Action path member2 doc.
+        MyStruct2 m8
+
+        #- Action path member3 with no doc.
+        MyTypedef2 m9
+
     output
-        int c
-''')
-        def my_action(unused_ctx, unused_req):
-            pass # pragma: no cover
+        # Action output member doc.
+        bool m1
 
-        app.add_request(DocAction())
-        app.add_request(DocPage(my_action))
-        app.add_request(DocPage(my_action, name='my_action_docs'))
+        # Action output member2 doc.
+        date m2
 
-        status, _, response = app.request('GET', '/doc')
+        #- Action output member3 with no doc.
+        datetime m3
+        float m4
+        int m5
+        object m6
+        string m7
+        uuid m8
+        int[] m9
+        int{} m10
+        MyEnum m11
+        MyEnum[] m12
+        MyEnum{} m13
+        MyEnum : int m14
+        MyStruct m15
+        MyStruct[] m16
+        MyStruct{} m17
+        MyTypedef m18
+        MyUnion m19
+'''))
+        app.add_request(Action(None, name='my_action2', spec='''\
+action my_action2
+'''))
+        app.add_request(Request(None, name='my_request', doc='Request doc.'))
+        app.add_request(Request(None, name='my_request2'))
+
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>localhost:80</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-index-body">
-    <h1>localhost:80</h1>
-    <ul class="chsl-request-list">
-      <li><a href="/doc?name=doc">doc</a></li>
-      <li><a href="/doc?name=doc_my_action">doc_my_action</a></li>
-      <li><a href="/doc?name=my_action_docs">my_action_docs</a></li>
-    </ul>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {
+                    'name': 'my_action_error',
+                    'values': []
+                },
+                'input': {
+                    'members': [
+                        {
+                            'doc': [' Action path member doc.'],
+                            'name': 'm7',
+                            'type': {'enum': 'MyEnum2'}
+                        },
+                        {
+                            'doc': [' Action path member2 doc.'],
+                            'name': 'm8',
+                            'type': {'struct': 'MyStruct2'}
+                        },
+                        {
+                            'name': 'm9',
+                            'type': {'typedef': 'MyTypedef2'}
+                        }
+                    ],
+                    'name': 'my_action_input'
+                },
+                'name': 'my_action',
+                'output': {
+                    'members': [
+                        {
+                            'doc': [' Action output member doc.'],
+                            'name': 'm1',
+                            'type': {'builtin': 'bool'}
+                        },
+                        {
+                            'doc': [' Action output member2 doc.'],
+                            'name': 'm2',
+                            'type': {'builtin': 'date'}
+                        },
+                        {
+                            'name': 'm3',
+                            'type': {'builtin': 'datetime'}
+                        },
+                        {
+                            'name': 'm4',
+                            'type': {'builtin': 'float'}
+                        },
+                        {
+                            'name': 'm5',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'name': 'm6',
+                            'type': {'builtin': 'object'}
+                        },
+                        {
+                            'name': 'm7',
+                            'type': {'builtin': 'string'}
+                        },
+                        {
+                            'name': 'm8',
+                            'type': {'builtin': 'uuid'}
+                        },
+                        {
+                            'name': 'm9',
+                            'type': {'array': {'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'name': 'm10',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'name': 'm11',
+                            'type': {'enum': 'MyEnum'}
+                        },
+                        {
+                            'name': 'm12',
+                            'type': {'array': {'type': {'enum': 'MyEnum'}}}
+                        },
+                        {
+                            'name': 'm13',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'enum': 'MyEnum'}}}
+                        },
+                        {
+                            'name': 'm14',
+                            'type': {'enum': 'MyEnum'}
+                        },
+                        {
+                            'name': 'm15',
+                            'type': {'struct': 'MyStruct'}
+                        },
+                        {
+                            'name': 'm16',
+                            'type': {'array': {'type': {'struct': 'MyStruct'}}}
+                        },
+                        {
+                            'name': 'm17',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'struct': 'MyStruct'}}}
+                        },
+                        {
+                            'name': 'm18',
+                            'type': {'typedef': 'MyTypedef'}
+                        },
+                        {
+                            'name': 'm19',
+                            'type': {'struct': 'MyUnion'}
+                        }
+                    ],
+                    'name': 'my_action_output'
+                },
+                'path': {
+                    'members': [
+                        {
+                            'doc': [' Action path member doc.'],
+                            'name': 'm1',
+                            'type': {'enum': 'MyEnum2'}
+                        },
+                        {
+                            'doc': [' Action path member2 doc.'],
+                            'name': 'm2',
+                            'type': {'struct': 'MyStruct2'}
+                        },
+                        {
+                            'name': 'm3',
+                            'type': {'typedef': 'MyTypedef2'}
+                        }
+                    ],
+                    'name': 'my_action_path'
+                },
+                'query': {
+                    'members': [
+                        {
+                            'doc': [' Action path member doc.'],
+                            'name': 'm4',
+                            'type': {'enum': 'MyEnum2'}
+                        },
+                        {
+                            'doc': [' Action path member2 doc.'],
+                            'name': 'm5',
+                            'type': {'struct': 'MyStruct2'}
+                        },
+                        {
+                            'name': 'm6',
+                            'type': {'typedef': 'MyTypedef2'}
+                        }
+                    ],
+                    'name': 'my_action_query'
+                }
+            },
+            'doc': [' Action doc.', '', ' Another doc paragraph.'],
+            'enums': [
+                {
+                    'doc': [' Enum doc.', '', ' Another enum paragraph.'],
+                    'name': 'MyEnum',
+                    'values': [
+                        {
+                            'doc': [' Enum value doc.', '', ' Another enum value paragraph.'],
+                            'value': 'V1'
+                        },
+                        {
+                            'doc': [' Enum value2 doc.'],
+                            'value': 'V2'
+                        },
+                        {
+                            'value': 'V3'
+                        }
+                    ]
+                },
+                {
+                    'name': 'MyEnum2',
+                    'values': []
+                }
+            ],
+            'name': 'my_action',
+            'structs': [
+                {
+                    'doc': [
+                        ' Struct doc.',
+                        '',
+                        ' Another doc paragraph.'
+                    ],
+                    'members': [
+                        {
+                            'doc': [' Struct member doc.'],
+                            'name': 'm1',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'doc': [' Struct member2 doc.'],
+                            'name': 'm2',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'name': 'm3',
+                            'type': {'builtin': 'int'}
+                        }
+                    ],
+                    'name': 'MyStruct'
+                },
+                {
+                    'members': [],
+                    'name': 'MyStruct2'
+                },
+                {
+                    'doc': [' Union doc.', '', ' Another doc paragraph.'],
+                    'members': [
+                        {
+                            'doc': [' Union member doc.'],
+                            'name': 'm1',
+                            'optional': True,
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'doc': [' Union member2 doc.'],
+                            'name': 'm2',
+                            'optional': True,
+                            'type': {'builtin': 'float'}
+                        },
+                        {
+                            'name': 'm3',
+                            'optional': True,
+                            'type': {'builtin': 'string'}
+                        }
+                    ],
+                    'name': 'MyUnion',
+                    'union': True
+                }
+            ],
+            'typedefs': [
+                {
+                    'doc': [' Typedef doc.', '', ' Another typedef paragraph.'],
+                    'name': 'MyTypedef',
+                    'type': {'dict': {'key_type': {'enum': 'MyEnum'}, 'type': {'struct': 'MyStruct'}}}
+                },
+                {
+                    'name': 'MyTypedef2',
+                    'type': {'builtin': 'int'}
+                }
+            ],
+            'urls': [{'method': 'POST', 'url': '/my_action/{a}'}]
+        })
 
-        status, _, response = app.request('GET', '/doc', query_string={'name': 'doc_my_action'})
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>doc_my_action</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <div class="chsl-header">
-      <a href="/doc">Back to documentation index</a>
-    </div>
-    <h1>doc_my_action</h1>
-    <div class="chsl-text">
-      <p>
-Documentation page for my_action.
-      </p>
-    </div>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/doc_my_action">GET /doc_my_action</a></li>
-        </ul>
-      </div>
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The action has a non-default response. See documentation for details.
-        </p>
-      </div>
-    </div>
-    <h2 id="doc_my_action_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="doc_my_action_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="doc_my_action_input"><a class="linktarget">Input Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no input parameters.
-      </p>
-    </div>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {'name': 'my_action2_error', 'values': []},
+                'input': {'members': [], 'name': 'my_action2_input'},
+                'name': 'my_action2',
+                'output': {'members': [], 'name': 'my_action2_output'},
+                'path': {'members': [], 'name': 'my_action2_path'},
+                'query': {'members': [], 'name': 'my_action2_query'}
+            },
+            'name': 'my_action2',
+            'urls': [{'method': 'POST', 'url': '/my_action2'}]
+        })
 
-        status, _, response = app.request('GET', '/doc_my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1>my_action</h1>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/my_action">POST /my_action</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>c</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
-    <div class="chsl-text">
-      <p>
-The action returns no custom error codes.
-      </p>
-    </div>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'doc': ['Request doc.'],
+            'name': 'my_request',
+            'urls': [{'url': '/my_request'}]
+        })
 
-        status, _, response = app.request('GET', '/my_action_docs')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request2')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1>my_action</h1>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="/my_action">POST /my_action</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>c</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
-    <div class="chsl-text">
-      <p>
-The action returns no custom error codes.
-      </p>
-    </div>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'name': 'my_request2',
+            'urls': [{'url': '/my_request2'}]
+        })
 
-    def test_page_urls(self):
-
+    def test_attr(self):
         app = Application()
-        app.pretty_output = True
+        app.add_requests(get_doc_requests())
+        app.add_request(Action(None, name='my_action', spec='''\
+typedef int{len > 0} IntDict
 
-        @action(spec='''\
 action my_action
-    input
-        int a
-        int b
     output
-        int c
-''')
-        def my_action(unused_ctx, unused_req):
-            pass # pragma: no cover
+        int(> 0, < 100) m1
+        int(>= 0, <= 100) m2
+        int(== 100) m3
+        string(len > 0, len < 100) m4
+        string(len >= 0, len <= 100) m5
+        string(len == 100) m6
+        int[len > 0, len < 100] m7
+        int[len >= 0, len <= 100] m8
+        int[len == 100] m9
+        int(> 0)[] m10
+        int{len > 0, len < 100} m11
+        int{len >= 0, len <= 100} m12
+        int{len == 100} m13
+        string(len > 0) : string(len > 1){} m14
+        IntDict m15
+        optional float m16
+        nullable string m17
+        optional nullable bool m18
+        optional int m19
+'''))
 
-        app.add_request(DocPage(my_action, request_urls=[('GET', 'https://foo.com/my_action')]))
-
-        status, _, response = app.request('GET', '/doc_my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>my_action</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1>my_action</h1>
-    <div class="chsl-notes">
-      <div class="chsl-note">
-        <p>
-          <b>Note: </b>
-The request is exposed at the following URL:
-        </p>
-        <ul>
-          <li><a href="https://foo.com/my_action">GET https://foo.com/my_action</a></li>
-        </ul>
-      </div>
-    </div>
-    <h2 id="my_action_path"><a class="linktarget">Path Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no path parameters.
-      </p>
-    </div>
-    <h2 id="my_action_query"><a class="linktarget">Query Parameters</a></h2>
-    <div class="chsl-text">
-      <p>
-The action has no query parameters.
-      </p>
-    </div>
-    <h2 id="my_action_input"><a class="linktarget">Input Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_output"><a class="linktarget">Output Parameters</a></h2>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>c</td>
-        <td>int</td>
-      </tr>
-    </table>
-    <h2 id="my_action_error"><a class="linktarget">Error Codes</a></h2>
-    <div class="chsl-text">
-      <p>
-The action returns no custom error codes.
-      </p>
-    </div>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {'name': 'my_action_error', 'values': []},
+                'input': {'members': [], 'name': 'my_action_input'},
+                'name': 'my_action',
+                'output': {
+                    'members': [
+                        {
+                            'attr': {'gt': 0.0, 'lt': 100.0},
+                            'name': 'm1',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'attr': {'gte': 0.0, 'lte': 100.0},
+                            'name': 'm2',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'attr': {'eq': 100.0},
+                            'name': 'm3',
+                            'type': {'builtin': 'int'}
+                        },
+                        {
+                            'attr': {'len_gt': 0, 'len_lt': 100},
+                            'name': 'm4',
+                            'type': {'builtin': 'string'}
+                        },
+                        {
+                            'attr': {'len_gte': 0, 'len_lte': 100},
+                            'name': 'm5',
+                            'type': {'builtin': 'string'}
+                        },
+                        {
+                            'attr': {'len_eq': 100},
+                            'name': 'm6',
+                            'type': {'builtin': 'string'}
+                        },
+                        {
+                            'attr': {'len_gt': 0, 'len_lt': 100},
+                            'name': 'm7',
+                            'type': {'array': {'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'attr': {'len_gte': 0, 'len_lte': 100},
+                            'name': 'm8',
+                            'type': {'array': {'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'attr': {'len_eq': 100},
+                            'name': 'm9',
+                            'type': {'array': {'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'name': 'm10',
+                            'type': {'array': {'attr': {'gt': 0.0}, 'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'attr': {'len_gt': 0, 'len_lt': 100},
+                            'name': 'm11',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'attr': {'len_gte': 0, 'len_lte': 100},
+                            'name': 'm12',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'attr': {'len_eq': 100},
+                            'name': 'm13',
+                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+                        },
+                        {
+                            'name': 'm14',
+                            'type': {
+                                'dict': {
+                                    'attr': {'len_gt': 1},
+                                    'key_attr': {'len_gt': 0},
+                                    'key_type': {'builtin': 'string'},
+                                    'type': {'builtin': 'string'}
+                                }
+                            }
+                        },
+                        {
+                            'name': 'm15',
+                            'type': {'typedef': 'IntDict'}
+                        },
+                        {
+                            'name': 'm16',
+                            'optional': True,
+                            'type': {'builtin': 'float'}
+                        },
+                        {
+                            'name': 'm17',
+                            'nullable': True,
+                            'type': {'builtin': 'string'}
+                        },
+                        {
+                            'name': 'm18',
+                            'nullable': True,
+                            'optional': True,
+                            'type': {'builtin': 'bool'}
+                        },
+                        {
+                            'name': 'm19',
+                            'optional': True,
+                            'type': {'builtin': 'int'}
+                        }
+                    ],
+                    'name': 'my_action_output'
+                },
+                'path': {'members': [], 'name': 'my_action_path'},
+                'query': {'members': [], 'name': 'my_action_query'}
+            },
+            'name': 'my_action',
+            'typedefs': [
+                {
+                    'attr': {'len_gt': 0},
+                    'name': 'IntDict',
+                    'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+                }
+            ],
+            'urls': [{'method': 'POST', 'url': '/my_action'}]
+        })
 
-    def test_page_struct(self):
-
-        parser = SpecParser('''\
-# This is my struct
-struct MyStruct
-    int a
-    string b
-    MyOtherStruct c
-
-# This is my other struct
-struct MyOtherStruct
-    int x
-    int y
-''')
+    def test_unkown_name(self):
         app = Application()
-        app.pretty_output = True
-        app.add_request(DocAction())
-        app.add_request(DocPage(parser.types['MyStruct']))
+        app.add_requests(get_doc_requests())
 
-        status, _, response = app.request('GET', '/doc_MyStruct')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>MyStruct</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1 id="MyStruct"><a class="linktarget">struct MyStruct</a></h1>
-    <div class="chsl-text">
-      <p>
-This is my struct
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>string</td>
-      </tr>
-      <tr>
-        <td>c</td>
-        <td><a href="#MyOtherStruct">MyOtherStruct</a></td>
-      </tr>
-    </table>
-    <div class="chsl-notes" />
-    <h2>Struct Types</h2>
-    <h3 id="MyOtherStruct"><a class="linktarget">struct MyOtherStruct</a></h3>
-    <div class="chsl-text">
-      <p>
-This is my other struct
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>x</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>y</td>
-        <td>int</td>
-      </tr>
-    </table>
-  </body>
-</html>''')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'error': 'UnknownName'
+        })
 
-    def test_page_typedef(self):
-
-        parser = SpecParser('''\
-# This is my struct
-struct MyStruct
-    int a
-    string b
-
-# This is my typedef
-typedef MyStruct[len > 1] MyTypedef
-''')
+    def test_request_names(self):
         app = Application()
-        app.pretty_output = True
-        app.add_request(DocAction())
-        app.add_request(DocPage(parser.types['MyTypedef']))
+        app.add_requests(get_doc_requests(request_names=('my_action',)))
+        app.add_request(Action(None, name='my_action', spec='''\
+action my_action
+'''))
+        app.add_request(Action(None, name='my_action2', spec='''\
+action my_action2
+'''))
 
-        status, _, response = app.request('GET', '/doc_MyTypedef')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>MyTypedef</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1 id="MyTypedef"><a class="linktarget">typedef MyTypedef</a></h1>
-    <div class="chsl-text">
-      <p>
-This is my typedef
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Type</th>
-        <th>Attributes</th>
-      </tr>
-      <tr>
-        <td><a href="#MyStruct">MyStruct</a>&nbsp;[]</td>
-        <td>
-          <ul class="chsl-constraint-list">
-            <li><span class="chsl-emphasis">len(array)</span> &gt; 1</li>
-          </ul>
-        </td>
-      </tr>
-    </table>
-    <div class="chsl-notes" />
-    <h2>Struct Types</h2>
-    <h3 id="MyStruct"><a class="linktarget">struct MyStruct</a></h3>
-    <div class="chsl-text">
-      <p>
-This is my struct
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-      </tr>
-      <tr>
-        <td>a</td>
-        <td>int</td>
-      </tr>
-      <tr>
-        <td>b</td>
-        <td>string</td>
-      </tr>
-    </table>
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {'name': 'my_action_error', 'values': []},
+                'input': {'members': [], 'name': 'my_action_input'},
+                'name': 'my_action',
+                'output': {'members': [], 'name': 'my_action_output'},
+                'path': {'members': [], 'name': 'my_action_path'},
+                'query': {'members': [], 'name': 'my_action_query'}
+            },
+            'hide_nav': True,
+            'name': 'my_action',
+            'urls': [{'method': 'POST', 'url': '/my_action'}]
+        })
 
-    def test_page_enum(self):
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'error': 'UnknownName'
+        })
 
-        parser = SpecParser('''\
-# This is my enum
-enum MyEnum
-    A
-    B
-''')
+    def test_wsgi_response(self):
         app = Application()
-        app.pretty_output = True
-        app.add_request(DocAction())
-        app.add_request(DocPage(parser.types['MyEnum']))
+        app.add_requests(get_doc_requests())
+        app.add_request(Action(None, name='my_action', wsgi_response=True, spec='''\
+action my_action
+'''))
 
-        status, _, response = app.request('GET', '/doc_MyEnum')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(response.decode('utf-8'), '''\
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>MyEnum</title>
-    <style type="text/css">
-''' + chisel.doc.STYLE_TEXT + '''
-    </style>
-  </head>
-  <body class="chsl-request-body">
-    <h1 id="MyEnum"><a class="linktarget">enum MyEnum</a></h1>
-    <div class="chsl-text">
-      <p>
-This is my enum
-      </p>
-    </div>
-    <table>
-      <tr>
-        <th>Value</th>
-      </tr>
-      <tr>
-        <td>A</td>
-      </tr>
-      <tr>
-        <td>B</td>
-      </tr>
-    </table>
-    <div class="chsl-notes" />
-  </body>
-</html>''')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {'name': 'my_action_error', 'values': []},
+                'input': {'members': [], 'name': 'my_action_input'},
+                'name': 'my_action',
+                'path': {'members': [], 'name': 'my_action_path'},
+                'query': {'members': [], 'name': 'my_action_query'}
+            },
+            'name': 'my_action',
+            'urls': [{'method': 'POST', 'url': '/my_action'}]
+        })
+
+    def test_base_action_type(self):
+        app = Application()
+        app.add_requests(get_doc_requests())
+        app.add_request(Action(None, name='my_action', spec='''\
+struct PathBase
+    int m1
+
+struct QueryBase
+    float m2
+
+struct InputBase
+    string m3
+
+struct OutputBase
+    bool m4
+
+action my_action
+    path (PathBase)
+    query (QueryBase)
+    input (InputBase)
+    output (OutputBase)
+'''))
+
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        self.assertEqual(status, '200 OK')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'action': {
+                'errors': {'name': 'my_action_error', 'values': []},
+                'input': {
+                    'members': [
+                        {'name': 'm3', 'type': {'builtin': 'string'}}
+                    ],
+                    'name': 'my_action_input'
+                },
+                'name': 'my_action',
+                'output': {
+                    'members': [
+                        {'name': 'm4', 'type': {'builtin': 'bool'}}
+                    ],
+                    'name': 'my_action_output'
+                },
+                'path': {
+                    'members': [
+                        {'name': 'm1', 'type': {'builtin': 'int'}}
+                    ],
+                    'name': 'my_action_path'
+                },
+                'query': {
+                    'members': [
+                        {'name': 'm2', 'type': {'builtin': 'float'}}
+                    ],
+                    'name': 'my_action_query'
+                }
+            },
+            'name': 'my_action',
+            'urls': [{'method': 'POST', 'url': '/my_action'}]
+        })

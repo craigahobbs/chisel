@@ -78,6 +78,14 @@ class Application:
                     raise ValueError(f'redefinition of request URL "{url}"')
                 self.__request_urls[request_key] = request
 
+    def add_requests(self, requests):
+        """
+        TODO
+        """
+
+        for request in requests:
+            self.add_request(request)
+
     def __call__(self, environ, start_response):
         """
         TODO
@@ -222,7 +230,7 @@ class Context:
         """
 
         if not isinstance(status, str):
-            status = str(status.value) + ' ' + status.phrase
+            status = f'{status.value} {status.phrase}'
         for key, value in headers:
             self.add_header(key, value)
         self._start_response(status, sorted(self.headers.items()))

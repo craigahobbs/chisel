@@ -7,7 +7,7 @@ from http import HTTPStatus
 import sys
 import unittest.mock
 
-from chisel import request, Request
+from chisel import request, Application, Request, RedirectRequest, StaticRequest
 
 from . import TestCase
 
@@ -243,15 +243,15 @@ def request3(environ, start_response):
             __slots__ = ('index',)
 
             def __init__(self, index):
-                super().__init__(name='MyRequest{0}'.format(index),
-                                 urls=[('GET', '/my-request-{0}'.format(index))],
-                                 doc=['My request number {0}.'.format(index)])
+                super().__init__(name=f'MyRequest{index}',
+                                 urls=[('GET', f'/my-request-{index}')],
+                                 doc=[f'My request number {index}.'])
                 self.index = index
 
             def __call__(self, environ, start_response):
                 # Note: Do NOT call Request __call__ method in a subclass
                 start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
-                return ['This is request # {0}'.format(self.index).encode('utf-8')]
+                return [f'This is request # {self.index}'.encode('utf-8')]
 
         req = MyRequest(1)
         self.assertTrue(isinstance(req, Request))
@@ -259,3 +259,187 @@ def request3(environ, start_response):
         self.assertEqual(req.urls, (('GET', '/my-request-1'),))
         self.assertEqual(req.doc, ['My request number 1.'])
         self.assertEqual(req({}, lambda status, headers: None), [b'This is request # 1'])
+
+
+class TestRedirect(TestCase):
+
+    def test_default(self):
+        redirect = RedirectRequest((('GET', '/old'),), '/new')
+        app = Application()
+        app.add_request(redirect)
+
+        self.assertEqual(redirect.name, 'redirect_new')
+        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        status, headers, response = app.request('GET', '/old')
+        self.assertEqual(status, '301 Moved Permanently')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'text/plain'),
+            ('Location', '/new')
+        ])
+        self.assertEqual(response, b'/new')
+
+    def test_name(self):
+        redirect = RedirectRequest((('GET', '/old'),), '/new', name='redirect_old_to_new')
+        app = Application()
+        app.add_request(redirect)
+
+        self.assertEqual(redirect.name, 'redirect_old_to_new')
+        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        status, headers, response = app.request('GET', '/old')
+        self.assertEqual(status, '301 Moved Permanently')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'text/plain'),
+            ('Location', '/new')
+        ])
+        self.assertEqual(response, b'/new')
+
+    def test_doc(self):
+        redirect = RedirectRequest((('GET', '/old'),), '/new', doc=('Redirect old to new',))
+        app = Application()
+        app.add_request(redirect)
+
+        self.assertEqual(redirect.name, 'redirect_new')
+        self.assertEqual(redirect.doc, ('Redirect old to new',))
+        status, headers, response = app.request('GET', '/old')
+        self.assertEqual(status, '301 Moved Permanently')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'text/plain'),
+            ('Location', '/new')
+        ])
+        self.assertEqual(response, b'/new')
+
+    def test_not_permanent(self):
+        redirect = RedirectRequest((('GET', '/old'),), '/new', permanent=False)
+        app = Application()
+        app.add_request(redirect)
+
+        self.assertEqual(redirect.name, 'redirect_new')
+        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        status, headers, response = app.request('GET', '/old')
+        self.assertEqual(status, '302 Found')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'text/plain'),
+            ('Location', '/new')
+        ])
+        self.assertEqual(response, b'/new')
+
+class TestStatic(TestCase):
+
+    CHISEL_JS_FIRST_LINE = b'export const nbsp = String.fromCharCode(160);'
+
+    def test_default(self):
+        static = StaticRequest('chisel', 'static/chisel.js')
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_name(self):
+        static = StaticRequest('chisel', 'static/chisel.js', name='chisel_js')
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_urls(self):
+        static = StaticRequest('chisel', 'static/chisel.js', urls=(('GET', '/chisel.js'),))
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_doc(self):
+        static = StaticRequest('chisel', 'static/chisel.js', doc=('chisel.js',))
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, ('chisel.js',))
+        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_content_type(self):
+        static = StaticRequest('chisel', 'static/chisel.js', content_type='text/plain')
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'text/plain'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_cache(self):
+        static = StaticRequest('chisel', 'static/chisel.js', cache=False)
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+
+    def test_etag(self):
+        static = StaticRequest('chisel', 'static/chisel.js')
+        app = Application()
+        app.add_request(static)
+
+        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
+        status, headers, response = app.request('GET', '/static/chisel.js',
+                                                environ={'HTTP_IF_NONE_MATCH': '5b75c9cb1998de993f184684efdd1e2f'})
+        self.assertEqual(status, '304 Not Modified')
+        self.assertListEqual(headers, [])
+        self.assertEqual(response, b'')
+        status, headers, response = app.request('GET', '/static/chisel.js', environ={'HTTP_IF_NONE_MATCH': 'wrong'})
+        self.assertEqual(status, '200 OK')
+        self.assertListEqual(headers, [
+            ('Content-Type', 'application/javascript'),
+            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+        ])
+        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))

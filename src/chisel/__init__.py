@@ -17,8 +17,7 @@ from .app import \
     Context
 
 from .doc import \
-    DocAction, \
-    DocPage
+    get_doc_requests
 
 from .model import \
     ActionModel, \
@@ -52,7 +51,9 @@ from .model import \
     get_referenced_types
 
 from .request import \
+    RedirectRequest, \
     Request, \
+    StaticRequest, \
     request
 
 from .spec import \
@@ -60,7 +61,6 @@ from .spec import \
     SpecParserError
 
 from .util import \
-    Element, \
     JSONEncoder, \
     decode_query_string, \
     encode_query_string

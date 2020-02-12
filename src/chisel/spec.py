@@ -231,13 +231,13 @@ class SpecParser:
         if not isinstance(base_type_base, TypeStruct) or base_type_base.union != struct_type.union:
             if def_type is None:
                 def_type = 'union' if struct_type.union else 'struct'
-            self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
+            self._error(f"Invalid {def_type} base type '{base_type.type_name}'", filename, linenum)
 
     def _validate_enum_base_type(self, unused_enum_type, base_type, filename, linenum, def_type=None):
         if not isinstance(Typedef.base_type(base_type), TypeEnum):
             if def_type is None:
                 def_type = 'enum'
-            self._error('Invalid ' + def_type + " base type '" + base_type.type_name + "'", filename, linenum)
+            self._error(f"Invalid {def_type} base type '{base_type.type_name}'", filename, linenum)
 
     def _finalize_circular_base_type(self, type_, filename, linenum):
         is_circular = False
@@ -511,7 +511,7 @@ class SpecParser:
 
                 # Action section redefinition?
                 if section_string in self._action_sections:
-                    self._error('Redefinition of action ' + section_string)
+                    self._error(f'Redefinition of action {section_string}')
                 self._action_sections.add(section_string)
 
                 # Set the action section type
@@ -537,7 +537,7 @@ class SpecParser:
                     for base_index, base_id in enumerate(section_base_ids):
                         self._set_type(
                             self._type, self._type.base_types, base_index, base_id, None,
-                            partial(validate_base_type_fn, def_type='action ' + section_string)
+                            partial(validate_base_type_fn, def_type=f'action {section_string}')
                         )
                     self._finalize_checks.append(
                         partial(finalize_base_type_fn, self._action, self._type, self._parse_filename, self._parse_linenum)
@@ -549,7 +549,7 @@ class SpecParser:
 
                 # Action section redefinition?
                 if section_string in self._action_sections:
-                    self._error('Redefinition of action ' + section_string)
+                    self._error(f'Redefinition of action {section_string}')
                 self._action_sections.add(section_string)
 
                 # Set the action section data
@@ -596,7 +596,7 @@ class SpecParser:
 
                 # Duplicate URL?
                 if url in self._urls:
-                    self._error('Duplicate URL: ' + method + (' ' + path if path is not None else ''))
+                    self._error(f'Duplicate URL: {method} {"" if path is None else path}')
 
                 # Add the URL
                 self._urls.append(url)

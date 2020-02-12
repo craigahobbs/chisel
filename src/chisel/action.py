@@ -129,7 +129,7 @@ class Action(Request):
                     request = {}
             except Exception as exc:
                 ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
-                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message='Invalid request JSON: ' + str(exc))
+                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'Invalid request JSON: {exc}')
 
             # Validate the content
             try:
@@ -139,7 +139,7 @@ class Action(Request):
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
-                    message=str(exc) + ' (content)',
+                    message=f'{exc} (content)',
                     member=exc.member
                 )
 
@@ -164,7 +164,7 @@ class Action(Request):
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
-                    message=str(exc) + ' (query string)',
+                    message=f'{exc} (query string)',
                     member=exc.member
                 )
 
@@ -177,7 +177,7 @@ class Action(Request):
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
-                    message=str(exc) + ' (path)',
+                    message=f'{exc} (path)',
                     member=exc.member
                 )
 

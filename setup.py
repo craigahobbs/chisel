@@ -47,6 +47,15 @@ def main():
         ],
         package_dir={'': 'src'},
         packages=[MODULE_NAME],
+        package_data={
+            '': [
+                'static/chisel.js',
+                'static/doc.css',
+                'static/doc.html',
+                'static/doc.js'
+            ]
+        },
+        include_package_data=True,
         test_suite='tests',
         tests_require=TESTS_REQUIRE,
         extras_require={

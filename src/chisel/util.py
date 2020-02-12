@@ -7,11 +7,9 @@ TODO
 
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from html import escape
 import json
 from urllib.parse import quote, unquote
 from uuid import UUID
-from xml.sax.saxutils import quoteattr
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -39,134 +37,26 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class Element:
-    """
-    A structured markup language document model element.
-
-    :param str name: The element name.
-    :param bool text: If ``True``, the element :attr:`name` is the text of a text element.
-    :param bool text_raw: If ``True``, the element :attr:`name` is the raw text of a text element.
-    :param bool closed: If ``True``, the element is "closed".
-    :param bool inline: If ``True``, the element and its children serialized in-line.
-    :param children: A list of child :class:`Element` objects (or list objects or ``None``),
-                     or :class:`Element` objects, or ``None``.
-    :type children: list or Element
-    :param dict attrs: The element's attributes. For built-ins (e.g. ``'class'``), prefix the attribute name with an
-                       underscore (e.g. ``'_class'``). Key/value pairs with a value of ``None`` are ignored.
-    """
-
-    __slots__ = ('name', 'text', 'text_raw', 'closed', 'inline', 'children', 'attrs')
-
-    def __init__(self, name, text=False, text_raw=False, closed=True, inline=False, children=None, **attrs):
-
-        #: :class:`str` - The element name.
-        self.name = name
-
-        #: :class:`bool` - If ``True``, the element :attr:`name` is the text of a text element.
-        self.text = text
-
-        #: :class:`bool` - If ``True``, the element :attr:`name` is the raw text of a text element.
-        self.text_raw = text_raw
-
-        #: :class:`bool` - If ``True``, the element is "closed".
-        self.closed = closed
-
-        #: :class:`bool` - If ``True``, the element and its children serialized in-line.
-        self.inline = inline
-
-        #: :class:`list` or :class:`Element` - A list of child :class:`Element` objects (or list objects or ``None``),
-        #: or :class:`Element` objects, or ``None``.
-        self.children = children
-
-        #: :class:`dict` - The element's attributes. For built-ins (e.g. ``'class'``), prefix the attribute name with an
-        #: underscore (e.g. ``'_class'``). Key/value pairs with a value of ``None`` are ignored.
-        self.attrs = attrs
-
-    def serialize(self, indent='  ', html=True):
-        """
-        Serialize an element and its children.
-
-        :param str indent: The indent string, or ``None``.
-        :param bool html: If ``True``, include the `HTML5 <https://en.wikipedia.org/wiki/HTML5>`_ doctype in the serialized element.
-        :rtype: str
-        """
-
-        return ''.join(self._serialize_chunks(indent, html, 0, False))
-
-    def _serialize_chunks(self, indent, html, indent_index, inline):
-
-        # HTML5 doctype, if requested
-        if html and indent_index == 0:
-            yield '<!doctype html>\n'
-
-        # Initial newline and indent as necessary...
-        if indent is not None and not inline and indent_index != 0:
-            yield '\n'
-            if indent and not self.text and not self.text_raw:
-                yield indent * indent_index
-
-        # Text element?
-        if self.text:
-            yield escape(self.name)
-            return
-        if self.text_raw:
-            yield self.name
-            return
-
-        # Element open
-        yield '<' + self.name
-        for attr_key, attr_value in sorted((key_value[0].lstrip('_'), key_value[1]) for key_value in self.attrs.items()):
-            if attr_value is not None:
-                yield ' ' + attr_key + '=' + quoteattr(attr_value)
-
-        # Child elements
-        has_children = False
-        for child in self._iterate_children_helper(self.children):
-            if not has_children:
-                has_children = True
-                yield '>'
-            yield from child._serialize_chunks(indent, html, indent_index + 1, inline or self.inline) # pylint: disable=protected-access
-
-        # Element close
-        if not has_children:
-            yield ' />' if self.closed else '>'
-            return
-        if indent is not None and not inline and not self.inline:
-            yield '\n' + indent * indent_index
-        yield '</' + self.name + '>'
-
-    @classmethod
-    def _iterate_children_helper(cls, children):
-        if isinstance(children, Element):
-            yield children
-        elif children is not None:
-            for child in children:
-                if isinstance(child, Element):
-                    yield child
-                elif child is not None:
-                    yield from cls._iterate_children_helper(child)
-
-
 def encode_query_string(obj, encoding='utf-8'):
     """
     TODO
     """
 
-    return '&'.join(k + '=' + v for k, v in _encode_query_string_items(obj, None, encoding))
+    return '&'.join(f'{k}={v}' for k, v in _encode_query_string_items(obj, None, encoding))
 
 def _encode_query_string_items(obj, parent, encoding):
     if isinstance(obj, dict):
         if obj:
             for member, value in sorted(obj.items()):
                 member_quoted = quote(str(member), encoding=encoding) if encoding else str(member)
-                parent_member = parent + '.' + member_quoted if parent else member_quoted
+                parent_member = f'{parent}.{member_quoted}' if parent else member_quoted
                 yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
             yield parent, ''
     elif isinstance(obj, (list, tuple)):
         if obj:
             for idx, value in enumerate(obj):
-                parent_member = parent + '.' + str(idx) if parent else str(idx)
+                parent_member = f'{parent}.{idx}' if parent else str(idx)
                 yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
             yield parent, ''

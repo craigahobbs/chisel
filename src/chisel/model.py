@@ -70,8 +70,7 @@ def _flatten_members(members):
 
 def _member_syntax(members):
     if members:
-        return ''.join((('.' + x) if isinstance(x, str) else ('[' + repr(x) + ']'))
-                       for x in _flatten_members(members)).lstrip('.')
+        return ''.join(((f'.{x}') if isinstance(x, str) else (f'[{x!r}]')) for x in _flatten_members(members)).lstrip('.')
     return None
 
 def _member_error(type_, value, members, constraint_syntax=None):

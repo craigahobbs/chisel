@@ -8,7 +8,7 @@ from decimal import Decimal
 from urllib.parse import quote
 from uuid import UUID
 
-from chisel import Element, JSONEncoder, decode_query_string, encode_query_string
+from chisel import JSONEncoder, decode_query_string, encode_query_string
 
 from . import TestCase
 
@@ -55,78 +55,7 @@ class TestJSONEncoder(TestCase):
             encoder.encode({'my_type': MyType()})
 
 
-class TestElement(TestCase):
-
-    TEST_ELEMENTS = Element('a', children=[
-        Element('b', inline=True, children=[
-            Element('Hello!', text=True),
-            Element('Text &\nRaw', text_raw=True),
-            Element('span', children=Element(' There!', text=True)),
-            Element('span', children=[
-                [
-                    Element(' Again,', text=True),
-                    None,
-                    Element(' again!', text=True)
-                ]
-            ])
-        ]),
-        Element('c', closed=False, foo='bar', bar=None),
-        Element('d', attr1='asdf', _attr2='sdfg', children=Element('e'))
-    ])
-
-    def test_element(self):
-        self.assertEqual(self.TEST_ELEMENTS.serialize(), '''\
-<!doctype html>
-<a>
-  <b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b>
-  <c foo="bar">
-  <d attr1="asdf" attr2="sdfg">
-    <e />
-  </d>
-</a>''')
-        self.assertEqual(self.TEST_ELEMENTS.serialize(html=False), '''\
-<a>
-  <b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b>
-  <c foo="bar">
-  <d attr1="asdf" attr2="sdfg">
-    <e />
-  </d>
-</a>''')
-
-    def test_element_indent_empty(self):
-        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=''), '''\
-<!doctype html>
-<a>
-<b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b>
-<c foo="bar">
-<d attr1="asdf" attr2="sdfg">
-<e />
-</d>
-</a>''')
-        self.assertEqual(self.TEST_ELEMENTS.serialize(indent='', html=False), '''\
-<a>
-<b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b>
-<c foo="bar">
-<d attr1="asdf" attr2="sdfg">
-<e />
-</d>
-</a>''')
-
-    def test_element_indent_none(self):
-        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=None), '''\
-<!doctype html>
-<a><b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b><c foo="bar"><d attr1="asdf" attr2="sdfg"><e /></d></a>''')
-        self.assertEqual(self.TEST_ELEMENTS.serialize(indent=None, html=False), '''\
-<a><b>Hello!Text &
-Raw<span> There!</span><span> Again, again!</span></b><c foo="bar"><d attr1="asdf" attr2="sdfg"><e /></d></a>''')
-
-
-class TestUrl(TestCase):
+class TestDecodeQueryString(TestCase):
 
     def test_decode_query_string(self):
 
@@ -284,6 +213,9 @@ class TestUrl(TestCase):
         # First list, then dict - long key/value
         query_string = 'a' * 2000 + '.0=0&' + 'a' * 2000 + '.b=0'
         assert_decode_error(query_string, "Invalid key/value pair '" + 'a' * 999)
+
+
+class TestEncodeQueryString(TestCase):
 
     def test_encode_query_string(self):
 

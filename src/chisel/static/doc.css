@@ -1,0 +1,108 @@
+html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 1em;
+    vertical-align: baseline;
+}
+body, td, th {
+    background-color: white;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.2em;
+    color: black;
+}
+body {
+    margin: 1em;
+}
+h1, h2, h3 {
+    font-weight: bold;
+}
+h1 {
+    font-size: 1.6em;
+    margin: 1em 0 1em 0;
+}
+h2 {
+    font-size: 1.4em;
+    margin: 1.4em 0 1em 0;
+}
+h3 {
+    font-size: 1.2em;
+    margin: 1.5em 0 1em 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1.2em 0 0 0;
+}
+th, td {
+    padding: 0.5em 1em 0.5em 1em;
+    text-align: left;
+    background-color: #ECF0F3;
+    border-color: white;
+    border-style: solid;
+    border-width: 2px;
+}
+th {
+    font-weight: bold;
+}
+p {
+    margin: 0.5em 0 0 0;
+}
+p:first-child {
+    margin: 0;
+}
+a {
+    color: #004B91;
+}
+a:link {
+    text-decoration: none;
+}
+a:visited {
+    text-decoration: none;
+}
+a:active {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a.linktarget {
+    color: black;
+}
+a.linktarget:hover {
+    text-decoration: none;
+}
+ul.chsl-request-list {
+    list-style: none;
+}
+ul.chsl-request-list li {
+    margin: 0.75em 0.5em;
+}
+ul.chsl-request-list li a {
+    font-size: 1.25em;
+}
+div.chsl-header {
+    margin: .25em 0;
+}
+div.chsl-notes {
+    margin: 1.25em 0;
+}
+div.chsl-note {
+    margin: .75em 0;
+}
+div.chsl-note ul {
+    list-style: none;
+    margin: .4em .2em;
+}
+div.chsl-note li {
+    margin: 0 1em;
+}
+ul.chsl-constraint-list {
+    list-style: none;
+    white-space: nowrap;
+}
+.chsl-emphasis {
+    font-style:italic;
+}

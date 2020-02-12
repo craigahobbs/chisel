@@ -58,6 +58,25 @@ class TestApplication(TestCase):
             ]
         )
 
+    def test_add_requests(self):
+        request1 = Request(name='request1')
+        request2 = Request(name='request2', urls=(('GET', '/request-two'),))
+
+        def get_requests():
+            yield request1
+            yield request2
+
+        app = Application()
+        app.add_requests(get_requests())
+        self.assertDictEqual(app.requests, {
+            'request1': request1,
+            'request2': request2
+        })
+        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=no-member, protected-access
+            (None, '/request1'): request1,
+            ('GET', '/request-two'): request2
+        })
+
     def test_add_request_redefinition(self):
         app = Application()
         app.add_request(Request(name='my_request'))

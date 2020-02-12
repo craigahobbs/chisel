@@ -6,10 +6,16 @@ TODO
 """
 
 from functools import partial
+import hashlib
+from http import HTTPStatus
 import importlib
 from itertools import chain
 import pkgutil
+import posixpath
+import re
 import sys
+
+from .app import Context
 
 
 REQUESTS_MODULE_ATTR = '__chisel_requests__'
@@ -92,3 +98,91 @@ class Request:
             requests = getattr(module, REQUESTS_MODULE_ATTR, None)
             if requests is not None:
                 yield from iter(requests.values())
+
+
+class RedirectRequest(Request):
+    """
+    TODO
+    """
+
+    __slots__ = ('_status', '_redirect_url')
+
+    def __init__(self, urls, redirect_url, permanent=True, name=None, doc=None, doc_group='Redirects'):
+        if name is None:
+            name = re.sub(r'([^\w]|_)+', '_', f'redirect_{redirect_url}').rstrip('_')
+        if doc is None:
+            doc = f'Redirect to {redirect_url}.'
+        super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
+        self._status = HTTPStatus.MOVED_PERMANENTLY if permanent else HTTPStatus.FOUND
+        self._redirect_url = redirect_url
+
+    def __call__(self, environ, unused_start_response):
+        ctx = environ[Context.ENVIRON_CTX]
+        ctx.add_header('Location', self._redirect_url)
+        return ctx.response_text(self._status, self._redirect_url)
+
+
+class StaticRequest(Request):
+    """
+    TODO
+    """
+
+    __slots__ = ('_package', '_resource_name', '_cache', '_headers', '_content', '_etag')
+
+    EXT_TO_CONTENT_TYPE = {
+        '.css': 'text/css',
+        '.html': 'text/html',
+        '.jpg': 'image/jpeg',
+        '.js': 'application/javascript',
+        '.png': 'image/png',
+        '.txt': 'text/plain',
+    }
+
+    def __init__(
+            self,
+            package,
+            resource_name,
+            cache=True,
+            content_type=None,
+            headers=None,
+            name=None,
+            urls=None,
+            doc=None,
+            doc_group='Statics'
+    ):
+        if name is None:
+            name = re.sub(r'[^\w]+', '_', f'static_{package}_{resource_name}')
+        if urls is None:
+            urls = [('GET', f'/{resource_name}')]
+        if doc is None:
+            doc = f'The "{package}" package\'s static resource, "{resource_name}".'
+        super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
+        self._package = package
+        self._resource_name = resource_name
+        self._cache = cache
+        if content_type is None:
+            content_type = self.EXT_TO_CONTENT_TYPE.get(posixpath.splitext(resource_name)[1].lower())
+            assert content_type, f'Unknown content type for "{package}" package\'s "{resource_name}" resource'
+        self._headers = tuple(chain(headers or (), [('Content-Type', content_type)]))
+        if cache:
+            self._content, self._etag = self._load_content()
+
+    def _load_content(self):
+        content = pkgutil.get_data(self._package, self._resource_name)
+        md5 = hashlib.md5()
+        md5.update(content)
+        return content, md5.hexdigest()
+
+    def __call__(self, environ, start_response):
+
+        # Check the etag - is the resource modified?
+        if self._cache:
+            content, etag = self._content, self._etag
+        else:
+            content, etag = self._load_content()
+        if etag == environ.get('HTTP_IF_NONE_MATCH'):
+            start_response(HTTPStatus.NOT_MODIFIED, [])
+            return []
+
+        start_response(HTTPStatus.OK, list(chain(self._headers, [('ETag', etag)])))
+        return [content]
