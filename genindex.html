@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; chisel 0.9.84 documentation</title>
+  <title>Index &mdash; chisel 0.9.85 documentation</title>
   
 
   
@@ -85,9 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="doc.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
-<li class="toctree-l1"><a class="reference internal" href="markup.html">HTML &amp; SVG</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
 </ul>
 
@@ -219,6 +217,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="app.html#chisel.Application.add_requests">add_requests() (chisel.Application method)</a>
+</li>
       <li><a href="spec.html#chisel.TypeEnum.add_value">add_value() (chisel.TypeEnum method)</a>
 </li>
       <li><a href="app.html#chisel.Context.app">app (chisel.Context attribute)</a>
@@ -238,8 +238,6 @@
 </li>
       </ul></li>
       <li><a href="spec.html#chisel.AttributeValidationError">AttributeValidationError</a>
-</li>
-      <li><a href="markup.html#chisel.Element.attrs">attrs (chisel.Element attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -263,14 +261,10 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="markup.html#chisel.Element.children">children (chisel.Element attribute)</a>
-</li>
-      <li><a href="markup.html#chisel.Element.closed">closed (chisel.Element attribute)</a>
+      <li><a href="app.html#chisel.Context">Context (class in chisel)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="app.html#chisel.Context">Context (class in chisel)</a>
-</li>
       <li><a href="app.html#chisel.Context.create_environ">create_environ() (chisel.Context static method)</a>
 </li>
   </ul></td>
@@ -311,28 +305,22 @@
         <li><a href="app.html#chisel.Request.doc_group">(chisel.Request attribute)</a>
 </li>
       </ul></li>
-      <li><a href="doc.html#chisel.DocAction">DocAction (class in chisel)</a>
-</li>
-      <li><a href="doc.html#chisel.DocPage">DocPage (class in chisel)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="markup.html#chisel.Element">Element (class in chisel)</a>
-</li>
       <li><a href="encode.html#chisel.encode_query_string">encode_query_string() (in module chisel)</a>
 </li>
       <li><a href="spec.html#chisel.EnumValue">EnumValue (class in chisel)</a>
 </li>
       <li><a href="app.html#chisel.Context.environ">environ (chisel.Context attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="app.html#chisel.Context.ENVIRON_CTX">ENVIRON_CTX (chisel.Context attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="action.html#chisel.ActionError.error">error (chisel.ActionError attribute)</a>
 </li>
       <li><a href="spec.html#chisel.ActionModel.error_type">error_type (chisel.ActionModel attribute)</a>
@@ -357,6 +345,10 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="app.html#chisel.get_doc_requests">get_doc_requests() (in module chisel)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="spec.html#chisel.get_referenced_types">get_referenced_types() (in module chisel)</a>
 </li>
   </ul></td>
@@ -378,8 +370,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="app.html#chisel.Request.import_requests">import_requests() (chisel.Request static method)</a>
-</li>
-      <li><a href="markup.html#chisel.Element.inline">inline (chisel.Element attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -454,8 +444,6 @@
       <li><a href="spec.html#chisel.ActionModel.name">name (chisel.ActionModel attribute)</a>
 
       <ul>
-        <li><a href="markup.html#chisel.Element.name">(chisel.Element attribute)</a>
-</li>
         <li><a href="app.html#chisel.Request.name">(chisel.Request attribute)</a>
 </li>
         <li><a href="spec.html#chisel.StructMember.name">(chisel.StructMember attribute)</a>
@@ -533,6 +521,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="app.html#chisel.Context.reconstruct_url">reconstruct_url() (chisel.Context method)</a>
 </li>
+      <li><a href="app.html#chisel.RedirectRequest">RedirectRequest (class in chisel)</a>
+</li>
       <li><a href="app.html#chisel.Request">Request (class in chisel)</a>
 </li>
       <li><a href="app.html#chisel.Application.request">request() (chisel.Application method)</a>
@@ -557,15 +547,15 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="markup.html#chisel.Element.serialize">serialize() (chisel.Element method)</a>
-</li>
       <li><a href="spec.html#chisel.SpecParser">SpecParser (class in chisel)</a>
 </li>
       <li><a href="spec.html#chisel.SpecParserError">SpecParserError</a>
 </li>
+      <li><a href="app.html#chisel.Context.start_response">start_response() (chisel.Context method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="app.html#chisel.Context.start_response">start_response() (chisel.Context method)</a>
+      <li><a href="app.html#chisel.StaticRequest">StaticRequest (class in chisel)</a>
 </li>
       <li><a href="action.html#chisel.ActionError.status">status (chisel.ActionError attribute)</a>
 </li>
@@ -579,10 +569,6 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="markup.html#chisel.Element.text">text (chisel.Element attribute)</a>
-</li>
-      <li><a href="markup.html#chisel.Element.text_raw">text_raw (chisel.Element attribute)</a>
-</li>
       <li><a href="spec.html#chisel.StructMember.type">type (chisel.StructMember attribute)</a>
 
       <ul>

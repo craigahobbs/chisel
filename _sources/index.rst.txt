@@ -9,9 +9,7 @@ TODO - brief introduction, feature list, link to source code, and link to gettin
    basics
    app
    action
-   doc
    spec
-   markup
    encode
 
 Index

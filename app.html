@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>WSGI Applications &mdash; chisel 0.9.84 documentation</title>
+  <title>WSGI Applications &mdash; chisel 0.9.85 documentation</title>
   
 
   
@@ -86,9 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">WSGI Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="doc.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
-<li class="toctree-l1"><a class="reference internal" href="markup.html">HTML &amp; SVG</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
 </ul>
 
@@ -165,6 +163,12 @@
 <dd><p>TODO</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="chisel.Application.add_requests">
+<code class="sig-name descname">add_requests</code><span class="sig-paren">(</span><em class="sig-param">requests</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="chisel.Application.log_format">
 <code class="sig-name descname">log_format</code><a class="headerlink" href="#chisel.Application.log_format" title="Permalink to this definition">¶</a></dt>
@@ -207,6 +211,37 @@
 <dt id="chisel.request">
 <code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">request_callback=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chisel.get_doc_requests">
+<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_doc_requests</code><span class="sig-paren">(</span><em class="sig-param">root_path='/doc'</em>, <em class="sig-param">request_api=True</em>, <em class="sig-param">request_names=None</em>, <em class="sig-param">static=True</em>, <em class="sig-param">static_css=True</em>, <em class="sig-param">cache=True</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_doc_requests" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>request_api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>request_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – TODO</p></li>
+<li><p><strong>static</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>static_css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="chisel.RedirectRequest">
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">RedirectRequest</code><span class="sig-paren">(</span><em class="sig-param">urls</em>, <em class="sig-param">redirect_url</em>, <em class="sig-param">permanent=True</em>, <em class="sig-param">name=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Redirects'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
+<p>TODO</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="chisel.StaticRequest">
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StaticRequest</code><span class="sig-paren">(</span><em class="sig-param">package</em>, <em class="sig-param">resource_name</em>, <em class="sig-param">cache=True</em>, <em class="sig-param">content_type=None</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Statics'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
+<p>TODO</p>
 </dd></dl>
 
 <dl class="class">
