@@ -55,7 +55,6 @@ def main():
                 'static/doc.js'
             ]
         },
-        include_package_data=True,
         test_suite='tests',
         tests_require=TESTS_REQUIRE,
         extras_require={
