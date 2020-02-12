@@ -124,7 +124,7 @@ endef
 $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_THEME_VERSION)), DOC_COMMANDS_FN))
 
 .PHONY: gh-pages
-gh-pages: doc
+gh-pages: clean doc
 	if [ ! -d ../$(notdir $(CURDIR)).doc ]; then git clone -b gh-pages `git config --get remote.origin.url` ../$(notdir $(CURDIR)).doc; fi
 	cd ../$(notdir $(CURDIR)).doc && git pull
 	rsync -av $(BUILD)/doc/html/ ../$(notdir $(CURDIR)).doc
