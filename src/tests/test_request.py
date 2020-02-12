@@ -332,7 +332,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/static/chisel.js')
@@ -364,7 +364,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/chisel.js')
@@ -380,7 +380,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, ('chisel.js',))
         status, headers, response = app.request('GET', '/static/chisel.js')
@@ -396,7 +396,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/static/chisel.js')
@@ -412,7 +412,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/static/chisel.js')
@@ -428,7 +428,7 @@ class TestStatic(TestCase):
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_static_chisel_js')
+        self.assertEqual(static.name, 'static_chisel_js')
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/static/chisel.js',

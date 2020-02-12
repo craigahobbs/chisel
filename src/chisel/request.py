@@ -151,7 +151,7 @@ class StaticRequest(Request):
             doc_group='Statics'
     ):
         if name is None:
-            name = re.sub(r'[^\w]+', '_', f'static_{package}_{resource_name}')
+            name = re.sub(r'[^\w]+', '_', resource_name)
         if urls is None:
             urls = [('GET', f'/{resource_name}')]
         if doc is None:

@@ -35,19 +35,19 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
+                    'name': 'static_doc_html',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_chisel_static_doc_js',
+                    'name': 'static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_css',
+                    'name': 'static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
+                    'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
@@ -68,19 +68,19 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
+                    'name': 'static_doc_html',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_chisel_static_doc_js',
+                    'name': 'static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_css',
+                    'name': 'static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
+                    'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
@@ -130,15 +130,15 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_chisel_static_doc_html',
+                    'name': 'static_doc_html',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_chisel_static_doc_js',
+                    'name': 'static_doc_js',
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_chisel_static_chisel_js',
+                    'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
@@ -165,7 +165,7 @@ class TestGetDocRequests(TestCase):
             ],
             [
                 {
-                    'name': 'static_chisel_static_chisel_js',
+                    'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
                 }
             ]
@@ -190,10 +190,10 @@ class TestIndex(TestCase):
                     'redirect_doc'
                 ],
                 'Statics': [
-                    'static_chisel_static_chisel_js',
-                    'static_chisel_static_doc_css',
-                    'static_chisel_static_doc_html',
-                    'static_chisel_static_doc_js'
+                    'static_chisel_js',
+                    'static_doc_css',
+                    'static_doc_html',
+                    'static_doc_js'
                 ]
             }
         })
