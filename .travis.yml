@@ -8,3 +8,5 @@ install:
 script:
   - python3 -m coverage run --branch --source src -m unittest discover -v -t src -s src/tests
   - python3 -m coverage xml
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
