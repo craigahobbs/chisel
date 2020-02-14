@@ -35,7 +35,7 @@ def main():
         url='https://github.com/craigahobbs/chisel',
         license='MIT',
         classifiers=[
-            'Development Status :: 4 - Beta',
+            'Development Status :: 4 - Stable',
             'Intended Audience :: Developers',
             'License :: OSI Approved :: MIT License',
             'Operating System :: OS Independent',

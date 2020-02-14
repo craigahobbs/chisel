@@ -12,7 +12,7 @@ from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, get_refer
 from .request import RedirectRequest, StaticRequest
 
 
-def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc=True, doc_css=True, chisel_js=False, cache=True):
+def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc=True, doc_css=True, cache=True):
     """
     TODO
     """
@@ -27,7 +27,6 @@ def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
         if doc_css:
             yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
-    if doc or chisel_js:
         yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
 
 

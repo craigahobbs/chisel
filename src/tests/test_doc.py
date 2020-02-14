@@ -155,21 +155,6 @@ class TestGetDocRequests(TestCase):
             ],
             []
         )
-        self.assertListEqual(
-            [
-                {
-                    'name': request.name,
-                    'urls': request.urls,
-                }
-                for request in get_doc_requests(request_api=False, doc=False, chisel_js=True)
-            ],
-            [
-                {
-                    'name': 'static_chisel_js',
-                    'urls': (('GET', '/doc/chisel.js'),)
-                }
-            ]
-        )
 
 
 class TestIndex(TestCase):
