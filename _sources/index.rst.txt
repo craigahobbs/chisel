@@ -2,13 +2,16 @@ chisel
 ======
 
 .. image:: http://img.shields.io/pypi/v/chisel.svg
-        :target: https://pypi.python.org/pypi/chisel/
+   :target: https://pypi.python.org/pypi/chisel/
+
+.. image:: https://travis-ci.org/craigahobbs/template-specialize.svg?branch=master
+   :target: https://codecov.io/gh/craigahobbs/chisel
 
 .. image:: https://codecov.io/gh/craigahobbs/chisel/branch/master/graph/badge.svg
-        :target: https://codecov.io/gh/craigahobbs/chisel
+   :target: https://travis-ci.org/craigahobbs/template-specialize
 
 Chisel is a light-weight :pep:`WSGI <3333>` application framework with tools for building
-well-documented, schema-validated JSON APIs.  Here are Chisel's features at a
+well-documented, schema-validated JSON web APIs.  Here are Chisel's features at a
 glance:
 
 - Light-weight :pep:`WSGI <3333>` application framework
