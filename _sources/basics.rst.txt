@@ -37,27 +37,36 @@ Here's an example of a simple Chisel application:
 
 Let's try a request:
 
->>> print(application.request(
+>>> status, headers, content = application.request(
 ...     'GET',
 ...     '/sum',
 ...     query_string='numbers.0=1&numbers.1=2&numbers.2=2.5'
-... ))
-('200 OK', [('Content-Type', 'application/json')], b'{"sum":5.5}')
+... )
+>>> print(f'{status!r}\n{headers!r}\n{content!r}')
+'200 OK'
+[('Content-Type', 'application/json')]
+b'{"sum":5.5}'
 
 Let's some bad requests:
 
->>> print(application.request(
+>>> status, headers, content = application.request(
 ...     'GET',
 ...     '/sum'
-... ))
-('400 Bad Request', [('Content-Type', 'application/json')], b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}')
+... )
+>>> print(f'{status!r}\n{headers!r}\n{content!r}')
+'400 Bad Request'
+[('Content-Type', 'application/json')]
+b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
 
->>> print(application.request(
+>>> status, headers, content = application.request(
 ...     'GET',
 ...     '/sum',
 ...     query_string='numbers.0=1&numbers.1=2&numbers.2=asdf'
-... ))
-('400 Bad Request', [('Content-Type', 'application/json')], b'{"error":"InvalidInput","member":"numbers[2]","message":"Invalid value \'asdf\' (type \'str\') for member \'numbers[2]\', expected type \'float\' (query string)"}')
+... )
+>>> print(f'{status!r}\n{headers!r}\n{content!r}')
+'400 Bad Request'
+[('Content-Type', 'application/json')]
+b'{"error":"InvalidInput","member":"numbers[2]","message":"Invalid value \'asdf\' (type \'str\') for member \'numbers[2]\', expected type \'float\' (query string)"}'
 
 Notice that chisel does all of the input validation for you based on the
 :class:`~chisel.Action` specification's schema.
