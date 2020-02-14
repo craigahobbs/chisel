@@ -154,7 +154,64 @@
             
   <div class="section" id="getting-started">
 <span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>TODO</p>
+<p>Here’s an example of a simple Chisel application:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define your action</span>
+<span class="gp">... </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1"># Sum a list of numbers.</span>
+<span class="gp">... </span><span class="s1">action sum_numbers</span>
+<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">        GET /sum</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1">    query</span>
+<span class="gp">... </span><span class="s1">        # The list of numbers.</span>
+<span class="gp">... </span><span class="s1">        float[len &gt; 0] numbers</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1">    output</span>
+<span class="gp">... </span><span class="s1">        # The sum of the numbers.</span>
+<span class="gp">... </span><span class="s1">        float sum</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">sum_numbers</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">])}</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create the chisel application</span>
+<span class="gp">... </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add API documentation</span>
+<span class="gp">... </span><span class="n">application</span><span class="o">.</span><span class="n">add_requests</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">get_doc_requests</span><span class="p">())</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add our requests / actions</span>
+<span class="gp">... </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">sum_numbers</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s try a request:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=2.5&#39;</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;sum&quot;:5.5}&#39;)</span>
+</pre></div>
+</div>
+<p>Let’s some bad requests:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="go">(&#39;400 Bad Request&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;message&quot;:&quot;Required member \&#39;numbers\&#39; missing (query string)&quot;}&#39;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=asdf&#39;</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="go">(&#39;400 Bad Request&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;member&quot;:&quot;numbers[2]&quot;,&quot;message&quot;:&quot;Invalid value \&#39;asdf\&#39; (type \&#39;str\&#39;) for member \&#39;numbers[2]\&#39;, expected type \&#39;float\&#39; (query string)&quot;}&#39;)</span>
+</pre></div>
+</div>
+<p>Notice that chisel does all of the input validation for you based on the <code class="xref py py-meth docutils literal notranslate"><span class="pre">action()</span></code> schema.</p>
 </div>
 
 

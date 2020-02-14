@@ -1,9 +1,17 @@
-Results of doctest builder run on 2020-02-14 21:14:33
+Results of doctest builder run on 2020-02-14 22:58:22
 =====================================================
+
+Document: basics
+----------------
+1 items passed all tests:
+   8 tests in default
+8 tests in 1 items.
+8 passed and 0 failed.
+Test passed.
 
 Doctest summary
 ===============
-    0 tests
+    8 tests
     0 failures in tests
     0 failures in setup code
     0 failures in cleanup code
