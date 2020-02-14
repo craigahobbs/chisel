@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Change Log" href="changes.html" />
     <link rel="prev" title="Schemas" href="spec.html" /> 
 </head>
 
@@ -87,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
             
@@ -156,8 +158,8 @@
 <dt id="chisel.JSONEncoder">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">JSONEncoder</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">skipkeys=False</em>, <em class="sig-param">ensure_ascii=True</em>, <em class="sig-param">check_circular=True</em>, <em class="sig-param">allow_nan=True</em>, <em class="sig-param">sort_keys=False</em>, <em class="sig-param">indent=None</em>, <em class="sig-param">separators=None</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.JSONEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
-<p>A <a class="reference external" href="https://docs.python.org/3/library/json.html#json.JSONEncoder" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></a> sub-class with support for <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/decimal.html#decimal.Decimal" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decimal</span></code></a>,
-and <a class="reference external" href="https://docs.python.org/3/library/uuid.html#uuid.UUID" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UUID</span></code></a> objects.</p>
+<p>A <a class="reference external" href="https://docs.python.org/3/library/json.html#json.JSONEncoder" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></a> sub-class with support for <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a>,
+<a class="reference external" href="https://docs.python.org/3/library/decimal.html#decimal.Decimal" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decimal</span></code></a>, and <a class="reference external" href="https://docs.python.org/3/library/uuid.html#uuid.UUID" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UUID</span></code></a> objects.</p>
 <dl class="method">
 <dt id="chisel.JSONEncoder.default">
 <code class="sig-name descname">default</code><span class="sig-paren">(</span><em class="sig-param">o</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.JSONEncoder.default" title="Permalink to this definition">¶</a></dt>
@@ -188,6 +190,8 @@ and <a class="reference external" href="https://docs.python.org/3/library/uuid.h
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="changes.html" class="btn btn-neutral float-right" title="Change Log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="spec.html" class="btn btn-neutral float-left" title="Schemas" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
