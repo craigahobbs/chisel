@@ -14,8 +14,8 @@ from uuid import UUID
 
 class JSONEncoder(json.JSONEncoder):
     """
-    A :class:`~json.JSONEncoder` sub-class with support for :class:`~datetime.datetime`, :class:`~datetime.date`, :class:`~decimal.Decimal`,
-    and :class:`~uuid.UUID` objects.
+    A :class:`~json.JSONEncoder` sub-class with support for :class:`~datetime.datetime`, :class:`~datetime.date`,
+    :class:`~decimal.Decimal`, and :class:`~uuid.UUID` objects.
     """
 
     __slots__ = ()

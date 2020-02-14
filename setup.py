@@ -25,7 +25,7 @@ def main():
 
     setup(
         name=PACKAGE_NAME,
-        description=('Lightweight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
+        description=('Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
         long_description=long_description,
         long_description_content_type='text/markdown',
         version=version,

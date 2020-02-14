@@ -1,0 +1,10 @@
+dist: bionic
+language: python
+python:
+  - "3.7"
+  - "3.8"
+install:
+  - pip install -e . -e .[tests] coverage
+script:
+  - python3 -m coverage run --branch --source src -m unittest discover -v -t src -s src/tests
+  - python3 -m coverage xml
