@@ -20,7 +20,7 @@ PYLINT_ARGS ?= -j 0
 
 # sphinx
 SPHINX_VERSION ?= 2.4.3
-SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@a49a812c8821123091166fae1897d702cdc2d627
+SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@ca015a57042713ebd7f39563cdb01fab5b604051
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
 
