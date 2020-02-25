@@ -47,7 +47,7 @@ Let's try a request:
 [('Content-Type', 'application/json')]
 b'{"sum":5.5}'
 
-Let's some bad requests:
+Let's try some bad requests:
 
 >>> status, headers, content = application.request(
 ...     'GET',
@@ -67,6 +67,3 @@ b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query 
 '400 Bad Request'
 [('Content-Type', 'application/json')]
 b'{"error":"InvalidInput","member":"numbers[2]","message":"Invalid value \'asdf\' (type \'str\') for member \'numbers[2]\', expected type \'float\' (query string)"}'
-
-Notice that chisel does all of the input validation for you based on the
-:class:`~chisel.Action` specification's schema.
