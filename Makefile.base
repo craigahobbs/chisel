@@ -93,7 +93,7 @@ endef
 
 # Generate test rules
 define TEST_COMMANDS_FN
-	$(1)/python3 -m unittest $(if $(TEST),-v $(TEST),discover -v -t src -s src/tests)
+	$(1)/python3 -m unittest $(if $(TEST),-v $(TEST),discover -v -t src -s src/tests) $(TEST_ARGS)
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e . -e .[tests], TEST_COMMANDS_FN, $(X))))
 
