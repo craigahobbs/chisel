@@ -1,0 +1,277 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started &mdash; chisel 0.9.88 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="WSGI Applications" href="app.html" />
+    <link rel="prev" title="chisel" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> chisel
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">chisel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Getting Started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Here’s an example of a simple Chisel application:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define your action</span>
+<span class="gp">... </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1"># Sum a list of numbers.</span>
+<span class="gp">... </span><span class="s1">action sum_numbers</span>
+<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">        GET /sum</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1">    query</span>
+<span class="gp">... </span><span class="s1">        # The list of numbers.</span>
+<span class="gp">... </span><span class="s1">        float[len &gt; 0] numbers</span>
+<span class="gp">...</span><span class="s1"></span>
+<span class="gp">... </span><span class="s1">    output</span>
+<span class="gp">... </span><span class="s1">        # The sum of the numbers.</span>
+<span class="gp">... </span><span class="s1">        float sum</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">sum_numbers</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">])}</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create the chisel application</span>
+<span class="gp">... </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add API documentation</span>
+<span class="gp">... </span><span class="n">application</span><span class="o">.</span><span class="n">add_requests</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">get_doc_requests</span><span class="p">())</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add our requests / actions</span>
+<span class="gp">... </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">sum_numbers</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s try a request:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=2.5&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{status!r}</span><span class="se">\n</span><span class="si">{headers!r}</span><span class="se">\n</span><span class="si">{content!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="go">&#39;200 OK&#39;</span>
+<span class="go">[(&#39;Content-Type&#39;, &#39;application/json&#39;)]</span>
+<span class="go">b&#39;{&quot;sum&quot;:5.5}&#39;</span>
+</pre></div>
+</div>
+<p>Let’s try some bad requests:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{status!r}</span><span class="se">\n</span><span class="si">{headers!r}</span><span class="se">\n</span><span class="si">{content!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="go">&#39;400 Bad Request&#39;</span>
+<span class="go">[(&#39;Content-Type&#39;, &#39;application/json&#39;)]</span>
+<span class="go">b&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;message&quot;:&quot;Required member \&#39;numbers\&#39; missing (query string)&quot;}&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;/sum&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=asdf&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{status!r}</span><span class="se">\n</span><span class="si">{headers!r}</span><span class="se">\n</span><span class="si">{content!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="go">&#39;400 Bad Request&#39;</span>
+<span class="go">[(&#39;Content-Type&#39;, &#39;application/json&#39;)]</span>
+<span class="go">b&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;member&quot;:&quot;numbers[2]&quot;,&quot;message&quot;:&quot;Invalid value \&#39;asdf\&#39; (type \&#39;str\&#39;) for member \&#39;numbers[2]\&#39;, expected type \&#39;float\&#39; (query string)&quot;}&#39;</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="app.html" class="btn btn-neutral float-right" title="WSGI Applications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="chisel" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2012, Craig Hobbs
+
+    </p>
+  </div>
+    
+    
+      Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

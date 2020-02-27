@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>JSON APIs &mdash; chisel 0.9.88 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Schemas" href="spec.html" />
+    <link rel="prev" title="WSGI Applications" href="app.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> chisel
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">JSON APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">chisel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>JSON APIs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="json-apis">
+<h1>JSON APIs<a class="headerlink" href="#json-apis" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="chisel.action">
+<code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">action</code><span class="sig-paren">(</span><em class="sig-param">action_callback=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="chisel.Action">
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param">action_callback</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=(('POST'</em>, <em class="sig-param">None)</em>, <em class="sig-param">)</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group=None</em>, <em class="sig-param">spec_parser=None</em>, <em class="sig-param">spec=None</em>, <em class="sig-param">wsgi_response=False</em>, <em class="sig-param">jsonp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
+<p>TODO</p>
+<dl class="method">
+<dt id="chisel.Action.__call__">
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">environ</em>, <em class="sig-param">unused_start_response</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Action.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.Action.action_callback">
+<code class="sig-name descname">action_callback</code><a class="headerlink" href="#chisel.Action.action_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.Action.jsonp">
+<code class="sig-name descname">jsonp</code><a class="headerlink" href="#chisel.Action.jsonp" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.Action.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#chisel.Action.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.Action.wsgi_response">
+<code class="sig-name descname">wsgi_response</code><a class="headerlink" href="#chisel.Action.wsgi_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="chisel.ActionError">
+<em class="property">exception </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">ActionError</code><span class="sig-paren">(</span><em class="sig-param">error</em>, <em class="sig-param">message=None</em>, <em class="sig-param">status=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.ActionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+<dl class="attribute">
+<dt id="chisel.ActionError.error">
+<code class="sig-name descname">error</code><a class="headerlink" href="#chisel.ActionError.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.ActionError.message">
+<code class="sig-name descname">message</code><a class="headerlink" href="#chisel.ActionError.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chisel.ActionError.status">
+<code class="sig-name descname">status</code><a class="headerlink" href="#chisel.ActionError.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="spec.html" class="btn btn-neutral float-right" title="Schemas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="app.html" class="btn btn-neutral float-left" title="WSGI Applications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2012, Craig Hobbs
+
+    </p>
+  </div>
+    
+    
+      Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
