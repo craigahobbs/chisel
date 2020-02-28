@@ -24,6 +24,10 @@ SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
 
+# twine
+TWINE_VERSION ?= 3.1.1
+TWINE_ARGS ?=
+
 # Build directory
 BUILD := build
 
@@ -44,7 +48,7 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [clean|commit|cover|doc|pylint|test]'
+	@echo 'usage: make [clean|commit|cover|doc|pylint|test|twine]'
 
 .PHONY: commit
 commit: test pylint doc cover
@@ -97,7 +101,7 @@ define TEST_COMMANDS_FN
 endef
 $(foreach X, $(PYTHON_VERSIONS), $(eval $(call VENV_RULE_FN, test, -e . -e .[tests], TEST_COMMANDS_FN, $(X))))
 
-# Generate coverage rules
+# Generate coverage rule
 define COVER_COMMANDS_FN
 	$(1)/python3 -m coverage run --branch --source src -m unittest $(if $(TEST),-v $(TEST),discover -v -t src -s src/tests) $(TEST_ARGS)
 	$(1)/python3 -m coverage html -d $(BUILD)/coverage
@@ -107,13 +111,13 @@ define COVER_COMMANDS_FN
 endef
 $(eval $(call VENV_RULE_FN, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
-# Generate pylint rules
+# Generate pylint rule
 define PYLINT_COMMANDS_FN
 	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py src
 endef
 $(eval $(call VENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
 
-# Generate sphinx rules
+# Generate sphinx rule
 ifneq '$(SPHINX_DOC)' ''
 define DOC_COMMANDS_FN
 	$(1)/sphinx-build $(SPHINX_ARGS) -b doctest -d $(BUILD)/doc/doctrees $(SPHINX_DOC) $(BUILD)/doc/html
@@ -132,3 +136,11 @@ else
 .PHONY: doc
 doc:
 endif
+
+# Generate twine rule
+define TWINE_COMMANDS_FN
+	$(1)/python3 setup.py sdist
+	$(1)/twine check $(lastword $(sort $(wildcard dist/*)))
+	$(1)/twine upload $(lastword $(sort $(wildcard dist/*)))
+endef
+$(eval $(call VENV_RULE_FN, twine, -e . $(call PIP_VERSION_FN, twine, $(TWINE_VERSION)), TWINE_COMMANDS_FN,, -i))
