@@ -1,7 +1,9 @@
 chisel
 ======
 
-.. include:: badges.rst
+.. include:: ../README.rst
+   :start-after: readme-badges-begin
+   :end-before: readme-badges-end
 
 Chisel is a light-weight Python WSGI application framework with tools for
 building well-documented, well-tested, schema-validated JSON web APIs.  Here are
@@ -20,7 +22,9 @@ To learn more, proceed to the :ref:`Getting Started` page.
 Links
 -----
 
-.. include:: links.rst
+.. include:: ../README.rst
+   :start-after: readme-links-begin
+   :end-before: readme-links-end
 
 
 .. toctree::
