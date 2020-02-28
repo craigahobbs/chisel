@@ -5,7 +5,7 @@ chisel
    :alt: PyPI - Status
    :target: https://pypi.python.org/pypi/chisel/
 
-.. |badge-pypi| image:: https://img.shields.io/pypi/v/chisel?style=for-the-badge
+.. |badge-version| image:: https://img.shields.io/pypi/v/chisel?style=for-the-badge
    :alt: PyPI
    :target: https://pypi.python.org/pypi/chisel/
 
