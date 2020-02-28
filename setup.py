@@ -20,14 +20,14 @@ def main():
 
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src', MODULE_NAME, '__init__.py'), encoding='utf-8') as init_file:
         version = re.search(r"__version__ = '(.+?)'", init_file.read()).group(1)
-    with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'), encoding='utf-8') as readme_file:
+    with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.rst'), encoding='utf-8') as readme_file:
         long_description = readme_file.read()
 
     setup(
         name=PACKAGE_NAME,
         description=('Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
         long_description=long_description,
-        long_description_content_type='text/markdown',
+        long_description_content_type='text/x-rst',
         version=version,
         author='Craig Hobbs',
         author_email='craigahobbs@gmail.com',
