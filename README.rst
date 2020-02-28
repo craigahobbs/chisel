@@ -35,6 +35,6 @@ chisel
 Links
 -----
 
-- `Documentation <https://craigahobbs.github.io/chisel/>`_
-- `Build <https://travis-ci.org/craigahobbs/chisel>`_
-- `Coverage <https://codecov.io/gh/craigahobbs/chisel>`_
+- `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`_
+- `Build on Travis CI <https://travis-ci.org/craigahobbs/chisel>`_
+- `Coverage on Codecov <https://codecov.io/gh/craigahobbs/chisel>`_

@@ -50,6 +50,8 @@ Links
 
 - `Source code on GitHub <https://github.com/craigahobbs/chisel>`_
 - `Package on pypi <https://pypi.org/project/chisel/>`_
+- `Build on Travis CI <https://travis-ci.org/craigahobbs/chisel>`_
+- `Coverage on Codecov <https://codecov.io/gh/craigahobbs/chisel>`_
 
 
 .. toctree::
