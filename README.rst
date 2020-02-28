@@ -46,6 +46,8 @@ Chisel's features at a glance:
 
 .. readme-overview-end
 
+To learn more, proceed to the `Getting Started <https://craigahobbs.github.io/chisel/basics.html>`_ page.
+
 
 Links
 -----
