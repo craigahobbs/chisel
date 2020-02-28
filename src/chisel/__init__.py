@@ -5,7 +5,7 @@
 TODO
 """
 
-__version__ = '0.9.88'
+__version__ = '0.9.89'
 
 from .action import \
     Action, \
