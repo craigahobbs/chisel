@@ -1,7 +1,11 @@
 chisel
 ======
 
-.. |badge-pypi| image:: https://img.shields.io/pypi/v/chisel?style=for-the-badge
+.. |badge-status| image:: https://img.shields.io/pypi/status/chisel?style=for-the-badge
+   :alt: PyPI - Status
+   :target: https://pypi.python.org/pypi/chisel/
+
+.. |badge-version| image:: https://img.shields.io/pypi/v/chisel?style=for-the-badge
    :alt: PyPI
    :target: https://pypi.python.org/pypi/chisel/
 
@@ -21,7 +25,9 @@ chisel
    :alt: PyPI - Python Version
    :target: https://www.python.org/downloads/
 
-|badge-pypi| |badge-travis| |badge-codecov|
+|badge-status| |badge-version|
+
+|badge-travis| |badge-codecov|
 
 |badge-license| |badge-python|
 
