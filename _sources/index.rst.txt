@@ -1,14 +1,29 @@
 chisel
 ======
 
-.. image:: http://img.shields.io/pypi/v/chisel.svg
+.. |badge-pypi| image:: https://img.shields.io/pypi/v/chisel?style=for-the-badge
+   :alt: PyPI
    :target: https://pypi.python.org/pypi/chisel/
 
-.. image:: https://travis-ci.org/craigahobbs/template-specialize.svg?branch=master
+.. |badge-travis| image:: https://img.shields.io/travis/craigahobbs/chisel?style=for-the-badge
+   :alt: Travis (.org)
+   :target: https://travis-ci.org/craigahobbs/chisel
+
+.. |badge-codecov| image:: https://img.shields.io/codecov/c/github/craigahobbs/chisel?style=for-the-badge
+   :alt: Codecov
    :target: https://codecov.io/gh/craigahobbs/chisel
 
-.. image:: https://codecov.io/gh/craigahobbs/chisel/branch/master/graph/badge.svg
-   :target: https://travis-ci.org/craigahobbs/template-specialize
+.. |badge-license| image:: https://img.shields.io/github/license/craigahobbs/chisel?style=for-the-badge
+   :alt: GitHub
+   :target: https://github.com/craigahobbs/chisel/blob/master/LICENSE
+
+.. |badge-python| image:: https://img.shields.io/pypi/pyversions/chisel?style=for-the-badge
+   :alt: PyPI - Python Version
+   :target: https://www.python.org/downloads/
+
+|badge-pypi| |badge-travis| |badge-codecov|
+
+|badge-license| |badge-python|
 
 Chisel is a light-weight Python WSGI application framework with tools for
 building well-documented, well-tested, schema-validated JSON web APIs.  Here are
