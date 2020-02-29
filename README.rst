@@ -40,13 +40,13 @@ Chisel's features at a glance:
 - Light-weight `WSGI <https://www.python.org/dev/peps/pep-3333/>`_ application framework
 - Schema-validated `JSON <https://en.wikipedia.org/wiki/JSON>`_ web APIs
 - Schema-level API documentation
-- Written in pure `Python <https://python.org>`_.
+- Written in pure `Python <https://python.org>`_
 - Zero dependencies
 - Python 3.7+
 
-.. readme-overview-end
-
 To learn more, proceed to the `Getting Started <https://craigahobbs.github.io/chisel/basics.html>`_ page.
+
+.. readme-overview-end
 
 
 Links

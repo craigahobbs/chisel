@@ -5,8 +5,6 @@ chisel
    :start-after: readme-overview-begin
    :end-before: readme-overview-end
 
-To learn more, proceed to the :ref:`Getting Started` page.
-
 
 Links
 -----
