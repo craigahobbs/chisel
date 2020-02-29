@@ -143,7 +143,7 @@ twine: commit
 
 define TWINE_COMMANDS_FN
 	$(1)/python3 setup.py sdist
-	$(1)/twine check $(lastword $(sort $(wildcard dist/*)))
-	$(1)/twine upload $(lastword $(sort $(wildcard dist/*)))
+	$(1)/twine check dist/*.tar.gz
+	$(1)/twine upload dist/*.tar.gz
 endef
 $(eval $(call VENV_RULE_FN, twine, -e . $(call PIP_VERSION_FN, twine, $(TWINE_VERSION)), TWINE_COMMANDS_FN,, -i))
