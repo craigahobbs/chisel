@@ -48,8 +48,8 @@ To learn more, proceed to the `Getting Started <https://craigahobbs.github.io/ch
 Links
 -----
 
-- `Source code on GitHub <https://github.com/craigahobbs/chisel>`_
-- `Package on pypi <https://pypi.org/project/chisel/>`_
 - `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`_
+- `Package on pypi <https://pypi.org/project/chisel/>`_
+- `Source code on GitHub <https://github.com/craigahobbs/chisel>`_
 - `Build on Travis CI <https://travis-ci.org/craigahobbs/chisel>`_
 - `Coverage on Codecov <https://codecov.io/gh/craigahobbs/chisel>`_
