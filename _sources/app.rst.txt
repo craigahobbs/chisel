@@ -4,6 +4,8 @@ WSGI Applications
 .. autoclass:: chisel.Application
    :members:
 
+   .. automethod:: __call__
+
 .. autodecorator:: chisel.request
 
 .. autofunction:: chisel.get_doc_requests

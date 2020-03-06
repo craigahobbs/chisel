@@ -158,67 +158,129 @@
 <dl class="class">
 <dt id="chisel.Application">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Application</code><a class="headerlink" href="#chisel.Application" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The chisel application base class. Override this class if you need additional state for your application
+(like application configuration).  Add functionality to your application by adding
+<a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to it (using <a class="reference internal" href="#chisel.Application.add_request" title="chisel.Application.add_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_request()</span></code></a> or
+<a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_requests()</span></code></a>).</p>
+<dl class="method">
+<dt id="chisel.Application.__call__">
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">environ</em>, <em class="sig-param">start_response</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The chisel application WSGI callback. This method matches the appropriate <code class="xref py py-class docutils literal notranslate"><span class="pre">__call__</span></code> method.  The application and URL path arguments
+(e.g. <code class="docutils literal notranslate"><span class="pre">'/documents/{id}'</span></code>) are made available to the request through the request’s
+<a class="reference internal" href="#chisel.Context" title="chisel.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> environ dictionary.</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The <span class="target" id="index-1"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> start-response callable.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="chisel.Application.add_request">
 <code class="sig-name descname">add_request</code><span class="sig-paren">(</span><em class="sig-param">request</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_request" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Add a <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> to the application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a>) – The request object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Application.add_requests">
 <code class="sig-name descname">add_requests</code><span class="sig-paren">(</span><em class="sig-param">requests</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Add a series of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to the application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.8)"><em>Iterable</em></a><em>(</em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A list of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="chisel.Application.log_format">
 <code class="sig-name descname">log_format</code><a class="headerlink" href="#chisel.Application.log_format" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The chisel application’s log format string. The default is <code class="docutils literal notranslate"><span class="pre">'%(levelname)s</span> <span class="pre">[%(process)s</span> <span class="pre">/</span> <span class="pre">%(thread)s]</span> <span class="pre">%(message)s'</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="chisel.Application.log_level">
 <code class="sig-name descname">log_level</code><a class="headerlink" href="#chisel.Application.log_level" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The chisel application’s <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging-levels">logging level</a>.
+The default is <code class="xref py py-data docutils literal notranslate"><span class="pre">logging.WARNING</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="chisel.Application.pretty_output">
 <code class="sig-name descname">pretty_output</code><a class="headerlink" href="#chisel.Application.pretty_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> for “pretty” request output. Individual requests can
+use this application state they see fit. For example, <a class="reference internal" href="action.html#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a>
+requests return indented JSON when this value is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Application.request">
 <code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">request_method</em>, <em class="sig-param">path_info</em>, <em class="sig-param">query_string=''</em>, <em class="sig-param">wsgi_input=b''</em>, <em class="sig-param">environ=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.8)"><em>bytes</em></a>) – TODO</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="chisel.Application.requests">
 <code class="sig-name descname">requests</code><a class="headerlink" href="#chisel.Application.requests" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The chisel application’s map of request name to <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object map.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="chisel.Application.validate_output">
 <code class="sig-name descname">validate_output</code><a class="headerlink" href="#chisel.Application.validate_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to validate request output. Individual requests can
+use this application state they see fit. For example, <a class="reference internal" href="action.html#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a>
+requests schema-validate return content data when this value is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="chisel.request">
-<code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">request_callback=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="chisel.get_doc_requests">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_doc_requests</code><span class="sig-paren">(</span><em class="sig-param">root_path='/doc'</em>, <em class="sig-param">request_api=True</em>, <em class="sig-param">request_names=None</em>, <em class="sig-param">doc=True</em>, <em class="sig-param">doc_css=True</em>, <em class="sig-param">cache=True</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_doc_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>request_api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>request_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>doc_css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
@@ -226,6 +288,18 @@
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">RedirectRequest</code><span class="sig-paren">(</span><em class="sig-param">urls</em>, <em class="sig-param">redirect_url</em>, <em class="sig-param">permanent=True</em>, <em class="sig-param">name=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Redirects'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
 <p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>redirect_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>permanent</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
@@ -233,12 +307,37 @@
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StaticRequest</code><span class="sig-paren">(</span><em class="sig-param">package</em>, <em class="sig-param">resource_name</em>, <em class="sig-param">cache=True</em>, <em class="sig-param">content_type=None</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Statics'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
 <p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>resource_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="class">
 <dt id="chisel.Context">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">app</em>, <em class="sig-param">environ=None</em>, <em class="sig-param">start_response=None</em>, <em class="sig-param">url_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<a class="reference internal" href="#chisel.Application" title="chisel.Application"><em>Application</em></a>) – The chisel application object.</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The <span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> environ dictionary.</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The <span class="target" id="index-3"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> start-response callable.</p></li>
+<li><p><strong>url_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="attribute">
 <dt id="chisel.Context.ENVIRON_CTX">
 <code class="sig-name descname">ENVIRON_CTX</code><em class="property"> = 'chisel.ctx'</em><a class="headerlink" href="#chisel.Context.ENVIRON_CTX" title="Permalink to this definition">¶</a></dt>
@@ -249,12 +348,29 @@
 <dt id="chisel.Context.add_cache_headers">
 <code class="sig-name descname">add_cache_headers</code><span class="sig-paren">(</span><em class="sig-param">control=None</em>, <em class="sig-param">ttl_seconds=None</em>, <em class="sig-param">utcnow=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_cache_headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>control</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>ttl_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – TODO</p></li>
+<li><p><strong>utcnow</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><em>datetime</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Context.add_header">
 <code class="sig-name descname">add_header</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -267,6 +383,17 @@
 <dt id="chisel.Context.create_environ">
 <em class="property">static </em><code class="sig-name descname">create_environ</code><span class="sig-paren">(</span><em class="sig-param">request_method</em>, <em class="sig-param">path_info</em>, <em class="sig-param">query_string=''</em>, <em class="sig-param">wsgi_input=b''</em>, <em class="sig-param">environ=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.create_environ" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.8)"><em>bytes</em></a>) – TODO</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -291,30 +418,80 @@
 <dt id="chisel.Context.reconstruct_url">
 <code class="sig-name descname">reconstruct_url</code><span class="sig-paren">(</span><em class="sig-param">path_info=None</em>, <em class="sig-param">query_string=None</em>, <em class="sig-param">relative=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Context.response">
 <code class="sig-name descname">response</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">content_type</em>, <em class="sig-param">content</em>, <em class="sig-param">headers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.8)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.8)"><em>bytes</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Context.response_json">
 <code class="sig-name descname">response_json</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">response</em>, <em class="sig-param">content_type='application/json'</em>, <em class="sig-param">encoding='utf-8'</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">jsonp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>response</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – TODO</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Context.response_text">
 <code class="sig-name descname">response_text</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">text=None</em>, <em class="sig-param">content_type='text/plain'</em>, <em class="sig-param">encoding='utf-8'</em>, <em class="sig-param">headers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Context.start_response">
 <code class="sig-name descname">start_response</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.start_response" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -329,16 +506,40 @@
 <dt id="chisel.Request">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Request</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="chisel.Request.__call__">
 <code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">environ</em>, <em class="sig-param">start_response</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The <span class="target" id="index-4"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> environ dictionary.</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The <span class="target" id="index-5"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>WSGI</strong></a> start-response callable.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="chisel.Request.decorate_module">
-<code class="sig-name descname">decorate_module</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">decorate_module</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -357,6 +558,14 @@
 <dt id="chisel.Request.import_requests">
 <em class="property">static </em><code class="sig-name descname">import_requests</code><span class="sig-paren">(</span><em class="sig-param">package</em>, <em class="sig-param">parent_package=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>parent_package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
