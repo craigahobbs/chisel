@@ -7,7 +7,5 @@ JSON APIs
    :show-inheritance:
    :members:
 
-   .. automethod:: __call__
-
 .. autoexception:: chisel.ActionError
    :members:

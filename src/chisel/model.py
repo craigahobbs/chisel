@@ -36,12 +36,14 @@ IMMUTABLE_VALIDATION_MODES = (ValidationMode.DEFAULT,)
 class AttributeValidationError(Exception):
     """
     TODO
+
+    :param str attr: TODO
     """
 
     __slots__ = ('attr',)
 
     def __init__(self, attr):
-        super().__init__("Invalid attribute '" + attr + "'")
+        super().__init__(f"Invalid attribute '{attr}'")
 
         #: TODO
         self.attr = attr
@@ -50,6 +52,9 @@ class AttributeValidationError(Exception):
 class ValidationError(Exception):
     """
     TODO
+
+    :param str msg: TODO
+    :param str member: TODO
     """
 
     __slots__ = ('member',)
@@ -85,6 +90,9 @@ def _member_error(type_, value, members, constraint_syntax=None):
 def get_referenced_types(type_):
     """
     TODO
+
+    :param type_: TODO
+    :type type_: ~chisel.TypeStruct or ~chisel.TypeEnum or ~chisel.Typedef or ~chisel.TypeArray or ~chisel.TypeDict or ~chisel.ActionModel
     """
 
     return sorted(_get_referenced_types(type_, set(), True), key=lambda type_: type_.type_name)
@@ -123,6 +131,11 @@ def _get_referenced_types(type_, visited, top_level):
 class ActionModel:
     """
     TODO
+
+    :param str name: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
+    :param str doc_group: TODO
     """
 
     __slots__ = ('name', 'urls', 'path_type', 'query_type', 'input_type', 'output_type', 'error_type', 'doc', 'doc_group')
@@ -159,6 +172,8 @@ class ActionModel:
     def input_members(self, include_base_types=True):
         """
         TODO
+
+        :param bool include_base_types: TODO
         """
 
         yield from chain.from_iterable(
@@ -170,6 +185,17 @@ class ActionModel:
 class StructMemberAttributes:
     """
     TODO
+
+    :param float op_eq: TODO
+    :param float op_lt: TODO
+    :param float op_lte: TODO
+    :param float op_gt: TODO
+    :param float op_gte: TODO
+    :param float op_len_eq: TODO
+    :param float op_len_lt: TODO
+    :param float op_len_lte: TODO
+    :param float op_len_gt: TODO
+    :param float op_len_gte: TODO
     """
 
     __slots__ = ('op_eq', 'op_lt', 'op_lte', 'op_gt', 'op_gte',
@@ -215,6 +241,8 @@ class StructMemberAttributes:
     def validate(self, value, _member=()):
         """
         TODO
+
+        :param object value: TODO
         """
 
         if self.op_lt is not None and value >= self.op_lt:
@@ -241,6 +269,9 @@ class StructMemberAttributes:
     def validate_attr(self, allow_value=False, allow_length=False):
         """
         TODO
+
+        :param bool allow_value: TODO
+        :param bool allow_length: TODO
         """
 
         if not allow_value:
@@ -270,6 +301,12 @@ class StructMemberAttributes:
 class Typedef:
     """
     TODO
+
+    :param object type_: TODO
+    :param ~chisel.StructMemberAttributes attr: TODO
+    :param str type_name: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
     """
 
     __slots__ = ('type_name', 'type', 'attr', 'doc')

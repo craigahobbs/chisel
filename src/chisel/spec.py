@@ -19,6 +19,8 @@ from .model import \
 class SpecParserError(Exception):
     """
     TODO
+
+    :param list(str) errors: TODO
     """
 
     __slots__ = ('errors',)
@@ -84,6 +86,8 @@ TYPES = {
 class SpecParser:
     """
     TODO
+
+    :param str spec: TODO
     """
 
     __slots__ = (
@@ -132,6 +136,10 @@ class SpecParser:
     def parse(self, lines, filename='', finalize=True):
         """
         TODO
+
+        :param ~collections.abc.Iterable(str) lines: TODO
+        :param str filename: TODO
+        :param bool finalize: TODO
         """
 
         # Set the parser state
@@ -153,6 +161,10 @@ class SpecParser:
     def parse_string(self, spec, filename='', finalize=True):
         """
         TODO
+
+        :param str spec: TODO
+        :param str filename: TODO
+        :param bool finalize: TODO
         """
 
         self.parse(spec.splitlines(), finalize=finalize, filename=filename)

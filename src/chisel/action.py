@@ -20,6 +20,8 @@ from .util import decode_query_string
 def action(action_callback=None, **kwargs):
     """
     TODO
+
+    :param ~collections.abc.Callable action_callback: TODO
     """
 
     if action_callback is None:
@@ -30,6 +32,11 @@ def action(action_callback=None, **kwargs):
 class ActionError(Exception):
     """
     TODO
+
+    :param str error: TODO
+    :param str message: TODO
+    :param status: TODO
+    :type status: ~http.HTTPStatus or str
     """
 
     __slots__ = ('error', 'message', 'status')
@@ -62,6 +69,17 @@ class _ActionErrorInternal(Exception):
 class Action(Request):
     """
     TODO
+
+    :param ~collections.abc.Callable action_callback: TODO
+    :param str name: TODO
+    :param list(tuple) urls: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
+    :param str doc_group: TODO
+    :param ~chisel.SpecParser spec_parser: TODO
+    :param str spec: TODO
+    :param bool wsgi_response: TODO
+    :param str jsonp: TODO
     """
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
@@ -101,10 +119,6 @@ class Action(Request):
         self.jsonp = jsonp
 
     def __call__(self, environ, unused_start_response):
-        """
-        TODO
-        """
-
         ctx = environ[Context.ENVIRON_CTX]
 
         # Handle the action

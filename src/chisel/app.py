@@ -1,9 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-"""
-TODO
-"""
+"""Chisel WSGI application base class and utilities."""
 
 from datetime import datetime, timedelta
 from http import HTTPStatus
@@ -21,8 +19,10 @@ RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 
 class Application:
-    """
-    TODO
+    """The chisel application base class. Override this class if you need additional state for your application
+    (like application configuration).  Add functionality to your application by adding
+    :class:`~chisel.Request` objects to it (using :func:`~chisel.Application.add_request` or
+    :func:`~chisel.Application.add_requests`).
     """
 
     __slots__ = (
@@ -37,27 +37,33 @@ class Application:
 
     def __init__(self):
 
-        #: TODO
+        #: The chisel application's `logging level <https://docs.python.org/3/library/logging.html#logging-levels>`_.
+        #: The default is :py:data:`logging.WARNING`.
         self.log_level = logging.WARNING
 
-        #: TODO
+        #: The chisel application's log format string. The default is ``'%(levelname)s [%(process)s / %(thread)s] %(message)s'``.
         self.log_format = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
 
-        #: TODO
+        #: Set to ``True`` for "pretty" request output. Individual requests can
+        #: use this application state they see fit. For example, :class:`~chisel.Action`
+        #: requests return indented JSON when this value is ``True``. Default is ``False``.
         self.pretty_output = False
 
-        #: TODO
+        #: Set to ``True`` to validate request output. Individual requests can
+        #: use this application state they see fit. For example, :class:`~chisel.Action`
+        #: requests schema-validate return content data when this value is ``True``. Default is ``True``.
         self.validate_output = True
 
-        #: TODO
+        #: The chisel application's map of request name to :class:`~chisel.Request` object map.
         self.requests = {}
 
         self.__request_urls = {}
         self.__request_regex = []
 
     def add_request(self, request):
-        """
-        TODO
+        """Add a :class:`~chisel.Request` to the application.
+
+        :param ~chisel.Request request: The request object.
         """
 
         # Duplicate request name?
@@ -79,16 +85,22 @@ class Application:
                 self.__request_urls[request_key] = request
 
     def add_requests(self, requests):
-        """
-        TODO
+        """Add a series of :class:`~chisel.Request` objects to the application.
+
+        :param ~collections.abc.Iterable(~chisel.Request) requests: A list of :class:`~chisel.Request` objects.
         """
 
         for request in requests:
             self.add_request(request)
 
     def __call__(self, environ, start_response):
-        """
-        TODO
+        """The chisel application WSGI callback. This method matches the appropriate :class:`~chisel.Request' object
+        and then calls its :func:`~chisel.Request.__call__` method.  The application and URL path arguments
+        (e.g. ``'/documents/{id}'``) are made available to the request through the request's
+        :class:`~chisel.Context` object.
+
+        :param dict environ: The :pep:`WSGI <3333>` environ dictionary.
+        :param ~collections.abc.Callable start_response: The :pep:`WSGI <3333>` start-response callable.
         """
 
         # Match the request by method and exact URL
@@ -158,6 +170,12 @@ class Application:
     def request(self, request_method, path_info, query_string='', wsgi_input=b'', environ=None):
         """
         TODO
+
+        :param str request_method: TODO
+        :param str path_info: TODO
+        :param str query_string: TODO
+        :param bytes wsgi_input: TODO
+        :param dict environ: TODO
         """
 
         request_environ = Context.create_environ(request_method, path_info, query_string, wsgi_input, environ=environ)
@@ -169,6 +187,11 @@ class Application:
 class Context:
     """
     TODO
+
+    :param ~chisel.Application app: The chisel application object.
+    :param dict environ: The :pep:`WSGI <3333>` environ dictionary.
+    :param ~collections.abc.Callable start_response: The :pep:`WSGI <3333>` start-response callable.
+    :param dict url_args: TODO
     """
 
     __slots__ = ('app', 'environ', '_start_response', 'url_args', 'log', 'headers')
@@ -210,6 +233,12 @@ class Context:
     def create_environ(request_method, path_info, query_string='', wsgi_input=b'', environ=None):
         """
         TODO
+
+        :param str request_method: TODO
+        :param str path_info: TODO
+        :param str query_string: TODO
+        :param bytes wsgi_input: TODO
+        :param dict environ: TODO
         """
 
         if environ is None:
@@ -227,6 +256,10 @@ class Context:
     def start_response(self, status, headers):
         """
         TODO
+
+        :param status: TODO
+        :type status: ~http.HTTPStatus or str
+        :param list(tuple) headers: TODO
         """
 
         if not isinstance(status, str):
@@ -238,6 +271,9 @@ class Context:
     def add_header(self, key, value):
         """
         TODO
+
+        :param str key: TODO
+        :param str value: TODO
         """
 
         assert isinstance(key, str), 'header key must be of type str'
@@ -247,6 +283,10 @@ class Context:
     def add_cache_headers(self, control=None, ttl_seconds=None, utcnow=None):
         """
         TODO
+
+        :param str control: TODO
+        :param int ttl_seconds: TODO
+        :param ~datetime.datetime utcnow: TODO
         """
 
         if self.environ.get('REQUEST_METHOD') == 'GET':
@@ -264,6 +304,12 @@ class Context:
     def response(self, status, content_type, content, headers=None):
         """
         TODO
+
+        :param status: TODO
+        :type status: ~http.HTTPStatus or str
+        :param str content_type: TODO
+        :param ~collections.abc.Iterable(bytes) content: TODO
+        :param list(tuple) headers: TODO
         """
 
         assert not isinstance(content, (str, bytes)), 'response content cannot be of type str or bytes'
@@ -276,6 +322,13 @@ class Context:
     def response_text(self, status, text=None, content_type='text/plain', encoding='utf-8', headers=None):
         """
         TODO
+
+        :param status: TODO
+        :type status: ~http.HTTPStatus or str
+        :param str text: TODO
+        :param str content_type: TODO
+        :param str encoding: TODO
+        :param list(tuple) headers: TODO
         """
 
         if text is None:
@@ -288,6 +341,14 @@ class Context:
     def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None, jsonp=None):
         """
         TODO
+
+        :param status: TODO
+        :type status: ~http.HTTPStatus or str
+        :param dict response: TODO
+        :param str content_type: TODO
+        :param str encoding: TODO
+        :param list(tuple) headers: TODO
+        :param str jsonp: TODO
         """
 
         encoder = JSONEncoder(
@@ -307,6 +368,10 @@ class Context:
     def reconstruct_url(self, path_info=None, query_string=None, relative=False):
         """
         TODO
+
+        :param str path_info: TODO
+        :param str query_string: TODO
+        :param bool relative: TODO
         """
 
         environ = self.environ
@@ -348,6 +413,10 @@ class Context:
 class StartResponse:
     """
     TODO
+
+    :param status: TODO
+    :type status: ~http.HTTPStatus or str
+    :param list(tuple) headers: TODO
     """
 
     __slots__ = ('status', 'headers')

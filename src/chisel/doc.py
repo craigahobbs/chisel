@@ -15,6 +15,13 @@ from .request import RedirectRequest, StaticRequest
 def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc=True, doc_css=True, cache=True):
     """
     TODO
+
+    :param str root_path: TODO
+    :param bool request_api: TODO
+    :param list(str) request_names: TODO
+    :param bool doc: TODO
+    :param bool doc_css: TODO
+    :param bool cache: TODO
     """
 
     if request_api and request_names is None:
@@ -33,6 +40,8 @@ def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc
 class DocIndex(Action):
     """
     TODO
+
+    :param list(tuple) urls: TODO
     """
 
     __slots__ = ()
@@ -70,6 +79,9 @@ action chisel_doc_index
 class DocRequest(Action):
     """
     TODO
+
+    :param list(tuple) urls: TODO
+    :param list(str) request_names: TODO
     """
 
     __slots__ = ('_request_names',)

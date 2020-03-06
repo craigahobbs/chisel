@@ -21,19 +21,28 @@ from .app import Context
 REQUESTS_MODULE_ATTR = '__chisel_requests__'
 
 
-def request(request_callback=None, **kwargs):
+def request(wsgi_callback=None, **kwargs):
     """
     TODO
+
+    :param ~collections.abc.Callable wsgi_callback: TODO
     """
 
-    if request_callback is None:
+    if wsgi_callback is None:
         return partial(request, **kwargs)
-    return Request(request_callback, **kwargs).decorate_module(request_callback)
+    return Request(wsgi_callback, **kwargs).decorate_module(wsgi_callback)
 
 
 class Request:
     """
     TODO
+
+    :param ~collections.abc.Callable wsgi_callback: TODO
+    :param str name: TODO
+    :param list(tuple) urls: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
+    :param str doc_group: TODO
     """
 
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'doc_group')
@@ -67,18 +76,23 @@ class Request:
     def __call__(self, environ, start_response):
         """
         TODO
+
+        :param dict environ: The :pep:`WSGI <3333>` environ dictionary.
+        :param ~collections.abc.Callable start_response: The :pep:`WSGI <3333>` start-response callable.
         """
 
         assert self.wsgi_callback is not None, 'wsgi_callback required when using Request directly'
         return self.wsgi_callback(environ, start_response)
 
-    def decorate_module(self, callback):
+    def decorate_module(self, wsgi_callback):
         """
         TODO
+
+        :param ~collections.abc.Callable wsgi_callback: TODO
         """
 
-        if callback.__module__: # pragma: no branch
-            module = sys.modules[callback.__module__]
+        if wsgi_callback.__module__: # pragma: no branch
+            module = sys.modules[wsgi_callback.__module__]
             requests = getattr(module, REQUESTS_MODULE_ATTR, None)
             if requests is None:
                 requests = {}
@@ -90,6 +104,9 @@ class Request:
     def import_requests(package, parent_package=None):
         """
         TODO
+
+        :param str package: TODO
+        :param str parent_package: TODO
         """
 
         package = importlib.import_module(package, parent_package)
@@ -103,6 +120,14 @@ class Request:
 class RedirectRequest(Request):
     """
     TODO
+
+    :param list(tuple) urls: TODO
+    :param str redirect_url: TODO
+    :param bool permanent: TODO
+    :param str name: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
+    :param str doc_group: TODO
     """
 
     __slots__ = ('_status', '_redirect_url')
@@ -125,6 +150,17 @@ class RedirectRequest(Request):
 class StaticRequest(Request):
     """
     TODO
+
+    :param str package: TODO
+    :param str resource_name: TODO
+    :param bool cache: TODO
+    :param str content_type: TODO
+    :param list(tuple) headers: TODO
+    :param str name: TODO
+    :param list(tuple) urls: TODO
+    :param doc: TODO
+    :type doc: list(str) or str
+    :param str doc_group: TODO
     """
 
     __slots__ = ('_package', '_resource_name', '_cache', '_headers', '_content', '_etag')

@@ -40,6 +40,9 @@ class JSONEncoder(json.JSONEncoder):
 def encode_query_string(obj, encoding='utf-8'):
     """
     TODO
+
+    :param object obj: TODO
+    :param str encoding: TODO
     """
 
     return '&'.join(f'{k}={v}' for k, v in _encode_query_string_items(obj, None, encoding))
@@ -82,6 +85,9 @@ def _encode_query_string_items(obj, parent, encoding):
 def decode_query_string(query_string, encoding='utf-8'):
     """
     TODO
+
+    :param str query_string: TODO
+    :param str encoding: TODO
     """
 
     return _decode_query_string_items(
