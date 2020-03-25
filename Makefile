@@ -3,6 +3,7 @@
 
 PYTHON_VERSIONS := \
     3.8 \
+    3.9-rc \
     3.7
 
 SPHINX_DOC := doc
