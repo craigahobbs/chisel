@@ -155,16 +155,16 @@
             
   <div class="section" id="wsgi-applications">
 <h1>WSGI Applications<a class="headerlink" href="#wsgi-applications" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+<dl class="py class">
 <dt id="chisel.Application">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Application</code><a class="headerlink" href="#chisel.Application" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application base class. Override this class if you need additional state for your application
 (like application configuration).  Add functionality to your application by adding
 <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to it (using <a class="reference internal" href="#chisel.Application.add_request" title="chisel.Application.add_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_request()</span></code></a> or
 <a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_requests()</span></code></a>).</p>
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Application.__call__">
-<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">environ</em>, <em class="sig-param">start_response</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">environ</span></em>, <em class="sig-param"><span class="n">start_response</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application WSGI callback. This method matches the appropriate <code class="xref py py-class docutils literal notranslate"><span class="pre">__call__</span></code> method.  The application and URL path arguments
 (e.g. <code class="docutils literal notranslate"><span class="pre">'/documents/{id}'</span></code>) are made available to the request through the request’s
 <a class="reference internal" href="#chisel.Context" title="chisel.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> object.</p>
@@ -178,9 +178,9 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Application.add_request">
-<code class="sig-name descname">add_request</code><span class="sig-paren">(</span><em class="sig-param">request</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> to the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -189,9 +189,9 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Application.add_requests">
-<code class="sig-name descname">add_requests</code><span class="sig-paren">(</span><em class="sig-param">requests</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">requests</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a series of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -200,20 +200,20 @@
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Application.log_format">
 <code class="sig-name descname">log_format</code><a class="headerlink" href="#chisel.Application.log_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application’s log format string. The default is <code class="docutils literal notranslate"><span class="pre">'%(levelname)s</span> <span class="pre">[%(process)s</span> <span class="pre">/</span> <span class="pre">%(thread)s]</span> <span class="pre">%(message)s'</span></code>.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Application.log_level">
 <code class="sig-name descname">log_level</code><a class="headerlink" href="#chisel.Application.log_level" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application’s <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging-levels">logging level</a>.
 The default is <code class="xref py py-data docutils literal notranslate"><span class="pre">logging.WARNING</span></code>.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Application.pretty_output">
 <code class="sig-name descname">pretty_output</code><a class="headerlink" href="#chisel.Application.pretty_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> for “pretty” request output. Individual requests can
@@ -221,9 +221,9 @@ use this application state they see fit. For example, <a class="reference intern
 requests return indented JSON when this value is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Application.request">
-<code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">request_method</em>, <em class="sig-param">path_info</em>, <em class="sig-param">query_string=''</em>, <em class="sig-param">wsgi_input=b''</em>, <em class="sig-param">environ=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_method</span></em>, <em class="sig-param"><span class="n">path_info</span></em>, <em class="sig-param"><span class="n">query_string</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">wsgi_input</span><span class="o">=</span><span class="default_value">b''</span></em>, <em class="sig-param"><span class="n">environ</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -238,13 +238,13 @@ requests return indented JSON when this value is <code class="docutils literal n
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Application.requests">
 <code class="sig-name descname">requests</code><a class="headerlink" href="#chisel.Application.requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application’s map of request name to <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object map.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Application.validate_output">
 <code class="sig-name descname">validate_output</code><a class="headerlink" href="#chisel.Application.validate_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to validate request output. Individual requests can
@@ -254,9 +254,9 @@ requests schema-validate return content data when this value is <code class="doc
 
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="chisel.request">
-<code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wsgi_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -265,9 +265,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="chisel.get_doc_requests">
-<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_doc_requests</code><span class="sig-paren">(</span><em class="sig-param">root_path='/doc'</em>, <em class="sig-param">request_api=True</em>, <em class="sig-param">request_names=None</em>, <em class="sig-param">doc=True</em>, <em class="sig-param">doc_css=True</em>, <em class="sig-param">cache=True</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_doc_requests" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_doc_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_path</span><span class="o">=</span><span class="default_value">'/doc'</span></em>, <em class="sig-param"><span class="n">request_api</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">request_names</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">doc_css</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_doc_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -283,9 +283,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="chisel.RedirectRequest">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">RedirectRequest</code><span class="sig-paren">(</span><em class="sig-param">urls</em>, <em class="sig-param">redirect_url</em>, <em class="sig-param">permanent=True</em>, <em class="sig-param">name=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Redirects'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">RedirectRequest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">urls</span></em>, <em class="sig-param"><span class="n">redirect_url</span></em>, <em class="sig-param"><span class="n">permanent</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">'Redirects'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
 <p>TODO</p>
 <dl class="field-list simple">
@@ -302,9 +302,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="chisel.StaticRequest">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StaticRequest</code><span class="sig-paren">(</span><em class="sig-param">package</em>, <em class="sig-param">resource_name</em>, <em class="sig-param">cache=True</em>, <em class="sig-param">content_type=None</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group='Statics'</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StaticRequest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">package</span></em>, <em class="sig-param"><span class="n">resource_name</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">content_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">urls</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">'Statics'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
 <p>TODO</p>
 <dl class="field-list simple">
@@ -324,9 +324,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="chisel.Context">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">app</em>, <em class="sig-param">environ=None</em>, <em class="sig-param">start_response=None</em>, <em class="sig-param">url_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span></em>, <em class="sig-param"><span class="n">environ</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">start_response</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">url_args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -338,15 +338,15 @@ requests schema-validate return content data when this value is <code class="doc
 </ul>
 </dd>
 </dl>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.ENVIRON_CTX">
 <code class="sig-name descname">ENVIRON_CTX</code><em class="property"> = 'chisel.ctx'</em><a class="headerlink" href="#chisel.Context.ENVIRON_CTX" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.add_cache_headers">
-<code class="sig-name descname">add_cache_headers</code><span class="sig-paren">(</span><em class="sig-param">control=None</em>, <em class="sig-param">ttl_seconds=None</em>, <em class="sig-param">utcnow=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_cache_headers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_cache_headers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">control</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ttl_seconds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">utcnow</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_cache_headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -359,9 +359,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.add_header">
-<code class="sig-name descname">add_header</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_header</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -373,15 +373,15 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.app">
 <code class="sig-name descname">app</code><a class="headerlink" href="#chisel.Context.app" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.create_environ">
-<em class="property">static </em><code class="sig-name descname">create_environ</code><span class="sig-paren">(</span><em class="sig-param">request_method</em>, <em class="sig-param">path_info</em>, <em class="sig-param">query_string=''</em>, <em class="sig-param">wsgi_input=b''</em>, <em class="sig-param">environ=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.create_environ" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">create_environ</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_method</span></em>, <em class="sig-param"><span class="n">path_info</span></em>, <em class="sig-param"><span class="n">query_string</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">wsgi_input</span><span class="o">=</span><span class="default_value">b''</span></em>, <em class="sig-param"><span class="n">environ</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.create_environ" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -396,27 +396,27 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.environ">
 <code class="sig-name descname">environ</code><a class="headerlink" href="#chisel.Context.environ" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.headers">
 <code class="sig-name descname">headers</code><a class="headerlink" href="#chisel.Context.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.log">
 <code class="sig-name descname">log</code><a class="headerlink" href="#chisel.Context.log" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.reconstruct_url">
-<code class="sig-name descname">reconstruct_url</code><span class="sig-paren">(</span><em class="sig-param">path_info=None</em>, <em class="sig-param">query_string=None</em>, <em class="sig-param">relative=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reconstruct_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path_info</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">query_string</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">relative</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -429,9 +429,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.response">
-<code class="sig-name descname">response</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">content_type</em>, <em class="sig-param">content</em>, <em class="sig-param">headers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">response</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span></em>, <em class="sig-param"><span class="n">content_type</span></em>, <em class="sig-param"><span class="n">content</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -445,9 +445,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.response_json">
-<code class="sig-name descname">response_json</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">response</em>, <em class="sig-param">content_type='application/json'</em>, <em class="sig-param">encoding='utf-8'</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">jsonp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_json" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">response_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span></em>, <em class="sig-param"><span class="n">response</span></em>, <em class="sig-param"><span class="n">content_type</span><span class="o">=</span><span class="default_value">'application/json'</span></em>, <em class="sig-param"><span class="n">encoding</span><span class="o">=</span><span class="default_value">'utf-8'</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">jsonp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -463,9 +463,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.response_text">
-<code class="sig-name descname">response_text</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">text=None</em>, <em class="sig-param">content_type='text/plain'</em>, <em class="sig-param">encoding='utf-8'</em>, <em class="sig-param">headers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_text" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">response_text</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">content_type</span><span class="o">=</span><span class="default_value">'text/plain'</span></em>, <em class="sig-param"><span class="n">encoding</span><span class="o">=</span><span class="default_value">'utf-8'</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -480,9 +480,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Context.start_response">
-<code class="sig-name descname">start_response</code><span class="sig-paren">(</span><em class="sig-param">status</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.start_response" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">start_response</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span></em>, <em class="sig-param"><span class="n">headers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.start_response" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -494,7 +494,7 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Context.url_args">
 <code class="sig-name descname">url_args</code><a class="headerlink" href="#chisel.Context.url_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
@@ -502,9 +502,9 @@ requests schema-validate return content data when this value is <code class="doc
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="chisel.Request">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Request</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">urls=None</em>, <em class="sig-param">doc=None</em>, <em class="sig-param">doc_group=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wsgi_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">urls</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -517,9 +517,9 @@ requests schema-validate return content data when this value is <code class="doc
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Request.__call__">
-<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">environ</em>, <em class="sig-param">start_response</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">environ</span></em>, <em class="sig-param"><span class="n">start_response</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -531,9 +531,9 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Request.decorate_module">
-<code class="sig-name descname">decorate_module</code><span class="sig-paren">(</span><em class="sig-param">wsgi_callback</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">decorate_module</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wsgi_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -542,21 +542,21 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Request.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.Request.doc" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Request.doc_group">
 <code class="sig-name descname">doc_group</code><a class="headerlink" href="#chisel.Request.doc_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="chisel.Request.import_requests">
-<em class="property">static </em><code class="sig-name descname">import_requests</code><span class="sig-paren">(</span><em class="sig-param">package</em>, <em class="sig-param">parent_package=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">import_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">package</span></em>, <em class="sig-param"><span class="n">parent_package</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -568,19 +568,19 @@ requests schema-validate return content data when this value is <code class="doc
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Request.name">
 <code class="sig-name descname">name</code><a class="headerlink" href="#chisel.Request.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Request.urls">
 <code class="sig-name descname">urls</code><a class="headerlink" href="#chisel.Request.urls" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="chisel.Request.wsgi_callback">
 <code class="sig-name descname">wsgi_callback</code><a class="headerlink" href="#chisel.Request.wsgi_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
