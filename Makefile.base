@@ -11,7 +11,7 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 5.0.4
+COVERAGE_VERSION ?= 5.1
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
@@ -19,8 +19,8 @@ PYLINT_VERSION ?= 2.4.4
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 3.0.0
-SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@fd6f31fc14e0594ef329ce37a4dd1848f81ab458
+SPHINX_VERSION ?= 3.0.1
+SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@35034930943c38e6f839ad89a4e3bcba811010d5
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
 
