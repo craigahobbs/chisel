@@ -1,4 +1,8 @@
+// Licensed under the MIT License
+// https://github.com/craigahobbs/chisel/blob/master/LICENSE
+
 export const nbsp = String.fromCharCode(160);
+export const endash = String.fromCharCode(8211);
 
 export function render(parent, elems, clear=true) {
     if (clear) {
@@ -8,7 +12,7 @@ export function render(parent, elems, clear=true) {
 }
 
 export function node(elem) {
-    let node_ = elem.text ? document.createTextNode(elem.text) : document.createElement(elem.tag);
+    let node_ = elem.text ? document.createTextNode(elem.text) : document.createElementNS(elem.ns, elem.tag);
     if (elem.attrs) {
         for (let attr in elem.attrs) {
             let value = elem.attrs[attr];
@@ -31,13 +35,18 @@ function appendNodes(parent, elems) {
     return parent;
 }
 
-export function elem(tag, attrsOrElems, elems) {
+export function elem(tag, attrsOrElems, elems, ns) {
     let attrs = isDict(attrsOrElems) ? attrsOrElems : undefined;
     return {
         tag: tag,
         attrs: attrs || {},
         elems: (attrs ? elems : attrsOrElems) || [],
+        ns: ns || 'http://www.w3.org/1999/xhtml'
     };
+}
+
+export function svgElem(tag, attrsOrElems, elems) {
+    return elem(tag, attrsOrElems, elems, 'http://www.w3.org/2000/svg');
 }
 
 export function text(text_) {
@@ -63,17 +72,17 @@ export function href(hashParams, params, path) {
 export function encodeParams(params) {
     let items = [];
     if (undefined !== params) {
-        let name;
-        for (name in params) {
-            if (params[name] !== null) {
+        let names = Object.keys(params).sort();
+        names.forEach(function(name) {
+            if (params[name] !== null && params[name] !== undefined) {
                 items.push(encodeURIComponent(name) + '=' + encodeURIComponent(params[name]));
             }
-        }
-        for (name in params) {
+        });
+        names.forEach(function(name) {
             if (params[name] === null) {
                 items.push(encodeURIComponent(name));
             }
-        }
+        });
     }
     return items.length ? items.join('&') : null;
 }
@@ -95,7 +104,7 @@ export function decodeParams(paramString) {
 export function xhr(method, url, args) {
     args = args || {};
     let xhr_ = new XMLHttpRequest();
-    xhr_.open(method, href(null, args.params, url));
+    xhr_.open(method, href(undefined, args.params, url));
     xhr_.responseType = args.responseType || 'json';
     xhr_.onreadystatechange = function () {
         if (XMLHttpRequest.DONE === xhr_.readyState) {

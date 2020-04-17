@@ -325,7 +325,7 @@ class TestRedirect(TestCase):
 
 class TestStatic(TestCase):
 
-    CHISEL_JS_FIRST_LINE = b'export const nbsp = String.fromCharCode(160);'
+    CHISEL_JS_FIRST_LINE = b'// Licensed under the MIT License'
 
     def test_default(self):
         static = StaticRequest('chisel', 'static/chisel.js')
@@ -339,7 +339,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -355,7 +355,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -371,7 +371,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -387,7 +387,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -403,7 +403,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/plain'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -419,7 +419,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
 
@@ -432,7 +432,7 @@ class TestStatic(TestCase):
         self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
         status, headers, response = app.request('GET', '/static/chisel.js',
-                                                environ={'HTTP_IF_NONE_MATCH': '5b75c9cb1998de993f184684efdd1e2f'})
+                                                environ={'HTTP_IF_NONE_MATCH': '88ec0b5792fe1bdd26d23019b7b7cd85'})
         self.assertEqual(status, '304 Not Modified')
         self.assertListEqual(headers, [])
         self.assertEqual(response, b'')
@@ -440,6 +440,6 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'application/javascript'),
-            ('ETag', '5b75c9cb1998de993f184684efdd1e2f')
+            ('ETag', '88ec0b5792fe1bdd26d23019b7b7cd85')
         ])
         self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))

@@ -1,3 +1,6 @@
+// Licensed under the MIT License
+// https://github.com/craigahobbs/chisel/blob/master/LICENSE
+
 import * as chisel from './chisel.js';
 
 function indexPage(body, params) {
