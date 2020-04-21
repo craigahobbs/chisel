@@ -8,29 +8,37 @@ export function render(parent, elems, clear=true) {
     if (clear) {
         parent.innerHTML = '';
     }
-    return appendNodes(parent, elems);
+    return appendElements(parent, elems);
 }
 
-export function node(elem) {
-    let node_ = elem.text ? document.createTextNode(elem.text) : document.createElementNS(elem.ns, elem.tag);
-    if (elem.attrs) {
-        for (let attr in elem.attrs) {
-            let value = elem.attrs[attr];
-            if (value) {
-                node_.setAttribute(attr, value);
+export function createElement(elem) {
+    let element = elem.text ? document.createTextNode(elem.text) : document.createElementNS(elem.ns, elem.tag);
+    let attrs = elem.attrs;
+    if (attrs) {
+        let callback = attrs._callback;
+        if (callback !== undefined) {
+            attrs = {...attrs, '_callback': undefined};
+        }
+        for (let attr in attrs) {
+            let value = attrs[attr];
+            if (value !== undefined) {
+                element.setAttribute(attr, value);
             }
         }
+        if (callback !== undefined) {
+            callback(element);
+        }
     }
-    return appendNodes(node_, elem.elems);
+    return appendElements(element, elem.elems);
 }
 
-function appendNodes(parent, elems) {
+function appendElements(parent, elems) {
     if (Array.isArray(elems)) {
         for (let iElem = 0; iElem < elems.length; iElem++) {
-            appendNodes(parent, elems[iElem]);
+            appendElements(parent, elems[iElem]);
         }
     } else if (elems) {
-        parent.appendChild(node(elems));
+        parent.appendChild(createElement(elems));
     }
     return parent;
 }
