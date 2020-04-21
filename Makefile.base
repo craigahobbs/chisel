@@ -19,7 +19,7 @@ PYLINT_VERSION ?= 2.4.4
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 3.0.1
+SPHINX_VERSION ?= 3.0.2
 SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@35034930943c38e6f839ad89a4e3bcba811010d5
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
