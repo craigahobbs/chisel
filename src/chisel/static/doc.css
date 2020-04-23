@@ -1,4 +1,4 @@
-html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
+html, body, div, span, h1, h2, h3, p, a, table, tr, th, td, ul, li {
     margin: 0;
     padding: 0;
     border: 0;
@@ -8,7 +8,7 @@ html, body, div, span, h1, h2, h3 p, a, table, tr, th, td, ul, li, p {
 }
 body, td, th {
     background-color: white;
-    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.2em;
     color: black;
