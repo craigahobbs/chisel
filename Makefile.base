@@ -19,7 +19,7 @@ PYLINT_VERSION ?= 2.4.4
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 3.0.2
+SPHINX_VERSION ?= 3.0.3
 SPHINX_RTD_THEME_VERSION ?= git+https://github.com/readthedocs/sphinx_rtd_theme@35034930943c38e6f839ad89a4e3bcba811010d5
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
@@ -129,9 +129,9 @@ $(eval $(call VENV_RULE_FN, doc, $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION
 
 .PHONY: gh-pages
 gh-pages: clean doc
-	if [ ! -d ../$(notdir $(CURDIR)).doc ]; then git clone -b gh-pages `git config --get remote.origin.url` ../$(notdir $(CURDIR)).doc; fi
-	cd ../$(notdir $(CURDIR)).doc && git pull
-	rsync -rv --delete --exclude=.git/ $(BUILD)/doc/html/ ../$(notdir $(CURDIR)).doc
+	if [ ! -d ../$(notdir $(CURDIR)).gh-pages ]; then git clone -b gh-pages `git config --get remote.origin.url` ../$(notdir $(CURDIR)).gh-pages; fi
+	cd ../$(notdir $(CURDIR)).gh-pages && git pull
+	rsync -rv --delete --exclude=.git/ $(BUILD)/doc/html/ ../$(notdir $(CURDIR)).gh-pages
 else
 .PHONY: doc
 doc:
