@@ -76,7 +76,7 @@ _superclean:
 # Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
 define VENV_RULE_FN
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR := build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN := docker run --rm -u `id -u`:`id -g` -v $(abspath .):$(abspath .) -w $(abspath .) $(5) $(call PYTHON_IMAGE_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN := docker run --rm -u `id -u`:`id -g` -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(5) $(call PYTHON_IMAGE_FN,$(4))
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)/bin
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
