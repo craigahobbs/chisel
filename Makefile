@@ -13,6 +13,9 @@ include Makefile.base
 help:
 	@echo '            [cover_test]'
 
+commit:
+	$(MAKE) -C static commit
+
 define COVER_TEST_COMMANDS
 .PHONY: cover_test_$(1)
 cover_test_$(1): $(COVER_PYTHON_3_8_VENV_BUILD)

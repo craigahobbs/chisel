@@ -325,121 +325,119 @@ class TestRedirect(TestCase):
 
 class TestStatic(TestCase):
 
-    CHISEL_JS_FIRST_LINE = b'// Licensed under the MIT License'
-
     def test_default(self):
-        static = StaticRequest('chisel', 'static/chisel.js')
+        static = StaticRequest('chisel', 'static/doc.html')
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/static/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_name(self):
-        static = StaticRequest('chisel', 'static/chisel.js', name='chisel_js')
+        static = StaticRequest('chisel', 'static/doc.html', name='doc_html')
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(static.name, 'doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/static/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_urls(self):
-        static = StaticRequest('chisel', 'static/chisel.js', urls=(('GET', '/chisel.js'),))
+        static = StaticRequest('chisel', 'static/doc.html', urls=(('GET', '/doc.html'),))
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/chisel.js')
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_doc(self):
-        static = StaticRequest('chisel', 'static/chisel.js', doc=('chisel.js',))
+        static = StaticRequest('chisel', 'static/doc.html', doc=('doc.html',))
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, ('chisel.js',))
-        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, ('doc.html',))
+        status, headers, response = app.request('GET', '/static/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_content_type(self):
-        static = StaticRequest('chisel', 'static/chisel.js', content_type='text/plain')
+        static = StaticRequest('chisel', 'static/doc.html', content_type='text/plain')
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/static/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/plain'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_cache(self):
-        static = StaticRequest('chisel', 'static/chisel.js', cache=False)
+        static = StaticRequest('chisel', 'static/doc.html', cache=False)
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/static/chisel.js')
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/static/doc.html')
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
     def test_etag(self):
-        static = StaticRequest('chisel', 'static/chisel.js')
+        static = StaticRequest('chisel', 'static/doc.html')
         app = Application()
         app.add_request(static)
 
-        self.assertEqual(static.name, 'static_chisel_js')
-        self.assertTupleEqual(static.urls, (('GET', '/static/chisel.js'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/chisel.js".')
-        status, headers, response = app.request('GET', '/static/chisel.js',
-                                                environ={'HTTP_IF_NONE_MATCH': 'a6434d8635f55e81f5f184501cfb19ff'})
+        self.assertEqual(static.name, 'static_doc_html')
+        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
+        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
+        status, headers, response = app.request('GET', '/static/doc.html',
+                                                environ={'HTTP_IF_NONE_MATCH': '86926338ef016d43ab890f0c906c653b'})
         self.assertEqual(status, '304 Not Modified')
         self.assertListEqual(headers, [])
         self.assertEqual(response, b'')
-        status, headers, response = app.request('GET', '/static/chisel.js', environ={'HTTP_IF_NONE_MATCH': 'wrong'})
+        status, headers, response = app.request('GET', '/static/doc.html', environ={'HTTP_IF_NONE_MATCH': 'wrong'})
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
-            ('Content-Type', 'application/javascript'),
-            ('ETag', 'a6434d8635f55e81f5f184501cfb19ff')
+            ('Content-Type', 'text/html'),
+            ('ETag', '86926338ef016d43ab890f0c906c653b')
         ])
-        self.assertTrue(response.startswith(self.CHISEL_JS_FIRST_LINE))
+        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))

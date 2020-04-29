@@ -10,7 +10,8 @@ import os
 
 from setuptools import setup
 
-PACKAGE_NAME = MODULE_NAME = 'chisel'
+MODULE_NAME = 'chisel'
+PACKAGE_NAME = MODULE_NAME
 TESTS_REQUIRE = []
 
 def main():
@@ -18,11 +19,15 @@ def main():
     TODO
     """
 
+    # Read the package version
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src', MODULE_NAME, '__init__.py'), encoding='utf-8') as init_file:
         version = re.search(r"__version__ = '(.+?)'", init_file.read()).group(1)
+
+    # Read the readme for use as the long description
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.rst'), encoding='utf-8') as readme_file:
         long_description = readme_file.read()
 
+    # Do the setup
     setup(
         name=PACKAGE_NAME,
         description=('Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
@@ -46,14 +51,15 @@ def main():
             'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
             'Topic :: Software Development :: Libraries :: Application Frameworks'
         ],
-        package_dir={'': 'src'},
+        package_dir={
+            '': 'src'
+        },
         packages=[MODULE_NAME],
         package_data={
             '': [
-                'static/chisel.js',
-                'static/doc.css',
-                'static/doc.html',
-                'static/doc.js'
+                'static/*.html',
+                'static/*.css',
+                'static/*.js'
             ]
         },
         test_suite='tests',
