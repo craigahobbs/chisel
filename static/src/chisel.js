@@ -42,17 +42,17 @@ function appendElements(parent, elems) {
     return parent;
 }
 
-export function elem(tag, attrsOrElems, elems, ns) {
+export function elem(tag, attrsOrElems, elems, ns = 'http://www.w3.org/1999/xhtml') {
     const attrs = isDict(attrsOrElems) ? attrsOrElems : undefined;
     return {
         'tag': tag,
         'attrs': attrs || {},
         'elems': (attrs ? elems : attrsOrElems) || [],
-        'ns': ns || 'http://www.w3.org/1999/xhtml'
+        'ns': ns
     };
 }
 
-export function svgElem(tag, attrsOrElems, elems) {
+export function svg(tag, attrsOrElems, elems) {
     return elem(tag, attrsOrElems, elems, 'http://www.w3.org/2000/svg');
 }
 
