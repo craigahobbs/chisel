@@ -49,6 +49,7 @@ module.exports = {
         'object-property-newline': 'off',
         'object-shorthand': 'off',
         'one-var': 'off',
+        'prefer-named-capture-group': 'off',
         'require-unicode-regexp': 'off',
         'sort-keys': 'off',
         'sort-vars': 'off',
