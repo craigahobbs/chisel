@@ -94,12 +94,12 @@ export function encodeParams(params) {
 }
 
 export function decodeParams(paramString = window.location.hash.substring(1)) {
-    const rNextKeyValue = /(?<key>[^&=]+)=?(?<value>[^&]*)/g;
+    const rNextKeyValue = /([^&=]+)=?([^&]*)/g;
 
     let match;
     const params = {};
     while ((match = rNextKeyValue.exec(paramString)) !== null) {
-        params[decodeURIComponent(match.groups.key)] = decodeURIComponent(match.groups.value);
+        params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
     }
 
     return params;
