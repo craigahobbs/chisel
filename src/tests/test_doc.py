@@ -5,7 +5,7 @@
 
 import json
 
-from chisel import Action, Application, Request, get_doc_requests
+from chisel import Action, Application, Request, create_doc_requests
 
 from . import TestCase
 
@@ -19,7 +19,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in get_doc_requests()
+                for request in create_doc_requests()
             ],
             [
                 {
@@ -60,7 +60,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in get_doc_requests(request_api=False)
+                for request in create_doc_requests(request_api=False)
             ],
             [
                 {
@@ -93,7 +93,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in get_doc_requests(doc=False)
+                for request in create_doc_requests(doc=False)
             ],
             [
                 {
@@ -114,7 +114,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls,
                 }
-                for request in get_doc_requests(doc_css=False)
+                for request in create_doc_requests(doc_css=False)
             ],
             [
                 {
@@ -151,7 +151,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls,
                 }
-                for request in get_doc_requests(request_api=False, doc=False)
+                for request in create_doc_requests(request_api=False, doc=False)
             ],
             []
         )
@@ -161,7 +161,7 @@ class TestIndex(TestCase):
 
     def test_doc_index(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
 
         status, _, response = app.request('GET', '/doc/doc_index')
         self.assertEqual(status, '200 OK')
@@ -188,7 +188,7 @@ class TestRequest(TestCase):
 
     def test_types(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
         app.add_request(Action(None, name='my_action', spec='''\
 # Enum doc.
 #
@@ -592,7 +592,7 @@ action my_action2
 
     def test_attr(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
         app.add_request(Action(None, name='my_action', spec='''\
 typedef int{len > 0} IntDict
 
@@ -747,7 +747,7 @@ action my_action
 
     def test_unkown_name(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
 
         status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '400 Bad Request')
@@ -755,15 +755,25 @@ action my_action
             'error': 'UnknownName'
         })
 
-    def test_request_names(self):
+    def test_requests(self):
         app = Application()
-        app.add_requests(get_doc_requests(request_names=('my_action',)))
         app.add_request(Action(None, name='my_action', spec='''\
 action my_action
 '''))
         app.add_request(Action(None, name='my_action2', spec='''\
 action my_action2
 '''))
+        app.add_requests(create_doc_requests({'my_action': app.requests['my_action']}))
+
+        status, _, response = app.request('GET', '/doc/doc_index')
+        self.assertEqual(status, '200 OK')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'groups': {
+                'Uncategorized': [
+                    'my_action'
+                ]
+            }
+        })
 
         status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
@@ -776,7 +786,6 @@ action my_action2
                 'path': {'members': [], 'name': 'my_action_path'},
                 'query': {'members': [], 'name': 'my_action_query'}
             },
-            'hide_nav': True,
             'name': 'my_action',
             'urls': [{'method': 'POST', 'url': '/my_action'}]
         })
@@ -789,7 +798,7 @@ action my_action2
 
     def test_wsgi_response(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
         app.add_request(Action(None, name='my_action', wsgi_response=True, spec='''\
 action my_action
 '''))
@@ -810,7 +819,7 @@ action my_action
 
     def test_base_action_type(self):
         app = Application()
-        app.add_requests(get_doc_requests())
+        app.add_requests(create_doc_requests())
         app.add_request(Action(None, name='my_action', spec='''\
 struct PathBase
     int m1

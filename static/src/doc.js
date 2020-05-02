@@ -74,9 +74,9 @@ class DocPage {
     requestPage(request) {
         return [
             // Navigation bar
-            (request.hide_nav ? null : chisel.elem('div', {'class': 'chsl-header'}, [
+            chisel.elem('div', {'class': 'chsl-header'}, [
                 chisel.elem('a', {'href': chisel.href()}, [chisel.text('Back to documentation index')])
-            ])),
+            ]),
 
             // Title
             chisel.elem('h1', [chisel.text(request.name)]),

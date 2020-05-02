@@ -16,6 +16,12 @@ help:
 commit:
 	$(MAKE) -C static commit
 
+clean:
+	$(MAKE) -C static clean
+
+superclean:
+	$(MAKE) -C static superclean
+
 define COVER_TEST_COMMANDS
 .PHONY: cover_test_$(1)
 cover_test_$(1): $(COVER_PYTHON_3_8_VENV_BUILD)

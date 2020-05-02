@@ -28,7 +28,7 @@ Here's an example of a simple Chisel application:
 ... application = chisel.Application()
 ...
 >>> # Add API documentation
-... application.add_requests(chisel.get_doc_requests())
+... application.add_requests(chisel.create_doc_requests())
 ...
 >>> # Add our requests / actions
 ... application.add_request(sum_numbers)

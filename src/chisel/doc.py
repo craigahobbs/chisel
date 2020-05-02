@@ -12,22 +12,23 @@ from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, get_refer
 from .request import RedirectRequest, StaticRequest
 
 
-def get_doc_requests(root_path='/doc', request_api=True, request_names=None, doc=True, doc_css=True, cache=True):
+def create_doc_requests(requests=None, root_path='/doc', request_api=True, doc=True, doc_css=True, cache=True):
     """
     TODO
 
+    :param requests: A map of request name to :class:`~chisel.Request`.
+    :type requests: dict(str, ~chisel.Request)
     :param str root_path: TODO
     :param bool request_api: TODO
-    :param list(str) request_names: TODO
     :param bool doc: TODO
     :param bool doc_css: TODO
     :param bool cache: TODO
     """
 
-    if request_api and request_names is None:
-        yield DocIndex(urls=(('GET', root_path + '/doc_index'),))
     if request_api:
-        yield DocRequest(urls=(('GET', root_path + '/doc_request'),), request_names=request_names)
+        yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
+    if request_api:
+        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
     if doc:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
         yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
@@ -41,17 +42,14 @@ class DocIndex(Action):
     """
     TODO
 
+    :param requests: A map of request name to :class:`~chisel.Request`.
+    :type requests: dict(str, ~chisel.Request)
     :param list(tuple) urls: TODO
     """
 
-    __slots__ = ()
+    __slots__ = ('requests',)
 
-    def __init__(self, urls=(('GET', '/doc_index'),)):
-        super().__init__(
-            self._doc_index,
-            name='chisel_doc_index',
-            urls=urls,
-            spec='''\
+    SPEC = '''\
 group "Documentation"
 
 # TODO
@@ -64,12 +62,15 @@ action chisel_doc_index
 
         # TODO
         StringArray{} groups
-''')
+'''
 
-    @staticmethod
-    def _doc_index(ctx, unused_req):
+    def __init__(self, requests=None, urls=(('GET', '/doc_index'),)):
+        super().__init__(self._doc_index, name='chisel_doc_index', urls=urls, spec=self.SPEC)
+        self.requests = requests
+
+    def _doc_index(self, ctx, unused_req):
         groups = defaultdict(list)
-        for request in ctx.app.requests.values():
+        for request in (self.requests or ctx.app.requests).values():
             groups[request.doc_group or 'Uncategorized'].append(request.name)
         return {
             'groups': {group: sorted(names) for group, names in groups.items()}
@@ -80,18 +81,14 @@ class DocRequest(Action):
     """
     TODO
 
+    :param requests: A map of request name to :class:`~chisel.Request`.
+    :type requests: dict(str, ~chisel.Request)
     :param list(tuple) urls: TODO
-    :param list(str) request_names: TODO
     """
 
-    __slots__ = ('_request_names',)
+    __slots__ = ('requests',)
 
-    def __init__(self, urls=(('GET', '/doc_request'),), request_names=None):
-        super().__init__(
-            self._doc_request,
-            name='chisel_doc_request',
-            urls=urls,
-            spec='''\
+    SPEC = '''
 group "Documentation"
 
 # TODO
@@ -344,21 +341,19 @@ action chisel_doc_request
         # TODO
         optional Typedef[] typedefs
 
-        # If True, hide documentation navigation. Only present when True.
-        optional bool hide_nav
-
     errors
 
         # TODO
         UnknownName
-''')
-        self._request_names = request_names
+'''
+
+    def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
+        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, spec=self.SPEC)
+        self.requests = requests
 
     def _doc_request(self, ctx, req):
-        request = ctx.app.requests.get(req['name'])
+        request = (self.requests or ctx.app.requests).get(req['name'])
         if request is None:
-            raise ActionError('UnknownName')
-        if self._request_names is not None and req['name'] not in self._request_names:
             raise ActionError('UnknownName')
 
         response = {
@@ -367,8 +362,6 @@ action chisel_doc_request
         }
         if request.doc:
             response['doc'] = [request.doc] if isinstance(request.doc, str) else request.doc
-        if self._request_names is not None:
-            response['hide_nav'] = True
 
         if isinstance(request, Action):
             response['action'] = action_dict = {

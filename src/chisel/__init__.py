@@ -17,7 +17,7 @@ from .app import \
     Context
 
 from .doc import \
-    get_doc_requests
+    create_doc_requests
 
 from .model import \
     ActionModel, \

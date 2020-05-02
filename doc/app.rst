@@ -8,7 +8,7 @@ WSGI Applications
 
 .. autodecorator:: chisel.request
 
-.. autofunction:: chisel.get_doc_requests
+.. autofunction:: chisel.create_doc_requests
 
 .. autoclass:: chisel.RedirectRequest
    :show-inheritance:
