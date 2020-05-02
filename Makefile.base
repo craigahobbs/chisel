@@ -15,7 +15,7 @@ COVERAGE_VERSION ?= 5.1
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
-PYLINT_VERSION ?= 2.4.4
+PYLINT_VERSION ?= 2.5.0
 PYLINT_ARGS ?= -j 0
 
 # sphinx
@@ -48,10 +48,10 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [clean|commit|cover|doc|pylint|test|twine]'
+	@echo 'usage: make [clean|commit|cover|doc|lint|test|twine]'
 
 .PHONY: commit
-commit: test pylint doc cover
+commit: test lint doc cover
 
 .PHONY: clean
 clean: _clean
@@ -111,11 +111,11 @@ define COVER_COMMANDS_FN
 endef
 $(eval $(call VENV_RULE_FN, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
-# Generate pylint rule
-define PYLINT_COMMANDS_FN
+# Generate lint rule
+define LINT_COMMANDS_FN
 	$(1)/python3 -m pylint $(PYLINT_ARGS) setup.py src
 endef
-$(eval $(call VENV_RULE_FN, pylint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), PYLINT_COMMANDS_FN))
+$(eval $(call VENV_RULE_FN, lint, -e . $(call PIP_VERSION_FN, pylint, $(PYLINT_VERSION)), LINT_COMMANDS_FN))
 
 # Generate sphinx rule
 ifneq '$(SPHINX_DOC)' ''

@@ -11,7 +11,7 @@ import unittest.mock
 from chisel import Application, Context, Request
 from chisel.app import StartResponse
 
-from . import TestCase
+from . import TestCase # pylint: disable=no-name-in-module
 
 
 class TestApplication(TestCase):

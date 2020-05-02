@@ -7,7 +7,7 @@ import json
 
 from chisel import Action, Application, Request, create_doc_requests
 
-from . import TestCase
+from . import TestCase # pylint: disable=no-name-in-module
 
 
 class TestGetDocRequests(TestCase):

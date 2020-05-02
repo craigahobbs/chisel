@@ -32,7 +32,7 @@ from chisel.model import \
     _member_syntax, \
     get_referenced_types
 
-from . import TestCase
+from . import TestCase # pylint: disable=no-name-in-module
 
 
 class TestReferencedTypes(TestCase):

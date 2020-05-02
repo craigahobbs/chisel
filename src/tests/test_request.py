@@ -9,7 +9,7 @@ import unittest.mock
 
 from chisel import request, Application, Request, RedirectRequest, StaticRequest
 
-from . import TestCase
+from . import TestCase # pylint: disable=no-name-in-module
 
 
 class TestRequest(TestCase):

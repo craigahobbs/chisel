@@ -10,7 +10,7 @@ from chisel import action, Action, ActionError, Application, Request, SpecParser
 from chisel.model import ActionModel
 from chisel.spec import SpecParser
 
-from . import TestCase
+from . import TestCase # pylint: disable=no-name-in-module
 
 
 class TestAction(TestCase):

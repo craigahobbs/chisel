@@ -20,7 +20,7 @@ class JSONEncoder(json.JSONEncoder):
 
     __slots__ = ()
 
-    def default(self, o): # pylint: disable=method-hidden
+    def default(self, o):
         """
         The override of the :meth:`~json.JSONEncoder.default` method to add support for :class:`~datetime.datetime`,
         :class:`~datetime.date`, :class:`~decimal.Decimal`, and :class:`~uuid.UUID` objects.
