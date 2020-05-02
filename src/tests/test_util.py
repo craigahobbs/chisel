@@ -10,7 +10,7 @@ from uuid import UUID
 
 from chisel import JSONEncoder, decode_query_string, encode_query_string
 
-from . import TestCase # pylint: disable=no-name-in-module
+from . import TestCase
 
 
 class TestJSONEncoder(TestCase):

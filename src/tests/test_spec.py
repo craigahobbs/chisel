@@ -9,7 +9,7 @@ from chisel import SpecParser, SpecParserError
 from chisel.model import TypeArray, Typedef, TypeBool, TypeDate, TypeDatetime, \
     TypeDict, TypeEnum, TypeFloat, TypeInt, TypeObject, TypeString, TypeStruct, TypeUuid
 
-from . import TestCase # pylint: disable=no-name-in-module
+from . import TestCase
 
 
 class TestSpec(TestCase):

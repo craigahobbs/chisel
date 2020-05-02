@@ -16,7 +16,7 @@ COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
 PYLINT_VERSION ?= 2.5.0
-PYLINT_ARGS ?= -j 0
+PYLINT_ARGS ?=
 
 # sphinx
 SPHINX_VERSION ?= 3.0.3
