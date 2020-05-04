@@ -142,5 +142,95 @@ test('chisel.text', (t) => {
 });
 
 test('chisel.href', (t) => {
-    t.is(chisel.href(), 'blank#');
+    t.is(
+        chisel.href(),
+        'blank#'
+    );
+});
+
+test('chisel.href, hash', (t) => {
+    t.is(
+        chisel.href({'width': 600, 'height': 400, 'id': null, 'alpha': 'abc'}),
+        'blank#alpha=abc&height=400&width=600'
+    );
+});
+
+test('chisel.href, empty hash', (t) => {
+    t.is(
+        chisel.href({}),
+        'blank#'
+    );
+});
+
+test('chisel.href, query', (t) => {
+    t.is(
+        chisel.href(null, {'width': 600, 'height': 400, 'id': null, 'alpha': 'abc'}),
+        'blank?alpha=abc&height=400&width=600'
+    );
+});
+
+test('chisel.href, empty query', (t) => {
+    t.is(
+        chisel.href(null, {}),
+        'blank'
+    );
+});
+
+test('chisel.href, pathname', (t) => {
+    t.is(
+        chisel.href(null, null, 'static'),
+        'static#'
+    );
+});
+
+test('chisel.href, all', (t) => {
+    t.is(
+        chisel.href(
+            {'width': 600, 'height': 400, 'id': null, 'alpha': 'abc'},
+            {'width': 600, 'height': 400, 'id': null, 'alpha': 'abc'},
+            'static'
+        ),
+        'static?alpha=abc&height=400&width=600#alpha=abc&height=400&width=600'
+    );
+});
+
+test('chisel.encodeParams', (t) => {
+    t.is(
+        chisel.encodeParams({
+            'foo': 17,
+            'bar': 19.33,
+            'bonk': 'abc',
+            ' th&ud ': ' ou&ch ',
+            'fever': null,
+            'pitch': undefined
+        }),
+        '%20th%26ud%20=%20ou%26ch%20&bar=19.33&bonk=abc&foo=17'
+    );
+});
+
+test('chisel.decodeParams', (t) => {
+    t.deepEqual(
+        chisel.decodeParams('%20th%26ud%20=%20ou%26ch%20&bar=19.33&bonk=abc&foo=17&empty'),
+        {
+            ' th&ud ': ' ou&ch ',
+            'bar': '19.33',
+            'bonk': 'abc',
+            'empty': '',
+            'foo': '17'
+        }
+    );
+});
+
+test('chisel.decodeParams, default', (t) => {
+    window.location.hash = '#%20th%26ud%20=%20ou%26ch%20&bar=19.33&bonk=abc&foo=17&empty';
+    t.deepEqual(
+        chisel.decodeParams(),
+        {
+            ' th&ud ': ' ou&ch ',
+            'bar': '19.33',
+            'bonk': 'abc',
+            'empty': '',
+            'foo': '17'
+        }
+    );
 });
