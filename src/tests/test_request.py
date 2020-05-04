@@ -337,7 +337,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -353,7 +353,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -369,7 +369,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -385,7 +385,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -401,7 +401,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/plain'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -417,7 +417,7 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
 
@@ -430,7 +430,7 @@ class TestStatic(TestCase):
         self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
         self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
         status, headers, response = app.request('GET', '/static/doc.html',
-                                                environ={'HTTP_IF_NONE_MATCH': '117ec6357a11b3c3b423fb6b14dbab37'})
+                                                environ={'HTTP_IF_NONE_MATCH': '25ff4b358793ff69bbd9adb03136855a'})
         self.assertEqual(status, '304 Not Modified')
         self.assertListEqual(headers, [])
         self.assertEqual(response, b'')
@@ -438,6 +438,6 @@ class TestStatic(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertListEqual(headers, [
             ('Content-Type', 'text/html'),
-            ('ETag', '117ec6357a11b3c3b423fb6b14dbab37')
+            ('ETag', '25ff4b358793ff69bbd9adb03136855a')
         ])
         self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
