@@ -234,3 +234,90 @@ test('chisel.decodeParams, default', (t) => {
         }
     );
 });
+
+class TestXMLHttpRequest {
+    constructor() {
+        this._calls = [];
+        this.LOADING = 1;
+        this.DONE = 2;
+        this.readyState = this.LOADING;
+        this.response = 'the response';
+    }
+
+    open(...args) {
+        this._calls.push(['open', args]);
+    }
+
+    send(...args) {
+        this._calls.push(['send', args]);
+    }
+}
+
+test('chisel.xhr', (t) => {
+    const xhr = new TestXMLHttpRequest();
+    let okCount = 0;
+    let errorCount = 0;
+
+    chisel.xhr('get', 'myapi', {
+        'params': {
+            'a': 5,
+            'b': 'a&b'
+        },
+        'responseType': 'text',
+        'onok': (response) => {
+            t.is(response, 'the response');
+            okCount += 1;
+        },
+        'onerror': (response) => {
+            t.is(response, 'the response');
+            errorCount += 1;
+        }
+    }, xhr);
+
+    t.deepEqual(xhr._calls, [
+        ['open', ['get', 'myapi?a=5&b=a%26b']],
+        ['send', []]
+    ]);
+    t.is(xhr.responseType, 'text');
+    t.is(typeof xhr.onreadystatechange, 'function');
+    t.is(okCount, 0);
+    t.is(errorCount, 0);
+
+    xhr.readyState = xhr.LOADING;
+    xhr.onreadystatechange();
+    t.is(okCount, 0);
+    t.is(errorCount, 0);
+
+    xhr.readyState = xhr.DONE;
+    xhr.status = 200;
+    xhr.onreadystatechange();
+    t.is(okCount, 1);
+    t.is(errorCount, 0);
+
+    xhr.status = 400;
+    xhr.onreadystatechange();
+    t.is(okCount, 1);
+    t.is(errorCount, 1);
+});
+
+test('chisel.xhr, defaults', (t) => {
+    const xhr = new TestXMLHttpRequest();
+    chisel.xhr('get', 'myapi', {}, xhr);
+
+    t.deepEqual(xhr._calls, [
+        ['open', ['get', 'myapi']],
+        ['send', []]
+    ]);
+    t.is(xhr.responseType, 'json');
+    t.is(typeof xhr.onreadystatechange, 'function');
+
+    xhr.readyState = xhr.LOADING;
+    xhr.onreadystatechange();
+
+    xhr.readyState = xhr.DONE;
+    xhr.status = 200;
+    xhr.onreadystatechange();
+
+    xhr.status = 400;
+    xhr.onreadystatechange();
+});

@@ -7,10 +7,12 @@
         <script type="module" src="./chisel.js"></script>
         <script type="module" src="./doc.js"></script>
     </head>
-    <body style="chsl-index-body">
-        <script type="module">
-import { main } from './doc.js';
-main(document.body);
-        </script>
+    <body>
     </body>
+    <script type="module">
+        import {DocPage} from './doc.js';
+        const docPage = new DocPage();
+        docPage.render();
+        window.addEventListener('hashchange', () => docPage.render(), false);
+    </script>
 </html>

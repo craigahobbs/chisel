@@ -4,21 +4,8 @@
 import * as chisel from './chisel.js';
 
 
-export function main(parent) {
-    const docPage = new DocPage();
-
-    // Render page
-    docPage.render(parent);
-
-    // Listen for hash parameter changes
-    window.onhashchange = () => {
-        docPage.render(parent);
-    };
-}
-
-
-class DocPage {
-    render(parent) {
+export class DocPage {
+    render() {
         const params = chisel.decodeParams();
         this.params = params;
         if (typeof params.name !== 'undefined') {
@@ -27,21 +14,21 @@ class DocPage {
                     'name': params.name
                 },
                 'onerror': (error) => {
-                    chisel.render(parent, DocPage.errorPage(error));
+                    chisel.render(document.body, DocPage.errorPage(error));
                 },
                 'onok': (request) => {
                     document.title = params.name;
-                    chisel.render(parent, this.requestPage(request));
+                    chisel.render(document.body, this.requestPage(request));
                 }
             });
         } else {
             chisel.xhr('get', 'doc_index', {
                 'onerror': (error) => {
-                    chisel.render(parent, DocPage.errorPage(error));
+                    chisel.render(document.body, DocPage.errorPage(error));
                 },
                 'onok': (index) => {
                     document.title = window.location.host;
-                    chisel.render(parent, DocPage.indexPage(window.location.host, index));
+                    chisel.render(document.body, DocPage.indexPage(window.location.host, index));
                 }
             });
         }

@@ -116,18 +116,19 @@ export function decodeParams(paramStr = null) {
     return params;
 }
 
-export function xhr(method, url, args = {}) {
-    const xhr_ = new XMLHttpRequest();
-    xhr_.open(method, href(null, args.params, url));
-    xhr_.responseType = args.responseType || 'json';
+export function xhr(method, pathname, args, testXMLHttpRequest) {
+    // istanbul ignore next
+    const xhr_ = typeof testXMLHttpRequest !== 'undefined' ? testXMLHttpRequest : new XMLHttpRequest();
+    xhr_.open(method, href(null, typeof args.params !== 'undefined' ? args.params : {}, pathname));
+    xhr_.responseType = typeof args.responseType !== 'undefined' ? args.responseType : 'json';
     xhr_.onreadystatechange = () => {
-        if (XMLHttpRequest.DONE === xhr_.readyState) {
+        if (xhr_.readyState === xhr_.DONE) {
             if (xhr_.status === 200) {
-                if (args.onok) {
+                if (typeof args.onok !== 'undefined') {
                     args.onok(xhr_.response);
                 }
             } else {
-                if (args.onerror) {
+                if (typeof args.onerror !== 'undefined') {
                     args.onerror(xhr_.response);
                 }
             }
