@@ -15,7 +15,7 @@ function appendElements(parent, elems) {
         for (let iElem = 0; iElem < elems.length; iElem++) {
             appendElements(parent, elems[iElem]);
         }
-    } else if (elems) {
+    } else if (elems !== null && typeof elems !== 'undefined') {
         parent.appendChild(createElement(elems));
     }
     return parent;
