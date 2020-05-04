@@ -43,15 +43,13 @@ function createElement(element) {
     return appendElements(browserElement, element.elems);
 }
 
-export function elem(tag, attrsOrElems = null, elems = null, ns = null) {
+export function elem(tag, attrs = null, elems = null, ns = null) {
     const element = {'tag': tag};
-    const attrs = attrsOrElems !== null && !Array.isArray(attrsOrElems) ? attrsOrElems : null;
-    const elemsActual = attrs === null ? attrsOrElems : elems;
     if (attrs !== null) {
         element.attrs = attrs;
     }
-    if (elemsActual !== null) {
-        element.elems = elemsActual;
+    if (elems !== null) {
+        element.elems = elems;
     }
     if (ns !== null) {
         element.ns = ns;
@@ -59,8 +57,8 @@ export function elem(tag, attrsOrElems = null, elems = null, ns = null) {
     return element;
 }
 
-export function svg(tag, attrsOrElems, elems) {
-    return elem(tag, attrsOrElems, elems, 'http://www.w3.org/2000/svg');
+export function svg(tag, attrs, elems) {
+    return elem(tag, attrs, elems, 'http://www.w3.org/2000/svg');
 }
 
 export function text(text_) {

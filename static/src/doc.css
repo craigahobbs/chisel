@@ -1,3 +1,4 @@
+/* CSS reset */
 html, body, div, span, h1, h2, h3, p, a, table, tr, th, td, ul, li {
     margin: 0;
     padding: 0;
@@ -74,35 +75,43 @@ a.linktarget {
 a.linktarget:hover {
     text-decoration: none;
 }
-ul.chsl-request-list {
+
+
+/* Index page */
+ul.chisel-request-list, ul.chisel-request-list ul {
     list-style: none;
 }
-ul.chsl-request-list li {
-    margin: 0.75em 0.5em;
+ul.chisel-request-list li {
+    margin: 0.75em 0em;
 }
-ul.chsl-request-list li a {
+ul.chisel-request-list li ul li {
+    margin: 0.75em .25em;
+}
+ul.chisel-request-list li a, ul.chisel-request-list li ul li a {
     font-size: 1.25em;
 }
-div.chsl-header {
+
+/* Request page */
+div.chisel-header {
     margin: .25em 0;
 }
-div.chsl-notes {
+div.chisel-notes {
     margin: 1.25em 0;
 }
-div.chsl-note {
+div.chisel-notes div {
     margin: .75em 0;
 }
-div.chsl-note ul {
+div.chisel-notes div ul {
     list-style: none;
     margin: .4em .2em;
 }
-div.chsl-note li {
+div.chisel-notes div li {
     margin: 0 1em;
 }
-ul.chsl-constraint-list {
+ul.chisel-constraint-list {
     list-style: none;
     white-space: nowrap;
 }
-.chsl-emphasis {
+.chisel-emphasis {
     font-style:italic;
 }

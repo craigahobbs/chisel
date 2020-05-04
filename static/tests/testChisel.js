@@ -101,8 +101,8 @@ test('chisel.elem, attrs', (t) => {
 
 test('chisel.elem, elems', (t) => {
     t.deepEqual(
-        chisel.elem('p', [chisel.elem('div')]),
-        {'tag': 'p', 'elems': [{'tag': 'div'}]}
+        chisel.elem('p', null, chisel.elem('div')),
+        {'tag': 'p', 'elems': {'tag': 'div'}}
     );
 });
 
@@ -110,13 +110,6 @@ test('chisel.elem, attrs and elems', (t) => {
     t.deepEqual(
         chisel.elem('p', {'id': 'Id'}, [chisel.elem('div')]),
         {'tag': 'p', 'attrs': {'id': 'Id'}, 'elems': [{'tag': 'div'}]}
-    );
-});
-
-test('chisel.elem, null attrs and elems', (t) => {
-    t.deepEqual(
-        chisel.elem('p', null, null),
-        {'tag': 'p'}
     );
 });
 
