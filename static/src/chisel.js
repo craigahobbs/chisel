@@ -3,19 +3,19 @@
 
 export const nbsp = String.fromCharCode(160);
 
-export function render(parent, elems, clear = true) {
+export function render(parent, elems = null, clear = true) {
     if (clear) {
         parent.innerHTML = '';
     }
     return appendElements(parent, elems);
 }
 
-function appendElements(parent, elems) {
+function appendElements(parent, elems = null) {
     if (Array.isArray(elems)) {
         for (let iElem = 0; iElem < elems.length; iElem++) {
             appendElements(parent, elems[iElem]);
         }
-    } else if (elems !== null && typeof elems !== 'undefined') {
+    } else if (elems !== null) {
         parent.appendChild(createElement(elems));
     }
     return parent;
@@ -44,9 +44,7 @@ function createElement(element) {
 }
 
 export function elem(tag, attrsOrElems = null, elems = null, ns = null) {
-    const element = {
-        'tag': tag
-    };
+    const element = {'tag': tag};
     const attrs = attrsOrElems !== null && !Array.isArray(attrsOrElems) ? attrsOrElems : null;
     const elemsActual = attrs === null ? attrsOrElems : elems;
     if (attrs !== null) {
@@ -66,9 +64,7 @@ export function svg(tag, attrsOrElems, elems) {
 }
 
 export function text(text_) {
-    return {
-        'text': text_
-    };
+    return {'text': text_};
 }
 
 export function href(hash = null, query = null, pathname = null) {

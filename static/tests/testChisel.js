@@ -84,3 +84,63 @@ test('chisel.render, element callback', (t) => {
     );
     t.is(callbackCount, 1);
 });
+
+test('chisel.elem', (t) => {
+    t.deepEqual(
+        chisel.elem('p'),
+        {'tag': 'p'}
+    );
+});
+
+test('chisel.elem, attrs', (t) => {
+    t.deepEqual(
+        chisel.elem('p', {'id': 'Id'}),
+        {'tag': 'p', 'attrs': {'id': 'Id'}}
+    );
+});
+
+test('chisel.elem, elems', (t) => {
+    t.deepEqual(
+        chisel.elem('p', [chisel.elem('div')]),
+        {'tag': 'p', 'elems': [{'tag': 'div'}]}
+    );
+});
+
+test('chisel.elem, attrs and elems', (t) => {
+    t.deepEqual(
+        chisel.elem('p', {'id': 'Id'}, [chisel.elem('div')]),
+        {'tag': 'p', 'attrs': {'id': 'Id'}, 'elems': [{'tag': 'div'}]}
+    );
+});
+
+test('chisel.elem, null attrs and elems', (t) => {
+    t.deepEqual(
+        chisel.elem('p', null, null),
+        {'tag': 'p'}
+    );
+});
+
+test('chisel.elem, namespace', (t) => {
+    t.deepEqual(
+        chisel.elem('svg', null, null, 'http://www.w3.org/2000/svg'),
+        {'tag': 'svg', 'ns': 'http://www.w3.org/2000/svg'}
+    );
+});
+
+test('chisel.svg', (t) => {
+    t.deepEqual(
+        chisel.svg('svg', {'width': 600, 'height': 400}),
+        {'tag': 'svg', 'ns': 'http://www.w3.org/2000/svg', 'attrs': {'width': 600, 'height': 400}}
+    );
+});
+
+test('chisel.text', (t) => {
+    t.deepEqual(
+        chisel.text('Hello'),
+        {'text': 'Hello'}
+    );
+});
+
+test('chisel.href', (t) => {
+    t.is(chisel.href(), 'blank#');
+});
