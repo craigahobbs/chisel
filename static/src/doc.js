@@ -21,7 +21,7 @@ class DocPage {
     render(parent) {
         const params = chisel.decodeParams();
         this.params = params;
-        if (params.name !== undefined) {
+        if (typeof params.name !== 'undefined') {
             chisel.xhr('get', 'doc_request', {
                 'params': {
                     'name': params.name
@@ -48,7 +48,7 @@ class DocPage {
     }
 
     static errorPage(params) {
-        if (params.error === undefined) {
+        if (typeof params.error === 'undefined') {
             return chisel.text('An unexpected error occurred');
         }
         return chisel.text(`Error: ${params.error}`);
@@ -159,31 +159,29 @@ class DocPage {
     }
 
     typeHref(type) {
-        const params = {'name': this.params.name};
-        if (type.typedef) {
-            params[`typedef_${type.typedef}`] = null;
-        } else if (type.enum) {
-            params[`'enum_${type.enum}`] = null;
-        } else if (type.struct) {
-            params[`struct_${type.struct}`] = null;
+        const href = chisel.encodeParams({'name': this.params.name});
+        if (typeof type.typedef !== 'undefined') {
+            return `${href}&typedef_${type.typedef}`;
+        } else if (typeof type.enum !== 'undefined') {
+            return `${href}&enum_${type.enum}`;
         }
-        return chisel.encodeParams(params);
+        return `${href}&struct_${type.struct}`;
     }
 
     typeElem(type) {
-        if (type.array) {
+        if (typeof type.array !== 'undefined') {
             return [this.typeElem(type.array.type), chisel.text(`${chisel.nbsp}[]`)];
-        } else if (type.dict) {
+        } else if (typeof type.dict !== 'undefined') {
             return [
                 type.dict.key_type !== 'string' ? null : [this.typeElem(type.dict.key_type), chisel.text(`${chisel.nbsp}:${chisel.nbsp}`)],
                 this.typeElem(type.dict.type),
                 chisel.text(`${chisel.nbsp}{}`)
             ];
-        } else if (type.enum) {
+        } else if (typeof type.enum !== 'undefined') {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, [chisel.text(type.enum)]);
-        } else if (type.struct) {
+        } else if (typeof type.struct !== 'undefined') {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, [chisel.text(type.struct)]);
-        } else if (type.typedef) {
+        } else if (typeof type.typedef !== 'undefined') {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, [chisel.text(type.typedef)]);
         }
         return chisel.text(type.builtin);
@@ -191,34 +189,34 @@ class DocPage {
 
     static attrParts(typeName, attr) {
         const parts = [];
-        if (attr && undefined !== attr.gt) {
+        if (attr !== null && typeof attr.gt !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '>', 'rhs': attr.gt});
         }
-        if (attr && undefined !== attr.gte) {
+        if (attr !== null && typeof attr.gte !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '>=', 'rhs': attr.gte});
         }
-        if (attr && undefined !== attr.lt) {
+        if (attr !== null && typeof attr.lt !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '<', 'rhs': attr.lt});
         }
-        if (attr && undefined !== attr.lte) {
+        if (attr !== null && typeof attr.lte !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '<=', 'rhs': attr.lte});
         }
-        if (attr && undefined !== attr.eq) {
+        if (attr !== null && typeof attr.eq !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '==', 'rhs': attr.eq});
         }
-        if (attr && undefined !== attr.len_gt) {
+        if (attr !== null && typeof attr.len_gt !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '>', 'rhs': attr.len_gt});
         }
-        if (attr && undefined !== attr.len_gte) {
+        if (attr !== null && typeof attr.len_gte !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '>=', 'rhs': attr.len_gte});
         }
-        if (attr && undefined !== attr.len_lt) {
+        if (attr !== null && typeof attr.len_lt !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '<', 'rhs': attr.len_lt});
         }
-        if (attr && undefined !== attr.len_lte) {
+        if (attr !== null && typeof attr.len_lte !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '<=', 'rhs': attr.len_lte});
         }
-        if (attr && undefined !== attr.len_eq) {
+        if (attr !== null && typeof attr.len_eq !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '==', 'rhs': attr.len_eq});
         }
         return parts;
@@ -231,7 +229,7 @@ class DocPage {
         ]);
     }
 
-    static attrElem(type, attr, optional, nullable) {
+    static attrElem({type, attr = null}, optional, nullable) {
         return chisel.elem('ul', {'class': 'chsl-constraint-list'}, [
             optional ? DocPage.attrPartsElem({'lhs': 'optional'}) : null,
             nullable ? DocPage.attrPartsElem({'lhs': 'nullable'}) : null,
@@ -253,7 +251,7 @@ class DocPage {
                 ]),
                 chisel.elem('tr', [
                     chisel.elem('td', [this.typeElem(typedef.type)]),
-                    hasAttributes ? chisel.elem('td', [DocPage.attrElem(typedef.type, typedef.attr, false, false)]) : null
+                    hasAttributes ? chisel.elem('td', [DocPage.attrElem(typedef, false, false)]) : null
                 ])
             ])
         ];
@@ -285,7 +283,7 @@ class DocPage {
                         chisel.elem('td', [chisel.text(member.name)]),
                         chisel.elem('td', [this.typeElem(member.type)]),
                         hasAttributes
-                            ? chisel.elem('td', [DocPage.attrElem(member.type, member.attr, member.optional, member.nullable)])
+                            ? chisel.elem('td', [DocPage.attrElem(member, member.optional, member.nullable)])
                             : null,
                         hasDescription ? chisel.elem('td', [DocPage.textElem(member.doc)]) : null
                     ]))

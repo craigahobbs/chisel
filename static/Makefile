@@ -10,14 +10,19 @@ build/npm.install:
 
 .PHONY: help
 help:
-	@echo 'usage: make [clean|commit|eslint]'
+	@echo 'usage: make [clean|commit|lint|test]'
 
 .PHONY: commit
-commit: eslint
+commit: test lint
 
-.PHONY: eslint
-eslint: build/npm.install
-	$(NODE_DOCKER) npx eslint -c .eslintrc.js -f unix .eslintrc.js src
+.PHONY: test
+test: build/npm.install
+	$(NODE_DOCKER) npx nyc --check-coverage --reporter html --reporter text \
+		--report-dir build/coverage --temp-dir build/tmp ava tests/test*.js
+
+.PHONY: lint
+lint: build/npm.install
+	$(NODE_DOCKER) npx eslint -c .eslintrc.js -f unix .eslintrc.js src tests
 
 .PHONY: clean
 clean:

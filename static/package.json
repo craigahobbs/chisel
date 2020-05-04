@@ -1,5 +1,28 @@
 {
     "devDependencies": {
-        "eslint": "~7.0.0-rc.0"
+        "ava": "~3.8.1",
+        "browser-env": "~3.3.0",
+        "eslint": "~7.0.0-rc.0",
+        "esm": "~3.2.25",
+        "nyc": "~15.0.1"
+    },
+    "ava": {
+        "timeout": "5m",
+        "nodeArguments": [
+            "--experimental-modules"
+        ],
+        "require": [
+            "esm"
+        ]
+    },
+    "nyc": {
+        "all": true,
+        "branches": 0,
+        "lines": 1,
+        "include": [
+            "src",
+            "tests"
+        ],
+        "exclude": []
     }
 }
