@@ -5,38 +5,62 @@ import * as chisel from './chisel.js';
 
 
 export class DocPage {
+    constructor() {
+        this.params = null;
+        this.rendered = false;
+    }
+
+    updateParams() {
+        this.params = chisel.decodeParams();
+    }
+
     render() {
-        const params = chisel.decodeParams();
-        this.params = params;
-        if (typeof params.name !== 'undefined') {
+        const oldParams = this.params;
+        this.updateParams();
+
+        // Skip the render if the page hasn't changed
+        if (this.rendered && oldParams !== null && oldParams.name === this.params.name) {
+            return;
+        }
+
+        // Clear the page
+        chisel.render(document.body);
+        this.rendered = false;
+
+        // Render the page
+        if (typeof this.params.name !== 'undefined') {
+            // Call the request API
             chisel.xhr('get', 'doc_request', {
                 'params': {
-                    'name': params.name
+                    'name': this.params.name
                 },
-                'onerror': (error) => {
-                    chisel.render(document.body, DocPage.errorPage(error));
+                'onerror': (response) => {
+                    chisel.render(document.body, DocPage.errorPage(response));
                 },
-                'onok': (request) => {
-                    document.title = params.name;
-                    chisel.render(document.body, this.requestPage(request));
+                'onok': (response) => {
+                    document.title = this.params.name;
+                    chisel.render(document.body, this.requestPage(response));
+                    this.rendered = true;
                 }
             });
         } else {
+            // Call the index API
             chisel.xhr('get', 'doc_index', {
-                'onerror': (error) => {
-                    chisel.render(document.body, DocPage.errorPage(error));
+                'onerror': (response) => {
+                    chisel.render(document.body, DocPage.errorPage(response));
                 },
-                'onok': (index) => {
+                'onok': (response) => {
                     document.title = window.location.host;
-                    chisel.render(document.body, DocPage.indexPage(window.location.host, index));
+                    chisel.render(document.body, DocPage.indexPage(window.location.host, response));
+                    this.rendered = true;
                 }
             });
         }
     }
 
     static errorPage(params) {
-        if (typeof params.error === 'undefined') {
-            return chisel.text('An unexpected error occurred');
+        if (params === null || typeof params.error === 'undefined') {
+            return chisel.text('An unexpected error occurred.');
         }
         return chisel.text(`Error: ${params.error}`);
     }
@@ -78,7 +102,7 @@ export class DocPage {
                 (!request.urls.length ? null : chisel.elem('div', null, [
                     chisel.elem('p', null, [
                         chisel.elem('b', null, chisel.text('Note: ')),
-                        chisel.text(`The request is exposed at the following URL ${request.urls.length > 1 ? 's:' : ':'}`),
+                        chisel.text(`The request is exposed at the following ${request.urls.length > 1 ? 'URLs:' : 'URL:'}`),
                         chisel.elem('ul', null, request.urls.map((url) => chisel.elem('li', null, [
                             chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
                         ])))
@@ -128,14 +152,14 @@ export class DocPage {
     }
 
     static textElem(lines) {
-        const divElems = [];
+        const elems = [];
         let paragraph = [];
         if (Array.isArray(lines)) {
             for (let iLine = 0; iLine < lines.length; iLine++) {
                 if (lines[iLine].length) {
                     paragraph.push(lines[iLine]);
                 } else if (paragraph.length) {
-                    divElems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+                    elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
                     paragraph = [];
                 }
             }
@@ -143,9 +167,9 @@ export class DocPage {
             paragraph.push(lines);
         }
         if (paragraph.length) {
-            divElems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+            elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
         }
-        return divElems.length ? chisel.elem('div', null, divElems) : null;
+        return elems.length ? elems : null;
     }
 
     typeHref(type) {
@@ -160,12 +184,12 @@ export class DocPage {
 
     typeElem(type) {
         if (typeof type.array !== 'undefined') {
-            return [this.typeElem(type.array.type), chisel.text(`${chisel.nbsp}[]`)];
+            return [this.typeElem(type.array.type), chisel.text(' []')];
         } else if (typeof type.dict !== 'undefined') {
             return [
-                type.dict.key_type !== 'string' ? null : [this.typeElem(type.dict.key_type), chisel.text(`${chisel.nbsp}:${chisel.nbsp}`)],
+                type.dict.key_type.builtin === 'string' ? null : [this.typeElem(type.dict.key_type), chisel.text(' : ')],
                 this.typeElem(type.dict.type),
-                chisel.text(`${chisel.nbsp}{}`)
+                chisel.text(' {}')
             ];
         } else if (typeof type.enum !== 'undefined') {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, chisel.text(type.enum));
@@ -220,10 +244,14 @@ export class DocPage {
     }
 
     static attrElem({type, attr = null}, optional, nullable) {
+        const attrElements = DocPage.attrParts(type.array ? 'array' : (type.dict ? 'dict' : 'value'), attr);
+        if (attrElements.length === 0 && !optional && !nullable) {
+            return null;
+        }
         return chisel.elem('ul', {'class': 'chisel-constraint-list'}, [
             optional ? DocPage.attrPartsElem({'lhs': 'optional'}) : null,
             nullable ? DocPage.attrPartsElem({'lhs': 'nullable'}) : null,
-            DocPage.attrParts(type.array ? 'array' : (type.dict ? 'dict' : 'value'), attr).map(DocPage.attrPartsElem)
+            attrElements.map(DocPage.attrPartsElem)
         ]);
     }
 
@@ -255,9 +283,11 @@ export class DocPage {
         const hasDescription = struct.members.reduce((prevValue, curValue) => prevValue || !!curValue.doc, false);
         return [
             // Section title
-            chisel.elem(titleTag, {'id': this.typeHref({'struct': struct.name})}, [
+            chisel.elem(
+                titleTag,
+                {'id': this.typeHref({'struct': struct.name})},
                 chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ]),
+            ),
             DocPage.textElem(struct.doc),
 
             // Struct members
@@ -295,7 +325,7 @@ export class DocPage {
             (!enum_.values.length ? DocPage.textElem(emptyText) : [
                 chisel.elem('table', null, [
                     chisel.elem('tr', null, [
-                        chisel.elem('th', chisel.text('Value')),
+                        chisel.elem('th', null, chisel.text('Value')),
                         hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
                     ]),
                     enum_.values.map((value) => chisel.elem('tr', null, [
