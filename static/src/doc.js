@@ -122,7 +122,8 @@ export class DocPage {
                     this.structElem(request.action.path, 'h2', 'Path Parameters', 'The action has no path parameters.'),
                     this.structElem(request.action.query, 'h2', 'Query Parameters', 'The action has no query parameters.'),
                     this.structElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'),
-                    this.structElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.'),
+                    (typeof request.action.output === 'undefined' ? null
+                        : this.structElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.')),
                     this.enumElem(request.action.errors, 'h2', 'Error Codes', 'The action returns no custom error codes.'),
 
                     // Typedefs

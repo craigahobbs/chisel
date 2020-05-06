@@ -62,19 +62,21 @@ test('DocPage.indexPage', (t) => {
 });
 
 test('DocPage.requestPage, empty', (t) => {
-    window.location.hash = '#name=test';
+    window.location.hash = '#name=empty';
     const docPage = new DocPage();
     docPage.updateParams();
     t.deepEqual(
         docPage.requestPage({
+            'name': 'empty',
+            'urls': [],
             'action': {
                 'errors': {
                     'name': 'empty_error',
                     'values': []
                 },
                 'input': {
-                    'members': [],
-                    'name': 'empty_input'
+                    'name': 'empty_input',
+                    'members': []
                 },
                 'name': 'empty',
                 'output': {
@@ -82,16 +84,14 @@ test('DocPage.requestPage, empty', (t) => {
                     'name': 'empty_output'
                 },
                 'path': {
-                    'members': [],
-                    'name': 'empty_path'
+                    'name': 'empty_path',
+                    'members': []
                 },
                 'query': {
-                    'members': [],
-                    'name': 'empty_query'
+                    'name': 'empty_query',
+                    'members': []
                 }
-            },
-            'name': 'empty',
-            'urls': []
+            }
         }),
         [
             {
@@ -108,7 +108,7 @@ test('DocPage.requestPage, empty', (t) => {
                     [
                         {
                             'tag': 'h2',
-                            'attrs': {'id': 'name=test&struct_empty_path'},
+                            'attrs': {'id': 'name=empty&struct_empty_path'},
                             'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}, 'tag': 'a'}
                         },
                         null,
@@ -119,7 +119,7 @@ test('DocPage.requestPage, empty', (t) => {
                     [
                         {
                             'tag': 'h2',
-                            'attrs': {'id': 'name=test&struct_empty_query'},
+                            'attrs': {'id': 'name=empty&struct_empty_query'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
                         },
                         null,
@@ -130,7 +130,7 @@ test('DocPage.requestPage, empty', (t) => {
                     [
                         {
                             'tag': 'h2',
-                            'attrs': {'id': 'name=test&struct_empty_input'},
+                            'attrs': {'id': 'name=empty&struct_empty_input'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
                         },
                         null,
@@ -141,7 +141,7 @@ test('DocPage.requestPage, empty', (t) => {
                     [
                         {
                             'tag': 'h2',
-                            'attrs': {'id': 'name=test&struct_empty_output'},
+                            'attrs': {'id': 'name=empty&struct_empty_output'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}}
                         },
                         null,
@@ -152,7 +152,7 @@ test('DocPage.requestPage, empty', (t) => {
                     [
                         {
                             'tag': 'h2',
-                            'attrs': {'id': 'name=test&enum_empty_error'},
+                            'attrs': {'id': 'name=empty&enum_empty_error'},
                             'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
                         },
                         null,
@@ -164,6 +164,171 @@ test('DocPage.requestPage, empty', (t) => {
                     null,
                     null
                 ]
+            ]}
+        ]
+    );
+});
+
+test('DocPage.requestPage, wsgiResponse', (t) => {
+    window.location.hash = '#name=wsgiResponse';
+    const docPage = new DocPage();
+    docPage.updateParams();
+    t.deepEqual(
+        docPage.requestPage({
+            'name': 'wsgiResponse',
+            'urls': [{'method': 'POST', 'url': '/wsgiResponse'}],
+            'action': {
+                'name': 'wsgiResponse',
+                'errors': {
+                    'name': 'wsgiResponse_error',
+                    'values': []
+                },
+                'input': {
+                    'name': 'wsgiResponse_input',
+                    'members': []
+                },
+                'path': {
+                    'name': 'wsgiResponse_path',
+                    'members': []
+                },
+                'query': {
+                    'name': 'wsgiResponse_query',
+                    'members': [
+                        {'name': 'a', 'type': {'builtin': 'int'}},
+                        {'name': 'b', 'type': {'builtin': 'string'}}
+                    ]
+                }
+            }
+        }),
+        [
+            {
+                'tag': 'div',
+                'attrs': {'class': 'chisel-header'},
+                'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
+            },
+            {'tag': 'h1', 'elems': {'text': 'wsgiResponse'}},
+            null,
+            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
+                {'tag': 'div', 'elems': [
+                    {'tag': 'p', 'elems': [
+                        {'tag': 'b', 'elems': {'text': 'Note: '}},
+                        {'text': 'The request is exposed at the following URL:'},
+                        {'tag': 'ul', 'elems': [
+                            {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/wsgiResponse'}, 'elems': {'text': 'POST /wsgiResponse'}}]}
+                        ]}
+                    ]}
+                ]},
+                {'tag': 'div', 'elems': [
+                    {'tag': 'p', 'elems': [
+                        {'tag': 'b', 'elems': {'text': 'Note: '}},
+                        {'text': 'The action has a non-default response. See documentation for details.'}
+                    ]}
+                ]},
+                [
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_path'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no path parameters.'}}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_query'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'table', 'elems': [
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'th', 'elems': {'text': 'Name'}},
+                                    {'tag': 'th', 'elems': {'text': 'Type'}},
+                                    null,
+                                    null
+                                ]},
+                                [
+                                    {'tag': 'tr', 'elems': [
+                                        {'tag': 'td', 'elems': {'text': 'a'}},
+                                        {'tag': 'td', 'elems': {'text': 'int'}},
+                                        null,
+                                        null
+                                    ]},
+                                    {'tag': 'tr', 'elems': [
+                                        {'tag': 'td', 'elems': {'text': 'b'}},
+                                        {'tag': 'td', 'elems': {'text': 'string'}},
+                                        null,
+                                        null
+                                    ]}
+                                ]
+                            ]}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_input'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no input parameters.'}}
+                        ]
+                    ],
+                    null,
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=wsgiResponse&enum_wsgiResponse_error'},
+                            'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action returns no custom error codes.'}}
+                        ]
+                    ],
+                    null,
+                    null,
+                    null
+                ]
+            ]}
+        ]
+    );
+});
+
+test('DocPage.requestPage, request', (t) => {
+    window.location.hash = '#name=request';
+    const docPage = new DocPage();
+    docPage.updateParams();
+    t.deepEqual(
+        docPage.requestPage({
+            'name': 'request',
+            'urls': [{'url': '/request'}]
+        }),
+        [
+            {
+                'tag': 'div',
+                'attrs': {'class': 'chisel-header'},
+                'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
+            },
+            {'tag': 'h1', 'elems': {'text': 'request'}},
+            null,
+            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
+                {'tag': 'div', 'elems': [
+                    {'tag': 'p', 'elems': [
+                        {'tag': 'b', 'elems': {'text': 'Note: '}},
+                        {'text': 'The request is exposed at the following URL:'},
+                        {'tag': 'ul', 'elems': [
+                            {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/request'}, 'elems': {'text': '/request'}}]}
+                        ]}
+                    ]}
+                ]},
+                null,
+                null
             ]}
         ]
     );
@@ -308,7 +473,7 @@ test('DocPage.requestPage', (t) => {
                 {'name': 'NonEmptyFloatArray', 'type': {'array': {'type': {'builtin': 'float'}}}, 'attr': {'len_gt': 0}},
                 {
                     'name': 'JustAString',
-                    'doc': [' A non-empty string.', '', ' More info.'],
+                    'doc': [' Just a string.', '', ' More info.'],
                     'type': {'builtin': 'string'}
                 },
                 {'name': 'PositiveInt', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0}, 'doc': [' A positive integer.']}
@@ -943,7 +1108,7 @@ test('DocPage.requestPage', (t) => {
                                         'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}]
                                     },
                                     [
-                                        {'tag': 'p', 'elems': {'text': ' A non-empty string.'}},
+                                        {'tag': 'p', 'elems': {'text': ' Just a string.'}},
                                         {'tag': 'p', 'elems': {'text': ' More info.'}}
                                     ],
                                     {'tag': 'table', 'elems': [
