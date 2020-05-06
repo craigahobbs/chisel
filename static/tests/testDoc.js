@@ -61,14 +61,119 @@ test('DocPage.indexPage', (t) => {
     );
 });
 
+test('DocPage.requestPage, empty', (t) => {
+    window.location.hash = '#name=test';
+    const docPage = new DocPage();
+    docPage.updateParams();
+    t.deepEqual(
+        docPage.requestPage({
+            'action': {
+                'errors': {
+                    'name': 'empty_error',
+                    'values': []
+                },
+                'input': {
+                    'members': [],
+                    'name': 'empty_input'
+                },
+                'name': 'empty',
+                'output': {
+                    'members': [],
+                    'name': 'empty_output'
+                },
+                'path': {
+                    'members': [],
+                    'name': 'empty_path'
+                },
+                'query': {
+                    'members': [],
+                    'name': 'empty_query'
+                }
+            },
+            'name': 'empty',
+            'urls': []
+        }),
+        [
+            {
+                'tag': 'div',
+                'attrs': {'class': 'chisel-header'},
+                'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
+            },
+            {'tag': 'h1', 'elems': {'text': 'empty'}},
+            null,
+            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
+                null,
+                null,
+                [
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=test&struct_empty_path'},
+                            'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}, 'tag': 'a'}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no path parameters.'}}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=test&struct_empty_query'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no query parameters.'}}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=test&struct_empty_input'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no input parameters.'}}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=test&struct_empty_output'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}}
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action has no output parameters.'}}
+                        ]
+                    ],
+                    [
+                        {
+                            'tag': 'h2',
+                            'attrs': {'id': 'name=test&enum_empty_error'},
+                            'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
+                        },
+                        null,
+                        [
+                            {'tag': 'p', 'elems': {'text': 'The action returns no custom error codes.'}}
+                        ]
+                    ],
+                    null,
+                    null,
+                    null
+                ]
+            ]}
+        ]
+    );
+});
+
 test('DocPage.requestPage', (t) => {
     window.location.hash = '#name=test';
     const docPage = new DocPage();
     docPage.updateParams();
     t.deepEqual(
-        // ======================
-        // Begin request response
-        // ======================
         docPage.requestPage({
             'name': 'test',
             'doc': [' The test action.', '', ' This is some more information.'],
@@ -143,14 +248,14 @@ test('DocPage.requestPage', (t) => {
                     'name': 'test_output',
                     'members': [
                         {'name': 'oa', 'type': {'typedef': 'PositiveInt'}},
-                        {'name': 'ob', 'type': {'typedef': 'NonEmptyString'}},
+                        {'name': 'ob', 'type': {'typedef': 'JustAString'}},
                         {'name': 'oc', 'type': {'struct': 'Struct1'}},
                         {'name': 'od', 'type': {'enum': 'Enum1'}},
                         {'name': 'oe', 'type': {'enum': 'Enum2'}},
                         {'name': 'of', 'type': {'dict': {'key_type': {'enum': 'Enum1'}, 'type': {'builtin': 'string'}}}},
                         {
                             'name': 'og',
-                            'type': {'dict': {'key_type': {'typedef': 'NonEmptyString'}, 'type': {'typedef': 'NonEmptyFloatArray'}}},
+                            'type': {'dict': {'key_type': {'typedef': 'JustAString'}, 'type': {'typedef': 'NonEmptyFloatArray'}}},
                             'attr': {'len_gt': 0}
                         }
                     ]
@@ -191,24 +296,27 @@ test('DocPage.requestPage', (t) => {
                 },
                 {
                     'name': 'Struct2',
-                    'doc': [' Another struct.', '', ' More info.'],
-                    'members': [{'name': 'sa', 'type': {'builtin': 'string'}}]
+                    'doc': [' Another struct, a union.', '', ' More info.'],
+                    'members': [
+                        {'name': 'sa', 'type': {'builtin': 'string'}},
+                        {'name': 'sb', 'type': {'builtin': 'int'}}
+                    ],
+                    'union': true
                 }
             ],
             'typedefs': [
                 {'name': 'NonEmptyFloatArray', 'type': {'array': {'type': {'builtin': 'float'}}}, 'attr': {'len_gt': 0}},
                 {
-                    'name': 'NonEmptyString',
+                    'name': 'JustAString',
                     'doc': [' A non-empty string.', '', ' More info.'],
-                    'type': {'builtin': 'string'},
-                    'attr': {'len_gt': 0}
+                    'type': {'builtin': 'string'}
                 },
                 {'name': 'PositiveInt', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0}, 'doc': [' A positive integer.']}
             ]
         }),
-        // ===================
-        // Begin render result
-        // ===================
+        // =================
+        // Begin requestPage
+        // =================
         [
             {'tag': 'div', 'attrs': {'class': 'chisel-header'}, 'elems': {
                 'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}
@@ -710,8 +818,8 @@ test('DocPage.requestPage', (t) => {
                                             {'tag': 'td', 'elems': {'text': 'ob'}},
                                             {'tag': 'td', 'elems': {
                                                 'tag': 'a',
-                                                'attrs': {'href': '#name=test&typedef_NonEmptyString'},
-                                                'elems': {'text': 'NonEmptyString'}
+                                                'attrs': {'href': '#name=test&typedef_JustAString'},
+                                                'elems': {'text': 'JustAString'}
                                             }},
                                             {'tag': 'td'},
                                             null
@@ -762,7 +870,7 @@ test('DocPage.requestPage', (t) => {
                                             {'tag': 'td', 'elems': {'text': 'og'}},
                                             {'tag': 'td', 'elems': [
                                                 [
-                                                    {'tag': 'a', 'attrs': {'href': '#name=test&typedef_NonEmptyString'}, 'elems': {'text': 'NonEmptyString'}},
+                                                    {'tag': 'a', 'attrs': {'href': '#name=test&typedef_JustAString'}, 'elems': {'text': 'JustAString'}},
                                                     {'text': ' : '}
                                                 ],
                                                 {'tag': 'a', 'attrs': {'href': '#name=test&typedef_NonEmptyFloatArray'}, 'elems': {'text': 'NonEmptyFloatArray'}},
@@ -831,8 +939,8 @@ test('DocPage.requestPage', (t) => {
                                 [
                                     {
                                         'tag': 'h3',
-                                        'attrs': {'id': 'name=test&typedef_NonEmptyString'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyString'}}]
+                                        'attrs': {'id': 'name=test&typedef_JustAString'},
+                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}]
                                     },
                                     [
                                         {'tag': 'p', 'elems': {'text': ' A non-empty string.'}},
@@ -841,20 +949,11 @@ test('DocPage.requestPage', (t) => {
                                     {'tag': 'table', 'elems': [
                                         {'tag': 'tr', 'elems': [
                                             {'tag': 'th', 'elems': {'text': 'Type'}},
-                                            {'tag': 'th', 'elems': {'text': 'Attributes'}}
+                                            null
                                         ]},
                                         {'tag': 'tr', 'elems': [
                                             {'tag': 'td', 'elems': [{'text': 'string'}]},
-                                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                                null,
-                                                null,
-                                                [
-                                                    {'tag': 'li', 'elems': [
-                                                        {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                        {'text': ' > 0'}
-                                                    ]}
-                                                ]
-                                            ]}}
+                                            null
                                         ]}
                                     ]}
                                 ],
@@ -935,10 +1034,10 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&struct_Struct2'},
-                                        'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct Struct2'}, 'tag': 'a'}
+                                        'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'union Struct2'}, 'tag': 'a'}
                                     },
                                     [
-                                        {'tag': 'p', 'elems': {'text': ' Another struct.'}},
+                                        {'tag': 'p', 'elems': {'text': ' Another struct, a union.'}},
                                         {'tag': 'p', 'elems': {'text': ' More info.'}}
                                     ],
                                     [
@@ -953,6 +1052,12 @@ test('DocPage.requestPage', (t) => {
                                                 {'tag': 'tr', 'elems': [
                                                     {'tag': 'td', 'elems': {'text': 'sa'}},
                                                     {'tag': 'td', 'elems': {'text': 'string'}},
+                                                    null,
+                                                    null
+                                                ]},
+                                                {'tag': 'tr', 'elems': [
+                                                    {'tag': 'td', 'elems': {'text': 'sb'}},
+                                                    {'tag': 'td', 'elems': {'text': 'int'}},
                                                     null,
                                                     null
                                                 ]}
@@ -1022,8 +1127,8 @@ test('DocPage.requestPage', (t) => {
                 'tag': 'div'
             }
         ]
-        // =================
-        // End render result
-        // =================
+        // ===============
+        // End requestPage
+        // ===============
     );
 });
