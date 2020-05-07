@@ -1292,8 +1292,5 @@ test('DocPage.requestPage', (t) => {
                 'tag': 'div'
             }
         ]
-        // ===============
-        // End requestPage
-        // ===============
     );
 });
