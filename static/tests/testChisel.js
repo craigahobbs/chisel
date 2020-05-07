@@ -8,6 +8,35 @@ import test from 'ava';
 // Add browser globals
 browserEnv(['document', 'window']);
 
+// XMLHttpRequest mock
+class XMLHttpRequestMock {
+    constructor() {
+        this._calls = [];
+        this.LOADING = 1;
+        this.DONE = 2;
+        this.readyState = this.LOADING;
+        this.response = 'the response';
+        window._xhrs.push(this);
+    }
+
+    static _reset() {
+        window._xhrs = [];
+    }
+
+    static get _xhrs() {
+        return window._xhrs;
+    }
+
+    open(...args) {
+        this._calls.push(['open', args]);
+    }
+
+    send(...args) {
+        this._calls.push(['send', args]);
+    }
+}
+window.XMLHttpRequest = XMLHttpRequestMock;
+
 
 test('chisel.nbsp', (t) => {
     t.is(chisel.nbsp, String.fromCharCode(160));
@@ -228,29 +257,11 @@ test('chisel.decodeParams, default', (t) => {
     );
 });
 
-class TestXMLHttpRequest {
-    constructor() {
-        this._calls = [];
-        this.LOADING = 1;
-        this.DONE = 2;
-        this.readyState = this.LOADING;
-        this.response = 'the response';
-    }
-
-    open(...args) {
-        this._calls.push(['open', args]);
-    }
-
-    send(...args) {
-        this._calls.push(['send', args]);
-    }
-}
-
 test('chisel.xhr', (t) => {
-    const xhr = new TestXMLHttpRequest();
     let okCount = 0;
     let errorCount = 0;
 
+    XMLHttpRequestMock._reset();
     chisel.xhr('get', 'myapi', {
         'params': {
             'a': 5,
@@ -265,8 +276,10 @@ test('chisel.xhr', (t) => {
             t.is(response, 'the response');
             errorCount += 1;
         }
-    }, xhr);
+    });
 
+    t.is(XMLHttpRequestMock._xhrs.length, 1);
+    const [xhr] = XMLHttpRequestMock._xhrs;
     t.deepEqual(xhr._calls, [
         ['open', ['get', 'myapi?a=5&b=a%26b']],
         ['send', []]
@@ -294,9 +307,11 @@ test('chisel.xhr', (t) => {
 });
 
 test('chisel.xhr, defaults', (t) => {
-    const xhr = new TestXMLHttpRequest();
-    chisel.xhr('get', 'myapi', {}, xhr);
+    XMLHttpRequestMock._reset();
+    chisel.xhr('get', 'myapi', {});
 
+    t.is(XMLHttpRequestMock._xhrs.length, 1);
+    const [xhr] = XMLHttpRequestMock._xhrs;
     t.deepEqual(xhr._calls, [
         ['open', ['get', 'myapi']],
         ['send', []]
