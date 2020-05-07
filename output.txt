@@ -1,4 +1,4 @@
-Results of doctest builder run on 2020-05-02 18:04:51
+Results of doctest builder run on 2020-05-07 16:59:21
 =====================================================
 
 Document: basics
