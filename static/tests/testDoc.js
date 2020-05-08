@@ -326,61 +326,11 @@ test('DocPage.requestPage, empty', (t) => {
                 null,
                 null,
                 [
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=empty&struct_empty_path'},
-                            'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}, 'tag': 'a'}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no path parameters.'}}
-                        ]
-                    ],
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=empty&struct_empty_query'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no query parameters.'}}
-                        ]
-                    ],
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=empty&struct_empty_input'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no input parameters.'}}
-                        ]
-                    ],
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=empty&struct_empty_output'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no output parameters.'}}
-                        ]
-                    ],
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=empty&enum_empty_error'},
-                            'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action returns no custom error codes.'}}
-                        ]
-                    ],
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
                     null,
                     null,
                     null
@@ -434,17 +384,7 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                     ]}
                 ]},
                 [
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_path'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no path parameters.'}}
-                        ]
-                    ],
+                    null,
                     [
                         {
                             'tag': 'h2',
@@ -475,29 +415,9 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                             ]
                         ]}
                     ],
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_input'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action has no input parameters.'}}
-                        ]
-                    ],
                     null,
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=wsgiResponse&enum_wsgiResponse_error'},
-                            'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
-                        },
-                        null,
-                        [
-                            {'tag': 'p', 'elems': {'text': 'The action returns no custom error codes.'}}
-                        ]
-                    ],
+                    null,
+                    null,
                     null,
                     null,
                     null
@@ -537,6 +457,46 @@ test('DocPage.requestPage, request', (t) => {
                 null,
                 null
             ]}
+        ]
+    );
+});
+
+test('DocPage.structElem, empty', (t) => {
+    window.location.hash = '#name=test';
+    const docPage = new DocPage();
+    docPage.updateParams();
+    t.deepEqual(
+        docPage.structElem({'name': 'TestStruct', 'members': []}, 'h2', 'struct TestStruct'),
+        [
+            {
+                'tag': 'h2',
+                'attrs': {'id': 'name=test&struct_TestStruct'},
+                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct TestStruct'}}
+            },
+            null,
+            [
+                {'tag': 'p', 'elems': {'text': 'The struct is empty.'}}
+            ]
+        ]
+    );
+});
+
+test('DocPage.enumElem, empty', (t) => {
+    window.location.hash = '#name=test';
+    const docPage = new DocPage();
+    docPage.updateParams();
+    t.deepEqual(
+        docPage.enumElem({'name': 'TestEnum', 'values': []}, 'h2', 'enum TestEnum'),
+        [
+            {
+                'tag': 'h2',
+                'attrs': {'id': 'name=test&enum_TestEnum'},
+                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum TestEnum'}}
+            },
+            null,
+            [
+                {'tag': 'p', 'elems': {'text': 'The enum is empty.'}}
+            ]
         ]
     );
 });
@@ -1260,7 +1220,7 @@ test('DocPage.requestPage', (t) => {
                             {
                                 'tag': 'h2',
                                 'attrs': {'id': 'name=test&enum_test_error'},
-                                'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}]
+                                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}
                             },
                             null,
                             {'tag': 'table', 'elems': [
@@ -1278,7 +1238,7 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&typedef_NonEmptyFloatArray'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}]
+                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}
                                     },
                                     null,
                                     {'tag': 'table', 'elems': [
@@ -1302,7 +1262,7 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&typedef_JustAString'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}]
+                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}
                                     },
                                     [
                                         {'tag': 'p', 'elems': {'text': ' Just a string.'}},
@@ -1323,7 +1283,7 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&typedef_PositiveInt'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef PositiveInt'}}]
+                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef PositiveInt'}}
                                     },
                                     [
                                         {'tag': 'p', 'elems': {'text': ' A positive integer.'}}
@@ -1432,7 +1392,7 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&enum_Enum1'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum1'}}]
+                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum1'}}
                                     },
                                     [
                                         {'tag': 'p', 'elems': {'text': ' An enum.'}}
@@ -1461,7 +1421,7 @@ test('DocPage.requestPage', (t) => {
                                     {
                                         'tag': 'h3',
                                         'attrs': {'id': 'name=test&enum_Enum2'},
-                                        'elems': [{'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum2'}}]
+                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum2'}}
                                     },
                                     [
                                         {'tag': 'p', 'elems': {'text': ' Another enum.'}},

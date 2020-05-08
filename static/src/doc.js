@@ -119,12 +119,12 @@ export class DocPage {
 
                 // Action?
                 (typeof request.action === 'undefined' ? null : [
-                    this.structElem(request.action.path, 'h2', 'Path Parameters', 'The action has no path parameters.'),
-                    this.structElem(request.action.query, 'h2', 'Query Parameters', 'The action has no query parameters.'),
-                    this.structElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'),
-                    (typeof request.action.output === 'undefined' ? null
-                        : this.structElem(request.action.output, 'h2', 'Output Parameters', 'The action has no output parameters.')),
-                    this.enumElem(request.action.errors, 'h2', 'Error Codes', 'The action returns no custom error codes.'),
+                    !request.action.path.members.length ? null : this.structElem(request.action.path, 'h2', 'Path Parameters'),
+                    !request.action.query.members.length ? null : this.structElem(request.action.query, 'h2', 'Query Parameters'),
+                    !request.action.input.members.length ? null : this.structElem(request.action.input, 'h2', 'Input Parameters'),
+                    typeof request.action.output === 'undefined' || !request.action.output.members.length ? null
+                        : this.structElem(request.action.output, 'h2', 'Output Parameters'),
+                    !request.action.errors.values.length ? null : this.enumElem(request.action.errors, 'h2', 'Error Codes'),
 
                     // Typedefs
                     (typeof request.typedefs === 'undefined' ? null : [
@@ -138,14 +138,14 @@ export class DocPage {
                         request.structs.map((struct) => this.structElem(
                             struct,
                             'h3',
-                            `${struct.union ? 'union' : 'struct'} ${struct.name}`, 'The struct is empty.'
+                            `${struct.union ? 'union' : 'struct'} ${struct.name}`
                         ))
                     ]),
 
                     // Enums
                     (typeof request.enums === 'undefined' ? null : [
                         chisel.elem('h2', null, chisel.text('Enum Types')),
-                        request.enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`, 'The enum is empty.'))
+                        request.enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`))
                     ])
                 ])
             ])
@@ -164,8 +164,6 @@ export class DocPage {
                     paragraph = [];
                 }
             }
-        } else if (lines) {
-            paragraph.push(lines);
         }
         if (paragraph.length) {
             elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
@@ -259,9 +257,11 @@ export class DocPage {
     typedefElem(typedef, titleTag, title) {
         const hasAttributes = !!typedef.attr;
         return [
-            chisel.elem(titleTag, {'id': this.typeHref({'typedef': typedef.name})}, [
+            chisel.elem(
+                titleTag,
+                {'id': this.typeHref({'typedef': typedef.name})},
                 chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ]),
+            ),
             DocPage.textElem(typedef.doc),
             chisel.elem('table', null, [
                 chisel.elem('tr', null, [
@@ -276,7 +276,7 @@ export class DocPage {
         ];
     }
 
-    structElem(struct, titleTag, title, emptyText) {
+    structElem(struct, titleTag, title) {
         const hasAttributes = struct.members.reduce(
             (prevValue, curValue) => prevValue || !!(curValue.optional || curValue.nullable || curValue.attr),
             false
@@ -292,7 +292,7 @@ export class DocPage {
             DocPage.textElem(struct.doc),
 
             // Struct members
-            (!struct.members.length ? DocPage.textElem(emptyText) : chisel.elem('table', null, [
+            (!struct.members.length ? DocPage.textElem(['The struct is empty.']) : chisel.elem('table', null, [
                 chisel.elem('tr', null, [
                     chisel.elem('th', null, chisel.text('Name')),
                     chisel.elem('th', null, chisel.text('Type')),
@@ -311,17 +311,19 @@ export class DocPage {
         ];
     }
 
-    enumElem(enum_, titleTag, title, emptyText) {
+    enumElem(enum_, titleTag, title) {
         const hasDescription = enum_.values.reduce((prevValue, curValue) => prevValue || !!curValue.doc, false);
         return [
             // Section title
-            chisel.elem(titleTag, {'id': this.typeHref({'enum': enum_.name})}, [
+            chisel.elem(
+                titleTag,
+                {'id': this.typeHref({'enum': enum_.name})},
                 chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ]),
+            ),
             DocPage.textElem(enum_.doc),
 
             // Enum values
-            (!enum_.values.length ? DocPage.textElem(emptyText) : chisel.elem('table', null, [
+            (!enum_.values.length ? DocPage.textElem(['The enum is empty.']) : chisel.elem('table', null, [
                 chisel.elem('tr', null, [
                     chisel.elem('th', null, chisel.text('Value')),
                     hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
