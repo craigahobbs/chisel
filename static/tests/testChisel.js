@@ -335,11 +335,11 @@ test('chisel.xhr, defaults', (t) => {
     xhr.onreadystatechange();
 
     // Verify nothing terrible happens on error
+    xhr.readyState = xhr.DONE;
     xhr.status = 400;
     xhr.onreadystatechange();
 
     // Verify nothing terrible happens on success
-    xhr.readyState = xhr.DONE;
     xhr.status = 200;
     xhr.onreadystatechange();
 });

@@ -110,7 +110,7 @@ export class DocPage {
                 ])),
 
                 // Action non-default response note
-                (!request.action || request.action.output ? null : chisel.elem('div', null, [
+                (typeof request.action === 'undefined' || typeof request.action.output !== 'undefined' ? null : chisel.elem('div', null, [
                     chisel.elem('p', null, [
                         chisel.elem('b', null, chisel.text('Note: ')),
                         chisel.text('The action has a non-default response. See documentation for details.')
@@ -118,7 +118,7 @@ export class DocPage {
                 ])),
 
                 // Action?
-                (!request.action ? null : [
+                (typeof request.action === 'undefined' ? null : [
                     this.structElem(request.action.path, 'h2', 'Path Parameters', 'The action has no path parameters.'),
                     this.structElem(request.action.query, 'h2', 'Query Parameters', 'The action has no query parameters.'),
                     this.structElem(request.action.input, 'h2', 'Input Parameters', 'The action has no input parameters.'),
@@ -127,13 +127,13 @@ export class DocPage {
                     this.enumElem(request.action.errors, 'h2', 'Error Codes', 'The action returns no custom error codes.'),
 
                     // Typedefs
-                    (!request.typedefs ? null : [
+                    (typeof request.typedefs === 'undefined' ? null : [
                         chisel.elem('h2', null, chisel.text('Typedefs')),
                         request.typedefs.map((typedef) => this.typedefElem(typedef, 'h3', `typedef ${typedef.name}`))
                     ]),
 
                     // Structs
-                    (!request.structs ? null : [
+                    (typeof request.structs === 'undefined' ? null : [
                         chisel.elem('h2', null, chisel.text('Struct Types')),
                         request.structs.map((struct) => this.structElem(
                             struct,
@@ -143,7 +143,7 @@ export class DocPage {
                     ]),
 
                     // Enums
-                    (!request.enums ? null : [
+                    (typeof request.enums === 'undefined' ? null : [
                         chisel.elem('h2', null, chisel.text('Enum Types')),
                         request.enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`, 'The enum is empty.'))
                     ])
@@ -292,24 +292,22 @@ export class DocPage {
             DocPage.textElem(struct.doc),
 
             // Struct members
-            (!struct.members.length ? DocPage.textElem(emptyText) : [
-                chisel.elem('table', null, [
-                    chisel.elem('tr', null, [
-                        chisel.elem('th', null, chisel.text('Name')),
-                        chisel.elem('th', null, chisel.text('Type')),
-                        hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null,
-                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                    ]),
-                    struct.members.map((member) => chisel.elem('tr', null, [
-                        chisel.elem('td', null, chisel.text(member.name)),
-                        chisel.elem('td', null, this.typeElem(member.type)),
-                        hasAttributes
-                            ? chisel.elem('td', null, DocPage.attrElem(member, member.optional, member.nullable))
-                            : null,
-                        hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
-                    ]))
-                ])
-            ])
+            (!struct.members.length ? DocPage.textElem(emptyText) : chisel.elem('table', null, [
+                chisel.elem('tr', null, [
+                    chisel.elem('th', null, chisel.text('Name')),
+                    chisel.elem('th', null, chisel.text('Type')),
+                    hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null,
+                    hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
+                ]),
+                struct.members.map((member) => chisel.elem('tr', null, [
+                    chisel.elem('td', null, chisel.text(member.name)),
+                    chisel.elem('td', null, this.typeElem(member.type)),
+                    hasAttributes
+                        ? chisel.elem('td', null, DocPage.attrElem(member, member.optional, member.nullable))
+                        : null,
+                    hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
+                ]))
+            ]))
         ];
     }
 
@@ -323,18 +321,16 @@ export class DocPage {
             DocPage.textElem(enum_.doc),
 
             // Enum values
-            (!enum_.values.length ? DocPage.textElem(emptyText) : [
-                chisel.elem('table', null, [
-                    chisel.elem('tr', null, [
-                        chisel.elem('th', null, chisel.text('Value')),
-                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                    ]),
-                    enum_.values.map((value) => chisel.elem('tr', null, [
-                        chisel.elem('td', null, chisel.text(value.value)),
-                        hasDescription ? chisel.elem('td', null, DocPage.textElem(value.doc)) : null
-                    ]))
-                ])
-            ])
+            (!enum_.values.length ? DocPage.textElem(emptyText) : chisel.elem('table', null, [
+                chisel.elem('tr', null, [
+                    chisel.elem('th', null, chisel.text('Value')),
+                    hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
+                ]),
+                enum_.values.map((value) => chisel.elem('tr', null, [
+                    chisel.elem('td', null, chisel.text(value.value)),
+                    hasDescription ? chisel.elem('td', null, DocPage.textElem(value.doc)) : null
+                ]))
+            ]))
         ];
     }
 }
