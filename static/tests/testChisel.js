@@ -9,17 +9,18 @@ import test from 'ava';
 browserEnv(['document', 'window']);
 
 // XMLHttpRequest mock
-class XMLHttpRequestMock {
+export class XMLHttpRequestMock {
     constructor() {
         this._calls = [];
         this.LOADING = 1;
         this.DONE = 2;
         this.readyState = this.LOADING;
-        this.response = 'the response';
+        this.response = null;
         window._xhrs.push(this);
     }
 
     static _reset() {
+        window.XMLHttpRequest = XMLHttpRequestMock;
         window._xhrs = [];
     }
 
@@ -35,7 +36,6 @@ class XMLHttpRequestMock {
         this._calls.push(['send', args]);
     }
 }
-window.XMLHttpRequest = XMLHttpRequestMock;
 
 
 test('chisel.nbsp', (t) => {
@@ -261,6 +261,7 @@ test('chisel.xhr', (t) => {
     let okCount = 0;
     let errorCount = 0;
 
+    // Make an XHR call
     XMLHttpRequestMock._reset();
     chisel.xhr('get', 'myapi', {
         'params': {
@@ -273,34 +274,40 @@ test('chisel.xhr', (t) => {
             okCount += 1;
         },
         'onerror': (response) => {
-            t.is(response, 'the response');
+            t.is(response, null);
             errorCount += 1;
         }
     });
 
+    // Validate the loading state
     t.is(XMLHttpRequestMock._xhrs.length, 1);
     const [xhr] = XMLHttpRequestMock._xhrs;
+    t.is(xhr.readyState, xhr.LOADING);
+    t.is(xhr.response, null);
+    t.is(xhr.responseType, 'text');
     t.deepEqual(xhr._calls, [
         ['open', ['get', 'myapi?a=5&b=a%26b']],
         ['send', []]
     ]);
-    t.is(xhr.responseType, 'text');
     t.is(typeof xhr.onreadystatechange, 'function');
     t.is(okCount, 0);
     t.is(errorCount, 0);
 
-    xhr.readyState = xhr.LOADING;
+    // Verify the callback isn't called while loading
     xhr.onreadystatechange();
     t.is(okCount, 0);
     t.is(errorCount, 0);
 
+    // Verify the onerror callback is called
     xhr.readyState = xhr.DONE;
-    xhr.status = 200;
-    xhr.onreadystatechange();
-    t.is(okCount, 1);
-    t.is(errorCount, 0);
-
     xhr.status = 400;
+    xhr.onreadystatechange();
+    t.is(okCount, 0);
+    t.is(errorCount, 1);
+
+    // Verify the the onok callback is called
+    xhr.status = 200;
+    xhr.response = 'the response';
     xhr.onreadystatechange();
     t.is(okCount, 1);
     t.is(errorCount, 1);
@@ -308,24 +315,31 @@ test('chisel.xhr', (t) => {
 
 test('chisel.xhr, defaults', (t) => {
     XMLHttpRequestMock._reset();
+
+    // Call xhr with default args
     chisel.xhr('get', 'myapi', {});
 
+    // Validate the loading state
     t.is(XMLHttpRequestMock._xhrs.length, 1);
     const [xhr] = XMLHttpRequestMock._xhrs;
+    t.is(xhr.readyState, xhr.LOADING);
+    t.is(xhr.response, null);
+    t.is(xhr.responseType, 'json');
     t.deepEqual(xhr._calls, [
         ['open', ['get', 'myapi']],
         ['send', []]
     ]);
-    t.is(xhr.responseType, 'json');
     t.is(typeof xhr.onreadystatechange, 'function');
 
-    xhr.readyState = xhr.LOADING;
+    // Verify nothing terrible happens on a non-DONE readyState change
     xhr.onreadystatechange();
 
+    // Verify nothing terrible happens on error
+    xhr.status = 400;
+    xhr.onreadystatechange();
+
+    // Verify nothing terrible happens on success
     xhr.readyState = xhr.DONE;
     xhr.status = 200;
-    xhr.onreadystatechange();
-
-    xhr.status = 400;
     xhr.onreadystatechange();
 });

@@ -60,6 +60,9 @@ action chisel_doc_index
 
     output
 
+        # The documentation index title
+        string title
+
         # TODO
         StringArray{} groups
 '''
@@ -73,6 +76,7 @@ action chisel_doc_index
         for request in (self.requests or ctx.app.requests).values():
             groups[request.doc_group or 'Uncategorized'].append(request.name)
         return {
+            'title': ctx.environ['HTTP_HOST'],
             'groups': {group: sorted(names) for group, names in groups.items()}
         }
 

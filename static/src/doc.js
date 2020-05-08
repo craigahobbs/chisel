@@ -50,8 +50,8 @@ export class DocPage {
                     chisel.render(document.body, DocPage.errorPage(response));
                 },
                 'onok': (response) => {
-                    document.title = window.location.host;
-                    chisel.render(document.body, DocPage.indexPage(window.location.host, response));
+                    document.title = response.title;
+                    chisel.render(document.body, DocPage.indexPage(response.title, response));
                     this.rendered = true;
                 }
             });

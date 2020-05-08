@@ -115,7 +115,6 @@ export function decodeParams(paramStr = null) {
 }
 
 export function xhr(method, pathname, args) {
-    // istanbul ignore next
     const xhr_ = new window.XMLHttpRequest();
     xhr_.open(method, href(null, typeof args.params !== 'undefined' ? args.params : {}, pathname));
     xhr_.responseType = typeof args.responseType !== 'undefined' ? args.responseType : 'json';
