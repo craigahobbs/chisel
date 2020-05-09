@@ -325,16 +325,7 @@ test('DocPage.requestPage, empty', (t) => {
             {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
                 null,
                 null,
-                [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                ]
+                [null, null, null, null, null, null, null, null]
             ]}
         ]
     );
@@ -353,10 +344,7 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                 'errors': {'name': 'wsgiResponse_error', 'values': []},
                 'input': {'name': 'wsgiResponse_input', 'members': []},
                 'path': {'name': 'wsgiResponse_path', 'members': []},
-                'query': {'name': 'wsgiResponse_query', 'members': [
-                    {'name': 'a', 'type': {'builtin': 'int'}},
-                    {'name': 'b', 'type': {'builtin': 'string'}}
-                ]}
+                'query': {'name': 'wsgiResponse_query', 'members': []}
             }
         }),
         [
@@ -383,45 +371,7 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                         {'text': 'The action has a non-default response. See documentation for details.'}
                     ]}
                 ]},
-                [
-                    null,
-                    [
-                        {
-                            'tag': 'h2',
-                            'attrs': {'id': 'name=wsgiResponse&struct_wsgiResponse_query'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
-                        },
-                        null,
-                        {'tag': 'table', 'elems': [
-                            {'tag': 'tr', 'elems': [
-                                {'tag': 'th', 'elems': {'text': 'Name'}},
-                                {'tag': 'th', 'elems': {'text': 'Type'}},
-                                null,
-                                null
-                            ]},
-                            [
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'td', 'elems': {'text': 'a'}},
-                                    {'tag': 'td', 'elems': {'text': 'int'}},
-                                    null,
-                                    null
-                                ]},
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'td', 'elems': {'text': 'b'}},
-                                    {'tag': 'td', 'elems': {'text': 'string'}},
-                                    null,
-                                    null
-                                ]}
-                            ]
-                        ]}
-                    ],
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                ]
+                [null, null, null, null, null, null, null, null]
             ]}
         ]
     );
