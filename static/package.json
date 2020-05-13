@@ -8,9 +8,6 @@
     },
     "ava": {
         "timeout": "5m",
-        "nodeArguments": [
-            "--experimental-modules"
-        ],
         "require": [
             "esm"
         ]
