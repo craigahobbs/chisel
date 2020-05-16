@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 NODE_IMAGE ?= node:13-buster-slim
-NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v $(CURDIR):$(CURDIR) -w $(CURDIR) -e HOME=$(CURDIR)/build $(NODE_IMAGE)
+NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
 
 build/npm.install:
 	$(NODE_DOCKER) npm install
