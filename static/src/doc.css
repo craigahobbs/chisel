@@ -8,13 +8,13 @@ html, body, div, span, h1, h2, h3, p, a, table, tr, th, td, ul, li {
     vertical-align: baseline;
 }
 body, td, th {
-    background-color: white;
     font-family: Helvetica, Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.2em;
     color: black;
 }
 body {
+    background-color: white;
     margin: 1em;
 }
 h1, h2, h3 {
@@ -37,13 +37,13 @@ table {
     border-spacing: 0;
     margin: 1.2em 0 0 0;
 }
+tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
 th, td {
-    padding: 0.5em 1em 0.5em 1em;
-    text-align: left;
-    background-color: #ECF0F3;
-    border-color: white;
+    padding: 0.5em 0.5em 0.5em 0.5em;
     border-style: solid;
-    border-width: 2px;
+    text-align: left;
 }
 th {
     font-weight: bold;
@@ -55,7 +55,7 @@ p:first-child {
     margin: 0;
 }
 a {
-    color: #004B91;
+    color: #004b91;
 }
 a:link {
     text-decoration: none;
@@ -96,16 +96,16 @@ div.chisel-header {
     margin: .25em 0;
 }
 div.chisel-notes {
-    margin: 1.25em 0;
+    margin: 1em 0;
 }
 div.chisel-notes div {
     margin: .75em 0;
 }
-div.chisel-notes div ul {
+div.chisel-notes div p ul {
     list-style: none;
     margin: .4em .2em;
 }
-div.chisel-notes div li {
+div.chisel-notes div p ul li {
     margin: 0 1em;
 }
 ul.chisel-constraint-list {
