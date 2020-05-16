@@ -39,16 +39,20 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
                     'name': 'static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
                 },
                 {
+                    'name': 'static_doc_svg',
+                    'urls': (('GET', '/doc/doc.svg'),)
+                },
+                {
                     'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
                 }
             ]
         )
@@ -72,16 +76,20 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
                     'name': 'static_doc_css',
                     'urls': (('GET', '/doc/doc.css'),)
                 },
                 {
+                    'name': 'static_doc_svg',
+                    'urls': (('GET', '/doc/doc.svg'),)
+                },
+                {
                     'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
                 }
             ]
         )
@@ -134,12 +142,12 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
                 },
                 {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
                     'name': 'static_chisel_js',
                     'urls': (('GET', '/doc/chisel.js'),)
+                },
+                {
+                    'name': 'static_doc_js',
+                    'urls': (('GET', '/doc/doc.js'),)
                 }
             ]
         )
@@ -179,7 +187,8 @@ class TestIndex(TestCase):
                     'static_chisel_js',
                     'static_doc_css',
                     'static_doc_html',
-                    'static_doc_js'
+                    'static_doc_js',
+                    'static_doc_svg'
                 ]
             }
         })

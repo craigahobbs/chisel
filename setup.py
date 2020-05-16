@@ -57,9 +57,7 @@ def main():
         packages=[MODULE_NAME],
         package_data={
             '': [
-                'static/*.html',
-                'static/*.css',
-                'static/*.js'
+                'static/*'
             ]
         },
         test_suite='tests',

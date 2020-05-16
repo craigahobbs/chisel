@@ -171,6 +171,7 @@ class StaticRequest(Request):
         '.jpg': 'image/jpeg',
         '.js': 'application/javascript',
         '.png': 'image/png',
+        '.svg': 'image/svg+xml',
         '.txt': 'text/plain',
     }
 
