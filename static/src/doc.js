@@ -30,39 +30,39 @@ export class DocPage {
         // Render the page
         if (typeof this.params.name !== 'undefined') {
             // Call the request API
-            chisel.xhr('get', 'doc_request', {
-                'params': {
-                    'name': this.params.name
-                },
-                'onerror': (response) => {
-                    chisel.render(document.body, DocPage.errorPage(response));
-                },
-                'onok': (response) => {
+            window.fetch(chisel.href(null, {'name': this.params.name}, 'doc_request')).then(
+                (response) => response.json()
+            ).then((response) => {
+                if ('error' in response) {
+                    chisel.render(document.body, DocPage.errorPage(response.error));
+                } else {
                     document.title = this.params.name;
                     chisel.render(document.body, this.requestPage(response));
                     this.rendered = true;
                 }
+            }).catch(() => {
+                chisel.render(document.body, DocPage.errorPage());
             });
         } else {
             // Call the index API
-            chisel.xhr('get', 'doc_index', {
-                'onerror': (response) => {
-                    chisel.render(document.body, DocPage.errorPage(response));
-                },
-                'onok': (response) => {
+            window.fetch('doc_index').then(
+                (response) => response.json()
+            ).then((response) => {
+                if ('error' in response) {
+                    chisel.render(document.body, DocPage.errorPage(response.error));
+                } else {
                     document.title = response.title;
                     chisel.render(document.body, DocPage.indexPage(response.title, response));
                     this.rendered = true;
                 }
+            }).catch(() => {
+                chisel.render(document.body, DocPage.errorPage());
             });
         }
     }
 
-    static errorPage(params) {
-        if (params === null || typeof params.error === 'undefined') {
-            return chisel.text('An unexpected error occurred.');
-        }
-        return chisel.text(`Error: ${params.error}`);
+    static errorPage(error = null) {
+        return chisel.text(error !== null ? `Error: ${error}` : 'An unexpected error occurred.');
     }
 
     static indexPage(title, index) {

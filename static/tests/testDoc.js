@@ -1,5 +1,4 @@
 import {DocPage} from '../src/doc.js';
-import {XMLHttpRequestMock} from './testChisel.js';
 import browserEnv from 'browser-env';
 import test from 'ava';
 
@@ -11,251 +10,265 @@ import test from 'ava';
 browserEnv(['document', 'window']);
 
 
+// Mock for window.fetch
+class WindowFetchMock {
+    static reset(responses) {
+        window.fetch = WindowFetchMock.fetch;
+        WindowFetchMock.calls = [];
+        WindowFetchMock.responses = responses;
+    }
+
+    static fetch(resource, init) {
+        const response = WindowFetchMock.responses.shift();
+        WindowFetchMock.calls.push([resource, init]);
+        return {
+            'then': (resolve) => {
+                if (response.error) {
+                    return {
+                        'then': () => ({
+                            'catch': (reject) => {
+                                reject();
+                            }
+                        })
+                    };
+                }
+                resolve({
+                    'json': () => {
+                        WindowFetchMock.calls.push('resource response.json');
+                    }
+                });
+                return {
+                    'then': (resolve2) => {
+                        resolve2(response.json);
+                        return {
+                            // eslint-disable-next-line func-names
+                            'catch': function() {
+                                // Do nothing
+                            }
+                        };
+                    }
+                };
+            }
+        };
+    }
+}
+
+
 test('DocPage.render, index', (t) => {
     window.location.hash = '#';
-    XMLHttpRequestMock._reset();
     document.body.innerHTML = '';
-
-    // Do the render. Verify the XHR API call and that no render occurs (that happens on XHR callback)
-    const docPage = new DocPage();
-    docPage.render();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    const [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_index']],
-        ['send', []]
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'title': 'My APIs',
+                'groups': {
+                    'Documentation': ['chisel_doc_index', 'chisel_doc_request'],
+                    'Redirects': ['redirect_doc'],
+                    'Statics': ['static_chisel_js', 'static_doc_css', 'static_doc_html', 'static_doc_js']
+                }
+            }
+        }
     ]);
 
-    // Verify that the page doesn't render while loading
-    xhr.onreadystatechange();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-
-    // Render the index page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 200;
-    xhr.response = {
-        'title': 'My APIs',
-        'groups': {
-            'Documentation': ['chisel_doc_index', 'chisel_doc_request'],
-            'Redirects': ['redirect_doc'],
-            'Statics': ['static_chisel_js', 'static_doc_css', 'static_doc_html', 'static_doc_js']
-        }
-    };
-    xhr.onreadystatechange();
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
     t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<h1>My APIs</h1>'));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_index', undefined],
+        'resource response.json'
+    ]);
 });
 
 test('DocPage.render, index error', (t) => {
     window.location.hash = '#';
-    XMLHttpRequestMock._reset();
     document.body.innerHTML = '';
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'error': 'UnexpectedError'
+            }
+        }
+    ]);
 
-    // Do the render. Verify the XHR API call and that no render occurs (that happens on XHR callback)
+    // Do the render
     const docPage = new DocPage();
     docPage.render();
     t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    const [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_index']],
-        ['send', []]
+    t.is(document.body.innerHTML, 'Error: UnexpectedError');
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_index', undefined],
+        'resource response.json'
     ]);
+});
 
-    // Verify that the page doesn't render while loading
-    xhr.onreadystatechange();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
+test('DocPage.render, index unexpected error', (t) => {
+    window.location.hash = '#';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([{'error': true}]);
 
-    // Render the index page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 500;
-    xhr.onreadystatechange();
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
     t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'An unexpected error occurred.');
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_index', undefined]
+    ]);
 });
 
 test('DocPage.render, request', (t) => {
     window.location.hash = '#name=test';
-    XMLHttpRequestMock._reset();
     document.body.innerHTML = '';
-
-    // Do the render. Verify the XHR API call and that no render occurs (that happens on XHR callback)
-    const docPage = new DocPage();
-    docPage.render();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    const [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_request?name=test']],
-        ['send', []]
-    ]);
-
-    // Verify that the page doesn't render while loading
-    xhr.onreadystatechange();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-
-    // Render the request page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 200;
-    xhr.response = {
-        'name': 'simple',
-        'action': {
-            'name': 'simple',
-            'input': {'members': [], 'name': 'simple_input'},
-            'errors': {'name': 'simple_error', 'values': []},
-            'output': {'members': [{'name': 'sum', 'type': {'builtin': 'int'}}], 'name': 'simple_output'},
-            'path': {'members': [], 'name': 'simple_path'},
-            'query': {
-                'name': 'simple_query',
-                'members': [
-                    {'name': 'a', 'type': {'builtin': 'int'}},
-                    {'name': 'b', 'type': {'builtin': 'int'}}
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'name': 'simple',
+                'action': {
+                    'name': 'simple',
+                    'input': {'members': [], 'name': 'simple_input'},
+                    'errors': {'name': 'simple_error', 'values': []},
+                    'output': {'members': [{'name': 'sum', 'type': {'builtin': 'int'}}], 'name': 'simple_output'},
+                    'path': {'members': [], 'name': 'simple_path'},
+                    'query': {
+                        'name': 'simple_query',
+                        'members': [
+                            {'name': 'a', 'type': {'builtin': 'int'}},
+                            {'name': 'b', 'type': {'builtin': 'int'}}
+                        ]
+                    }
+                },
+                'urls': [
+                    {'method': 'GET', 'url': '/simple'}
                 ]
             }
-        },
-        'urls': [
-            {'method': 'GET', 'url': '/simple'}
-        ]
-    };
-    xhr.onreadystatechange();
+        }
+    ]);
+
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
     t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_request?name=test', undefined],
+        'resource response.json'
+    ]);
 });
 
 test('DocPage.render, request error', (t) => {
     window.location.hash = '#name=test';
-    XMLHttpRequestMock._reset();
     document.body.innerHTML = '';
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'error': 'UnknownName'
+            }
+        }
+    ]);
 
-    // Do the render. Verify the XHR API call and that no render occurs (that happens on XHR callback)
+    // Do the render
     const docPage = new DocPage();
     docPage.render();
     t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    const [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_request?name=test']],
-        ['send', []]
-    ]);
-
-    // Verify that the page doesn't render while loading
-    xhr.onreadystatechange();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-
-    // Render the request page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 400;
-    xhr.response = {'error': 'UnknownName'};
-    xhr.onreadystatechange();
-    t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'Error: UnknownName');
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_request?name=test', undefined],
+        'resource response.json'
+    ]);
+});
+
+test('DocPage.render, request unexpected error', (t) => {
+    window.location.hash = '#name=test';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([{'error': true}]);
+
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
+    t.false(docPage.rendered);
+    t.is(document.body.innerHTML, 'An unexpected error occurred.');
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_request?name=test', undefined]
+    ]);
 });
 
 test('DocPage.render, request avoid re-render', (t) => {
     window.location.hash = '#name=test';
-    XMLHttpRequestMock._reset();
     document.body.innerHTML = '';
 
-    // Do the render. Verify the XHR API call and that no render occurs (that happens on XHR callback)
+    // Do the render
     const docPage = new DocPage();
-    docPage.render();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    let [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_request?name=test']],
-        ['send', []]
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'name': 'test',
+                'action': {
+                    'name': 'test',
+                    'input': {'name': 'test_input', 'members': []},
+                    'errors': {'name': 'test_error', 'values': []},
+                    'output': {'name': 'test_output', 'members': []},
+                    'path': {'name': 'test_path', 'members': []},
+                    'query': {'name': 'test_query', 'members': []}
+                },
+                'urls': [
+                    {'method': 'GET', 'url': '/test'}
+                ]
+            }
+        }
     ]);
-
-    // Render the request page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 200;
-    xhr.response = {
-        'name': 'test',
-        'action': {
-            'name': 'test',
-            'input': {'name': 'test_input', 'members': []},
-            'errors': {'name': 'test_error', 'values': []},
-            'output': {'name': 'test_output', 'members': []},
-            'path': {'name': 'test_path', 'members': []},
-            'query': {'name': 'test_query', 'members': []}
-        },
-        'urls': [
-            {'method': 'GET', 'url': '/test'}
-        ]
-    };
-    xhr.onreadystatechange();
+    docPage.render();
     t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_request?name=test', undefined],
+        'resource response.json'
+    ]);
 
     // Call render again with same name - it should not re-render since its already rendered
-    XMLHttpRequestMock._reset();
+    WindowFetchMock.reset([]);
     document.body.innerHTML = '';
     docPage.render();
     t.true(docPage.rendered);
     t.is(document.body.innerHTML, '');
-    t.is(XMLHttpRequestMock._xhrs.length, 0);
+    t.deepEqual(WindowFetchMock.calls, []);
 
     // Verify render when name is changed
     window.location.hash = '#name=test2';
-    docPage.render();
-    t.false(docPage.rendered);
-    t.is(document.body.innerHTML, '');
-    [xhr] = XMLHttpRequestMock._xhrs;
-    t.is(xhr.readyState, xhr.LOADING);
-    t.is(xhr.response, null);
-    t.deepEqual(xhr._calls, [
-        ['open', ['get', 'doc_request?name=test2']],
-        ['send', []]
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'name': 'test2',
+                'action': {
+                    'name': 'test2',
+                    'input': {'name': 'test2_input', 'members': []},
+                    'errors': {'name': 'test2_error', 'values': []},
+                    'output': {'name': 'test2_output', 'members': []},
+                    'path': {'name': 'test2_path', 'members': []},
+                    'query': {'name': 'test2_query', 'members': []}
+                },
+                'urls': [
+                    {'method': 'GET', 'url': '/test2'}
+                ]
+            }
+        }
     ]);
-
-    // Render the request page
-    xhr.readyState = xhr.DONE;
-    xhr.status = 200;
-    xhr.response = {
-        'name': 'test2',
-        'action': {
-            'name': 'test2',
-            'input': {'name': 'test2_input', 'members': []},
-            'errors': {'name': 'test2_error', 'values': []},
-            'output': {'name': 'test2_output', 'members': []},
-            'path': {'name': 'test2_path', 'members': []},
-            'query': {'name': 'test2_query', 'members': []}
-        },
-        'urls': [
-            {'method': 'GET', 'url': '/test2'}
-        ]
-    };
-    xhr.onreadystatechange();
+    docPage.render();
     t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
 });
 
 test('DocPage.errorPage', (t) => {
     t.deepEqual(
-        DocPage.errorPage({}),
+        DocPage.errorPage(),
         {'text': 'An unexpected error occurred.'}
     );
 });
 
 test('DocPage.errorPage, error', (t) => {
     t.deepEqual(
-        DocPage.errorPage({'error': 'Ouch!'}),
+        DocPage.errorPage('Ouch!'),
         {'text': 'Error: Ouch!'}
     );
 });

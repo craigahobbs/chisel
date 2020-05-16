@@ -113,23 +113,3 @@ export function decodeParams(paramStr = null) {
     }
     return params;
 }
-
-export function xhr(method, pathname, args) {
-    const xhr_ = new window.XMLHttpRequest();
-    xhr_.open(method, href(null, typeof args.params !== 'undefined' ? args.params : {}, pathname));
-    xhr_.responseType = typeof args.responseType !== 'undefined' ? args.responseType : 'json';
-    xhr_.onreadystatechange = () => {
-        if (xhr_.readyState === xhr_.DONE) {
-            if (xhr_.status === 200) {
-                if (typeof args.onok !== 'undefined') {
-                    args.onok(xhr_.response);
-                }
-            } else {
-                if (typeof args.onerror !== 'undefined') {
-                    args.onerror(xhr_.response);
-                }
-            }
-        }
-    };
-    xhr_.send();
-}
