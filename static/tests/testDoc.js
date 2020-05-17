@@ -275,7 +275,8 @@ test('DocPage.errorPage, error', (t) => {
 
 test('DocPage.indexPage', (t) => {
     t.deepEqual(
-        DocPage.indexPage('The Title', {
+        DocPage.indexPage({
+            'title': 'The Title',
             'groups': {
                 'B Group': ['name3', 'name4'],
                 'C Group': ['name5'],
@@ -725,18 +726,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qa'}},
                                         {'tag': 'td', 'elems': {'text': 'int'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' > 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' < 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' > 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' < 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -744,18 +741,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qb'}},
                                         {'tag': 'td', 'elems': {'text': 'int'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' >= 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' <= 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' >= 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' <= 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -763,14 +756,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qc'}},
                                         {'tag': 'td', 'elems': {'text': 'int'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' == 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' == 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -778,18 +767,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qd'}},
                                         {'tag': 'td', 'elems': {'text': 'float'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}, 'tag': 'span'},
-                                                    {'text': ' > 0.5'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' < 9.5'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}, 'tag': 'span'},
+                                                {'text': ' > 0.5'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' < 9.5'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -797,19 +782,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qe'}},
                                         {'tag': 'td', 'elems': {'text': 'float'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' >= 0.5'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' <= 9.5'}
-                                                ]
-                                                }
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' >= 0.5'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' <= 9.5'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -817,14 +797,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qf'}},
                                         {'tag': 'td', 'elems': {'text': 'float'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' == 9.5'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                {'text': ' == 9.5'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -832,18 +808,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qg'}},
                                         {'tag': 'td', 'elems': {'text': 'string'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                    {'text': ' > 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                    {'text': ' < 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
+                                                {'text': ' > 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
+                                                {'text': ' < 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -851,18 +823,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qh'}},
                                         {'tag': 'td', 'elems': {'text': 'string'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                    {'text': ' >= 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                    {'text': ' <= 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
+                                                {'text': ' >= 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
+                                                {'text': ' <= 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -870,14 +838,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qi'}},
                                         {'tag': 'td', 'elems': {'text': 'string'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                    {'text': ' == 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
+                                                {'text': ' == 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -885,18 +849,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qj'}},
                                         {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' > 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' < 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                {'text': ' > 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                {'text': ' < 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -904,18 +864,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qk'}},
                                         {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' >= 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
-                                                    {'text': ' <= 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                {'text': ' >= 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
+                                                {'text': ' <= 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -923,18 +879,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'ql'}},
                                         {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' >= 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
-                                                    {'text': ' <= 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                {'text': ' >= 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
+                                                {'text': ' <= 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -942,18 +894,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qm'}},
                                         {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                    {'text': ' > 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                    {'text': ' < 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
+                                                {'text': ' > 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
+                                                {'text': ' < 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -961,18 +909,14 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qn'}},
                                         {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
-                                                    {'text': ' >= 0'}
-                                                ]},
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                    {'text': ' <= 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
+                                                {'text': ' >= 0'}
+                                            ]},
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
+                                                {'text': ' <= 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -980,14 +924,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'qo'}},
                                         {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                    {'text': ' == 10'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
+                                                {'text': ' == 10'}
+                                            ]}
                                         ]}},
                                         null
                                     ]}
@@ -1016,9 +956,7 @@ test('DocPage.requestPage', (t) => {
                                             {'tag': 'li', 'elems': [
                                                 {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'optional'}, 'tag': 'span'},
                                                 null
-                                            ]},
-                                            null,
-                                            []
+                                            ]}
                                         ]}
                                         },
                                         null
@@ -1027,12 +965,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'td', 'elems': {'text': 'ib'}},
                                         {'tag': 'td', 'elems': {'text': 'float'}},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
                                             {'tag': 'li', 'elems': [
                                                 {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
                                                 null
-                                            ]},
-                                            []
+                                            ]}
                                         ]}
                                         },
                                         null
@@ -1048,8 +984,7 @@ test('DocPage.requestPage', (t) => {
                                             {'tag': 'li', 'elems': [
                                                 {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
                                                 null
-                                            ]},
-                                            []
+                                            ]}
                                         ]}},
                                         null
                                     ]},
@@ -1065,12 +1000,10 @@ test('DocPage.requestPage', (t) => {
                                                 {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
                                                 null
                                             ]},
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' > 0'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                {'text': ' > 0'}
+                                            ]}
                                         ]}},
                                         null
                                     ]}
@@ -1165,14 +1098,10 @@ test('DocPage.requestPage', (t) => {
                                             {'text': ' {}'}
                                         ]},
                                         {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            null,
-                                            null,
-                                            [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
-                                                    {'text': ' > 0'}
-                                                ]}
-                                            ]
+                                            {'tag': 'li', 'elems': [
+                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
+                                                {'text': ' > 0'}
+                                            ]}
                                         ]}},
                                         null
                                     ]}
@@ -1209,14 +1138,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'tr', 'elems': [
                                             {'tag': 'td', 'elems': [[{'text': 'float'}, {'text': ' []'}]]},
                                             {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                                null,
-                                                null,
-                                                [
-                                                    {'tag': 'li', 'elems': [
-                                                        {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                        {'text': ' > 0'}
-                                                    ]}
-                                                ]
+                                                {'tag': 'li', 'elems': [
+                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
+                                                    {'text': ' > 0'}
+                                                ]}
                                             ]}}
                                         ]}
                                     ]}
@@ -1259,14 +1184,10 @@ test('DocPage.requestPage', (t) => {
                                         {'tag': 'tr', 'elems': [
                                             {'tag': 'td', 'elems': [{'text': 'int'}]},
                                             {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                                null,
-                                                null,
-                                                [
-                                                    {'tag': 'li', 'elems': [
-                                                        {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                        {'text': ' > 0'}
-                                                    ]}
-                                                ]
+                                                {'tag': 'li', 'elems': [
+                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
+                                                    {'text': ' > 0'}
+                                                ]}
                                             ]}}
                                         ]}
                                     ]}

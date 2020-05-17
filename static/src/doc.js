@@ -4,16 +4,31 @@
 import * as chisel from './chisel.js';
 
 
+/**
+ * The Chisel documentation application.
+ *
+ * @property {Object} params - The parsed and validated hash parameters object.
+ * @property {boolean} rendered - If true, the page is rendered.
+ */
 export class DocPage {
+    /**
+     * Create a documentation application instance.
+     */
     constructor() {
         this.params = null;
         this.rendered = false;
     }
 
+    /**
+     * Parse the hash parameters and update this.params.
+     */
     updateParams() {
         this.params = chisel.decodeParams();
     }
 
+    /**
+     * Render the documentation application page.
+     */
     render() {
         const oldParams = this.params;
         this.updateParams();
@@ -52,7 +67,7 @@ export class DocPage {
                     chisel.render(document.body, DocPage.errorPage(response.error));
                 } else {
                     document.title = response.title;
-                    chisel.render(document.body, DocPage.indexPage(response.title, response));
+                    chisel.render(document.body, DocPage.indexPage(response));
                     this.rendered = true;
                 }
             }).catch(() => {
@@ -61,14 +76,26 @@ export class DocPage {
         }
     }
 
+    /**
+     * Helper function to generate the error page's chisel.js element hierarchy model.
+     *
+     * @param {string} [error=null] - The error code. If null, an unexpected error is reported.
+     * @return {Object}
+     */
     static errorPage(error = null) {
         return chisel.text(error !== null ? `Error: ${error}` : 'An unexpected error occurred.');
     }
 
-    static indexPage(title, index) {
+    /**
+     * Helper function to generate the index page's chisel.js element hierarchy model.
+     *
+     * @param {Object} index - The Chisel documentation index API response.
+     * @returns {Array}
+     */
+    static indexPage(index) {
         return [
             // Title
-            chisel.elem('h1', null, chisel.text(title)),
+            chisel.elem('h1', null, chisel.text(index.title)),
 
             // Groups
             Object.keys(index.groups).sort().map((group) => [
@@ -83,6 +110,12 @@ export class DocPage {
         ];
     }
 
+    /**
+     * Helper function to generate the request page's chisel.js element hierarchy model.
+     *
+     * @param {Object} request - The Chisel documentation request API response.
+     * @returns {Array}
+     */
     requestPage(request) {
         return [
             // Navigation bar
@@ -152,8 +185,16 @@ export class DocPage {
         ];
     }
 
+    /**
+     * Helper function to generate a text block's chisel.js element hierarchy model.
+     *
+     * @param {Array} lines - The text lines.
+     * @returns {?Array}
+     */
     static textElem(lines) {
         const elems = [];
+
+        // Organize lines into paragraphs
         let paragraph = [];
         if (Array.isArray(lines)) {
             for (let iLine = 0; iLine < lines.length; iLine++) {
@@ -168,9 +209,17 @@ export class DocPage {
         if (paragraph.length) {
             elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
         }
+
+        // If there are no elements return null
         return elems.length ? elems : null;
     }
 
+    /**
+     * Helper method to get a type href (target).
+     *
+     * @param {Object} type - The Chisel documentation request API type union.
+     * @return {string}
+     */
     typeHref(type) {
         const href = chisel.encodeParams({'name': this.params.name});
         if (typeof type.typedef !== 'undefined') {
@@ -181,6 +230,12 @@ export class DocPage {
         return `${href}&struct_${type.struct}`;
     }
 
+    /**
+     * Helper method to generate a member/typedef type's chisel.js element hierarchy model.
+     *
+     * @param {Object} type - The Chisel documentation request API type union.
+     * @returns {(Object|Array)}
+     */
     typeElem(type) {
         if (typeof type.array !== 'undefined') {
             return [this.typeElem(type.array.type), chisel.text(' []')];
@@ -200,8 +255,26 @@ export class DocPage {
         return chisel.text(type.builtin);
     }
 
-    static attrParts(typeName, attr) {
+    /**
+     * Helper method to generate a member/typedef's attributes chisel.js element hierarchy model.
+     *
+     * @param {Object} memberOrTypedef - Chisel documentation request API member or typedef.
+     * @param {Object} memberOrTypedef.type - The Chisel documentation request API type.
+     * @param {Object} [memberOrTypedef.attr=null] - The Chisel documentation request API attributes.
+     * @param {boolean} [memberOrTypedef.optional=false] - If true, the member is optional.
+     * @param {boolean} [memberOrTypedef.nullable=false] - If true, the member is nullable.
+     * @returns {(null|Array)}
+     */
+    static attrElem({type, attr = null, optional = false, nullable = false}) {
+        // Create the array of attribute "parts" (lhs, op, rhs)
         const parts = [];
+        const typeName = type.array ? 'array' : (type.dict ? 'dict' : 'value');
+        if (optional) {
+            parts.push({'lhs': 'optional'});
+        }
+        if (nullable) {
+            parts.push({'lhs': 'nullable'});
+        }
         if (attr !== null && typeof attr.gt !== 'undefined') {
             parts.push({'lhs': typeName, 'op': '>', 'rhs': attr.gt});
         }
@@ -232,28 +305,25 @@ export class DocPage {
         if (attr !== null && typeof attr.len_eq !== 'undefined') {
             parts.push({'lhs': `len(${typeName})`, 'op': '==', 'rhs': attr.len_eq});
         }
-        return parts;
+
+
+        // Return the attributes element hierarchy model
+        return !parts.length ? null : chisel.elem('ul', {'class': 'chisel-constraint-list'}, parts.map(
+            (part) => chisel.elem('li', null, [
+                chisel.elem('span', {'class': 'chisel-emphasis'}, chisel.text(part.lhs)),
+                part.op ? chisel.text(` ${part.op} ${part.rhs}`) : null
+            ])
+        ));
     }
 
-    static attrPartsElem(attrPart) {
-        return chisel.elem('li', null, [
-            chisel.elem('span', {'class': 'chisel-emphasis'}, chisel.text(attrPart.lhs)),
-            attrPart.op ? chisel.text(` ${attrPart.op} ${attrPart.rhs}`) : null
-        ]);
-    }
-
-    static attrElem({type, attr = null}, optional, nullable) {
-        const attrElements = DocPage.attrParts(type.array ? 'array' : (type.dict ? 'dict' : 'value'), attr);
-        if (attrElements.length === 0 && !optional && !nullable) {
-            return null;
-        }
-        return chisel.elem('ul', {'class': 'chisel-constraint-list'}, [
-            optional ? DocPage.attrPartsElem({'lhs': 'optional'}) : null,
-            nullable ? DocPage.attrPartsElem({'lhs': 'nullable'}) : null,
-            attrElements.map(DocPage.attrPartsElem)
-        ]);
-    }
-
+    /**
+     * Helper method to generate a typedef's chisel.js element hierarchy model.
+     *
+     * @param {Object} typedef - The Chisel documentation request API typedef.
+     * @param {string} titleTag - The HTML tag for the typedef title element.
+     * @param {string} title - The typedef section's title string.
+     * @returns {Array}
+     */
     typedefElem(typedef, titleTag, title) {
         const hasAttributes = !!typedef.attr;
         return [
@@ -270,12 +340,20 @@ export class DocPage {
                 ]),
                 chisel.elem('tr', null, [
                     chisel.elem('td', null, [this.typeElem(typedef.type)]),
-                    hasAttributes ? chisel.elem('td', null, DocPage.attrElem(typedef, false, false)) : null
+                    hasAttributes ? chisel.elem('td', null, DocPage.attrElem(typedef)) : null
                 ])
             ])
         ];
     }
 
+    /**
+     * Helper method to generate a struct's chisel.js element hierarchy model.
+     *
+     * @param {Object} struct - The Chisel documentation request API struct.
+     * @param {string} titleTag - The HTML tag for the struct title element.
+     * @param {string} title - The struct section's title string.
+     * @returns {Array}
+     */
     structElem(struct, titleTag, title) {
         const hasAttributes = struct.members.reduce(
             (prevValue, curValue) => prevValue || !!(curValue.optional || curValue.nullable || curValue.attr),
@@ -303,7 +381,7 @@ export class DocPage {
                     chisel.elem('td', null, chisel.text(member.name)),
                     chisel.elem('td', null, this.typeElem(member.type)),
                     hasAttributes
-                        ? chisel.elem('td', null, DocPage.attrElem(member, member.optional, member.nullable))
+                        ? chisel.elem('td', null, DocPage.attrElem(member))
                         : null,
                     hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
                 ]))
@@ -311,6 +389,14 @@ export class DocPage {
         ];
     }
 
+    /**
+     * Helper method to generate a enum's chisel.js element hierarchy model.
+     *
+     * @param {Object} enum - The Chisel documentation request API enum.
+     * @param {string} titleTag - The HTML tag for the enum title element.
+     * @param {string} title - The enum section's title string.
+     * @returns {Array}
+     */
     enumElem(enum_, titleTag, title) {
         const hasDescription = enum_.values.reduce((prevValue, curValue) => prevValue || !!curValue.doc, false);
         return [
