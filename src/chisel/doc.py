@@ -53,10 +53,10 @@ class DocIndex(Action):
     SPEC = '''\
 group "Documentation"
 
-# TODO
+# A non-empty string array
 typedef string[len > 0] StringArray
 
-# TODO
+# Get the documentation index
 action chisel_doc_index
 
     output
@@ -64,7 +64,7 @@ action chisel_doc_index
         # The documentation index title
         string title
 
-        # TODO
+        # The dictionary of documentation group titles to array of request names
         StringArray{} groups
 '''
 
@@ -96,259 +96,250 @@ class DocRequest(Action):
     SPEC = '''
 group "Documentation"
 
-# TODO
+# A non-empty string array
 typedef string[len > 0] StringArray
 
-# TODO
-typedef string(len > 0) StructName
-
-# TODO
-typedef string(len > 0) EnumName
-
-# TODO
-typedef string(len > 0) TypedefName
-
-# TODO
+# Union representing a member type
 union Type
 
-    # TODO
+    # A built-in type
     BuiltinType builtin
 
-    # TODO
+    # An array type
     Array array
 
-    # TODO
+    # A dictionary type
     Dict dict
 
-    # TODO
-    EnumName enum
+    # An enumeration type
+    string enum
 
-    # TODO
-    StructName struct
+    # A struct type
+    string struct
 
-    # TODO
-    TypedefName typedef
+    # A type definition
+    string typedef
 
-# TODO
-enum BuiltinType
+# A type attribute
+struct Attribute
 
-    # TODO
-    string
-
-    # TODO
-    int
-
-    # TODO
-    float
-
-    # TODO
-    bool
-
-    # TODO
-    date
-
-    # TODO
-    datetime
-
-    # TODO
-    uuid
-
-    # TODO
-    object
-
-# TODO
-struct Array
-
-    # TODO
-    Type type
-
-    # TODO
-    optional Attr attr
-
-# TODO
-struct Dict
-
-    # TODO
-    Type type
-
-    # TODO
-    optional Attr attr
-
-    # TODO
-    Type key_type
-
-    # TODO
-    optional Attr key_attr
-
-# TODO
-struct Enum
-
-    # TODO
-    optional StringArray doc
-
-    # TODO
-    EnumName name
-
-    # TODO
-    EnumValue[] values
-
-# TODO
-struct EnumValue
-
-    # TODO
-    optional StringArray doc
-
-    # TODO
-    string value
-
-# TODO
-struct Struct
-
-    # TODO
-    optional StringArray doc
-
-    # TODO
-    StructName name
-
-    # TODO
-    optional bool union
-
-    # TODO
-    Member[] members
-
-# TODO
-struct Member
-
-    # TODO
-    optional StringArray doc
-
-    # TODO
-    string name
-
-    # TODO
-    optional bool optional
-
-    # TODO
-    optional bool nullable
-
-    # TODO
-    optional Attr attr
-
-    # TODO
-    Type type
-
-# TODO
-struct Attr
-
-    # TODO
+    # The value is equal
     optional float eq
 
-    # TODO
+    # The value is less than
     optional float lt
 
-    # TODO
+    # The value is less than or equal to
     optional float lte
 
-    # TODO
+    # The value is greater than
     optional float gt
 
-    # TODO
+    # The value is greater than or equal to
     optional float gte
 
-    # TODO
+    # The length is equal to
     optional int len_eq
 
-    # TODO
+    # The length is less-than
     optional int len_lt
 
-    # TODO
+    # The length is less than or equal to
     optional int len_lte
 
-    # TODO
+    # The length is greater than
     optional int len_gt
 
-    # TODO
+    # The length is greater than or equal to
     optional int len_gte
 
-# TODO
-struct Typedef
+# The built-in type enumeration
+enum BuiltinType
 
-    # TODO
-    optional StringArray doc
+    # The string type
+    string
 
-    # TODO
-    TypedefName name
+    # The integer type
+    int
 
-    # TODO
-    optional Attr attr
+    # The float type
+    float
 
-    # TODO
+    # The boolean type
+    bool
+
+    # A date formatted as an ISO-8601 date string
+    date
+
+    # A date/time formatted as an ISO-8601 date/time string
+    datetime
+
+    # A UUID formatted as string
+    uuid
+
+    # An object of any type
+    object
+
+# An array type
+struct Array
+
+    # The contained type
     Type type
 
-# TODO
-struct Action
+    # The contained type's attributes
+    optional Attribute attr
 
-    # TODO
+# A dictionary type
+struct Dict
+
+    # The contained key type
+    Type type
+
+    # The contained key type's attributes
+    optional Attribute attr
+
+    # The contained value type
+    Type key_type
+
+    # The contained value type's attributes
+    optional Attribute key_attr
+
+# An enumeration type
+struct Enum
+
+    # The documentation markdown text lines
+    optional StringArray doc
+
+    # The enum type name
     string name
 
-    # TODO
+    # The enumeration values
+    EnumValue[] values
+
+# An enumeration type value
+struct EnumValue
+
+    # The documentation markdown text lines
+    optional StringArray doc
+
+    # The value string
+    string value
+
+# A struct type
+struct Struct
+
+    # The documentation markdown text lines
+    optional StringArray doc
+
+    # The struct type name
+    string name
+
+    # If true, the struct is a union and exactly one of the optional members is present.
+    optional bool union
+
+    # The struct members
+    Member[] members
+
+# A struct type member
+struct Member
+
+    # The documentation markdown text lines
+    optional StringArray doc
+
+    # The member name
+    string name
+
+    # If true, the member is optional and may not be present.
+    optional bool optional
+
+    # If true, the member may be null.
+    optional bool nullable
+
+    # The member type
+    Type type
+
+    # The member type attributes
+    optional Attribute attr
+
+# A typedef type
+struct Typedef
+
+    # The documentation markdown text lines
+    optional StringArray doc
+
+    # The typedef type name
+    string name
+
+    # The typedef's type
+    Type type
+
+    # The typedef's type attributes
+    optional Attribute attr
+
+# A JSON web service API
+struct Action
+
+    # The action name
+    string name
+
+    # The path parameters struct
     Struct path
 
-    # TODO
+    # The query parameters struct
     Struct query
 
-    # TODO
+    # The content body struct
     Struct input
 
-    # TODO
+    # The response body struct
     optional Struct output
 
-    # TODO
+    # The custom error response codes
     Enum errors
 
-# TODO
-struct RequestUrl
+# Struct representing a request's URL information
+struct RequestURL
 
-    # TODO
+    # The request URL HTTP request method. If not present, all HTTP request methods are accepted.
     optional string method
 
-    # TODO
+    # The request URL path
     string url
 
-# TODO
+# Get a request's documentation information
 action chisel_doc_request
 
     query
 
-        # TODO
+        # The request name
         string name
 
     output
 
-        # TODO
+        # The documentation markdown text lines
         optional StringArray doc
 
-        # TODO
+        # The request name
         string name
 
-        # TODO
-        RequestUrl[] urls
+        # The array of URL paths where the request is hosted.
+        RequestURL[] urls
 
-        # TODO
+        # The action definition. If this member is present then this request is an action.
         optional Action action
 
-        # TODO
+        # The array of struct types referenced by the action
         optional Struct[] structs
 
-        # TODO
+        # The array of enum types referenced by the action
         optional Enum[] enums
 
-        # TODO
+        # The array of typedef types referenced by the action
         optional Typedef[] typedefs
 
     errors
 
-        # TODO
+        # The request name is unknown
         UnknownName
 '''
 
