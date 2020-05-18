@@ -43,7 +43,7 @@ export class DocPage {
         this.rendered = false;
 
         // Render the page
-        if (typeof this.params.name !== 'undefined') {
+        if ('name' in this.params) {
             // Call the request API
             window.fetch(chisel.href(null, {'name': this.params.name}, 'doc_request')).then(
                 (response) => response.json()
@@ -117,71 +117,58 @@ export class DocPage {
      * @returns {Array}
      */
     requestPage(request) {
+        const isAction = 'action' in request;
+        const isCustomResponse = isAction && !('output' in request.action);
         return [
             // Navigation bar
-            chisel.elem(
-                'div',
-                {'class': 'chisel-header'},
-                chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))
-            ),
+            chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
 
             // Title
             chisel.elem('h1', null, chisel.text(request.name)),
             DocPage.textElem(request.doc),
 
-            // Notes
-            chisel.elem('div', {'class': 'chisel-notes'}, [
-                // Request URLs note
-                (!request.urls.length ? null : chisel.elem('div', null, [
-                    chisel.elem('p', null, [
-                        chisel.elem('b', null, chisel.text('Note: ')),
-                        chisel.text(`The request is exposed at the following ${request.urls.length > 1 ? 'URLs:' : 'URL:'}`),
-                        chisel.elem('ul', null, request.urls.map((url) => chisel.elem('li', null, [
-                            chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
-                        ])))
-                    ])
-                ])),
+            // Request URLs note
+            !request.urls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
+                chisel.elem('b', null, chisel.text('Note: ')),
+                chisel.text(`The request is exposed at the following ${request.urls.length > 1 ? 'URLs:' : 'URL:'}`),
+                chisel.elem('ul', null, request.urls.map((url) => chisel.elem('li', null, [
+                    chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
+                ])))
+            ]),
 
-                // Action non-default response note
-                (typeof request.action === 'undefined' || typeof request.action.output !== 'undefined' ? null : chisel.elem('div', null, [
-                    chisel.elem('p', null, [
-                        chisel.elem('b', null, chisel.text('Note: ')),
-                        chisel.text('The action has a non-default response. See documentation for details.')
-                    ])
-                ])),
+            // Action non-default response note
+            !isCustomResponse ? null : chisel.elem('p', {'class': 'chisel-note'}, [
+                chisel.elem('b', null, chisel.text('Note: ')),
+                chisel.text('The action has a non-default response. See documentation for details.')
+            ]),
 
-                // Action?
-                (typeof request.action === 'undefined' ? null : [
-                    !request.action.path.members.length ? null : this.structElem(request.action.path, 'h2', 'Path Parameters'),
-                    !request.action.query.members.length ? null : this.structElem(request.action.query, 'h2', 'Query Parameters'),
-                    !request.action.input.members.length ? null : this.structElem(request.action.input, 'h2', 'Input Parameters'),
-                    typeof request.action.output === 'undefined' || !request.action.output.members.length ? null
-                        : this.structElem(request.action.output, 'h2', 'Output Parameters'),
-                    !request.action.errors.values.length ? null : this.enumElem(request.action.errors, 'h2', 'Error Codes'),
+            // Action sections
+            !(isAction && request.action.path.members.length) ? null : this.structElem(request.action.path, 'h2', 'Path Parameters'),
+            !(isAction && request.action.query.members.length) ? null : this.structElem(request.action.query, 'h2', 'Query Parameters'),
+            !(isAction && request.action.input.members.length) ? null : this.structElem(request.action.input, 'h2', 'Input Parameters'),
+            !(isAction && !isCustomResponse && request.action.output.members.length) ? null
+                : this.structElem(request.action.output, 'h2', 'Output Parameters'),
+            !(isAction && request.action.errors.values.length) ? null : this.enumElem(request.action.errors, 'h2', 'Error Codes'),
 
-                    // Typedefs
-                    (typeof request.typedefs === 'undefined' ? null : [
-                        chisel.elem('h2', null, chisel.text('Typedefs')),
-                        request.typedefs.map((typedef) => this.typedefElem(typedef, 'h3', `typedef ${typedef.name}`))
-                    ]),
+            // Typedefs
+            !('typedefs' in request) ? null : [
+                chisel.elem('h2', null, chisel.text('Typedefs')),
+                request.typedefs.map((typedef) => this.typedefElem(typedef, 'h3', `typedef ${typedef.name}`))
+            ],
 
-                    // Structs
-                    (typeof request.structs === 'undefined' ? null : [
-                        chisel.elem('h2', null, chisel.text('Struct Types')),
-                        request.structs.map((struct) => this.structElem(
-                            struct,
-                            'h3',
-                            `${struct.union ? 'union' : 'struct'} ${struct.name}`
-                        ))
-                    ]),
+            // Structs
+            !('structs' in request) ? null : [
+                chisel.elem('h2', null, chisel.text('Struct Types')),
+                request.structs.map(
+                    (struct) => this.structElem(struct, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`)
+                )
+            ],
 
-                    // Enums
-                    (typeof request.enums === 'undefined' ? null : [
-                        chisel.elem('h2', null, chisel.text('Enum Types')),
-                        request.enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`))
-                    ])
-                ])
-            ])
+            // Enums
+            !('enums' in request) ? null : [
+                chisel.elem('h2', null, chisel.text('Enum Types')),
+                request.enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`))
+            ]
         ];
     }
 
@@ -222,9 +209,9 @@ export class DocPage {
      */
     typeHref(type) {
         const href = chisel.encodeParams({'name': this.params.name});
-        if (typeof type.typedef !== 'undefined') {
+        if ('typedef' in type) {
             return `${href}&typedef_${type.typedef}`;
-        } else if (typeof type.enum !== 'undefined') {
+        } else if ('enum' in type) {
             return `${href}&enum_${type.enum}`;
         }
         return `${href}&struct_${type.struct}`;
@@ -237,19 +224,20 @@ export class DocPage {
      * @returns {(Object|Array)}
      */
     typeElem(type) {
-        if (typeof type.array !== 'undefined') {
-            return [this.typeElem(type.array.type), chisel.text(' []')];
-        } else if (typeof type.dict !== 'undefined') {
+        if ('array' in type) {
+            return [this.typeElem(type.array.type), chisel.text(`${chisel.nbsp}[]`)];
+        } else if ('dict' in type) {
             return [
-                type.dict.key_type.builtin === 'string' ? null : [this.typeElem(type.dict.key_type), chisel.text(' : ')],
+                type.dict.key_type.builtin === 'string' ? null
+                    : [this.typeElem(type.dict.key_type), chisel.text(`${chisel.nbsp}:${chisel.nbsp}`)],
                 this.typeElem(type.dict.type),
-                chisel.text(' {}')
+                chisel.text(`${chisel.nbsp}{}`)
             ];
-        } else if (typeof type.enum !== 'undefined') {
+        } else if ('enum' in type) {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, chisel.text(type.enum));
-        } else if (typeof type.struct !== 'undefined') {
+        } else if ('struct' in type) {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, chisel.text(type.struct));
-        } else if (typeof type.typedef !== 'undefined') {
+        } else if ('typedef' in type) {
             return chisel.elem('a', {'href': `#${this.typeHref(type)}`}, chisel.text(type.typedef));
         }
         return chisel.text(type.builtin);
@@ -275,44 +263,44 @@ export class DocPage {
         if (nullable) {
             parts.push({'lhs': 'nullable'});
         }
-        if (attr !== null && typeof attr.gt !== 'undefined') {
+        if (attr !== null && 'gt' in attr) {
             parts.push({'lhs': typeName, 'op': '>', 'rhs': attr.gt});
         }
-        if (attr !== null && typeof attr.gte !== 'undefined') {
+        if (attr !== null && 'gte' in attr) {
             parts.push({'lhs': typeName, 'op': '>=', 'rhs': attr.gte});
         }
-        if (attr !== null && typeof attr.lt !== 'undefined') {
+        if (attr !== null && 'lt' in attr) {
             parts.push({'lhs': typeName, 'op': '<', 'rhs': attr.lt});
         }
-        if (attr !== null && typeof attr.lte !== 'undefined') {
+        if (attr !== null && 'lte' in attr) {
             parts.push({'lhs': typeName, 'op': '<=', 'rhs': attr.lte});
         }
-        if (attr !== null && typeof attr.eq !== 'undefined') {
+        if (attr !== null && 'eq' in attr) {
             parts.push({'lhs': typeName, 'op': '==', 'rhs': attr.eq});
         }
-        if (attr !== null && typeof attr.len_gt !== 'undefined') {
+        if (attr !== null && 'len_gt' in attr) {
             parts.push({'lhs': `len(${typeName})`, 'op': '>', 'rhs': attr.len_gt});
         }
-        if (attr !== null && typeof attr.len_gte !== 'undefined') {
+        if (attr !== null && 'len_gte' in attr) {
             parts.push({'lhs': `len(${typeName})`, 'op': '>=', 'rhs': attr.len_gte});
         }
-        if (attr !== null && typeof attr.len_lt !== 'undefined') {
+        if (attr !== null && 'len_lt' in attr) {
             parts.push({'lhs': `len(${typeName})`, 'op': '<', 'rhs': attr.len_lt});
         }
-        if (attr !== null && typeof attr.len_lte !== 'undefined') {
+        if (attr !== null && 'len_lte' in attr) {
             parts.push({'lhs': `len(${typeName})`, 'op': '<=', 'rhs': attr.len_lte});
         }
-        if (attr !== null && typeof attr.len_eq !== 'undefined') {
+        if (attr !== null && 'len_eq' in attr) {
             parts.push({'lhs': `len(${typeName})`, 'op': '==', 'rhs': attr.len_eq});
         }
 
-
         // Return the attributes element hierarchy model
-        return !parts.length ? null : chisel.elem('ul', {'class': 'chisel-constraint-list'}, parts.map(
-            (part) => chisel.elem('li', null, [
-                chisel.elem('span', {'class': 'chisel-emphasis'}, chisel.text(part.lhs)),
-                part.op ? chisel.text(` ${part.op} ${part.rhs}`) : null
-            ])
+        return !parts.length ? null : chisel.elem('ul', {'class': 'chisel-attr-list'}, parts.map(
+            (part) => chisel.elem(
+                'li',
+                null,
+                chisel.text(part.op ? `${part.lhs}${chisel.nbsp}${part.op}${chisel.nbsp}${part.rhs}` : part.lhs)
+            )
         ));
     }
 

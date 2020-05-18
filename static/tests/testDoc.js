@@ -1,3 +1,4 @@
+import * as chisel from '../src/chisel.js';
 import {DocPage} from '../src/doc.js';
 import browserEnv from 'browser-env';
 import test from 'ava';
@@ -150,7 +151,7 @@ test('DocPage.render, request', (t) => {
     const docPage = new DocPage();
     docPage.render();
     t.true(docPage.rendered);
-    t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
+    t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined],
         'resource response.json'
@@ -220,7 +221,7 @@ test('DocPage.render, request avoid re-render', (t) => {
     ]);
     docPage.render();
     t.true(docPage.rendered);
-    t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
+    t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined],
         'resource response.json'
@@ -256,7 +257,7 @@ test('DocPage.render, request avoid re-render', (t) => {
     ]);
     docPage.render();
     t.true(docPage.rendered);
-    t.true(document.body.innerHTML.startsWith('<div class="chisel-header">'));
+    t.true(document.body.innerHTML.startsWith('<p>'));
 });
 
 test('DocPage.errorPage', (t) => {
@@ -330,17 +331,21 @@ test('DocPage.requestPage, empty', (t) => {
         }),
         [
             {
-                'tag': 'div',
-                'attrs': {'class': 'chisel-header'},
+                'tag': 'p',
                 'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
             },
             {'tag': 'h1', 'elems': {'text': 'empty'}},
             null,
-            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
-                null,
-                null,
-                [null, null, null, null, null, null, null, null]
-            ]}
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
         ]
     );
 });
@@ -363,30 +368,30 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
         }),
         [
             {
-                'tag': 'div',
-                'attrs': {'class': 'chisel-header'},
+                'tag': 'p',
                 'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
             },
             {'tag': 'h1', 'elems': {'text': 'wsgiResponse'}},
             null,
-            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
-                {'tag': 'div', 'elems': [
-                    {'tag': 'p', 'elems': [
-                        {'tag': 'b', 'elems': {'text': 'Note: '}},
-                        {'text': 'The request is exposed at the following URL:'},
-                        {'tag': 'ul', 'elems': [
-                            {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/wsgiResponse'}, 'elems': {'text': 'POST /wsgiResponse'}}]}
-                        ]}
-                    ]}
-                ]},
-                {'tag': 'div', 'elems': [
-                    {'tag': 'p', 'elems': [
-                        {'tag': 'b', 'elems': {'text': 'Note: '}},
-                        {'text': 'The action has a non-default response. See documentation for details.'}
-                    ]}
-                ]},
-                [null, null, null, null, null, null, null, null]
-            ]}
+            {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
+                {'tag': 'b', 'elems': {'text': 'Note: '}},
+                {'text': 'The request is exposed at the following URL:'},
+                {'tag': 'ul', 'elems': [
+                    {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/wsgiResponse'}, 'elems': {'text': 'POST /wsgiResponse'}}]}
+                ]}
+            ]},
+            {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
+                {'tag': 'b', 'elems': {'text': 'Note: '}},
+                {'text': 'The action has a non-default response. See documentation for details.'}
+            ]},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
         ]
     );
 });
@@ -402,25 +407,27 @@ test('DocPage.requestPage, request', (t) => {
         }),
         [
             {
-                'tag': 'div',
-                'attrs': {'class': 'chisel-header'},
+                'tag': 'p',
                 'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
             },
             {'tag': 'h1', 'elems': {'text': 'request'}},
             null,
-            {'tag': 'div', 'attrs': {'class': 'chisel-notes'}, 'elems': [
-                {'tag': 'div', 'elems': [
-                    {'tag': 'p', 'elems': [
-                        {'tag': 'b', 'elems': {'text': 'Note: '}},
-                        {'text': 'The request is exposed at the following URL:'},
-                        {'tag': 'ul', 'elems': [
-                            {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/request'}, 'elems': {'text': '/request'}}]}
-                        ]}
-                    ]}
-                ]},
-                null,
-                null
-            ]}
+            {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
+                {'tag': 'b', 'elems': {'text': 'Note: '}},
+                {'text': 'The request is exposed at the following URL:'},
+                {'tag': 'ul', 'elems': [
+                    {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/request'}, 'elems': {'text': '/request'}}]}
+                ]}
+            ]},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
         ]
     );
 });
@@ -614,7 +621,7 @@ test('DocPage.requestPage', (t) => {
         // Begin requestPage
         // =================
         [
-            {'tag': 'div', 'attrs': {'class': 'chisel-header'}, 'elems': {
+            {'tag': 'p', 'elems': {
                 'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}
             }},
             {'tag': 'h1', 'elems': {'text': 'test'}},
@@ -622,708 +629,588 @@ test('DocPage.requestPage', (t) => {
                 {'tag': 'p', 'elems': {'text': ' The test action.'}},
                 {'tag': 'p', 'elems': {'text': ' This is some more information.'}}
             ],
-            {
-                'attrs': {'class': 'chisel-notes'},
-                'elems': [
-                    {'tag': 'div', 'elems': [
-                        {'tag': 'p', 'elems': [
-                            {'tag': 'b', 'elems': {'text': 'Note: '}},
-                            {'text': 'The request is exposed at the following URLs:'},
-                            {'tag': 'ul', 'elems': [
-                                {'tag': 'li', 'elems': [{'attrs': {'href': '/test'}, 'elems': {'text': '/test'}, 'tag': 'a'}]},
-                                {'tag': 'li', 'elems': [{'attrs': {'href': '/test'}, 'elems': {'text': 'GET /test'}, 'tag': 'a'}]},
-                                {'tag': 'li', 'elems': [{'attrs': {'href': '/'}, 'elems': {'text': 'GET /'}, 'tag': 'a'}]}
+            {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
+                {'tag': 'b', 'elems': {'text': 'Note: '}},
+                {'text': 'The request is exposed at the following URLs:'},
+                {'tag': 'ul', 'elems': [
+                    {'tag': 'li', 'elems': [{'attrs': {'href': '/test'}, 'elems': {'text': '/test'}, 'tag': 'a'}]},
+                    {'tag': 'li', 'elems': [{'attrs': {'href': '/test'}, 'elems': {'text': 'GET /test'}, 'tag': 'a'}]},
+                    {'tag': 'li', 'elems': [{'attrs': {'href': '/'}, 'elems': {'text': 'GET /'}, 'tag': 'a'}]}
+                ]}
+            ]},
+            null,
+            [
+                {
+                    'tag': 'h2',
+                    'attrs': {'id': 'name=test&struct_test_path'},
+                    'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}}
+                },
+                null,
+                {'tag': 'table', 'elems': [
+                    {'tag': 'tr', 'elems': [
+                        {'tag': 'th', 'elems': {'text': 'Name'}},
+                        {'tag': 'th', 'elems': {'text': 'Type'}},
+                        null,
+                        {'tag': 'th', 'elems': {'text': 'Description'}}
+                    ]},
+                    [
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pa'}},
+                            {'tag': 'td', 'elems': {'text': 'bool'}},
+                            null,
+                            {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The url member "pa".'}}]}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pb'}},
+                            {'tag': 'td', 'elems': {'text': 'date'}},
+                            null,
+                            {'tag': 'td', 'elems': [
+                                {'tag': 'p', 'elems': {'text': ' The url member "pb".'}},
+                                {'tag': 'p', 'elems': {'text': ' More info.'}}
+                            ]}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pc'}},
+                            {'tag': 'td', 'elems': {'text': 'datetime'}},
+                            null,
+                            {'tag': 'td'}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pd'}},
+                            {'tag': 'td', 'elems': {'text': 'float'}},
+                            null,
+                            {'tag': 'td'}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pe'}},
+                            {'tag': 'td', 'elems': {'text': 'int'}},
+                            null,
+                            {'tag': 'td'}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pf'}},
+                            {'tag': 'td', 'elems': {'text': 'object'}},
+                            null,
+                            {'tag': 'td'}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'pg'}},
+                            {'tag': 'td', 'elems': {'text': 'string'}},
+                            null,
+                            {'tag': 'td'}
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ph'}},
+                            {'tag': 'td', 'elems': {'text': 'uuid'}},
+                            null,
+                            {'tag': 'td'}
+                        ]}
+                    ]
+                ]}
+            ],
+            [
+                {
+                    'tag': 'h2',
+                    'attrs': {'id': 'name=test&struct_test_query'},
+                    'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
+                },
+                null,
+                {'tag': 'table', 'elems': [
+                    {'tag': 'tr', 'elems': [
+                        {'tag': 'th', 'elems': {'text': 'Name'}},
+                        {'tag': 'th', 'elems': {'text': 'Type'}},
+                        {'tag': 'th', 'elems': {'text': 'Attributes'}},
+                        null
+                    ]},
+                    [
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qa'}},
+                            {'tag': 'td', 'elems': {'text': 'int'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}>${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}<${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qb'}},
+                            {'tag': 'td', 'elems': {'text': 'int'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}>=${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}<=${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qc'}},
+                            {'tag': 'td', 'elems': {'text': 'int'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}==${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qd'}},
+                            {'tag': 'td', 'elems': {'text': 'float'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}>${chisel.nbsp}0.5`}},
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}<${chisel.nbsp}9.5`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qe'}},
+                            {'tag': 'td', 'elems': {'text': 'float'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}>=${chisel.nbsp}0.5`}},
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}<=${chisel.nbsp}9.5`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qf'}},
+                            {'tag': 'td', 'elems': {'text': 'float'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}==${chisel.nbsp}9.5`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qg'}},
+                            {'tag': 'td', 'elems': {'text': 'string'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(value)${chisel.nbsp}>${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(value)${chisel.nbsp}<${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qh'}},
+                            {'tag': 'td', 'elems': {'text': 'string'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(value)${chisel.nbsp}>=${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(value)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qi'}},
+                            {'tag': 'td', 'elems': {'text': 'string'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(value)${chisel.nbsp}==${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qj'}},
+                            {'tag': 'td', 'elems': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}<${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qk'}},
+                            {'tag': 'td', 'elems': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>=${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ql'}},
+                            {'tag': 'td', 'elems': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>=${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qm'}},
+                            {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}>${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}<${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qn'}},
+                            {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}>=${chisel.nbsp}0`}},
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'qo'}},
+                            {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}==${chisel.nbsp}10`}}
+                            ]}},
+                            null
+                        ]}
+                    ]
+                ]}
+            ],
+            [
+                {
+                    'tag': 'h2',
+                    'attrs': {'id': 'name=test&struct_test_input'},
+                    'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
+                },
+                null,
+                {'tag': 'table', 'elems': [
+                    {'tag': 'tr', 'elems': [
+                        {'tag': 'th', 'elems': {'text': 'Name'}},
+                        {'tag': 'th', 'elems': {'text': 'Type'}},
+                        {'tag': 'th', 'elems': {'text': 'Attributes'}},
+                        null
+                    ]},
+                    [
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ia'}},
+                            {'tag': 'td', 'elems': {'text': 'int'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': 'optional'}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ib'}},
+                            {'tag': 'td', 'elems': {'text': 'float'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': 'nullable'}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ic'}},
+                            {'tag': 'td', 'elems': {'text': 'string'}},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': 'optional'}},
+                                {'tag': 'li', 'elems': {'text': 'nullable'}}
+                            ]}},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'id'}},
+                            {'tag': 'td', 'elems': [{'text': 'string'}, {'text': `${chisel.nbsp}[]`}]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': 'optional'}},
+                                {'tag': 'li', 'elems': {'text': 'nullable'}},
+                                {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
+                            ]}},
+                            null
+                        ]}
+                    ]
+                ]}
+            ],
+            [
+                {
+                    'tag': 'h2',
+                    'attrs': {'id': 'name=test&struct_test_output'},
+                    'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}, 'tag': 'a'}
+                },
+                null,
+                {'tag': 'table', 'elems': [
+                    {'tag': 'tr', 'elems': [
+                        {'tag': 'th', 'elems': {'text': 'Name'}},
+                        {'tag': 'th', 'elems': {'text': 'Type'}},
+                        {'tag': 'th', 'elems': {'text': 'Attributes'}},
+                        null
+                    ]},
+                    [
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'oa'}},
+                            {'tag': 'td', 'elems': {
+                                'tag': 'a',
+                                'attrs': {'href': '#name=test&typedef_PositiveInt'},
+                                'elems': {'text': 'PositiveInt'}
+                            }},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'ob'}},
+                            {'tag': 'td', 'elems': {
+                                'tag': 'a',
+                                'attrs': {'href': '#name=test&typedef_JustAString'},
+                                'elems': {'text': 'JustAString'}
+                            }},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'oc'}},
+                            {'tag': 'td', 'elems': {
+                                'tag': 'a',
+                                'attrs': {'href': '#name=test&struct_Struct1'},
+                                'elems': {'text': 'Struct1'}
+                            }},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'od'}},
+                            {'tag': 'td', 'elems': {
+                                'tag': 'a',
+                                'attrs': {'href': '#name=test&enum_Enum1'},
+                                'elems': {'text': 'Enum1'}
+                            }},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'oe'}},
+                            {'tag': 'td', 'elems': {
+                                'tag': 'a',
+                                'attrs': {'href': '#name=test&enum_Enum2'},
+                                'elems': {'text': 'Enum2'}
+                            }},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'of'}},
+                            {'tag': 'td', 'elems': [
+                                [
+                                    {'tag': 'a', 'attrs': {'href': '#name=test&enum_Enum1'}, 'elems': {'text': 'Enum1'}},
+                                    {'text': `${chisel.nbsp}:${chisel.nbsp}`}
+                                ],
+                                {'text': 'string'}, {'text': `${chisel.nbsp}{}`}
+                            ]},
+                            {'tag': 'td'},
+                            null
+                        ]},
+                        {'tag': 'tr', 'elems': [
+                            {'tag': 'td', 'elems': {'text': 'og'}},
+                            {'tag': 'td', 'elems': [
+                                [
+                                    {'tag': 'a', 'attrs': {'href': '#name=test&typedef_JustAString'}, 'elems': {'text': 'JustAString'}},
+                                    {'text': `${chisel.nbsp}:${chisel.nbsp}`}
+                                ],
+                                {'tag': 'a', 'attrs': {'href': '#name=test&typedef_NonEmptyFloatArray'}, 'elems': {'text': 'NonEmptyFloatArray'}},
+                                {'text': `${chisel.nbsp}{}`}
+                            ]},
+                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                {'tag': 'li', 'elems': {'text': `len(dict)${chisel.nbsp}>${chisel.nbsp}0`}}
+                            ]}},
+                            null
+                        ]}
+                    ]
+                ]}
+            ],
+            [
+                {
+                    'tag': 'h2',
+                    'attrs': {'id': 'name=test&enum_test_error'},
+                    'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}
+                },
+                null,
+                {'tag': 'table', 'elems': [
+                    {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Value'}}, null]},
+                    [
+                        {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'Error1'}}, null]},
+                        {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'Error2'}}, null]}
+                    ]
+                ]}
+            ],
+            [
+                {'tag': 'h2', 'elems': {'text': 'Typedefs'}},
+                [
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&typedef_NonEmptyFloatArray'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}
+                        },
+                        null,
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Type'}}, {'tag': 'th', 'elems': {'text': 'Attributes'}}]},
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'td', 'elems': [[{'text': 'float'}, {'text': `${chisel.nbsp}[]`}]]},
+                                {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                    {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
+                                ]}}
                             ]}
                         ]}
-                    ]},
-                    null,
+                    ],
                     [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&typedef_JustAString'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}
+                        },
                         [
-                            {
-                                'tag': 'h2',
-                                'attrs': {'id': 'name=test&struct_test_path'},
-                                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}}
-                            },
-                            null,
-                            {'tag': 'table', 'elems': [
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'th', 'elems': {'text': 'Name'}},
-                                    {'tag': 'th', 'elems': {'text': 'Type'}},
-                                    null,
-                                    {'tag': 'th', 'elems': {'text': 'Description'}}
-                                ]},
-                                [
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pa'}},
-                                        {'tag': 'td', 'elems': {'text': 'bool'}},
-                                        null,
-                                        {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The url member "pa".'}}]}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pb'}},
-                                        {'tag': 'td', 'elems': {'text': 'date'}},
-                                        null,
-                                        {'tag': 'td', 'elems': [
-                                            {'tag': 'p', 'elems': {'text': ' The url member "pb".'}},
-                                            {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                        ]}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pc'}},
-                                        {'tag': 'td', 'elems': {'text': 'datetime'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pd'}},
-                                        {'tag': 'td', 'elems': {'text': 'float'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pe'}},
-                                        {'tag': 'td', 'elems': {'text': 'int'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pf'}},
-                                        {'tag': 'td', 'elems': {'text': 'object'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'pg'}},
-                                        {'tag': 'td', 'elems': {'text': 'string'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ph'}},
-                                        {'tag': 'td', 'elems': {'text': 'uuid'}},
-                                        null,
-                                        {'tag': 'td'}
-                                    ]}
-                                ]
+                            {'tag': 'p', 'elems': {'text': ' Just a string.'}},
+                            {'tag': 'p', 'elems': {'text': ' More info.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'th', 'elems': {'text': 'Type'}},
+                                null
+                            ]},
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'td', 'elems': [{'text': 'string'}]},
+                                null
                             ]}
-                        ],
+                        ]}
+                    ],
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&typedef_PositiveInt'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef PositiveInt'}}
+                        },
                         [
-                            {
-                                'tag': 'h2',
-                                'attrs': {'id': 'name=test&struct_test_query'},
-                                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
-                            },
-                            null,
-                            {'tag': 'table', 'elems': [
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'th', 'elems': {'text': 'Name'}},
-                                    {'tag': 'th', 'elems': {'text': 'Type'}},
-                                    {'tag': 'th', 'elems': {'text': 'Attributes'}},
-                                    null
-                                ]},
-                                [
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qa'}},
-                                        {'tag': 'td', 'elems': {'text': 'int'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' > 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' < 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qb'}},
-                                        {'tag': 'td', 'elems': {'text': 'int'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' >= 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' <= 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qc'}},
-                                        {'tag': 'td', 'elems': {'text': 'int'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' == 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qd'}},
-                                        {'tag': 'td', 'elems': {'text': 'float'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}, 'tag': 'span'},
-                                                {'text': ' > 0.5'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' < 9.5'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qe'}},
-                                        {'tag': 'td', 'elems': {'text': 'float'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' >= 0.5'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' <= 9.5'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qf'}},
-                                        {'tag': 'td', 'elems': {'text': 'float'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                {'text': ' == 9.5'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qg'}},
-                                        {'tag': 'td', 'elems': {'text': 'string'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                {'text': ' > 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                {'text': ' < 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qh'}},
-                                        {'tag': 'td', 'elems': {'text': 'string'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                {'text': ' >= 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                {'text': ' <= 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qi'}},
-                                        {'tag': 'td', 'elems': {'text': 'string'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(value)'}},
-                                                {'text': ' == 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qj'}},
-                                        {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                {'text': ' > 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                {'text': ' < 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qk'}},
-                                        {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                {'text': ' >= 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
-                                                {'text': ' <= 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ql'}},
-                                        {'tag': 'td', 'elems': [{'text': 'int'}, {'text': ' []'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                {'text': ' >= 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}, 'tag': 'span'},
-                                                {'text': ' <= 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qm'}},
-                                        {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                {'text': ' > 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                {'text': ' < 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qn'}},
-                                        {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
-                                                {'text': ' >= 0'}
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                {'text': ' <= 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'qo'}},
-                                        {'tag': 'td', 'elems': [null, {'text': 'string'}, {'text': ' {}'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}, 'tag': 'span'},
-                                                {'text': ' == 10'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]}
-                                ]
+                            {'tag': 'p', 'elems': {'text': ' A positive integer.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'th', 'elems': {'text': 'Type'}},
+                                {'tag': 'th', 'elems': {'text': 'Attributes'}}
+                            ]},
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'td', 'elems': [{'text': 'int'}]},
+                                {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                    {'tag': 'li', 'elems': {'text': `value${chisel.nbsp}>${chisel.nbsp}0`}}
+                                ]}}
                             ]}
-                        ],
-                        [
-                            {
-                                'tag': 'h2',
-                                'attrs': {'id': 'name=test&struct_test_input'},
-                                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
-                            },
-                            null,
-                            {'tag': 'table', 'elems': [
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'th', 'elems': {'text': 'Name'}},
-                                    {'tag': 'th', 'elems': {'text': 'Type'}},
-                                    {'tag': 'th', 'elems': {'text': 'Attributes'}},
-                                    null
-                                ]},
-                                [
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ia'}},
-                                        {'tag': 'td', 'elems': {'text': 'int'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'optional'}, 'tag': 'span'},
-                                                null
-                                            ]}
-                                        ]}
-                                        },
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ib'}},
-                                        {'tag': 'td', 'elems': {'text': 'float'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
-                                                null
-                                            ]}
-                                        ]}
-                                        },
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ic'}},
-                                        {'tag': 'td', 'elems': {'text': 'string'}},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'optional'}},
-                                                null
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
-                                                null
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'id'}},
-                                        {'tag': 'td', 'elems': [{'text': 'string'}, {'text': ' []'}]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'optional'}},
-                                                null
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'nullable'}},
-                                                null
-                                            ]},
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                {'text': ' > 0'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]}
-                                ]
-                            ]}
-                        ],
-                        [
-                            {
-                                'tag': 'h2',
-                                'attrs': {'id': 'name=test&struct_test_output'},
-                                'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}, 'tag': 'a'}
-                            },
-                            null,
-                            {'tag': 'table', 'elems': [
-                                {'tag': 'tr', 'elems': [
-                                    {'tag': 'th', 'elems': {'text': 'Name'}},
-                                    {'tag': 'th', 'elems': {'text': 'Type'}},
-                                    {'tag': 'th', 'elems': {'text': 'Attributes'}},
-                                    null
-                                ]},
-                                [
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'oa'}},
-                                        {'tag': 'td', 'elems': {
-                                            'tag': 'a',
-                                            'attrs': {'href': '#name=test&typedef_PositiveInt'},
-                                            'elems': {'text': 'PositiveInt'}
-                                        }},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'ob'}},
-                                        {'tag': 'td', 'elems': {
-                                            'tag': 'a',
-                                            'attrs': {'href': '#name=test&typedef_JustAString'},
-                                            'elems': {'text': 'JustAString'}
-                                        }},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'oc'}},
-                                        {'tag': 'td', 'elems': {
-                                            'tag': 'a',
-                                            'attrs': {'href': '#name=test&struct_Struct1'},
-                                            'elems': {'text': 'Struct1'}
-                                        }},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'od'}},
-                                        {'tag': 'td', 'elems': {
-                                            'tag': 'a',
-                                            'attrs': {'href': '#name=test&enum_Enum1'},
-                                            'elems': {'text': 'Enum1'}
-                                        }},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'oe'}},
-                                        {'tag': 'td', 'elems': {
-                                            'tag': 'a',
-                                            'attrs': {'href': '#name=test&enum_Enum2'},
-                                            'elems': {'text': 'Enum2'}
-                                        }},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'of'}},
-                                        {'tag': 'td', 'elems': [
-                                            [
-                                                {'tag': 'a', 'attrs': {'href': '#name=test&enum_Enum1'}, 'elems': {'text': 'Enum1'}},
-                                                {'text': ' : '}
-                                            ],
-                                            {'text': 'string'}, {'text': ' {}'}
-                                        ]},
-                                        {'tag': 'td'},
-                                        null
-                                    ]},
-                                    {'tag': 'tr', 'elems': [
-                                        {'tag': 'td', 'elems': {'text': 'og'}},
-                                        {'tag': 'td', 'elems': [
-                                            [
-                                                {'tag': 'a', 'attrs': {'href': '#name=test&typedef_JustAString'}, 'elems': {'text': 'JustAString'}},
-                                                {'text': ' : '}
-                                            ],
-                                            {'tag': 'a', 'attrs': {'href': '#name=test&typedef_NonEmptyFloatArray'}, 'elems': {'text': 'NonEmptyFloatArray'}},
-                                            {'text': ' {}'}
-                                        ]},
-                                        {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                            {'tag': 'li', 'elems': [
-                                                {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(dict)'}},
-                                                {'text': ' > 0'}
-                                            ]}
-                                        ]}},
-                                        null
-                                    ]}
-                                ]
-                            ]}
-                        ],
-                        [
-                            {
-                                'tag': 'h2',
-                                'attrs': {'id': 'name=test&enum_test_error'},
-                                'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}
-                            },
-                            null,
-                            {'tag': 'table', 'elems': [
-                                {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Value'}}, null]},
-                                [
-                                    {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'Error1'}}, null]},
-                                    {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'Error2'}}, null]}
-                                ]
-                            ]}
-                        ],
-                        [
-                            {'tag': 'h2', 'elems': {'text': 'Typedefs'}},
-                            [
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&typedef_NonEmptyFloatArray'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}
-                                    },
-                                    null,
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Type'}}, {'tag': 'th', 'elems': {'text': 'Attributes'}}]},
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'td', 'elems': [[{'text': 'float'}, {'text': ' []'}]]},
-                                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'len(array)'}},
-                                                    {'text': ' > 0'}
-                                                ]}
-                                            ]}}
-                                        ]}
-                                    ]}
-                                ],
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&typedef_JustAString'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' Just a string.'}},
-                                        {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'th', 'elems': {'text': 'Type'}},
-                                            null
-                                        ]},
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'td', 'elems': [{'text': 'string'}]},
-                                            null
-                                        ]}
-                                    ]}
-                                ],
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&typedef_PositiveInt'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef PositiveInt'}}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' A positive integer.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'th', 'elems': {'text': 'Type'}},
-                                            {'tag': 'th', 'elems': {'text': 'Attributes'}}
-                                        ]},
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'td', 'elems': [{'text': 'int'}]},
-                                            {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-constraint-list'}, 'elems': [
-                                                {'tag': 'li', 'elems': [
-                                                    {'tag': 'span', 'attrs': {'class': 'chisel-emphasis'}, 'elems': {'text': 'value'}},
-                                                    {'text': ' > 0'}
-                                                ]}
-                                            ]}}
-                                        ]}
-                                    ]}
-                                ]
-                            ]
-                        ],
-                        [
-                            {'tag': 'h2', 'elems': {'text': 'Struct Types'}},
-                            [
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&struct_Struct1'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct Struct1'}}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' A struct.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'th', 'elems': {'text': 'Name'}},
-                                            {'tag': 'th', 'elems': {'text': 'Type'}},
-                                            null,
-                                            {'tag': 'th', 'elems': {'text': 'Description'}}
-                                        ]},
-                                        [
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'sa'}},
-                                                {'tag': 'td', 'elems': {'text': 'int'}},
-                                                null,
-                                                {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The struct member "sa"'}}]}
-                                            ]},
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'sb'}},
-                                                {'tag': 'td', 'elems': {
-                                                    'tag': 'a', 'attrs': {'href': '#name=test&struct_Struct2'}, 'elems': {'text': 'Struct2'}
-                                                }},
-                                                null,
-                                                {'tag': 'td', 'elems': [
-                                                    {'tag': 'p', 'elems': {'text': ' The struct member "sb"'}},
-                                                    {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                                ]}
-                                            ]}
-                                        ]
-                                    ]}
-                                ],
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&struct_Struct2'},
-                                        'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'union Struct2'}, 'tag': 'a'}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' Another struct, a union.'}},
-                                        {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'th', 'elems': {'text': 'Name'}},
-                                            {'tag': 'th', 'elems': {'text': 'Type'}},
-                                            null,
-                                            null
-                                        ]},
-                                        [
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'sa'}},
-                                                {'tag': 'td', 'elems': {'text': 'string'}},
-                                                null,
-                                                null
-                                            ]},
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'sb'}},
-                                                {'tag': 'td', 'elems': {'text': 'int'}},
-                                                null,
-                                                null
-                                            ]}
-                                        ]
-                                    ]}
-                                ]
-                            ]
-                        ],
-                        [
-                            {'tag': 'h2', 'elems': {'text': 'Enum Types'}},
-                            [
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&enum_Enum1'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum1'}}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' An enum.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [
-                                            {'tag': 'th', 'elems': {'text': 'Value'}},
-                                            {'tag': 'th', 'elems': {'text': 'Description'}}
-                                        ]},
-                                        [
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'e1'}},
-                                                {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The Enum1 value "e1"'}}]}
-                                            ]},
-                                            {'tag': 'tr', 'elems': [
-                                                {'tag': 'td', 'elems': {'text': 'e2'}},
-                                                {'tag': 'td', 'elems': [
-                                                    {'tag': 'p', 'elems': {'text': ' The Enum1 value "e 2"'}},
-                                                    {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                                ]}
-                                            ]}
-                                        ]
-                                    ]}
-                                ],
-                                [
-                                    {
-                                        'tag': 'h3',
-                                        'attrs': {'id': 'name=test&enum_Enum2'},
-                                        'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum2'}}
-                                    },
-                                    [
-                                        {'tag': 'p', 'elems': {'text': ' Another enum.'}},
-                                        {'tag': 'p', 'elems': {'text': ' More info.'}}
-                                    ],
-                                    {'tag': 'table', 'elems': [
-                                        {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Value'}}, null]},
-                                        [
-                                            {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'e3'}}, null]}
-                                        ]
-                                    ]}
-                                ]
-                            ]
-                        ]
+                        ]}
                     ]
-                ],
-                'tag': 'div'
-            }
+                ]
+            ],
+            [
+                {'tag': 'h2', 'elems': {'text': 'Struct Types'}},
+                [
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&struct_Struct1'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct Struct1'}}
+                        },
+                        [
+                            {'tag': 'p', 'elems': {'text': ' A struct.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'th', 'elems': {'text': 'Name'}},
+                                {'tag': 'th', 'elems': {'text': 'Type'}},
+                                null,
+                                {'tag': 'th', 'elems': {'text': 'Description'}}
+                            ]},
+                            [
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'sa'}},
+                                    {'tag': 'td', 'elems': {'text': 'int'}},
+                                    null,
+                                    {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The struct member "sa"'}}]}
+                                ]},
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'sb'}},
+                                    {'tag': 'td', 'elems': {
+                                        'tag': 'a', 'attrs': {'href': '#name=test&struct_Struct2'}, 'elems': {'text': 'Struct2'}
+                                    }},
+                                    null,
+                                    {'tag': 'td', 'elems': [
+                                        {'tag': 'p', 'elems': {'text': ' The struct member "sb"'}},
+                                        {'tag': 'p', 'elems': {'text': ' More info.'}}
+                                    ]}
+                                ]}
+                            ]
+                        ]}
+                    ],
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&struct_Struct2'},
+                            'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'union Struct2'}, 'tag': 'a'}
+                        },
+                        [
+                            {'tag': 'p', 'elems': {'text': ' Another struct, a union.'}},
+                            {'tag': 'p', 'elems': {'text': ' More info.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'th', 'elems': {'text': 'Name'}},
+                                {'tag': 'th', 'elems': {'text': 'Type'}},
+                                null,
+                                null
+                            ]},
+                            [
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'sa'}},
+                                    {'tag': 'td', 'elems': {'text': 'string'}},
+                                    null,
+                                    null
+                                ]},
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'sb'}},
+                                    {'tag': 'td', 'elems': {'text': 'int'}},
+                                    null,
+                                    null
+                                ]}
+                            ]
+                        ]}
+                    ]
+                ]
+            ],
+            [
+                {'tag': 'h2', 'elems': {'text': 'Enum Types'}},
+                [
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&enum_Enum1'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum1'}}
+                        },
+                        [
+                            {'tag': 'p', 'elems': {'text': ' An enum.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'th', 'elems': {'text': 'Value'}},
+                                {'tag': 'th', 'elems': {'text': 'Description'}}
+                            ]},
+                            [
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'e1'}},
+                                    {'tag': 'td', 'elems': [{'tag': 'p', 'elems': {'text': ' The Enum1 value "e1"'}}]}
+                                ]},
+                                {'tag': 'tr', 'elems': [
+                                    {'tag': 'td', 'elems': {'text': 'e2'}},
+                                    {'tag': 'td', 'elems': [
+                                        {'tag': 'p', 'elems': {'text': ' The Enum1 value "e 2"'}},
+                                        {'tag': 'p', 'elems': {'text': ' More info.'}}
+                                    ]}
+                                ]}
+                            ]
+                        ]}
+                    ],
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&enum_Enum2'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum2'}}
+                        },
+                        [
+                            {'tag': 'p', 'elems': {'text': ' Another enum.'}},
+                            {'tag': 'p', 'elems': {'text': ' More info.'}}
+                        ],
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Value'}}, null]},
+                            [
+                                {'tag': 'tr', 'elems': [{'tag': 'td', 'elems': {'text': 'e3'}}, null]}
+                            ]
+                        ]}
+                    ]
+                ]
+            ]
         ]
     );
 });
