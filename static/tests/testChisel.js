@@ -34,14 +34,13 @@ test('chisel.render, basic', (t) => {
             {'tag': 'p', 'elems': [{'text': 'Word'}]},
             {'tag': 'p', 'elems': [{'text': 'Two'}, {'text': 'Words'}]},
             {'tag': 'p', 'elems': []},
-            {'tag': 'p', 'elems': null},
-            {'tag': 'p', 'elems': undefined}
+            {'tag': 'p', 'elems': null}
         ],
-        {'tag': 'div', 'attrs': {'id': 'Id', 'class': null, 'style': undefined}}
+        {'tag': 'div', 'attrs': {'id': 'Id', 'class': null}}
     ]);
     t.is(
         document.body.innerHTML,
-        '<h1>Hello, World!</h1><p>Word</p><p>TwoWords</p><p></p><p></p><p></p><div id="Id"></div>'
+        '<h1>Hello, World!</h1><p>Word</p><p>TwoWords</p><p></p><p></p><div id="Id"></div>'
     );
 });
 
@@ -75,12 +74,11 @@ test('chisel.render, element callback', (t) => {
     };
     chisel.render(document.body, [
         {'tag': 'div', 'attrs': {'_callback': callback}},
-        {'tag': 'div', 'attrs': {'_callback': null}},
-        {'tag': 'div', 'attrs': {'_callback': undefined}}
+        {'tag': 'div', 'attrs': {'_callback': null}}
     ]);
     t.is(
         document.body.innerHTML,
-        '<div></div><div></div><div></div>'
+        '<div></div><div></div>'
     );
     t.is(callbackCount, 1);
 });
@@ -194,8 +192,7 @@ test('chisel.encodeParams', (t) => {
             'bar': 19.33,
             'bonk': 'abc',
             ' th&ud ': ' ou&ch ',
-            'fever': null,
-            'pitch': undefined
+            'fever': null
         }),
         '%20th%26ud%20=%20ou%26ch%20&bar=19.33&bonk=abc&foo=17'
     );

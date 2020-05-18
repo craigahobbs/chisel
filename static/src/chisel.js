@@ -52,23 +52,23 @@ function createElement(element) {
     // Create an element of the appropriate type
     if (element.text) {
         browserElement = document.createTextNode(element.text);
-    } else if (typeof element.ns !== 'undefined') {
+    } else if ('ns' in element) {
         browserElement = document.createElementNS(element.ns, element.tag);
     } else {
         browserElement = document.createElement(element.tag);
     }
 
     // Add attributes, if any, to the newly created element
-    if (typeof element.attrs !== 'undefined') {
+    if ('attrs' in element) {
         for (const [attr, value] of Object.entries(element.attrs)) {
-            // Skip null and undefined values as well as the special "_callback" attribute
-            if (attr !== '_callback' && value !== null && typeof value !== 'undefined') {
+            // Skip null values as well as the special "_callback" attribute
+            if (attr !== '_callback' && value !== null) {
                 browserElement.setAttribute(attr, value);
             }
         }
 
         // Call the element callback, if any
-        if (element.attrs._callback !== null && typeof element.attrs._callback !== 'undefined') {
+        if ('_callback' in element.attrs && element.attrs._callback !== null) {
             element.attrs._callback(browserElement);
         }
     }
@@ -171,7 +171,8 @@ export function href(hash = null, query = null, pathname = null) {
 export function encodeParams(params) {
     const items = [];
     Object.keys(params).sort().forEach((name) => {
-        if (params[name] !== null && typeof params[name] !== 'undefined') {
+        // Skip null values
+        if (params[name] !== null) {
             items.push(`${encodeURIComponent(name)}=${encodeURIComponent(params[name])}`);
         }
     });
