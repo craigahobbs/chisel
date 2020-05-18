@@ -36,3 +36,22 @@ cover-test-$(1): $$(COVER_PYTHON_3_8_VENV_BUILD)
 cover-test: cover-test-$(1)
 endef
 $(foreach TEST, $(sort $(subst src/tests/test_,,$(subst .py,,$(wildcard src/tests/test_*.py)))), $(eval $(call COVER_TEST_COMMANDS,$(TEST))))
+
+define DUMP_DOC_APIS
+import sys
+import chisel
+application = chisel.Application()
+application.pretty_output = True
+application.add_requests(chisel.create_doc_requests())
+_, _, index_bytes = application.request('GET', '/doc/doc_index')
+_, _, request_bytes = application.request('GET', '/doc/doc_request', query_string='name=chisel_doc_request')
+with open(sys.argv[1], 'wb') as file:
+    file.write(index_bytes)
+with open(sys.argv[2], 'wb') as file:
+    file.write(request_bytes)
+endef
+export DUMP_DOC_APIS
+
+doc:
+	rsync -rv --delete static/src/ build/doc/html/doc/
+	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc/doc_index build/doc/html/doc/doc_request

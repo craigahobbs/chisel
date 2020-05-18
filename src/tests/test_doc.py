@@ -171,10 +171,10 @@ class TestIndex(TestCase):
         app = Application()
         app.add_requests(create_doc_requests())
 
-        status, _, response = app.request('GET', '/doc/doc_index', environ={'HTTP_HOST': 'localhost:8080'})
+        status, _, response = app.request('GET', '/doc/doc_index')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'title': 'localhost:8080',
+            'title': 'localhost:80',
             'groups': {
                 'Documentation': [
                     'chisel_doc_index',
@@ -775,10 +775,10 @@ action my_action2
 '''))
         app.add_requests(create_doc_requests({'my_action': app.requests['my_action']}))
 
-        status, _, response = app.request('GET', '/doc/doc_index', environ={'HTTP_HOST': 'localhost:8080'})
+        status, _, response = app.request('GET', '/doc/doc_index')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'title': 'localhost:8080',
+            'title': 'localhost:80',
             'groups': {
                 'Uncategorized': [
                     'my_action'

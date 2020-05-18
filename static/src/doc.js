@@ -51,7 +51,7 @@ export class DocPage {
                 if ('error' in response) {
                     chisel.render(document.body, DocPage.errorPage(response.error));
                 } else {
-                    document.title = this.params.name;
+                    document.title = response.name;
                     chisel.render(document.body, this.requestPage(response));
                     this.rendered = true;
                 }

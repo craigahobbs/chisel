@@ -243,9 +243,10 @@ class Context:
 
         if environ is None:
             environ = {}
-        environ.setdefault('REQUEST_METHOD', request_method)
+        environ.setdefault('HTTP_HOST', 'localhost:80')
         environ.setdefault('PATH_INFO', path_info)
         environ.setdefault('QUERY_STRING', query_string if isinstance(query_string, str) else encode_query_string(query_string))
+        environ.setdefault('REQUEST_METHOD', request_method)
         environ.setdefault('SCRIPT_NAME', '')
         environ.setdefault('SERVER_NAME', 'localhost')
         environ.setdefault('SERVER_PORT', '80')
