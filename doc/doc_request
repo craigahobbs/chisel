@@ -524,6 +524,25 @@
         },
         {
           "doc": [
+            " The member type"
+          ],
+          "name": "type",
+          "type": {
+            "struct": "Type"
+          }
+        },
+        {
+          "doc": [
+            " The member type attributes"
+          ],
+          "name": "attr",
+          "optional": true,
+          "type": {
+            "struct": "Attribute"
+          }
+        },
+        {
+          "doc": [
             " If true, the member is optional and may not be present."
           ],
           "name": "optional",
@@ -540,25 +559,6 @@
           "optional": true,
           "type": {
             "builtin": "bool"
-          }
-        },
-        {
-          "doc": [
-            " The member type"
-          ],
-          "name": "type",
-          "type": {
-            "struct": "Type"
-          }
-        },
-        {
-          "doc": [
-            " The member type attributes"
-          ],
-          "name": "attr",
-          "optional": true,
-          "type": {
-            "struct": "Attribute"
           }
         }
       ],
@@ -617,16 +617,6 @@
         },
         {
           "doc": [
-            " If true, the struct is a union and exactly one of the optional members is present."
-          ],
-          "name": "union",
-          "optional": true,
-          "type": {
-            "builtin": "bool"
-          }
-        },
-        {
-          "doc": [
             " The struct members"
           ],
           "name": "members",
@@ -636,6 +626,16 @@
                 "struct": "Member"
               }
             }
+          }
+        },
+        {
+          "doc": [
+            " If true, the struct is a union and exactly one of the optional members is present."
+          ],
+          "name": "union",
+          "optional": true,
+          "type": {
+            "builtin": "bool"
           }
         }
       ],
