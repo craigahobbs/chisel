@@ -158,16 +158,15 @@
 <dl class="py class">
 <dt id="chisel.Application">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Application</code><a class="headerlink" href="#chisel.Application" title="Permalink to this definition">¶</a></dt>
-<dd><p>The chisel application base class. Override this class if you need additional state for your application
-(like application configuration).  Add functionality to your application by adding
-<a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to it (using <a class="reference internal" href="#chisel.Application.add_request" title="chisel.Application.add_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_request()</span></code></a> or
-<a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_requests()</span></code></a>).</p>
+<dd><p>The chisel application base class. Override this class if you need additional state for your application (like
+application configuration).  Add functionality to your application by adding <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to it
+(using <a class="reference internal" href="#chisel.Application.add_request" title="chisel.Application.add_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_request()</span></code></a> or <a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_requests()</span></code></a>).</p>
 <dl class="py method">
 <dt id="chisel.Application.__call__">
 <code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">environ</span></em>, <em class="sig-param"><span class="n">start_response</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application WSGI callback. This method matches the appropriate <code class="xref py py-class docutils literal notranslate"><span class="pre">__call__</span></code> method.  The application and URL path arguments
-(e.g. <code class="docutils literal notranslate"><span class="pre">'/documents/{id}'</span></code>) are made available to the request through the request’s
-<a class="reference internal" href="#chisel.Context" title="chisel.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> object.</p>
+(e.g. <code class="docutils literal notranslate"><span class="pre">'/documents/{id}'</span></code>) are made available to the request through the request’s <a class="reference internal" href="#chisel.Context" title="chisel.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a>
+object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -267,18 +266,24 @@ requests schema-validate return content data when this value is <code class="doc
 
 <dl class="py function">
 <dt id="chisel.create_doc_requests">
-<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">create_doc_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">requests</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">root_path</span><span class="o">=</span><span class="default_value">'/doc'</span></em>, <em class="sig-param"><span class="n">request_api</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">doc_css</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">create_doc_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">requests</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">root_path</span><span class="o">=</span><span class="default_value">'/doc'</span></em>, <em class="sig-param"><span class="n">api</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">css</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield a series of requests for use with <a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_requests()</span></code></a> comprising the Chisel
+documentation application. By default, the documenation application is hosted at “/doc/”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A map of request name to <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>.</p></li>
-<li><p><strong>root_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>request_api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>doc_css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A list of requests or None to use the application’s requests</p></li>
+<li><p><strong>root_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation application URL root path. The default is “/doc”.</p></li>
+<li><p><strong>api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, include the documentation APIs. Two documentation APIs are added,
+“/doc/doc_index” and “<a class="reference external" href="doc/doc.html#name=chisel_doc_request">/doc/doc_request</a>”.</p></li>
+<li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, include the documentation client application.</p></li>
+<li><p><strong>css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, and “app” is True, include “/doc/doc.css” and “/doc/doc.svg”. If you exclude CSS,
+you can add your own versions of these requests to customize the documentation styling.</p></li>
+<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, cache static request content.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Generator of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>

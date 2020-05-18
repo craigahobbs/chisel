@@ -173,13 +173,25 @@
 <dl class="py function">
 <dt id="chisel.decode_query_string">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">decode_query_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query_string</span></em>, <em class="sig-param"><span class="n">encoding</span><span class="o">=</span><span class="default_value">'utf-8'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.decode_query_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Decode an object from a query string. Each member key of the query string is expressed in fully-qualified
+form. List keys are the index into the list, must be in order. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chisel</span><span class="o">.</span><span class="n">decode_query_string</span><span class="p">(</span><span class="s1">&#39;a=5&amp;b=3.14&amp;c.d=foo&amp;c.e.0=1&amp;c.e.1=2&amp;c.e.2=3&amp;f.0.g=true&amp;f.1.g=false&#39;</span><span class="p">)</span>
+<span class="go">{&#39;a&#39;: &#39;5&#39;, &#39;b&#39;: &#39;3.14&#39;, &#39;c&#39;: {&#39;d&#39;: &#39;foo&#39;, &#39;e&#39;: [&#39;1&#39;, &#39;2&#39;, &#39;3&#39;]}, &#39;f&#39;: [{&#39;g&#39;: &#39;true&#39;}, {&#39;g&#39;: &#39;false&#39;}]}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The query string</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The query string encoding</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The decoded object</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – Query string is invalid</p>
 </dd>
 </dl>
 </dd></dl>
@@ -187,13 +199,22 @@
 <dl class="py function">
 <dt id="chisel.encode_query_string">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">encode_query_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">encoding</span><span class="o">=</span><span class="default_value">'utf-8'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.encode_query_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Encode an object as a query string. Dictionaries, lists, and tuples are recursed. Each member key is expressed in
+fully-qualified form. List keys are the index into the list, and are in order. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chisel</span><span class="o">.</span><span class="n">encode_query_string</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mf">3.14</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span> <span class="s1">&#39;f&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}]})</span>
+<span class="go">&#39;a=5&amp;b=3.14&amp;c.d=foo&amp;c.e.0=1&amp;c.e.1=2&amp;c.e.2=3&amp;f.0.g=true&amp;f.1.g=false&#39;</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – TODO</p></li>
-<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – The object to encode as a query string</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The query string encoding</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The encoded query string</p>
 </dd>
 </dl>
 </dd></dl>
