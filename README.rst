@@ -50,6 +50,6 @@ Links
 
 - `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`_
 - `Package on pypi <https://pypi.org/project/chisel/>`_
-- `Source code on GitHub <https://github.com/craigahobbs/chisel>`_
+- `Source code on GitHub <https://github.com/craigahobbs/chisel#readme>`_
 - `Build on Travis CI <https://travis-ci.org/craigahobbs/chisel>`_
 - `Coverage on Codecov <https://codecov.io/gh/craigahobbs/chisel>`_
