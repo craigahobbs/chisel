@@ -2,7 +2,8 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+Chisel is a light-weight Python WSGI application framework with tools for building well-documented,
+well-tested, schema-validated JSON web APIs.
 """
 
 __version__ = '0.9.95'

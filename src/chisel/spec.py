@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+Chisel schema specification language parser
 """
 
 from functools import partial

@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+Chisel encoding and decoding utilities
 """
 
 from datetime import date, datetime, timezone
@@ -39,10 +39,16 @@ class JSONEncoder(json.JSONEncoder):
 
 def encode_query_string(obj, encoding='utf-8'):
     """
-    TODO
+    Encode an object as a query string. Dictionaries, lists, and tuples are recursed. Each member key is expressed in
+    fully-qualified form. List keys are the index into the list, and are in order. For example:
 
-    :param object obj: TODO
-    :param str encoding: TODO
+    >>> import chisel
+    >>> chisel.encode_query_string({'a': 5, 'b': 3.14, 'c': {'d': 'foo', 'e': [1, 2, 3]}, 'f': [{'g': True}, {'g': False}]})
+    'a=5&b=3.14&c.d=foo&c.e.0=1&c.e.1=2&c.e.2=3&f.0.g=true&f.1.g=false'
+
+    :param object obj: The object to encode as a query string
+    :param str encoding: The query string encoding
+    :returns: The encoded query string
     """
 
     return '&'.join(f'{k}={v}' for k, v in _encode_query_string_items(obj, None, encoding))
@@ -84,10 +90,17 @@ def _encode_query_string_items(obj, parent, encoding):
 
 def decode_query_string(query_string, encoding='utf-8'):
     """
-    TODO
+    Decode an object from a query string. Each member key of the query string is expressed in fully-qualified
+    form. List keys are the index into the list, must be in order. For example:
 
-    :param str query_string: TODO
-    :param str encoding: TODO
+    >>> import chisel
+    >>> chisel.decode_query_string('a=5&b=3.14&c.d=foo&c.e.0=1&c.e.1=2&c.e.2=3&f.0.g=true&f.1.g=false')
+    {'a': '5', 'b': '3.14', 'c': {'d': 'foo', 'e': ['1', '2', '3']}, 'f': [{'g': 'true'}, {'g': 'false'}]}
+
+    :param str query_string: The query string
+    :param str encoding: The query string encoding
+    :returns: The decoded object
+    :raises ValueError: Query string is invalid
     """
 
     return _decode_query_string_items(

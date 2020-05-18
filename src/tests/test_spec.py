@@ -799,8 +799,8 @@ struct MyStruct2
 struct MyStruct
     nullable optional int a
 ''')
-        self.assertEqual(str(cm_exc.exception), """\
-:2: error: Syntax error""")
+        self.assertEqual(str(cm_exc.exception), '''\
+:2: error: Syntax error''')
 
     def test_typeref_invalid_attr(self):
         parser = SpecParser()

@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+The chisel package build script
 """
 
 import re
@@ -16,7 +16,7 @@ TESTS_REQUIRE = []
 
 def main():
     """
-    TODO
+    The chisel package build script's main entry point
     """
 
     # Read the package version

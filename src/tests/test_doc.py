@@ -64,7 +64,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in create_doc_requests(request_api=False)
+                for request in create_doc_requests(api=False)
             ],
             [
                 {
@@ -101,7 +101,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls
                 }
-                for request in create_doc_requests(doc=False)
+                for request in create_doc_requests(app=False)
             ],
             [
                 {
@@ -122,7 +122,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls,
                 }
-                for request in create_doc_requests(doc_css=False)
+                for request in create_doc_requests(css=False)
             ],
             [
                 {
@@ -159,7 +159,7 @@ class TestGetDocRequests(TestCase):
                     'name': request.name,
                     'urls': request.urls,
                 }
-                for request in create_doc_requests(request_api=False, doc=False)
+                for request in create_doc_requests(api=False, app=False)
             ],
             []
         )
@@ -773,7 +773,7 @@ action my_action
         app.add_request(Action(None, name='my_action2', spec='''\
 action my_action2
 '''))
-        app.add_requests(create_doc_requests({'my_action': app.requests['my_action']}))
+        app.add_requests(create_doc_requests([app.requests['my_action']]))
 
         status, _, response = app.request('GET', '/doc/doc_index')
         self.assertEqual(status, '200 OK')

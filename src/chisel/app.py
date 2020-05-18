@@ -1,7 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-"""Chisel WSGI application base class and utilities."""
+"""
+Chisel WSGI application base class and utilities
+"""
 
 from datetime import datetime, timedelta
 from http import HTTPStatus
@@ -19,10 +21,10 @@ RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
 
 
 class Application:
-    """The chisel application base class. Override this class if you need additional state for your application
-    (like application configuration).  Add functionality to your application by adding
-    :class:`~chisel.Request` objects to it (using :func:`~chisel.Application.add_request` or
-    :func:`~chisel.Application.add_requests`).
+    """
+    The chisel application base class. Override this class if you need additional state for your application (like
+    application configuration).  Add functionality to your application by adding :class:`~chisel.Request` objects to it
+    (using :func:`~chisel.Application.add_request` or :func:`~chisel.Application.add_requests`).
     """
 
     __slots__ = (
@@ -61,7 +63,8 @@ class Application:
         self.__request_regex = []
 
     def add_request(self, request):
-        """Add a :class:`~chisel.Request` to the application.
+        """
+        Add a :class:`~chisel.Request` to the application.
 
         :param ~chisel.Request request: The request object.
         """
@@ -85,7 +88,8 @@ class Application:
                 self.__request_urls[request_key] = request
 
     def add_requests(self, requests):
-        """Add a series of :class:`~chisel.Request` objects to the application.
+        """
+        Add a series of :class:`~chisel.Request` objects to the application.
 
         :param ~collections.abc.Iterable(~chisel.Request) requests: A list of :class:`~chisel.Request` objects.
         """
@@ -94,10 +98,11 @@ class Application:
             self.add_request(request)
 
     def __call__(self, environ, start_response):
-        """The chisel application WSGI callback. This method matches the appropriate :class:`~chisel.Request' object
-        and then calls its :func:`~chisel.Request.__call__` method.  The application and URL path arguments
-        (e.g. ``'/documents/{id}'``) are made available to the request through the request's
-        :class:`~chisel.Context` object.
+        """
+        The chisel application WSGI callback. This method matches the appropriate :class:`~chisel.Request' object and
+        then calls its :func:`~chisel.Request.__call__` method.  The application and URL path arguments
+        (e.g. ``'/documents/{id}'``) are made available to the request through the request's :class:`~chisel.Context`
+        object.
 
         :param dict environ: The :pep:`WSGI <3333>` environ dictionary.
         :param ~collections.abc.Callable start_response: The :pep:`WSGI <3333>` start-response callable.

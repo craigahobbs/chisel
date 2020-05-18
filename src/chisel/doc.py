@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+Chisel documentation application
 """
 
 from collections import defaultdict
@@ -12,27 +12,30 @@ from .model import Typedef, TypeStruct, TypeEnum, TypeArray, TypeDict, get_refer
 from .request import RedirectRequest, StaticRequest
 
 
-def create_doc_requests(requests=None, root_path='/doc', request_api=True, doc=True, doc_css=True, cache=True):
+def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css=True, cache=True):
     """
-    TODO
+    Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
+    documentation application. By default, the documenation application is hosted at "/doc/".
 
-    :param requests: A map of request name to :class:`~chisel.Request`.
-    :type requests: dict(str, ~chisel.Request)
-    :param str root_path: TODO
-    :param bool request_api: TODO
-    :param bool doc: TODO
-    :param bool doc_css: TODO
-    :param bool cache: TODO
+    :param requests: A list of requests or None to use the application's requests
+    :type requests: list(~chisel.Request)
+    :param str root_path: The documentation application URL root path. The default is "/doc".
+    :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
+                     "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`_".
+    :param bool app: If True, include the documentation client application.
+    :param bool css: If True, and "app" is True, include "/doc/doc.css" and "/doc/doc.svg". If you exclude CSS,
+                     you can add your own versions of these requests to customize the documentation styling.
+    :param bool cache: If True, cache static request content.
+    :returns: Generator of :class:`~chisel.Request`
     """
 
-    if request_api:
+    if api:
         yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
-    if request_api:
         yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
-    if doc:
+    if app:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
         yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
-        if doc_css:
+        if css:
             yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
             yield StaticRequest('chisel', 'static/doc.svg', urls=(('GET', root_path + '/doc.svg'),), cache=cache)
         yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
@@ -41,11 +44,13 @@ def create_doc_requests(requests=None, root_path='/doc', request_api=True, doc=T
 
 class DocIndex(Action):
     """
-    TODO
+    The documentation index API. This API provides all the information the documentation application needs to render the
+    index page.
 
-    :param requests: A map of request name to :class:`~chisel.Request`.
+    :param requests: A list of requests or None to use the application's requests
     :type requests: dict(str, ~chisel.Request)
-    :param list(tuple) urls: TODO
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+                             or None to match any. The second value is the URL path or None to use the default path.
     """
 
     __slots__ = ('requests',)
@@ -70,11 +75,15 @@ action chisel_doc_index
 
     def __init__(self, requests=None, urls=(('GET', '/doc_index'),)):
         super().__init__(self._doc_index, name='chisel_doc_index', urls=urls, spec=self.SPEC)
-        self.requests = requests
+        if requests is not None:
+            self.requests = {request.name: request for request in requests}
+        else:
+            self.requests = None
 
     def _doc_index(self, ctx, unused_req):
+        requests = self.requests if self.requests is not None else ctx.app.requests
         groups = defaultdict(list)
-        for request in (self.requests or ctx.app.requests).values():
+        for request in requests.values():
             groups[request.doc_group or 'Uncategorized'].append(request.name)
         return {
             'title': ctx.environ['HTTP_HOST'],
@@ -84,11 +93,15 @@ action chisel_doc_index
 
 class DocRequest(Action):
     """
-    TODO
+    The documentation request API. This API provides all the information the documentation applicaton needs to render
+    the request documentation page. The documentation request API's documentation is `here
+    <doc/doc.html#name=chisel_doc_request>`_.
 
-    :param requests: A map of request name to :class:`~chisel.Request`.
-    :type requests: dict(str, ~chisel.Request)
-    :param list(tuple) urls: TODO
+    :param requests: A list of requests or None to use the application's requests
+    :type requests: list(~chisel.Request)
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+                             or None to match any. The second value is the URL path or None to use the default path.
+
     """
 
     __slots__ = ('requests',)
@@ -345,10 +358,14 @@ action chisel_doc_request
 
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
         super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, spec=self.SPEC)
-        self.requests = requests
+        if requests is not None:
+            self.requests = {request.name: request for request in requests}
+        else:
+            self.requests = None
 
     def _doc_request(self, ctx, req):
-        request = (self.requests or ctx.app.requests).get(req['name'])
+        requests = self.requests if self.requests is not None else ctx.app.requests
+        request = requests.get(req['name'])
         if request is None:
             raise ActionError('UnknownName')
 
