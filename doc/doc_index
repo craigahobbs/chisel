@@ -1,0 +1,19 @@
+{
+  "groups": {
+    "Documentation": [
+      "chisel_doc_index",
+      "chisel_doc_request"
+    ],
+    "Redirects": [
+      "redirect_doc"
+    ],
+    "Statics": [
+      "static_chisel_js",
+      "static_doc_css",
+      "static_doc_html",
+      "static_doc_js",
+      "static_doc_svg"
+    ]
+  },
+  "title": "localhost:80"
+}

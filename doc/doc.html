@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="doc.css">
+        <link rel="icon" type="image/svg+xml" href="doc.svg">
+        <script type="module" src="./chisel.js"></script>
+        <script type="module" src="./doc.js"></script>
+    </head>
+    <body>
+    </body>
+    <script type="module">
+        import {DocPage} from './doc.js';
+        const docPage = new DocPage();
+        docPage.render();
+        window.addEventListener('hashchange', () => docPage.render(), false);
+    </script>
+</html>
