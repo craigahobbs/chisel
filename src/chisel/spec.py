@@ -16,22 +16,6 @@ from .model import \
     TypeArray, TypeDict, TypeEnum, TypeStruct, Typedef
 
 
-class SpecParserError(Exception):
-    """
-    TODO
-
-    :param list(str) errors: TODO
-    """
-
-    __slots__ = ('errors',)
-
-    def __init__(self, errors):
-        super().__init__('\n'.join(errors))
-
-        #: TODO
-        self.errors = errors
-
-
 # Spec language regex
 RE_PART_ID = r'(?:[A-Za-z]\w*)'
 RE_PART_ATTR_GROUP = \
@@ -69,7 +53,7 @@ RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + RE_PART_ID + r'(?!")|(?<=").*?(?=
 RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
 
 
-# Built-in types
+#: Built-in types
 TYPES = {
     'bool': TYPE_BOOL,
     'date': TYPE_DATE,
@@ -82,12 +66,30 @@ TYPES = {
 }
 
 
-# Specification language parser class
+class SpecParserError(Exception):
+    """
+    Chisel specification language parser exception
+
+    :param list(str) errors: The list of error strings
+    """
+
+    __slots__ = ('errors',)
+
+    def __init__(self, errors):
+        super().__init__('\n'.join(errors))
+
+        #: The list of error strings
+        self.errors = errors
+
+
 class SpecParser:
     """
-    TODO
+    The parser class for the Chisel specification language. Parsing can occur at initialization time or by calling the
+    :meth:`~chisel.SpecParser.parse_string` method, which can be called repeatedly.
 
-    :param str spec: TODO
+    :param str spec: An optional specification string to parse
+    :raises SpecParserError: A parsing error occurred
+
     """
 
     __slots__ = (
@@ -109,13 +111,13 @@ class SpecParser:
 
     def __init__(self, spec=None):
 
-        #: TODO
+        #: The dictionary of type name to type object
         self.types = {}
 
-        #: TODO
+        #: The dictionary of action name to :class:`~chisel.ActionModel`
         self.actions = {}
 
-        #: TODO
+        #: The list of error strings encountered during parsing
         self.errors = []
 
         self._typerefs = []
@@ -132,14 +134,15 @@ class SpecParser:
         if spec is not None:
             self.parse_string(spec)
 
-    # Parse a specification from an iterator of spec lines (e.g an input stream)
     def parse(self, lines, filename='', finalize=True):
         """
-        TODO
+        Parse a specification from an iterator of line strings (e.g an input stream). This method can be called repeatedly.
 
-        :param ~collections.abc.Iterable(str) lines: TODO
-        :param str filename: TODO
-        :param bool finalize: TODO
+        :param ~collections.abc.Iterable(str) lines: An iterator of specification line strings
+        :param str filename: The name of file being parsed (for error messages)
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
         """
 
         # Set the parser state
@@ -157,22 +160,25 @@ class SpecParser:
         if finalize:
             self.finalize()
 
-    # Parse a specification string
     def parse_string(self, spec, filename='', finalize=True):
         """
-        TODO
+        Parse a specification string. This method can be called repeatedly.
 
-        :param str spec: TODO
-        :param str filename: TODO
-        :param bool finalize: TODO
+        :param str spec: The specification string
+        :param str filename: The name of file being parsed (for error messages)
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
         """
 
         self.parse(spec.splitlines(), finalize=finalize, filename=filename)
 
-    # Finalize parsing (must call after calling parse one or more times - can be repeated)
     def finalize(self):
         """
-        TODO
+        Finalize a parsing operation. You only need to call this method if you set :meth:`~chisel.SpecParser.parse`
+        "finalize" argument to False.
+
+        :raises SpecParserError: If type name resolution fails
         """
 
         # Fixup type refs
@@ -191,7 +197,13 @@ class SpecParser:
 
     def load(self, path, spec_ext='.chsl', finalize=True):
         """
-        TODO
+        Recursively load and parse specification files. This method can be called repeatedly.
+
+        :param str path: Directory or file path from which to load and parse specification files
+        :param str spec_ext: The specification file extension.  The default specification file extension is ".chsl".
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
         """
 
         if os.path.isdir(path):

@@ -1,5 +1,5 @@
-JSON APIs
-=========
+JSON API Requests
+=================
 
 .. autodecorator:: chisel.action
 

@@ -1,11 +1,5 @@
-Schemas
-=======
-
-.. autoclass:: chisel.SpecParser
-   :members:
-
-.. autoexception:: chisel.SpecParserError
-   :members:
+Schema Internals
+================
 
 .. autoclass:: chisel.ValidationMode
    :show-inheritance:
