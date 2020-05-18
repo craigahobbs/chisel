@@ -234,11 +234,11 @@ struct Struct
     # The struct type name
     string name
 
-    # If true, the struct is a union and exactly one of the optional members is present.
-    optional bool union
-
     # The struct members
     Member[] members
+
+    # If true, the struct is a union and exactly one of the optional members is present.
+    optional bool union
 
 # A struct type member
 struct Member
@@ -249,17 +249,17 @@ struct Member
     # The member name
     string name
 
-    # If true, the member is optional and may not be present.
-    optional bool optional
-
-    # If true, the member may be null.
-    optional bool nullable
-
     # The member type
     Type type
 
     # The member type attributes
     optional Attribute attr
+
+    # If true, the member is optional and may not be present.
+    optional bool optional
+
+    # If true, the member may be null.
+    optional bool nullable
 
 # A typedef type
 struct Typedef
