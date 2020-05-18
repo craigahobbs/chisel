@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>JSON APIs &mdash; chisel 0.9.95 documentation</title>
+  <title>Schema-Validated JSON Requests &mdash; chisel 0.9.95 documentation</title>
   
 
   
@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Schemas" href="spec.html" />
+    <link rel="next" title="Built-in Requests" href="request.html" />
     <link rel="prev" title="WSGI Applications" href="app.html" /> 
 </head>
 
@@ -84,11 +84,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">JSON APIs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Schema-Validated JSON Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec_lang.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schema Internals</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
@@ -136,7 +138,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>JSON APIs</li>
+      <li>Schema-Validated JSON Requests</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,8 +155,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="json-apis">
-<h1>JSON APIs<a class="headerlink" href="#json-apis" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="schema-validated-json-requests">
+<h1>Schema-Validated JSON Requests<a class="headerlink" href="#schema-validated-json-requests" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt id="chisel.action">
 <code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.action" title="Permalink to this definition">¶</a></dt>
@@ -179,7 +181,7 @@
 <li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
 <li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
 <li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>spec_parser</strong> (<a class="reference internal" href="spec.html#chisel.SpecParser" title="chisel.SpecParser"><em>SpecParser</em></a>) – TODO</p></li>
+<li><p><strong>spec_parser</strong> (<a class="reference internal" href="spec_lang.html#chisel.SpecParser" title="chisel.SpecParser"><em>SpecParser</em></a>) – TODO</p></li>
 <li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
 <li><p><strong>wsgi_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
 <li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
@@ -255,7 +257,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="spec.html" class="btn btn-neutral float-right" title="Schemas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="request.html" class="btn btn-neutral float-right" title="Built-in Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="app.html" class="btn btn-neutral float-left" title="WSGI Applications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

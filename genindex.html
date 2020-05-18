@@ -83,11 +83,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action.html">Schema-Validated JSON Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec_lang.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schema Internals</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
@@ -207,7 +209,7 @@
 </li>
       <li><a href="spec.html#chisel.ActionModel">ActionModel (class in chisel)</a>
 </li>
-      <li><a href="spec.html#chisel.SpecParser.actions">actions (chisel.SpecParser attribute)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.actions">actions (chisel.SpecParser attribute)</a>
 </li>
       <li><a href="app.html#chisel.Context.add_cache_headers">add_cache_headers() (chisel.Context method)</a>
 </li>
@@ -267,7 +269,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="app.html#chisel.create_doc_requests">create_doc_requests() (in module chisel)</a>
+      <li><a href="request.html#chisel.create_doc_requests">create_doc_requests() (in module chisel)</a>
 </li>
       <li><a href="app.html#chisel.Context.create_environ">create_environ() (chisel.Context static method)</a>
 </li>
@@ -329,10 +331,10 @@
 </li>
       <li><a href="spec.html#chisel.ActionModel.error_type">error_type (chisel.ActionModel attribute)</a>
 </li>
-      <li><a href="spec.html#chisel.SpecParser.errors">errors (chisel.SpecParser attribute)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.errors">errors (chisel.SpecParser attribute)</a>
 
       <ul>
-        <li><a href="spec.html#chisel.SpecParserError.errors">(chisel.SpecParserError attribute)</a>
+        <li><a href="spec_lang.html#chisel.SpecParserError.errors">(chisel.SpecParserError attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -341,7 +343,7 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="spec.html#chisel.SpecParser.finalize">finalize() (chisel.SpecParser method)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.finalize">finalize() (chisel.SpecParser method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -409,7 +411,7 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="spec.html#chisel.SpecParser.load">load() (chisel.SpecParser method)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.load">load() (chisel.SpecParser method)</a>
 </li>
       <li><a href="app.html#chisel.Context.log">log (chisel.Context attribute)</a>
 </li>
@@ -491,9 +493,9 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="spec.html#chisel.SpecParser.parse">parse() (chisel.SpecParser method)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.parse">parse() (chisel.SpecParser method)</a>
 </li>
-      <li><a href="spec.html#chisel.SpecParser.parse_string">parse_string() (chisel.SpecParser method)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.parse_string">parse_string() (chisel.SpecParser method)</a>
 </li>
       <li><a href="spec.html#chisel.ActionModel.path_type">path_type (chisel.ActionModel attribute)</a>
 </li>
@@ -528,7 +530,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="app.html#chisel.Context.reconstruct_url">reconstruct_url() (chisel.Context method)</a>
 </li>
-      <li><a href="app.html#chisel.RedirectRequest">RedirectRequest (class in chisel)</a>
+      <li><a href="request.html#chisel.RedirectRequest">RedirectRequest (class in chisel)</a>
 </li>
       <li><a href="app.html#chisel.Request">Request (class in chisel)</a>
 </li>
@@ -554,15 +556,15 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="spec.html#chisel.SpecParser">SpecParser (class in chisel)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser">SpecParser (class in chisel)</a>
 </li>
-      <li><a href="spec.html#chisel.SpecParserError">SpecParserError</a>
+      <li><a href="spec_lang.html#chisel.SpecParserError">SpecParserError</a>
 </li>
       <li><a href="app.html#chisel.Context.start_response">start_response() (chisel.Context method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="app.html#chisel.StaticRequest">StaticRequest (class in chisel)</a>
+      <li><a href="request.html#chisel.StaticRequest">StaticRequest (class in chisel)</a>
 </li>
       <li><a href="action.html#chisel.ActionError.status">status (chisel.ActionError attribute)</a>
 </li>
@@ -652,7 +654,7 @@
 </li>
       <li><a href="spec.html#chisel.TypeObject">TypeObject (class in chisel)</a>
 </li>
-      <li><a href="spec.html#chisel.SpecParser.types">types (chisel.SpecParser attribute)</a>
+      <li><a href="spec_lang.html#chisel.SpecParser.types">types (chisel.SpecParser attribute)</a>
 </li>
       <li><a href="spec.html#chisel.TypeString">TypeString (class in chisel)</a>
 </li>

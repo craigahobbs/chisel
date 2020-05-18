@@ -4,11 +4,13 @@
    :caption: Contents:
    :maxdepth: 1
 
-   basics
+   getting_started
    app
    action
-   spec
+   request
+   spec_lang
    encode
+   spec
    changes
 
 

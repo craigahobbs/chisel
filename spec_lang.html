@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Chisel Specification Language &mdash; chisel 0.9.95 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Encoding / Decoding Utilities" href="encode.html" />
+    <link rel="prev" title="Built-in Requests" href="request.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> chisel
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action.html">Schema-Validated JSON Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Chisel Specification Language</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schema Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">chisel</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Chisel Specification Language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="chisel-specification-language">
+<h1>Chisel Specification Language<a class="headerlink" href="#chisel-specification-language" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="chisel.SpecParser">
+<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">SpecParser</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>The parser class for the Chisel specification language. Parsing can occur at initialization time or by calling the
+<a class="reference internal" href="#chisel.SpecParser.parse_string" title="chisel.SpecParser.parse_string"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse_string()</span></code></a> method, which can be called repeatedly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – An optional specification string to parse</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – A parsing error occurred</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="chisel.SpecParser.actions">
+<code class="sig-name descname">actions</code><a class="headerlink" href="#chisel.SpecParser.actions" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dictionary of action name to <a class="reference internal" href="spec.html#chisel.ActionModel" title="chisel.ActionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionModel</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="chisel.SpecParser.errors">
+<code class="sig-name descname">errors</code><a class="headerlink" href="#chisel.SpecParser.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of error strings encountered during parsing</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="chisel.SpecParser.finalize">
+<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize a parsing operation. You only need to call this method if you set <a class="reference internal" href="#chisel.SpecParser.parse" title="chisel.SpecParser.parse"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse()</span></code></a>
+“finalize” argument to False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – If type name resolution fails</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="chisel.SpecParser.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">spec_ext</span><span class="o">=</span><span class="default_value">'.chsl'</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively load and parse specification files. This method can be called repeatedly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Directory or file path from which to load and parse specification files</p></li>
+<li><p><strong>spec_ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The specification file extension.  The default specification file extension is “.chsl”.</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – A parsing error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="chisel.SpecParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a specification from an iterator of line strings (e.g an input stream). This method can be called repeatedly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.8)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – An iterator of specification line strings</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – A parsing error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="chisel.SpecParser.parse_string">
+<code class="sig-name descname">parse_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.parse_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a specification string. This method can be called repeatedly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The specification string</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – A parsing error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="chisel.SpecParser.types">
+<code class="sig-name descname">types</code><a class="headerlink" href="#chisel.SpecParser.types" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dictionary of type name to type object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="chisel.SpecParserError">
+<em class="property">exception </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">SpecParserError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">errors</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chisel specification language parser exception</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – The list of error strings</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="chisel.SpecParserError.errors">
+<code class="sig-name descname">errors</code><a class="headerlink" href="#chisel.SpecParserError.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of error strings</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="encode.html" class="btn btn-neutral float-right" title="Encoding / Decoding Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="request.html" class="btn btn-neutral float-left" title="Built-in Requests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2012, Craig Hobbs
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

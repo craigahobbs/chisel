@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Schemas &mdash; chisel 0.9.95 documentation</title>
+  <title>Schema Internals &mdash; chisel 0.9.95 documentation</title>
   
 
   
@@ -36,8 +36,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Encoding / Decoding Utilities" href="encode.html" />
-    <link rel="prev" title="JSON APIs" href="action.html" /> 
+    <link rel="next" title="Change Log" href="changes.html" />
+    <link rel="prev" title="Encoding / Decoding Utilities" href="encode.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -84,11 +84,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action.html">Schema-Validated JSON Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec_lang.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Schema Internals</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
@@ -136,7 +138,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Schemas</li>
+      <li>Schema Internals</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,96 +155,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="schemas">
-<h1>Schemas<a class="headerlink" href="#schemas" title="Permalink to this headline">¶</a></h1>
-<dl class="py class">
-<dt id="chisel.SpecParser">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">SpecParser</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="chisel.SpecParser.actions">
-<code class="sig-name descname">actions</code><a class="headerlink" href="#chisel.SpecParser.actions" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="chisel.SpecParser.errors">
-<code class="sig-name descname">errors</code><a class="headerlink" href="#chisel.SpecParser.errors" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="chisel.SpecParser.finalize">
-<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.finalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="chisel.SpecParser.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">spec_ext</span><span class="o">=</span><span class="default_value">'.chsl'</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="chisel.SpecParser.parse">
-<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.parse" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.8)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – TODO</p></li>
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="chisel.SpecParser.parse_string">
-<code class="sig-name descname">parse_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.parse_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="chisel.SpecParser.types">
-<code class="sig-name descname">types</code><a class="headerlink" href="#chisel.SpecParser.types" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py exception">
-<dt id="chisel.SpecParserError">
-<em class="property">exception </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">SpecParserError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">errors</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParserError" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – TODO</p>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="chisel.SpecParserError.errors">
-<code class="sig-name descname">errors</code><a class="headerlink" href="#chisel.SpecParserError.errors" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="schema-internals">
+<h1>Schema Internals<a class="headerlink" href="#schema-internals" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="chisel.ValidationMode">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">ValidationMode</code><a class="headerlink" href="#chisel.ValidationMode" title="Permalink to this definition">¶</a></dt>
@@ -1075,10 +989,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="encode.html" class="btn btn-neutral float-right" title="Encoding / Decoding Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="changes.html" class="btn btn-neutral float-right" title="Change Log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="action.html" class="btn btn-neutral float-left" title="JSON APIs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="encode.html" class="btn btn-neutral float-left" title="Encoding / Decoding Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

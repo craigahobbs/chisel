@@ -36,8 +36,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="JSON APIs" href="action.html" />
-    <link rel="prev" title="Getting Started" href="basics.html" /> 
+    <link rel="next" title="Schema-Validated JSON Requests" href="action.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -84,11 +84,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="basics.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">WSGI Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="action.html">JSON APIs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="spec.html">Schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="action.html">Schema-Validated JSON Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec_lang.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spec.html">Schema Internals</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
@@ -260,71 +262,6 @@ requests schema-validate return content data when this value is <code class="doc
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="chisel.create_doc_requests">
-<code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">create_doc_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">requests</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">root_path</span><span class="o">=</span><span class="default_value">'/doc'</span></em>, <em class="sig-param"><span class="n">api</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">css</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yield a series of requests for use with <a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_requests()</span></code></a> comprising the Chisel
-documentation application. By default, the documenation application is hosted at “/doc/”.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A list of requests or None to use the application’s requests</p></li>
-<li><p><strong>root_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation application URL root path. The default is “/doc”.</p></li>
-<li><p><strong>api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, include the documentation APIs. Two documentation APIs are added,
-“/doc/doc_index” and “<a class="reference external" href="doc/doc.html#name=chisel_doc_request">/doc/doc_request</a>”.</p></li>
-<li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, include the documentation client application.</p></li>
-<li><p><strong>css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, and “app” is True, include “/doc/doc.css” and “/doc/doc.svg”. If you exclude CSS,
-you can add your own versions of these requests to customize the documentation styling.</p></li>
-<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, cache static request content.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Generator of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="chisel.RedirectRequest">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">RedirectRequest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">urls</span></em>, <em class="sig-param"><span class="n">redirect_url</span></em>, <em class="sig-param"><span class="n">permanent</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">'Redirects'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
-<p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
-<li><p><strong>redirect_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>permanent</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="chisel.StaticRequest">
-<em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StaticRequest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">package</span></em>, <em class="sig-param"><span class="n">resource_name</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">content_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">urls</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">'Statics'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
-<p>TODO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>resource_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -603,10 +540,10 @@ you can add your own versions of these requests to customize the documentation s
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="action.html" class="btn btn-neutral float-right" title="JSON APIs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="action.html" class="btn btn-neutral float-right" title="Schema-Validated JSON Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="basics.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
