@@ -7,10 +7,10 @@
    getting_started
    app
    action
-   request
-   spec_lang
-   encode
    spec
+   request
+   encode
+   schema
    changes
 
 

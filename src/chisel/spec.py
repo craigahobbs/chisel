@@ -89,7 +89,6 @@ class SpecParser:
 
     :param str spec: An optional specification string to parse
     :raises SpecParserError: A parsing error occurred
-
     """
 
     __slots__ = (
@@ -141,7 +140,7 @@ class SpecParser:
         :param ~collections.abc.Iterable(str) lines: An iterator of specification line strings
         :param str filename: The name of file being parsed (for error messages)
         :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
-                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
         :raises SpecParserError: A parsing error occurred
         """
 
@@ -167,7 +166,7 @@ class SpecParser:
         :param str spec: The specification string
         :param str filename: The name of file being parsed (for error messages)
         :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
-                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
         :raises SpecParserError: A parsing error occurred
         """
 
@@ -202,7 +201,7 @@ class SpecParser:
         :param str path: Directory or file path from which to load and parse specification files
         :param str spec_ext: The specification file extension.  The default specification file extension is ".chsl".
         :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
-                              specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
         :raises SpecParserError: A parsing error occurred
         """
 

@@ -23,9 +23,40 @@ REQUESTS_MODULE_ATTR = '__chisel_requests__'
 
 def request(wsgi_callback=None, **kwargs):
     """
-    TODO
+    Decorator for creating a :class:`~chisel.Request` object that wraps a WSGI application function. For example:
 
-    :param ~collections.abc.Callable wsgi_callback: TODO
+    >>> import chisel
+    ...
+    >>> @chisel.request
+    ... def my_request(environ, start_response):
+    ...    start_response('200 OK', [('Content-Type', 'text/plain')])
+    ...    return [b'Hello, World!']
+    ...
+    >>> my_request.name, my_request.urls, my_request.doc, my_request.doc_group
+    ...
+    ('my_request', ((None, '/my_request'),), None, None)
+
+    You can also pass :class:`~chisel.Request` initialization parameters to the request decorator:
+
+    >>> @chisel.request(urls=[('GET', None)], doc='This is my request')
+    ... def my_request(environ, start_response):
+    ...    start_response('200 OK', [('Content-Type', 'text/plain')])
+    ...    return [b'Hello, World!']
+    ...
+    >>> my_request.name, my_request.urls, my_request.doc, my_request.doc_group
+    ...
+    ('my_request', (('GET', '/my_request'),), 'This is my request', None)
+
+    The created :class:`~chisel.Request` object is passed to an application's :meth:`~chisel.add_request` method to host
+    it with that applicaton.
+
+    >>> application = chisel.Application()
+    >>> application.add_request(my_request)
+    >>> application.request('GET', '/my_request')
+    ('200 OK', [('Content-Type', 'text/plain')], b'Hello, World!')
+
+    :param ~collections.abc.Callable wsgi_callback: A WSGI application function
+    :returns Request: The created Request object
     """
 
     if wsgi_callback is None:
@@ -34,12 +65,14 @@ def request(wsgi_callback=None, **kwargs):
 
 
 class Request:
-    """
-    TODO
+    """The Chisel Request object is a wrapper that associates hosting metadata with a WSGI application function.
+    See the :func:`~chisel.request` decorator for a common way to create Request objects.
 
-    :param ~collections.abc.Callable wsgi_callback: TODO
-    :param str name: TODO
-    :param list(tuple) urls: TODO
+    :param ~collections.abc.Callable wsgi_callback: A WSGI application function
+    :param str name: The request name. This string is used as the Request's unique identifier within a
+        :class:`!chisel.Application`. The default name is the callback function's name.
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+        or None to match any. The second value is the URL path or None to use the default path.
     :param doc: TODO
     :type doc: list(str) or str
     :param str doc_group: TODO

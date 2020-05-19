@@ -21,10 +21,10 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
     :type requests: list(~chisel.Request)
     :param str root_path: The documentation application URL root path. The default is "/doc".
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
-                     "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`_".
+        "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`_".
     :param bool app: If True, include the documentation client application.
     :param bool css: If True, and "app" is True, include "/doc/doc.css" and "/doc/doc.svg". If you exclude CSS,
-                     you can add your own versions of these requests to customize the documentation styling.
+        you can add your own versions of these requests to customize the documentation styling.
     :param bool cache: If True, cache static request content.
     :returns: Generator of :class:`~chisel.Request`
     """
@@ -50,7 +50,7 @@ class DocIndex(Action):
     :param requests: A list of requests or None to use the application's requests
     :type requests: dict(str, ~chisel.Request)
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
-                             or None to match any. The second value is the URL path or None to use the default path.
+        or None to match any. The second value is the URL path or None to use the default path.
     """
 
     __slots__ = ('requests',)
@@ -100,8 +100,7 @@ class DocRequest(Action):
     :param requests: A list of requests or None to use the application's requests
     :type requests: list(~chisel.Request)
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
-                             or None to match any. The second value is the URL path or None to use the default path.
-
+        or None to match any. The second value is the URL path or None to use the default path.
     """
 
     __slots__ = ('requests',)

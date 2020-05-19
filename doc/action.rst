@@ -1,5 +1,5 @@
-JSON API Requests
-=================
+Schema-Validated JSON Requests
+==============================
 
 .. autodecorator:: chisel.action
 
