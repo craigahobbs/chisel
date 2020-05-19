@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>WSGI Applications &mdash; chisel 0.9.95 documentation</title>
+  <title>WSGI Applications &mdash; chisel 0.9.96 documentation</title>
   
 
   
@@ -487,19 +487,19 @@ See the <a class="reference internal" href="#chisel.request" title="chisel.reque
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – A WSGI application function</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The request name. This string is used as the Request’s unique identifier within a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.Application</span></code>. The default name is the callback function’s name.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The request name. The default name is the callback function’s name.</p></li>
 <li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
 or None to match any. The second value is the URL path or None to use the default path.</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation group</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="chisel.Request.__call__">
 <code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">environ</span></em>, <em class="sig-param"><span class="n">start_response</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The request WSGI application method. By default the wrapped wsgi_callback is called. Sub-classes may override this
+method without calling this method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -513,10 +513,11 @@ or None to match any. The second value is the URL path or None to use the defaul
 <dl class="py method">
 <dt id="chisel.Request.decorate_module">
 <code class="sig-name descname">decorate_module</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wsgi_callback</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Helper method to update a collection requests on the request’s module. This information is used by
+<a class="reference internal" href="#chisel.Request.import_requests" title="chisel.Request.import_requests"><code class="xref py py-meth docutils literal notranslate"><span class="pre">import_requests()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p>
+<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The wrapped WSGI application function</p>
 </dd>
 </dl>
 </dd></dl>
@@ -524,24 +525,24 @@ or None to match any. The second value is the URL path or None to use the defaul
 <dl class="py attribute">
 <dt id="chisel.Request.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.Request.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Request.doc_group">
 <code class="sig-name descname">doc_group</code><a class="headerlink" href="#chisel.Request.doc_group" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation group</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="chisel.Request.import_requests">
 <em class="property">static </em><code class="sig-name descname">import_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">package</span></em>, <em class="sig-param"><span class="n">parent_package</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Import reqeusts from a package.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>parent_package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The package in which to recursively load requests</p></li>
+<li><p><strong>parent_package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The parent package</p></li>
 </ul>
 </dd>
 </dl>
@@ -550,19 +551,19 @@ or None to match any. The second value is the URL path or None to use the defaul
 <dl class="py attribute">
 <dt id="chisel.Request.name">
 <code class="sig-name descname">name</code><a class="headerlink" href="#chisel.Request.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The request name</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Request.urls">
 <code class="sig-name descname">urls</code><a class="headerlink" href="#chisel.Request.urls" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The list of URL method/path tuples</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Request.wsgi_callback">
 <code class="sig-name descname">wsgi_callback</code><a class="headerlink" href="#chisel.Request.wsgi_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The WSGI application function</p>
 </dd></dl>
 
 </dd></dl>

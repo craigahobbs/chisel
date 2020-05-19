@@ -4,9 +4,7 @@
       "name": "chisel_doc_request_error",
       "values": [
         {
-          "doc": [
-            " The request name is unknown"
-          ],
+          "doc": " The request name is unknown",
           "value": "UnknownName"
         }
       ]
@@ -19,28 +17,22 @@
     "output": {
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The request name"
-          ],
+          "doc": " The request name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The array of URL paths where the request is hosted."
-          ],
+          "doc": " The array of URL paths where the request is hosted.",
           "name": "urls",
           "type": {
             "array": {
@@ -51,9 +43,7 @@
           }
         },
         {
-          "doc": [
-            " The action definition. If this member is present then this request is an action."
-          ],
+          "doc": " The action definition. If this member is present then this request is an action.",
           "name": "action",
           "optional": true,
           "type": {
@@ -61,9 +51,7 @@
           }
         },
         {
-          "doc": [
-            " The array of struct types referenced by the action"
-          ],
+          "doc": " The array of struct types referenced by the action",
           "name": "structs",
           "optional": true,
           "type": {
@@ -75,9 +63,7 @@
           }
         },
         {
-          "doc": [
-            " The array of enum types referenced by the action"
-          ],
+          "doc": " The array of enum types referenced by the action",
           "name": "enums",
           "optional": true,
           "type": {
@@ -89,9 +75,7 @@
           }
         },
         {
-          "doc": [
-            " The array of typedef types referenced by the action"
-          ],
+          "doc": " The array of typedef types referenced by the action",
           "name": "typedefs",
           "optional": true,
           "type": {
@@ -112,9 +96,7 @@
     "query": {
       "members": [
         {
-          "doc": [
-            " The request name"
-          ],
+          "doc": " The request name",
           "name": "name",
           "type": {
             "builtin": "string"
@@ -124,62 +106,42 @@
       "name": "chisel_doc_request_query"
     }
   },
-  "doc": [
-    " Get a request's documentation information"
-  ],
+  "doc": " Get a request's documentation information",
   "enums": [
     {
-      "doc": [
-        " The built-in type enumeration"
-      ],
+      "doc": " The built-in type enumeration",
       "name": "BuiltinType",
       "values": [
         {
-          "doc": [
-            " The string type"
-          ],
+          "doc": " The string type",
           "value": "string"
         },
         {
-          "doc": [
-            " The integer type"
-          ],
+          "doc": " The integer type",
           "value": "int"
         },
         {
-          "doc": [
-            " The float type"
-          ],
+          "doc": " The float type",
           "value": "float"
         },
         {
-          "doc": [
-            " The boolean type"
-          ],
+          "doc": " The boolean type",
           "value": "bool"
         },
         {
-          "doc": [
-            " A date formatted as an ISO-8601 date string"
-          ],
+          "doc": " A date formatted as an ISO-8601 date string",
           "value": "date"
         },
         {
-          "doc": [
-            " A date/time formatted as an ISO-8601 date/time string"
-          ],
+          "doc": " A date/time formatted as an ISO-8601 date/time string",
           "value": "datetime"
         },
         {
-          "doc": [
-            " A UUID formatted as string"
-          ],
+          "doc": " A UUID formatted as string",
           "value": "uuid"
         },
         {
-          "doc": [
-            " An object of any type"
-          ],
+          "doc": " An object of any type",
           "value": "object"
         }
       ]
@@ -188,50 +150,38 @@
   "name": "chisel_doc_request",
   "structs": [
     {
-      "doc": [
-        " A JSON web service API"
-      ],
+      "doc": " A JSON web service API",
       "members": [
         {
-          "doc": [
-            " The action name"
-          ],
+          "doc": " The action name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The path parameters struct"
-          ],
+          "doc": " The path parameters struct",
           "name": "path",
           "type": {
             "struct": "Struct"
           }
         },
         {
-          "doc": [
-            " The query parameters struct"
-          ],
+          "doc": " The query parameters struct",
           "name": "query",
           "type": {
             "struct": "Struct"
           }
         },
         {
-          "doc": [
-            " The content body struct"
-          ],
+          "doc": " The content body struct",
           "name": "input",
           "type": {
             "struct": "Struct"
           }
         },
         {
-          "doc": [
-            " The response body struct"
-          ],
+          "doc": " The response body struct",
           "name": "output",
           "optional": true,
           "type": {
@@ -239,9 +189,7 @@
           }
         },
         {
-          "doc": [
-            " The custom error response codes"
-          ],
+          "doc": " The custom error response codes",
           "name": "errors",
           "type": {
             "struct": "Enum"
@@ -251,23 +199,17 @@
       "name": "Action"
     },
     {
-      "doc": [
-        " An array type"
-      ],
+      "doc": " An array type",
       "members": [
         {
-          "doc": [
-            " The contained type"
-          ],
+          "doc": " The contained type",
           "name": "type",
           "type": {
             "struct": "Type"
           }
         },
         {
-          "doc": [
-            " The contained type's attributes"
-          ],
+          "doc": " The contained type's attributes",
           "name": "attr",
           "optional": true,
           "type": {
@@ -278,14 +220,10 @@
       "name": "Array"
     },
     {
-      "doc": [
-        " A type attribute"
-      ],
+      "doc": " A type attribute",
       "members": [
         {
-          "doc": [
-            " The value is equal"
-          ],
+          "doc": " The value is equal",
           "name": "eq",
           "optional": true,
           "type": {
@@ -293,9 +231,7 @@
           }
         },
         {
-          "doc": [
-            " The value is less than"
-          ],
+          "doc": " The value is less than",
           "name": "lt",
           "optional": true,
           "type": {
@@ -303,9 +239,7 @@
           }
         },
         {
-          "doc": [
-            " The value is less than or equal to"
-          ],
+          "doc": " The value is less than or equal to",
           "name": "lte",
           "optional": true,
           "type": {
@@ -313,9 +247,7 @@
           }
         },
         {
-          "doc": [
-            " The value is greater than"
-          ],
+          "doc": " The value is greater than",
           "name": "gt",
           "optional": true,
           "type": {
@@ -323,9 +255,7 @@
           }
         },
         {
-          "doc": [
-            " The value is greater than or equal to"
-          ],
+          "doc": " The value is greater than or equal to",
           "name": "gte",
           "optional": true,
           "type": {
@@ -333,9 +263,7 @@
           }
         },
         {
-          "doc": [
-            " The length is equal to"
-          ],
+          "doc": " The length is equal to",
           "name": "len_eq",
           "optional": true,
           "type": {
@@ -343,9 +271,7 @@
           }
         },
         {
-          "doc": [
-            " The length is less-than"
-          ],
+          "doc": " The length is less-than",
           "name": "len_lt",
           "optional": true,
           "type": {
@@ -353,9 +279,7 @@
           }
         },
         {
-          "doc": [
-            " The length is less than or equal to"
-          ],
+          "doc": " The length is less than or equal to",
           "name": "len_lte",
           "optional": true,
           "type": {
@@ -363,9 +287,7 @@
           }
         },
         {
-          "doc": [
-            " The length is greater than"
-          ],
+          "doc": " The length is greater than",
           "name": "len_gt",
           "optional": true,
           "type": {
@@ -373,9 +295,7 @@
           }
         },
         {
-          "doc": [
-            " The length is greater than or equal to"
-          ],
+          "doc": " The length is greater than or equal to",
           "name": "len_gte",
           "optional": true,
           "type": {
@@ -386,23 +306,17 @@
       "name": "Attribute"
     },
     {
-      "doc": [
-        " A dictionary type"
-      ],
+      "doc": " A dictionary type",
       "members": [
         {
-          "doc": [
-            " The contained key type"
-          ],
+          "doc": " The contained key type",
           "name": "type",
           "type": {
             "struct": "Type"
           }
         },
         {
-          "doc": [
-            " The contained key type's attributes"
-          ],
+          "doc": " The contained key type's attributes",
           "name": "attr",
           "optional": true,
           "type": {
@@ -410,18 +324,14 @@
           }
         },
         {
-          "doc": [
-            " The contained value type"
-          ],
+          "doc": " The contained value type",
           "name": "key_type",
           "type": {
             "struct": "Type"
           }
         },
         {
-          "doc": [
-            " The contained value type's attributes"
-          ],
+          "doc": " The contained value type's attributes",
           "name": "key_attr",
           "optional": true,
           "type": {
@@ -432,33 +342,25 @@
       "name": "Dict"
     },
     {
-      "doc": [
-        " An enumeration type"
-      ],
+      "doc": " An enumeration type",
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The enum type name"
-          ],
+          "doc": " The enum type name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The enumeration values"
-          ],
+          "doc": " The enumeration values",
           "name": "values",
           "type": {
             "array": {
@@ -472,24 +374,18 @@
       "name": "Enum"
     },
     {
-      "doc": [
-        " An enumeration type value"
-      ],
+      "doc": " An enumeration type value",
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The value string"
-          ],
+          "doc": " The value string",
           "name": "value",
           "type": {
             "builtin": "string"
@@ -499,42 +395,32 @@
       "name": "EnumValue"
     },
     {
-      "doc": [
-        " A struct type member"
-      ],
+      "doc": " A struct type member",
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The member name"
-          ],
+          "doc": " The member name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The member type"
-          ],
+          "doc": " The member type",
           "name": "type",
           "type": {
             "struct": "Type"
           }
         },
         {
-          "doc": [
-            " The member type attributes"
-          ],
+          "doc": " The member type attributes",
           "name": "attr",
           "optional": true,
           "type": {
@@ -542,9 +428,7 @@
           }
         },
         {
-          "doc": [
-            " If true, the member is optional and may not be present."
-          ],
+          "doc": " If true, the member is optional and may not be present.",
           "name": "optional",
           "optional": true,
           "type": {
@@ -552,9 +436,7 @@
           }
         },
         {
-          "doc": [
-            " If true, the member may be null."
-          ],
+          "doc": " If true, the member may be null.",
           "name": "nullable",
           "optional": true,
           "type": {
@@ -565,14 +447,10 @@
       "name": "Member"
     },
     {
-      "doc": [
-        " Struct representing a request's URL information"
-      ],
+      "doc": " Struct representing a request's URL information",
       "members": [
         {
-          "doc": [
-            " The request URL HTTP request method. If not present, all HTTP request methods are accepted."
-          ],
+          "doc": " The request URL HTTP request method. If not present, all HTTP request methods are accepted.",
           "name": "method",
           "optional": true,
           "type": {
@@ -580,9 +458,7 @@
           }
         },
         {
-          "doc": [
-            " The request URL path"
-          ],
+          "doc": " The request URL path",
           "name": "url",
           "type": {
             "builtin": "string"
@@ -592,33 +468,25 @@
       "name": "RequestURL"
     },
     {
-      "doc": [
-        " A struct type"
-      ],
+      "doc": " A struct type",
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The struct type name"
-          ],
+          "doc": " The struct type name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The struct members"
-          ],
+          "doc": " The struct members",
           "name": "members",
           "type": {
             "array": {
@@ -629,9 +497,7 @@
           }
         },
         {
-          "doc": [
-            " If true, the struct is a union and exactly one of the optional members is present."
-          ],
+          "doc": " If true, the struct is a union and exactly one of the optional members is present.",
           "name": "union",
           "optional": true,
           "type": {
@@ -642,14 +508,10 @@
       "name": "Struct"
     },
     {
-      "doc": [
-        " Union representing a member type"
-      ],
+      "doc": " Union representing a member type",
       "members": [
         {
-          "doc": [
-            " A built-in type"
-          ],
+          "doc": " A built-in type",
           "name": "builtin",
           "optional": true,
           "type": {
@@ -657,9 +519,7 @@
           }
         },
         {
-          "doc": [
-            " An array type"
-          ],
+          "doc": " An array type",
           "name": "array",
           "optional": true,
           "type": {
@@ -667,9 +527,7 @@
           }
         },
         {
-          "doc": [
-            " A dictionary type"
-          ],
+          "doc": " A dictionary type",
           "name": "dict",
           "optional": true,
           "type": {
@@ -677,9 +535,7 @@
           }
         },
         {
-          "doc": [
-            " An enumeration type"
-          ],
+          "doc": " An enumeration type",
           "name": "enum",
           "optional": true,
           "type": {
@@ -687,9 +543,7 @@
           }
         },
         {
-          "doc": [
-            " A struct type"
-          ],
+          "doc": " A struct type",
           "name": "struct",
           "optional": true,
           "type": {
@@ -697,9 +551,7 @@
           }
         },
         {
-          "doc": [
-            " A type definition"
-          ],
+          "doc": " A type definition",
           "name": "typedef",
           "optional": true,
           "type": {
@@ -711,42 +563,32 @@
       "union": true
     },
     {
-      "doc": [
-        " A typedef type"
-      ],
+      "doc": " A typedef type",
       "members": [
         {
-          "doc": [
-            " The documentation markdown text lines"
-          ],
+          "doc": " The documentation markdown text",
           "name": "doc",
           "optional": true,
           "type": {
-            "typedef": "StringArray"
+            "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The typedef type name"
-          ],
+          "doc": " The typedef type name",
           "name": "name",
           "type": {
             "builtin": "string"
           }
         },
         {
-          "doc": [
-            " The typedef's type"
-          ],
+          "doc": " The typedef's type",
           "name": "type",
           "type": {
             "struct": "Type"
           }
         },
         {
-          "doc": [
-            " The typedef's type attributes"
-          ],
+          "doc": " The typedef's type attributes",
           "name": "attr",
           "optional": true,
           "type": {
@@ -755,24 +597,6 @@
         }
       ],
       "name": "Typedef"
-    }
-  ],
-  "typedefs": [
-    {
-      "attr": {
-        "len_gt": 0
-      },
-      "doc": [
-        " A non-empty string array"
-      ],
-      "name": "StringArray",
-      "type": {
-        "array": {
-          "type": {
-            "builtin": "string"
-          }
-        }
-      }
     }
   ],
   "urls": [

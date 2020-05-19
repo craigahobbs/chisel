@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Schema Internals &mdash; chisel 0.9.95 documentation</title>
+  <title>Schema Internals &mdash; chisel 0.9.96 documentation</title>
   
 
   
@@ -221,7 +221,7 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
 <li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
 </ul>
 </dd>
@@ -229,7 +229,7 @@
 <dl class="py attribute">
 <dt id="chisel.ActionModel.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.ActionModel.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -313,11 +313,19 @@
 <dl class="py class">
 <dt id="chisel.EnumValue">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">EnumValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">valueString</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.EnumValue" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>An enum value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The enum value string</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="chisel.EnumValue.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.EnumValue.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -332,6 +340,18 @@
 <dt id="chisel.StructMember">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">StructMember</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">type_</span></em>, <em class="sig-param"><span class="n">optional</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nullable</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">attr</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StructMember" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – TODO</p></li>
+<li><p><strong>optional</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>nullable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>attr</strong> (<a class="reference internal" href="#chisel.StructMemberAttributes" title="chisel.StructMemberAttributes"><em>StructMemberAttributes</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="chisel.StructMember.attr">
 <code class="sig-name descname">attr</code><a class="headerlink" href="#chisel.StructMember.attr" title="Permalink to this definition">¶</a></dt>
@@ -341,7 +361,7 @@
 <dl class="py attribute">
 <dt id="chisel.StructMember.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.StructMember.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -702,7 +722,16 @@
 <dl class="py class">
 <dt id="chisel.TypeEnum">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">TypeEnum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type_name</span><span class="o">=</span><span class="default_value">'enum'</span></em>, <em class="sig-param"><span class="n">base_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.TypeEnum" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>An enum type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The enum type name</p></li>
+<li><p><strong>base_types</strong> (<a class="reference internal" href="#chisel.TypeEnum" title="chisel.TypeEnum"><em>TypeEnum</em></a>) – The enum type’s base types</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="chisel.TypeEnum.add_value">
 <code class="sig-name descname">add_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.TypeEnum.add_value" title="Permalink to this definition">¶</a></dt>
@@ -718,7 +747,7 @@
 <dl class="py attribute">
 <dt id="chisel.TypeEnum.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.TypeEnum.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -847,10 +876,32 @@
 <dt id="chisel.TypeStruct">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">TypeStruct</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">union</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">base_types</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.TypeStruct" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The struct type’s name</p></li>
+<li><p><strong>union</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>base_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference internal" href="#chisel.TypeStruct" title="chisel.TypeStruct"><em>TypeStruct</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="chisel.TypeStruct.add_member">
 <code class="sig-name descname">add_member</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">type_</span></em>, <em class="sig-param"><span class="n">optional</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nullable</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">attr</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.TypeStruct.add_member" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – TODO</p></li>
+<li><p><strong>optional</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>nullable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
+<li><p><strong>attr</strong> (<a class="reference internal" href="#chisel.StructMemberAttributes" title="chisel.StructMemberAttributes"><em>StructMemberAttributes</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -862,13 +913,21 @@
 <dl class="py attribute">
 <dt id="chisel.TypeStruct.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.TypeStruct.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="chisel.TypeStruct.members">
 <code class="sig-name descname">members</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">include_base_types</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.TypeStruct.members" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Get an iterator of a struct’s members</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>include_base_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true, members from any base classes are included.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Iterator of the struct members</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -931,7 +990,7 @@
 <li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – TODO</p></li>
 <li><p><strong>attr</strong> (<a class="reference internal" href="#chisel.StructMemberAttributes" title="chisel.StructMemberAttributes"><em>StructMemberAttributes</em></a>) – TODO</p></li>
 <li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>) or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
 </ul>
 </dd>
 </dl>
@@ -950,7 +1009,7 @@
 <dl class="py attribute">
 <dt id="chisel.Typedef.doc">
 <code class="sig-name descname">doc</code><a class="headerlink" href="#chisel.Typedef.doc" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The documentation markdown text</p>
 </dd></dl>
 
 <dl class="py attribute">
