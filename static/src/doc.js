@@ -175,15 +175,16 @@ export class DocPage {
     /**
      * Helper function to generate a text block's chisel.js element hierarchy model.
      *
-     * @param {Array} lines - The text lines.
+     * @param {string} [text=null] - Markdown text
      * @returns {?Array}
      */
-    static textElem(lines) {
+    static textElem(text = null) {
         const elems = [];
 
         // Organize lines into paragraphs
-        let paragraph = [];
-        if (Array.isArray(lines)) {
+        if (text !== null) {
+            const lines = text.split('\n');
+            let paragraph = [];
             for (let iLine = 0; iLine < lines.length; iLine++) {
                 if (lines[iLine].length) {
                     paragraph.push(lines[iLine]);
@@ -192,9 +193,9 @@ export class DocPage {
                     paragraph = [];
                 }
             }
-        }
-        if (paragraph.length) {
-            elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+            if (paragraph.length) {
+                elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+            }
         }
 
         // If there are no elements return null
@@ -347,7 +348,7 @@ export class DocPage {
             (prevValue, curValue) => prevValue || !!(curValue.optional || curValue.nullable || curValue.attr),
             false
         );
-        const hasDescription = struct.members.reduce((prevValue, curValue) => prevValue || !!curValue.doc, false);
+        const hasDescription = struct.members.reduce((prevValue, curValue) => prevValue || 'doc' in curValue, false);
         return [
             // Section title
             chisel.elem(
@@ -358,7 +359,7 @@ export class DocPage {
             DocPage.textElem(struct.doc),
 
             // Struct members
-            (!struct.members.length ? DocPage.textElem(['The struct is empty.']) : chisel.elem('table', null, [
+            (!struct.members.length ? DocPage.textElem('The struct is empty.') : chisel.elem('table', null, [
                 chisel.elem('tr', null, [
                     chisel.elem('th', null, chisel.text('Name')),
                     chisel.elem('th', null, chisel.text('Type')),
@@ -386,7 +387,7 @@ export class DocPage {
      * @returns {Array}
      */
     enumElem(enum_, titleTag, title) {
-        const hasDescription = enum_.values.reduce((prevValue, curValue) => prevValue || !!curValue.doc, false);
+        const hasDescription = enum_.values.reduce((prevValue, curValue) => prevValue || 'doc' in curValue, false);
         return [
             // Section title
             chisel.elem(
@@ -397,7 +398,7 @@ export class DocPage {
             DocPage.textElem(enum_.doc),
 
             // Enum values
-            (!enum_.values.length ? DocPage.textElem(['The enum is empty.']) : chisel.elem('table', null, [
+            (!enum_.values.length ? DocPage.textElem('The enum is empty.') : chisel.elem('table', null, [
                 chisel.elem('tr', null, [
                     chisel.elem('th', null, chisel.text('Value')),
                     hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null

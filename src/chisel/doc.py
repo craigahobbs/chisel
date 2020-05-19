@@ -108,9 +108,6 @@ class DocRequest(Action):
     SPEC = '''
 group "Documentation"
 
-# A non-empty string array
-typedef string[len > 0] StringArray
-
 # Union representing a member type
 union Type
 
@@ -219,8 +216,8 @@ struct Dict
 # An enumeration type
 struct Enum
 
-    # The documentation markdown text lines
-    optional StringArray doc
+    # The documentation markdown text
+    optional string doc
 
     # The enum type name
     string name
@@ -231,8 +228,8 @@ struct Enum
 # An enumeration type value
 struct EnumValue
 
-    # The documentation markdown text lines
-    optional StringArray doc
+    # The documentation markdown text
+    optional string doc
 
     # The value string
     string value
@@ -240,8 +237,8 @@ struct EnumValue
 # A struct type
 struct Struct
 
-    # The documentation markdown text lines
-    optional StringArray doc
+    # The documentation markdown text
+    optional string doc
 
     # The struct type name
     string name
@@ -255,8 +252,8 @@ struct Struct
 # A struct type member
 struct Member
 
-    # The documentation markdown text lines
-    optional StringArray doc
+    # The documentation markdown text
+    optional string doc
 
     # The member name
     string name
@@ -276,8 +273,8 @@ struct Member
 # A typedef type
 struct Typedef
 
-    # The documentation markdown text lines
-    optional StringArray doc
+    # The documentation markdown text
+    optional string doc
 
     # The typedef type name
     string name
@@ -328,8 +325,8 @@ action chisel_doc_request
 
     output
 
-        # The documentation markdown text lines
-        optional StringArray doc
+        # The documentation markdown text
+        optional string doc
 
         # The request name
         string name
@@ -372,8 +369,8 @@ action chisel_doc_request
             'name': request.name,
             'urls': [self._url_dict(method, url) for method, url in request.urls],
         }
-        if request.doc:
-            response['doc'] = [request.doc] if isinstance(request.doc, str) else request.doc
+        if request.doc is not None:
+            response['doc'] = request.doc
 
         if isinstance(request, Action):
             response['action'] = action_dict = {
@@ -482,8 +479,8 @@ action chisel_doc_request
             'name': struct_type.type_name,
             'members': [cls._member_dict(member) for member in struct_type.members()],
         }
-        if struct_type.doc:
-            struct_dict['doc'] = [struct_type.doc] if isinstance(struct_type.doc, str) else struct_type.doc
+        if struct_type.doc is not None:
+            struct_dict['doc'] = struct_type.doc
         if struct_type.union:
             struct_dict['union'] = True
         return struct_dict
@@ -494,8 +491,8 @@ action chisel_doc_request
             'name': member.name,
             'type': cls._type_dict(member.type),
         }
-        if member.doc:
-            member_dict['doc'] = member.doc if isinstance(member.doc, str) else member.doc
+        if member.doc is not None:
+            member_dict['doc'] = member.doc
         if member.optional:
             member_dict['optional'] = member.optional
         if member.nullable:
@@ -510,8 +507,8 @@ action chisel_doc_request
             'name': enum_type.type_name,
             'values': [cls._enum_value_dict(enum_value) for enum_value in enum_type.values()],
         }
-        if enum_type.doc:
-            enum_dict['doc'] = enum_type.doc if isinstance(enum_type.doc, str) else enum_type.doc
+        if enum_type.doc is not None:
+            enum_dict['doc'] = enum_type.doc
         return enum_dict
 
     @classmethod
@@ -519,8 +516,8 @@ action chisel_doc_request
         enum_value_dict = {
             'value': enum_value.value,
         }
-        if enum_value.doc:
-            enum_value_dict['doc'] = enum_value.doc if isinstance(enum_value.doc, str) else enum_value.doc
+        if enum_value.doc is not None:
+            enum_value_dict['doc'] = enum_value.doc
         return enum_value_dict
 
     @classmethod
@@ -529,8 +526,8 @@ action chisel_doc_request
             'name': typedef_type.type_name,
             'type': cls._type_dict(typedef_type.type),
         }
-        if typedef_type.doc:
-            typedef_dict['doc'] = typedef_type.doc if isinstance(typedef_type.doc, str) else typedef_type.doc
+        if typedef_type.doc is not None:
+            typedef_dict['doc'] = typedef_type.doc
         if typedef_type.attr is not None:
             typedef_dict['attr'] = cls._attr_dict(typedef_type.attr)
         return typedef_dict

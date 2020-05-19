@@ -338,12 +338,12 @@ action my_action2
                 'input': {
                     'members': [
                         {
-                            'doc': [' Action path member doc.'],
+                            'doc': ' Action path member doc.',
                             'name': 'm7',
                             'type': {'enum': 'MyEnum2'}
                         },
                         {
-                            'doc': [' Action path member2 doc.'],
+                            'doc': ' Action path member2 doc.',
                             'name': 'm8',
                             'type': {'struct': 'MyStruct2'}
                         },
@@ -358,12 +358,12 @@ action my_action2
                 'output': {
                     'members': [
                         {
-                            'doc': [' Action output member doc.'],
+                            'doc': ' Action output member doc.',
                             'name': 'm1',
                             'type': {'builtin': 'bool'}
                         },
                         {
-                            'doc': [' Action output member2 doc.'],
+                            'doc': ' Action output member2 doc.',
                             'name': 'm2',
                             'type': {'builtin': 'date'}
                         },
@@ -441,12 +441,12 @@ action my_action2
                 'path': {
                     'members': [
                         {
-                            'doc': [' Action path member doc.'],
+                            'doc': ' Action path member doc.',
                             'name': 'm1',
                             'type': {'enum': 'MyEnum2'}
                         },
                         {
-                            'doc': [' Action path member2 doc.'],
+                            'doc': ' Action path member2 doc.',
                             'name': 'm2',
                             'type': {'struct': 'MyStruct2'}
                         },
@@ -460,12 +460,12 @@ action my_action2
                 'query': {
                     'members': [
                         {
-                            'doc': [' Action path member doc.'],
+                            'doc': ' Action path member doc.',
                             'name': 'm4',
                             'type': {'enum': 'MyEnum2'}
                         },
                         {
-                            'doc': [' Action path member2 doc.'],
+                            'doc': ' Action path member2 doc.',
                             'name': 'm5',
                             'type': {'struct': 'MyStruct2'}
                         },
@@ -477,18 +477,18 @@ action my_action2
                     'name': 'my_action_query'
                 }
             },
-            'doc': [' Action doc.', '', ' Another doc paragraph.'],
+            'doc': ' Action doc.\n\n Another doc paragraph.',
             'enums': [
                 {
-                    'doc': [' Enum doc.', '', ' Another enum paragraph.'],
+                    'doc': ' Enum doc.\n\n Another enum paragraph.',
                     'name': 'MyEnum',
                     'values': [
                         {
-                            'doc': [' Enum value doc.', '', ' Another enum value paragraph.'],
+                            'doc': ' Enum value doc.\n\n Another enum value paragraph.',
                             'value': 'V1'
                         },
                         {
-                            'doc': [' Enum value2 doc.'],
+                            'doc': ' Enum value2 doc.',
                             'value': 'V2'
                         },
                         {
@@ -504,19 +504,15 @@ action my_action2
             'name': 'my_action',
             'structs': [
                 {
-                    'doc': [
-                        ' Struct doc.',
-                        '',
-                        ' Another doc paragraph.'
-                    ],
+                    'doc': ' Struct doc.\n\n Another doc paragraph.',
                     'members': [
                         {
-                            'doc': [' Struct member doc.'],
+                            'doc': ' Struct member doc.',
                             'name': 'm1',
                             'type': {'builtin': 'int'}
                         },
                         {
-                            'doc': [' Struct member2 doc.'],
+                            'doc': ' Struct member2 doc.',
                             'name': 'm2',
                             'type': {'builtin': 'int'}
                         },
@@ -532,16 +528,16 @@ action my_action2
                     'name': 'MyStruct2'
                 },
                 {
-                    'doc': [' Union doc.', '', ' Another doc paragraph.'],
+                    'doc': ' Union doc.\n\n Another doc paragraph.',
                     'members': [
                         {
-                            'doc': [' Union member doc.'],
+                            'doc': ' Union member doc.',
                             'name': 'm1',
                             'optional': True,
                             'type': {'builtin': 'int'}
                         },
                         {
-                            'doc': [' Union member2 doc.'],
+                            'doc': ' Union member2 doc.',
                             'name': 'm2',
                             'optional': True,
                             'type': {'builtin': 'float'}
@@ -558,7 +554,7 @@ action my_action2
             ],
             'typedefs': [
                 {
-                    'doc': [' Typedef doc.', '', ' Another typedef paragraph.'],
+                    'doc': ' Typedef doc.\n\n Another typedef paragraph.',
                     'name': 'MyTypedef',
                     'type': {'dict': {'key_type': {'enum': 'MyEnum'}, 'type': {'struct': 'MyStruct'}}}
                 },
@@ -588,7 +584,7 @@ action my_action2
         status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'doc': ['Request doc.'],
+            'doc': 'Request doc.',
             'name': 'my_request',
             'urls': [{'url': '/my_request'}]
         })

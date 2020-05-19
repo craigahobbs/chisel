@@ -73,9 +73,8 @@ class Request:
         :class:`!chisel.Application`. The default name is the callback function's name.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
-    :param doc: TODO
-    :type doc: list(str) or str
-    :param str doc_group: TODO
+    :param str doc: The documentation markdown text
+    :param str doc_group: The documentation group
     """
 
     __slots__ = ('wsgi_callback', 'name', 'urls', 'doc', 'doc_group')
@@ -158,9 +157,8 @@ class RedirectRequest(Request):
     :param str redirect_url: TODO
     :param bool permanent: TODO
     :param str name: TODO
-    :param doc: TODO
-    :type doc: list(str) or str
-    :param str doc_group: TODO
+    :param str doc: The documentation markdown text
+    :param str doc_group: The documentation group
     """
 
     __slots__ = ('_status', '_redirect_url')
@@ -191,9 +189,8 @@ class StaticRequest(Request):
     :param list(tuple) headers: TODO
     :param str name: TODO
     :param list(tuple) urls: TODO
-    :param doc: TODO
-    :type doc: list(str) or str
-    :param str doc_group: TODO
+    :param str doc: The documentation markdown text
+    :param str doc_group: The documentation group
     """
 
     __slots__ = ('_package', '_resource_name', '_cache', '_headers', '_content', '_etag')

@@ -70,6 +70,7 @@ disable=duplicate-code,
         too-many-nested-blocks,
         too-many-public-methods,
         too-many-statements,
+        unsupported-membership-test,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

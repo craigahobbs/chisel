@@ -133,8 +133,7 @@ class ActionModel:
     TODO
 
     :param str name: TODO
-    :param doc: TODO
-    :type doc: list(str) or str
+    :param str doc: The documentation markdown text
     :param str doc_group: TODO
     """
 
@@ -163,8 +162,8 @@ class ActionModel:
         #: TODO
         self.error_type = TypeEnum(type_name=name + '_error')
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
         #: TODO
         self.doc_group = doc_group
@@ -305,8 +304,7 @@ class Typedef:
     :param object type_: TODO
     :param ~chisel.StructMemberAttributes attr: TODO
     :param str type_name: TODO
-    :param doc: TODO
-    :type doc: list(str) or str
+    :param str doc: The documentation markdown text
     """
 
     __slots__ = ('type_name', 'type', 'attr', 'doc')
@@ -322,8 +320,8 @@ class Typedef:
         #: TODO
         self.attr = attr
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
     @staticmethod
     def base_type(type_):
@@ -356,6 +354,13 @@ class Typedef:
 class StructMember:
     """
     TODO
+
+    :param str name: TODO
+    :param object type_: TODO
+    :param bool optional: TODO
+    :param bool nullable: TODO
+    :param ~chisel.StructMemberAttributes attr: TODO
+    :param str doc: The documentation markdown text
     """
 
     __slots__ = ('name', 'type', 'optional', 'nullable', 'attr', 'doc')
@@ -377,13 +382,18 @@ class StructMember:
         #: TODO
         self.attr = attr
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
 
 class TypeStruct:
     """
     TODO
+
+    :param str type_name: The struct type's name
+    :param bool union: TODO
+    :param list(~chisel.TypeStruct) base_types: TODO
+    :param str doc: The documentation markdown text
     """
 
     __slots__ = ('type_name', 'union', 'base_types', '_members', 'doc')
@@ -401,12 +411,15 @@ class TypeStruct:
 
         self._members = []
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
     def members(self, include_base_types=True):
         """
-        TODO
+        Get an iterator of a struct's members
+
+        :param bool include_base_types: If true, members from any base classes are included.
+        :returns: Iterator of the struct members
         """
 
         if include_base_types and self.base_types is not None:
@@ -419,6 +432,13 @@ class TypeStruct:
     def add_member(self, name, type_, optional=False, nullable=False, attr=None, doc=None):
         """
         TODO
+
+        :param str name: TODO
+        :param object type_: TODO
+        :param bool optional: TODO
+        :param bool nullable: TODO
+        :param ~chisel.StructMemberAttributes attr: TODO
+        :param str doc: The documentation markdown text
         """
 
         member = StructMember(name, type_, optional or self.union, nullable, attr, doc)
@@ -627,7 +647,10 @@ class TypeDict:
 
 class EnumValue:
     """
-    TODO
+    An enum value
+
+    :param str value: The enum value string
+    :param str doc: The documentation markdown text
     """
 
     __slots__ = ('value', 'doc')
@@ -637,8 +660,8 @@ class EnumValue:
         #: TODO
         self.value = valueString
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
     def __eq__(self, other):
         return self.value == other
@@ -646,7 +669,11 @@ class EnumValue:
 
 class TypeEnum:
     """
-    TODO
+    An enum type
+
+    :param str type_name: The enum type name
+    :param ~chisel.TypeEnum base_types: The enum type's base types
+    :param str doc: The documentation markdown text
     """
 
     __slots__ = ('type_name', 'base_types', '_values', 'doc')
@@ -661,8 +688,8 @@ class TypeEnum:
 
         self._values = []
 
-        #: TODO
-        self.doc = [] if doc is None else doc
+        #: The documentation markdown text
+        self.doc = doc
 
     def values(self, include_base_types=True):
         """

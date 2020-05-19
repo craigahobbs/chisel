@@ -73,8 +73,7 @@ class Action(Request):
     :param ~collections.abc.Callable action_callback: TODO
     :param str name: TODO
     :param list(tuple) urls: TODO
-    :param doc: TODO
-    :type doc: list(str) or str
+    :param str doc: The documentation markdown text
     :param str doc_group: TODO
     :param ~chisel.SpecParser spec_parser: TODO
     :param str spec: TODO

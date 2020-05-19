@@ -178,19 +178,19 @@ class TestActionModel(TestCase):
             self.assertFalse(type_.union)
             self.assertIsNone(type_.base_types)
             self.assertListEqual(list(type_.members()), [])
-            self.assertListEqual(type_.doc, [])
+            self.assertIsNone(type_.doc)
 
         self.assertEqual(action_model.path_type.type_name, 'MyAction_path')
         self.assertFalse(action_model.path_type.union)
         self.assertIsNone(action_model.path_type.base_types)
         self.assertListEqual(list(action_model.path_type.members()), [])
-        self.assertListEqual(action_model.path_type.doc, [])
+        self.assertIsNone(action_model.path_type.doc)
 
         self.assertEqual(action_model.path_type.type_name, 'MyAction_path')
         self.assertFalse(action_model.path_type.union)
         self.assertIsNone(action_model.path_type.base_types)
         self.assertListEqual(list(action_model.path_type.members()), [])
-        self.assertListEqual(action_model.path_type.doc, [])
+        self.assertIsNone(action_model.path_type.doc)
 
     def test_input_members(self):
         action_model = ActionModel('MyAction')
@@ -381,7 +381,7 @@ class TestTypedef(TestCase):
         self.assertEqual(type_.type_name, 'typedef')
         self.assertTrue(isinstance(type_.type, TypeInt))
         self.assertTrue(isinstance(type_.attr, StructMemberAttributes))
-        self.assertEqual(type_.doc, [])
+        self.assertEqual(type_.doc, None)
 
         type_ = Typedef(TYPE_INT, StructMemberAttributes(op_gt=5), type_name='Foo', doc=['A', 'B'])
         self.assertEqual(type_.type_name, 'Foo')
@@ -464,7 +464,7 @@ class TestStruct(TestCase):
         self.assertEqual(type_.type_name, 'struct')
         self.assertEqual(type_.union, False)
         self.assertEqual(type_members, [])
-        self.assertEqual(type_.doc, [])
+        self.assertEqual(type_.doc, None)
 
         type_.add_member('a', TypeStruct())
         type_members = list(type_.members())
@@ -473,7 +473,7 @@ class TestStruct(TestCase):
         self.assertTrue(isinstance(type_members[0].type, TypeStruct))
         self.assertEqual(type_members[0].optional, False)
         self.assertEqual(type_members[0].nullable, False)
-        self.assertEqual(type_members[0].doc, [])
+        self.assertEqual(type_members[0].doc, None)
 
     # Test union type construction
     def test_init_union(self):
@@ -482,7 +482,7 @@ class TestStruct(TestCase):
         self.assertEqual(type_.type_name, 'union')
         self.assertEqual(type_.union, True)
         self.assertEqual(type_members, [])
-        self.assertEqual(type_.doc, [])
+        self.assertEqual(type_.doc, None)
 
         type_.add_member('a', TypeStruct())
         type_members = list(type_.members())
@@ -491,7 +491,7 @@ class TestStruct(TestCase):
         self.assertTrue(isinstance(type_members[0].type, TypeStruct))
         self.assertEqual(type_members[0].optional, True)
         self.assertEqual(type_members[0].nullable, False)
-        self.assertEqual(type_members[0].doc, [])
+        self.assertEqual(type_members[0].doc, None)
 
     # Test struct with base types
     def test_base_types(self):
@@ -508,16 +508,16 @@ class TestStruct(TestCase):
         type_.add_member('f', TYPE_DATETIME)
 
         self.assertEqual([(m.name, m.type.type_name, m.optional, m.nullable, m.doc) for m in type_.members()], [
-            ('a', 'int', False, False, []),
-            ('b', 'float', False, False, []),
-            ('c', 'string', False, False, []),
-            ('d', 'bool', False, False, []),
-            ('e', 'uuid', False, False, []),
-            ('f', 'datetime', False, False, [])
+            ('a', 'int', False, False, None),
+            ('b', 'float', False, False, None),
+            ('c', 'string', False, False, None),
+            ('d', 'bool', False, False, None),
+            ('e', 'uuid', False, False, None),
+            ('f', 'datetime', False, False, None)
         ])
         self.assertEqual([(m.name, m.type.type_name, m.optional, m.nullable, m.doc) for m in type_.members(include_base_types=False)], [
-            ('e', 'uuid', False, False, []),
-            ('f', 'datetime', False, False, [])
+            ('e', 'uuid', False, False, None),
+            ('f', 'datetime', False, False, None)
         ])
 
     # Test typedef attribute validation
@@ -1268,10 +1268,10 @@ class TestEnum(TestCase):
 
         self.assertEqual(type_.type_name, 'enum')
         self.assertEqual(type_values[0].value, 'a')
-        self.assertEqual(type_values[0].doc, [])
+        self.assertEqual(type_values[0].doc, None)
         self.assertEqual(type_values[1].value, 'b')
-        self.assertEqual(type_values[1].doc, [])
-        self.assertEqual(type_.doc, [])
+        self.assertEqual(type_values[1].doc, None)
+        self.assertEqual(type_.doc, None)
 
     # Test enum type construction
     def test_base_types(self):
@@ -1288,16 +1288,16 @@ class TestEnum(TestCase):
         type_.add_value('f')
 
         self.assertEqual([(v.value, v.doc) for v in type_.values()], [
-            ('a', []),
-            ('b', []),
-            ('a', []),
-            ('b', []),
-            ('e', []),
-            ('f', [])
+            ('a', None),
+            ('b', None),
+            ('a', None),
+            ('b', None),
+            ('e', None),
+            ('f', None)
         ])
         self.assertEqual([(v.value, v.doc) for v in type_.values(include_base_types=False)], [
-            ('e', []),
-            ('f', [])
+            ('e', None),
+            ('f', None)
         ])
 
     # Test typedef attribute validation

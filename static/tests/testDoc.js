@@ -479,7 +479,7 @@ test('DocPage.requestPage', (t) => {
     t.deepEqual(
         docPage.requestPage({
             'name': 'test',
-            'doc': [' The test action.', '', ' This is some more information.'],
+            'doc': ' The test action.\n\n This is some more information.',
             'urls': [
                 {'url': '/test'},
                 {'method': 'GET', 'url': '/test'},
@@ -490,8 +490,8 @@ test('DocPage.requestPage', (t) => {
                 'path': {
                     'name': 'test_path',
                     'members': [
-                        {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': [' The url member "pa".']},
-                        {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': [' The url member "pb".', '', '', ' More info.', '']},
+                        {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': ' The url member "pa".'},
+                        {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': ' The url member "pb".\n\n\n More info.\n'},
                         {'name': 'pc', 'type': {'builtin': 'datetime'}},
                         {'name': 'pd', 'type': {'builtin': 'float'}},
                         {'name': 'pe', 'type': {'builtin': 'int'}},
@@ -574,15 +574,15 @@ test('DocPage.requestPage', (t) => {
             'enums': [
                 {
                     'name': 'Enum1',
-                    'doc': [' An enum.'],
+                    'doc': ' An enum.',
                     'values': [
-                        {'value': 'e1', 'doc': [' The Enum1 value "e1"']},
-                        {'value': 'e2', 'doc': [' The Enum1 value "e 2"', '', ' More info.']}
+                        {'value': 'e1', 'doc': ' The Enum1 value "e1"'},
+                        {'value': 'e2', 'doc': ' The Enum1 value "e 2"\n\n More info.'}
                     ]
                 },
                 {
                     'name': 'Enum2',
-                    'doc': [' Another enum.', '', ' More info.'],
+                    'doc': ' Another enum.\n\n More info.',
                     'values': [
                         {'value': 'e3'}
                     ]
@@ -591,15 +591,15 @@ test('DocPage.requestPage', (t) => {
             'structs': [
                 {
                     'name': 'Struct1',
-                    'doc': [' A struct.'],
+                    'doc': ' A struct.',
                     'members': [
-                        {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': [' The struct member "sa"']},
-                        {'name': 'sb', 'type': {'struct': 'Struct2'}, 'doc': [' The struct member "sb"', '', ' More info.']}
+                        {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': ' The struct member "sa"'},
+                        {'name': 'sb', 'type': {'struct': 'Struct2'}, 'doc': ' The struct member "sb"\n\n More info.'}
                     ]
                 },
                 {
                     'name': 'Struct2',
-                    'doc': [' Another struct, a union.', '', ' More info.'],
+                    'doc': ' Another struct, a union.\n\n More info.',
                     'members': [
                         {'name': 'sa', 'type': {'builtin': 'string'}},
                         {'name': 'sb', 'type': {'builtin': 'int'}}
@@ -611,10 +611,10 @@ test('DocPage.requestPage', (t) => {
                 {'name': 'NonEmptyFloatArray', 'type': {'array': {'type': {'builtin': 'float'}}}, 'attr': {'len_gt': 0}},
                 {
                     'name': 'JustAString',
-                    'doc': [' Just a string.', '', ' More info.'],
+                    'doc': ' Just a string.\n\n More info.',
                     'type': {'builtin': 'string'}
                 },
-                {'name': 'PositiveInt', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0}, 'doc': [' A positive integer.']}
+                {'name': 'PositiveInt', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0}, 'doc': ' A positive integer.'}
             ]
         }),
         // =================
