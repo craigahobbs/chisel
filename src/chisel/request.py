@@ -69,8 +69,7 @@ class Request:
     See the :func:`~chisel.request` decorator for a common way to create Request objects.
 
     :param ~collections.abc.Callable wsgi_callback: A WSGI application function
-    :param str name: The request name. This string is used as the Request's unique identifier within a
-        :class:`!chisel.Application`. The default name is the callback function's name.
+    :param str name: The request name. The default name is the callback function's name.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
     :param str doc: The documentation markdown text
@@ -82,21 +81,21 @@ class Request:
     def __init__(self, wsgi_callback=None, name=None, urls=None, doc=None, doc_group=None):
         assert wsgi_callback is not None or name is not None, 'must specify either wsgi_callback and/or name'
 
-        #: TODO
+        #: The WSGI application function
         self.wsgi_callback = wsgi_callback
 
-        #: TODO
+        #: The request name
         self.name = name or wsgi_callback.__name__
 
-        #: TODO
+        #: The documentation markdown text
         self.doc = doc
 
-        #: TODO
+        #: The documentation group
         self.doc_group = doc_group
 
         # Normalize urls into list of uppercase-method/path tuple pairs
         if urls is None:
-            #: TODO
+            #: The list of URL method/path tuples
             self.urls = ((None, '/' + self.name),)
         else:
             self.urls = tuple(chain.from_iterable(
@@ -107,7 +106,8 @@ class Request:
 
     def __call__(self, environ, start_response):
         """
-        TODO
+        The request WSGI application method. By default the wrapped wsgi_callback is called. Sub-classes may override this
+        method without calling this method.
 
         :param dict environ: The :pep:`WSGI <3333>` environ dictionary.
         :param ~collections.abc.Callable start_response: The :pep:`WSGI <3333>` start-response callable.
@@ -118,9 +118,10 @@ class Request:
 
     def decorate_module(self, wsgi_callback):
         """
-        TODO
+        Helper method to update a collection requests on the request's module. This information is used by
+        :meth:`~chisel.Request.import_requests`.
 
-        :param ~collections.abc.Callable wsgi_callback: TODO
+        :param ~collections.abc.Callable wsgi_callback: The wrapped WSGI application function
         """
 
         if wsgi_callback.__module__: # pragma: no branch
@@ -135,10 +136,10 @@ class Request:
     @staticmethod
     def import_requests(package, parent_package=None):
         """
-        TODO
+        Import reqeusts from a package.
 
-        :param str package: TODO
-        :param str parent_package: TODO
+        :param str package: The package in which to recursively load requests
+        :param str parent_package: The parent package
         """
 
         package = importlib.import_module(package, parent_package)
@@ -151,12 +152,13 @@ class Request:
 
 class RedirectRequest(Request):
     """
-    TODO
+    A redirect reqeust
 
-    :param list(tuple) urls: TODO
-    :param str redirect_url: TODO
-    :param bool permanent: TODO
-    :param str name: TODO
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+        or None to match any. The second value is the URL path or None to use the default path.
+    :param str redirect_url: The redirectd URL
+    :param bool permanent: If True, this is a permanent redirect
+    :param str name: The request name. By default the name is "redirect_<redirect_url>".
     :param str doc: The documentation markdown text
     :param str doc_group: The documentation group
     """
@@ -180,15 +182,16 @@ class RedirectRequest(Request):
 
 class StaticRequest(Request):
     """
-    TODO
+    A static resoruce request
 
-    :param str package: TODO
-    :param str resource_name: TODO
-    :param bool cache: TODO
-    :param str content_type: TODO
-    :param list(tuple) headers: TODO
-    :param str name: TODO
-    :param list(tuple) urls: TODO
+    :param str package: The package containing the static resource
+    :param str resource_name: The resource name (path)
+    :param bool cache: If True, cache the static content. Otherwise, the content is loaded each request.
+    :param str content_type: Optional content type string. If None, the content type is auto-determined.
+    :param list(tuple) headers: Optional list of key/value header tuples
+    :param str name: The request name. By default the name is "static_<redirect_url>".
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+        or None to match any. The second value is the URL path or None to use the default path.
     :param str doc: The documentation markdown text
     :param str doc_group: The documentation group
     """
