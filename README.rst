@@ -49,7 +49,7 @@ Links
 - `Package on pypi <https://pypi.org/project/chisel/>`__
 - `Source code on GitHub <https://github.com/craigahobbs/chisel>`__
 - `Build on Travis CI <https://travis-ci.org/craigahobbs/chisel>`__
-- `Coverage on Codecov <https://codecov.io/gh/craigahobbs/chisel>`__
+
 
 Overview
 --------
@@ -61,17 +61,20 @@ adding `request <https://craigahobbs.github.io/chisel/app.html#chisel.request>`_
 <https://craigahobbs.github.io/chisel/app.html#chisel.Request>`__ object is itself a WSGI application with metadata such
 as the HTTP request method and URL path at which to serve the request.
 
->>> import chisel
-...
->>> @chisel.request(urls=[('GET', None)])
-... def hello_world(environ, start_response):
-...     start_response('200 OK', [('Content-Type', 'text/plain')])
-...     return [b'Hello, World!']
-...
->>> application = chisel.Application()
->>> application.add_request(hello_world)
->>> application.request('GET', '/hello_world')
-('200 OK', [('Content-Type', 'text/plain')], b'Hello, World!')
+.. code-block:: python
+
+   >>> import chisel
+   ...
+   >>> @chisel.request(urls=[('GET', None)])
+   ... def hello_world(environ, start_response):
+   ...     start_response('200 OK', [('Content-Type', 'text/plain')])
+   ...     return [b'Hello, World!']
+   ...
+   >>> application = chisel.Application()
+   >>> application.add_request(hello_world)
+   >>> application.request('GET', '/hello_world')
+   ('200 OK', [('Content-Type', 'text/plain')], b'Hello, World!')
+
 
 Schema-Validated JSON APIs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,26 +82,29 @@ Schema-Validated JSON APIs
 Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APs. `action
 <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__ callback functions. For example:
 
->>> @chisel.action(spec='''
-... # Sum a list of numbers
-... action sum_numbers
-...     url
-...        GET
-...
-...     query
-...         # The list of numbers
-...         float[len > 0] numbers
-...
-...     output
-...         # The sum of the numbers
-...         float sum
-... ''')
-... def sum_numbers(ctx, req):
-...     return {'sum': sum(req['numbers'])}
-...
->>> application.add_request(sum_numbers)
->>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=4')
-('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
+.. code-block:: python
+
+   >>> @chisel.action(spec='''
+   ... # Sum a list of numbers
+   ... action sum_numbers
+   ...     url
+   ...        GET
+   ...
+   ...     query
+   ...         # The list of numbers
+   ...         float[len > 0] numbers
+   ...
+   ...     output
+   ...         # The sum of the numbers
+   ...         float sum
+   ... ''')
+   ... def sum_numbers(ctx, req):
+   ...     return {'sum': sum(req['numbers'])}
+   ...
+   >>> application = chisel.Application()
+   >>> application.add_request(sum_numbers)
+   >>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=4')
+   ('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
 
 Each action must define an action specification using the `Chisel Specification Language
 <https://craigahobbs.github.io/chisel/spec.html>`__. The easiest way to provide the "spec" argument to the action
@@ -111,12 +117,15 @@ In the example above, notice that the code does not check the input request obje
 chisel action callback because the input request object is validated prior to calling the callback.  If there is a
 schema validation error the appropriate error code is automatically returned.
 
->>> status, _, content_bytes = application.request('GET', '/sum_numbers')
->>> status
-'400 Bad Request'
+.. code-block:: python
 
->>> content_bytes
-b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
+   >>> status, _, content_bytes = application.request('GET', '/sum_numbers')
+   >>> status
+   '400 Bad Request'
+
+   >>> content_bytes
+   b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
+
 
 API Documentation
 ~~~~~~~~~~~~~~~~~
@@ -125,7 +134,10 @@ To add API documentation to your application add the Chisel documnentation appli
 <https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests>`__ and
 `add_requests <https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests>`__.
 
->>> application.add_requests(chisel.create_doc_requests())
+.. code-block:: python
+
+   >>> application = chisel.Application()
+   >>> application.add_requests(chisel.create_doc_requests())
 
 By default the documentation application is hosted at "/doc/". An example of of Chisel's documentation output is
 available `here <https://craigahobbs.github.io/chisel/doc/doc.html#name=chisel_doc_request>`__.
