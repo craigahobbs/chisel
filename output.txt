@@ -1,12 +1,12 @@
-Results of doctest builder run on 2020-05-19 06:23:33
+Results of doctest builder run on 2020-05-20 01:48:52
 =====================================================
 
 Document: app
 -------------
 1 items passed all tests:
-   8 tests in default
-8 tests in 1 items.
-8 passed and 0 failed.
+  42 tests in default
+42 tests in 1 items.
+42 passed and 0 failed.
 Test passed.
 
 Document: encode
@@ -27,7 +27,7 @@ Test passed.
 
 Doctest summary
 ===============
-   23 tests
+   57 tests
     0 failures in tests
     0 failures in setup code
     0 failures in cleanup code
