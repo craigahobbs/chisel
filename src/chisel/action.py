@@ -140,7 +140,7 @@ class Action(Request):
     :param str doc: The documentation markdown text
     :param str doc_group: The documentation group
     :param ~chisel.SpecParser spec_parser: Optional specification parser to use for specification parsing
-    :param str spec: Optional action specification (see :ref:`spec_lang`). If a specification isn't provided it can be
+    :param str spec: Optional action specification (see :ref:`spec`). If a specification isn't provided it can be
         provided through the "spec_parser" argument.
     :param bool wsgi_response: If True, the callback function's response is a WSGI application function
         response. Default is False.

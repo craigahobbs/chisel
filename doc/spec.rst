@@ -1,3 +1,5 @@
+.. _spec:
+
 Chisel Specification Language
 =============================
 
@@ -7,8 +9,6 @@ Chisel Specification Language
 .. autoexception:: chisel.SpecParserError
    :members:
 
-
-.. _spec_lang:
 
 Reference
 ---------

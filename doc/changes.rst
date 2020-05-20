@@ -3,8 +3,8 @@ Change Log
 
 .. 1.0:
 
-1.0 - *2020-03-01*
-------------------
+1.0 - *Coming Soon*
+-------------------
 
 | Added:
 |   - Initial release.
