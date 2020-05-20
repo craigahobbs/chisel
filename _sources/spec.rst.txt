@@ -8,6 +8,8 @@ Chisel Specification Language
    :members:
 
 
+.. _spec_lang:
+
 Reference
 ---------
 

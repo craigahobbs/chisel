@@ -90,7 +90,6 @@
 <li class="toctree-l1"><a class="reference internal" href="spec.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="schema.html">Schema Internals</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
@@ -160,10 +159,49 @@
 <dl class="py function">
 <dt id="chisel.action">
 <code class="sig-prename descclassname">&#64;</code><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_callback</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.action" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Decorator for creating an <a class="reference internal" href="#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a> object that wraps an action callback function. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1"># Sum a list of numbers</span>
+<span class="gp">... </span><span class="s1">action sum_numbers</span>
+<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">        GET</span>
+<span class="gp">... </span><span class="s1">    query</span>
+<span class="gp">... </span><span class="s1">        # The list of numbers to sum</span>
+<span class="gp">... </span><span class="s1">        int[len &gt; 0] numbers</span>
+<span class="gp">... </span><span class="s1">    output</span>
+<span class="gp">... </span><span class="s1">        # The sum of the numbers</span>
+<span class="gp">... </span><span class="s1">        int sum</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">sum_numbers</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">])}</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">sum_numbers</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=3&#39;</span><span class="p">)</span>
+<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;sum&quot;:6}&#39;)</span>
+</pre></div>
+</div>
+<p>Chisel actions schema-validate their input before calling the callback function. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers=1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">status</span>
+<span class="go">&#39;400 Bad Request&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
+<span class="go">{&#39;error&#39;: &#39;InvalidInput&#39;,</span>
+<span class="go"> &#39;member&#39;: &#39;numbers&#39;,</span>
+<span class="go"> &#39;message&#39;: &quot;Invalid value &#39;1&#39; (type &#39;str&#39;) for member &#39;numbers&#39;, expected &quot;</span>
+<span class="go">            &quot;type &#39;array&#39; (query string)&quot;}</span>
+</pre></div>
+</div>
+<p>When <a class="reference internal" href="app.html#chisel.Application.validate_output" title="chisel.Application.validate_output"><code class="xref py py-attr docutils literal notranslate"><span class="pre">validate_output</span></code></a> the response dictionary is also validated to the output schema.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>action_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p>
+<dd class="field-odd"><p><strong>action_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The action callback function</p>
 </dd>
 </dl>
 </dd></dl>
@@ -172,44 +210,56 @@
 <dt id="chisel.Action">
 <em class="property">class </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_callback</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">urls</span><span class="o">=</span><span class="default_value">'POST', None</span></em>, <em class="sig-param"><span class="n">doc</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">doc_group</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">spec_parser</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">spec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wsgi_response</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">jsonp</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Action" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></p>
-<p>TODO</p>
+<p>A schema-validated, JSON API request. An Action wraps a callback function that it calls when a request occurs. Here’s
+an example of an action callback function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>The first arugument, “ctx”, is the <a class="reference internal" href="app.html#chisel.Context" title="chisel.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> object. The second argument is the request object which
+contiains the schema-validated, combined path parameters, query string parameters, and JSON request content
+parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>action_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – TODO</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – TODO</p></li>
+<li><p><strong>action_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.8)"><em>Callable</em></a>) – The action callback function</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The action request name</p></li>
+<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
+or None to match any. The second value is the URL path or None to use the default path.</p></li>
 <li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
-<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>spec_parser</strong> (<a class="reference internal" href="spec.html#chisel.SpecParser" title="chisel.SpecParser"><em>SpecParser</em></a>) – TODO</p></li>
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>wsgi_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – TODO</p></li>
-<li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation group</p></li>
+<li><p><strong>spec_parser</strong> (<a class="reference internal" href="spec.html#chisel.SpecParser" title="chisel.SpecParser"><em>SpecParser</em></a>) – Optional specification parser to use for specification parsing</p></li>
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional action specification (see <a class="reference internal" href="spec.html#spec-lang"><span class="std std-ref">Reference</span></a>). If a specification isn’t provided it can be
+provided through the “spec_parser” argument.</p></li>
+<li><p><strong>wsgi_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, the callback function’s response is a WSGI application function
+response. Default is False.</p></li>
+<li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional JSONP key</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt id="chisel.Action.action_callback">
 <code class="sig-name descname">action_callback</code><a class="headerlink" href="#chisel.Action.action_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The action callback function</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Action.jsonp">
 <code class="sig-name descname">jsonp</code><a class="headerlink" href="#chisel.Action.jsonp" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>JSONP key or None</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Action.model">
 <code class="sig-name descname">model</code><a class="headerlink" href="#chisel.Action.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The action’s <code class="xref py py-class docutils literal notranslate"><span class="pre">ActionModel</span></code> object. This is retrieved from the spec/spec_parser
+attr:<cite>~chisel.SpecParser.actions</cite> collection.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.Action.wsgi_response">
 <code class="sig-name descname">wsgi_response</code><a class="headerlink" href="#chisel.Action.wsgi_response" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>If True, the callback function’s response is a WSGI application function response.</p>
 </dd></dl>
 
 </dd></dl>
@@ -217,32 +267,50 @@
 <dl class="py exception">
 <dt id="chisel.ActionError">
 <em class="property">exception </em><code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">ActionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span></em>, <em class="sig-param"><span class="n">message</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.ActionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>An action error exception. Raise this exception within an action callback function to respond with an error.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">... </span><span class="s1">action my_action</span>
+<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">        GET</span>
+<span class="gp">... </span><span class="s1">    errors</span>
+<span class="gp">... </span><span class="s1">        AlwaysError</span>
+<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">raise</span> <span class="n">chisel</span><span class="o">.</span><span class="n">ActionError</span><span class="p">(</span><span class="s1">&#39;AlwaysError&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
+<span class="go">(&#39;400 Bad Request&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;error&quot;:&quot;AlwaysError&quot;}&#39;)</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>error</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
-<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – TODO</p></li>
+<li><p><strong>error</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The error code</p></li>
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional error message</p></li>
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.8)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The HTTP response status</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt id="chisel.ActionError.error">
 <code class="sig-name descname">error</code><a class="headerlink" href="#chisel.ActionError.error" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The error code</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.ActionError.message">
 <code class="sig-name descname">message</code><a class="headerlink" href="#chisel.ActionError.message" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The error message or None</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="chisel.ActionError.status">
 <code class="sig-name descname">status</code><a class="headerlink" href="#chisel.ActionError.status" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>The HTTP response status</p>
 </dd></dl>
 
 </dd></dl>
