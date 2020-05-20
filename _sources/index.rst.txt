@@ -4,7 +4,6 @@
    :caption: Contents:
    :maxdepth: 1
 
-   getting_started
    app
    action
    spec

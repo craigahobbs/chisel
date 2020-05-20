@@ -1,4 +1,4 @@
-Results of doctest builder run on 2020-05-20 09:57:42
+Results of doctest builder run on 2020-05-20 19:05:04
 =====================================================
 
 Document: action
@@ -25,17 +25,17 @@ Document: encode
 4 passed and 0 failed.
 Test passed.
 
-Document: getting_started
--------------------------
+Document: index
+---------------
 1 items passed all tests:
-  11 tests in default
-11 tests in 1 items.
-11 passed and 0 failed.
+  12 tests in default
+12 tests in 1 items.
+12 passed and 0 failed.
 Test passed.
 
 Doctest summary
 ===============
-   73 tests
+   74 tests
     0 failures in tests
     0 failures in setup code
     0 failures in cleanup code

@@ -84,7 +84,6 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Schema-Validated JSON Requests</a></li>
 <li class="toctree-l1"><a class="reference internal" href="spec.html">Chisel Specification Language</a></li>
@@ -229,7 +228,7 @@ or None to match any. The second value is the URL path or None to use the defaul
 <li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation markdown text</p></li>
 <li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The documentation group</p></li>
 <li><p><strong>spec_parser</strong> (<a class="reference internal" href="spec.html#chisel.SpecParser" title="chisel.SpecParser"><em>SpecParser</em></a>) – Optional specification parser to use for specification parsing</p></li>
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional action specification (see <a class="reference internal" href="spec.html#spec-lang"><span class="std std-ref">Reference</span></a>). If a specification isn’t provided it can be
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional action specification (see <a class="reference internal" href="spec.html#spec"><span class="std std-ref">Chisel Specification Language</span></a>). If a specification isn’t provided it can be
 provided through the “spec_parser” argument.</p></li>
 <li><p><strong>wsgi_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, the callback function’s response is a WSGI application function
 response. Default is False.</p></li>
