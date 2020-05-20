@@ -8,7 +8,6 @@ import * as chisel from './chisel.js';
  * The Chisel documentation application.
  *
  * @property {Object} params - The parsed and validated hash parameters object.
- * @property {boolean} rendered - If true, the page is rendered.
  */
 export class DocPage {
     /**
@@ -16,7 +15,6 @@ export class DocPage {
      */
     constructor() {
         this.params = null;
-        this.rendered = false;
     }
 
     /**
@@ -34,13 +32,12 @@ export class DocPage {
         this.updateParams();
 
         // Skip the render if the page hasn't changed
-        if (this.rendered && oldParams !== null && oldParams.name === this.params.name) {
+        if (oldParams !== null && oldParams.name === this.params.name) {
             return;
         }
 
         // Clear the page
         chisel.render(document.body);
-        this.rendered = false;
 
         // Render the page
         if ('name' in this.params) {
@@ -53,7 +50,6 @@ export class DocPage {
                 } else {
                     document.title = response.name;
                     chisel.render(document.body, this.requestPage(response));
-                    this.rendered = true;
                 }
             }).catch(() => {
                 chisel.render(document.body, DocPage.errorPage());
@@ -68,7 +64,6 @@ export class DocPage {
                 } else {
                     document.title = response.title;
                     chisel.render(document.body, DocPage.indexPage(response));
-                    this.rendered = true;
                 }
             }).catch(() => {
                 chisel.render(document.body, DocPage.errorPage());

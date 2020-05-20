@@ -74,7 +74,6 @@ test('DocPage.render, index', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<h1>My APIs</h1>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_index', undefined],
@@ -96,7 +95,6 @@ test('DocPage.render, index error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'Error: UnexpectedError');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_index', undefined],
@@ -112,7 +110,6 @@ test('DocPage.render, index unexpected error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'An unexpected error occurred.');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_index', undefined]
@@ -150,7 +147,6 @@ test('DocPage.render, request', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined],
@@ -172,7 +168,6 @@ test('DocPage.render, request error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'Error: UnknownName');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined],
@@ -188,7 +183,6 @@ test('DocPage.render, request unexpected error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.false(docPage.rendered);
     t.is(document.body.innerHTML, 'An unexpected error occurred.');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined]
@@ -220,7 +214,6 @@ test('DocPage.render, request avoid re-render', (t) => {
         }
     ]);
     docPage.render();
-    t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined],
@@ -231,7 +224,6 @@ test('DocPage.render, request avoid re-render', (t) => {
     WindowFetchMock.reset([]);
     document.body.innerHTML = '';
     docPage.render();
-    t.true(docPage.rendered);
     t.is(document.body.innerHTML, '');
     t.deepEqual(WindowFetchMock.calls, []);
 
@@ -256,7 +248,6 @@ test('DocPage.render, request avoid re-render', (t) => {
         }
     ]);
     docPage.render();
-    t.true(docPage.rendered);
     t.true(document.body.innerHTML.startsWith('<p>'));
 });
 
