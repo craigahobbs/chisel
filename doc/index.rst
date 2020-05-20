@@ -10,7 +10,6 @@
    spec
    request
    encode
-   schema
    changes
 
 

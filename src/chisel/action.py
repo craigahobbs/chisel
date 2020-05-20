@@ -19,9 +19,47 @@ from .util import decode_query_string
 
 def action(action_callback=None, **kwargs):
     """
-    TODO
+    Decorator for creating an :class:`~chisel.Action` object that wraps an action callback function. For example:
 
-    :param ~collections.abc.Callable action_callback: TODO
+    >>> import chisel
+    ...
+    >>> @chisel.action(spec='''
+    ... # Sum a list of numbers
+    ... action sum_numbers
+    ...     url
+    ...         GET
+    ...     query
+    ...         # The list of numbers to sum
+    ...         int[len > 0] numbers
+    ...     output
+    ...         # The sum of the numbers
+    ...         int sum
+    ... ''')
+    ... def sum_numbers(ctx, req):
+    ...    return {'sum': sum(req['numbers'])}
+    ...
+    >>> application = chisel.Application()
+    >>> application.add_request(sum_numbers)
+    >>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=3')
+    ('200 OK', [('Content-Type', 'application/json')], b'{"sum":6}')
+
+    Chisel actions schema-validate their input before calling the callback function. For example:
+
+    >>> status, _, response = application.request('GET', '/sum_numbers', query_string='numbers=1')
+    >>> status
+    '400 Bad Request'
+
+    >>> import json
+    >>> from pprint import pprint
+    >>> pprint(json.loads(response.decode('utf-8')))
+    {'error': 'InvalidInput',
+     'member': 'numbers',
+     'message': "Invalid value '1' (type 'str') for member 'numbers', expected "
+                "type 'array' (query string)"}
+
+    When :attr:`~chisel.Application.validate_output` the response dictionary is also validated to the output schema.
+
+    :param ~collections.abc.Callable action_callback: The action callback function
     """
 
     if action_callback is None:
@@ -31,11 +69,28 @@ def action(action_callback=None, **kwargs):
 
 class ActionError(Exception):
     """
-    TODO
+    An action error exception. Raise this exception within an action callback function to respond with an error.
 
-    :param str error: TODO
-    :param str message: TODO
-    :param status: TODO
+    >>> import chisel
+    ...
+    >>> @chisel.action(spec='''
+    ... action my_action
+    ...     url
+    ...         GET
+    ...     errors
+    ...         AlwaysError
+    ... ''')
+    ... def my_action(ctx, req):
+    ...    raise chisel.ActionError('AlwaysError')
+    ...
+    >>> application = chisel.Application()
+    >>> application.add_request(my_action)
+    >>> application.request('GET', '/my_action')
+    ('400 Bad Request', [('Content-Type', 'application/json')], b'{"error":"AlwaysError"}')
+
+    :param str error: The error code
+    :param str message: Optional error message
+    :param status: The HTTP response status
     :type status: ~http.HTTPStatus or str
     """
 
@@ -44,13 +99,13 @@ class ActionError(Exception):
     def __init__(self, error, message=None, status=None):
         super().__init__(error)
 
-        #: TODO
+        #: The error code
         self.error = error
 
-        #: TODO
+        #: The error message or None
         self.message = message
 
-        #: TODO
+        #: The HTTP response status
         self.status = status
 
 
@@ -68,17 +123,28 @@ class _ActionErrorInternal(Exception):
 
 class Action(Request):
     """
-    TODO
+    A schema-validated, JSON API request. An Action wraps a callback function that it calls when a request occurs. Here's
+    an example of an action callback function:
 
-    :param ~collections.abc.Callable action_callback: TODO
-    :param str name: TODO
-    :param list(tuple) urls: TODO
+    >>> def my_action(ctx, req):
+    ...    return {}
+
+    The first arugument, "ctx", is the :class:`~chisel.Context` object. The second argument is the request object which
+    contiains the schema-validated, combined path parameters, query string parameters, and JSON request content
+    parameters.
+
+    :param ~collections.abc.Callable action_callback: The action callback function
+    :param str name: The action request name
+    :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
+        or None to match any. The second value is the URL path or None to use the default path.
     :param str doc: The documentation markdown text
-    :param str doc_group: TODO
-    :param ~chisel.SpecParser spec_parser: TODO
-    :param str spec: TODO
-    :param bool wsgi_response: TODO
-    :param str jsonp: TODO
+    :param str doc_group: The documentation group
+    :param ~chisel.SpecParser spec_parser: Optional specification parser to use for specification parsing
+    :param str spec: Optional action specification (see :ref:`spec_lang`). If a specification isn't provided it can be
+        provided through the "spec_parser" argument.
+    :param bool wsgi_response: If True, the callback function's response is a WSGI application function
+        response. Default is False.
+    :param str jsonp: Optional JSONP key
     """
 
     __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
@@ -105,16 +171,17 @@ class Action(Request):
             doc_group=doc_group if doc_group is not None else model.doc_group
         )
 
-        #: TODO
+        #: The action callback function
         self.action_callback = action_callback
 
-        #: TODO
+        #: The action's :class:`~chisel.ActionModel` object. This is retrieved from the spec/spec_parser
+        #: attr:`~chisel.SpecParser.actions` collection.
         self.model = model
 
-        #: TODO
+        #: If True, the callback function's response is a WSGI application function response.
         self.wsgi_response = wsgi_response
 
-        #: TODO
+        #: JSONP key or None
         self.jsonp = jsonp
 
     def __call__(self, environ, unused_start_response):
