@@ -36,7 +36,7 @@ JSON web APIs.  Here are Chisel's features at a glance:
 
 - Light-weight `WSGI <https://www.python.org/dev/peps/pep-3333/>`__ application framework
 - Schema-validated `JSON <https://en.wikipedia.org/wiki/JSON>`__ web APIs
-- Schema-level API documentation
+- Schema-accurate API documentation
 - Written in pure `Python <https://python.org>`__
 - Zero dependencies
 - Python 3.7+
@@ -79,8 +79,9 @@ as the HTTP request method and URL path at which to serve the request.
 Schema-Validated JSON APIs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APs. `action
-<https://craigahobbs.github.io/chisel/action.html#chisel.action>`__ callback functions. For example:
+Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APIs called "actions". To
+define an, action use the `action <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__ decorator to wrap
+an action callback function. For example:
 
 .. code-block:: python
 
@@ -107,11 +108,11 @@ Chisel provides a built-in Request sub-class for easily implementing schema-vali
    ('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
 
 Each action must define an action specification using the `Chisel Specification Language
-<https://craigahobbs.github.io/chisel/spec.html>`__. The easiest way to provide the "spec" argument to the action
-decorator as above. The action callback is provided two arguments, a request `Context
-<https://craigahobbs.github.io/chisel/app.html#chisel.Context>`__ and the schema-validate request input object. The input
-request object is created by combining the requests URL path parameters, query string parameters, and input JSON content
-parameters.
+<https://craigahobbs.github.io/chisel/spec.html>`__. The easiest way to define the action specification is to provide
+the "spec" argument to the action decorator as above. The action callback is passed two arguments, a request `Context
+<https://craigahobbs.github.io/chisel/app.html#chisel.Context>`__ and the schema-validated request input object. The
+input request object is created by combining the request's URL path parameters, query string parameters, and input JSON
+content parameters.
 
 In the example above, notice that the code does not check the input request object before using it. This is OK in a
 chisel action callback because the input request object is validated prior to calling the callback.  If there is a
@@ -130,9 +131,9 @@ schema validation error the appropriate error code is automatically returned.
 API Documentation
 ~~~~~~~~~~~~~~~~~
 
-To add API documentation to your application add the Chisel documnentation application using `create_doc_requests
-<https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests>`__ and
-`add_requests <https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests>`__.
+You can add API documentation by adding the Chisel documentation application to your application using
+`create_doc_requests <https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests>`__ and `add_requests
+<https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests>`__.
 
 .. code-block:: python
 
