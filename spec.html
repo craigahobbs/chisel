@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Chisel Specification Language &mdash; chisel 0.9.98 documentation</title>
+  <title>Chisel Specification Language &mdash; chisel 0.9.99 documentation</title>
   
 
   
@@ -167,9 +167,9 @@
             
   <div class="section" id="chisel-specification-language">
 <span id="spec"></span><h1>Chisel Specification Language<a class="headerlink" href="#chisel-specification-language" title="Permalink to this headline">¶</a></h1>
-<p>The Chisel specification language is a schema definition language for JSON APIs (see <a class="reference internal" href="action.html#chisel.action" title="chisel.action"><code class="xref py py-func docutils literal notranslate"><span class="pre">action()</span></code></a>).  You can
-also define structure types, enumeration types, and type definitions. Specification parsing is done by the
-<a class="reference internal" href="#chisel.SpecParser" title="chisel.SpecParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpecParser</span></code></a> class. For example:</p>
+<p>The Chisel specification language is a schema definition language for JSON APIs (see <a class="reference internal" href="action.html#chisel.action" title="chisel.action"><code class="xref py py-func docutils literal notranslate"><span class="pre">action()</span></code></a>). It is used
+to define actions (JSON APIs), structure types, enumeration types, and typedef types. Specification parsing is done by
+the <a class="reference internal" href="#chisel.SpecParser" title="chisel.SpecParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpecParser</span></code></a> class. For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parser</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">SpecParser</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1"># Sum a list of number pairs</span>
@@ -223,7 +223,7 @@ dictionary.</p>
 <div class="section" id="comments">
 <h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
 <p>Chisel specification language comments are lines beginning with the “#” character preceded only by whitespace. Comments
-are interpreted as markdown text lines to be applied to the next specification definition. If you want a
+are interpreted as documentation markdown text lines to be applied to the next specification definition. If you want a
 non-documentation comment use the “#-” form of commment.</p>
 </div>
 <div class="section" id="actions">

@@ -3,9 +3,9 @@
 Chisel Specification Language
 =============================
 
-The Chisel specification language is a schema definition language for JSON APIs (see :func:`~chisel.action`).  You can
-also define structure types, enumeration types, and type definitions. Specification parsing is done by the
-:class:`~chisel.SpecParser` class. For example:
+The Chisel specification language is a schema definition language for JSON APIs (see :func:`~chisel.action`). It is used
+to define actions (JSON APIs), structure types, enumeration types, and typedef types. Specification parsing is done by
+the :class:`~chisel.SpecParser` class. For example:
 
 >>> import chisel
 >>> parser = chisel.SpecParser('''
@@ -61,7 +61,7 @@ Comments
 --------
 
 Chisel specification language comments are lines beginning with the "#" character preceded only by whitespace. Comments
-are interpreted as markdown text lines to be applied to the next specification definition. If you want a
+are interpreted as documentation markdown text lines to be applied to the next specification definition. If you want a
 non-documentation comment use the "#-" form of commment.
 
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>chisel &mdash; chisel 0.9.98 documentation</title>
+  <title>chisel &mdash; chisel 0.9.99 documentation</title>
   
 
   
@@ -162,7 +162,7 @@ JSON web APIs.  Here are Chisel’s features at a glance:</p>
 <ul class="simple">
 <li><p>Light-weight <a class="reference external" href="https://www.python.org/dev/peps/pep-3333/">WSGI</a> application framework</p></li>
 <li><p>Schema-validated <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">JSON</a> web APIs</p></li>
-<li><p>Schema-level API documentation</p></li>
+<li><p>Schema-accurate API documentation</p></li>
 <li><p>Written in pure <a class="reference external" href="https://python.org">Python</a></p></li>
 <li><p>Zero dependencies</p></li>
 <li><p>Python 3.7+</p></li>
@@ -197,7 +197,9 @@ as the HTTP request method and URL path at which to serve the request.</p>
 </div>
 <div class="section" id="schema-validated-json-apis">
 <h3>Schema-Validated JSON APIs<a class="headerlink" href="#schema-validated-json-apis" title="Permalink to this headline">¶</a></h3>
-<p>Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APs. <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a> callback functions. For example:</p>
+<p>Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APIs called “actions”. To
+define an, action use the <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a> decorator to wrap
+an action callback function. For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1"># Sum a list of numbers</span>
 <span class="gp">... </span><span class="s1">action sum_numbers</span>
@@ -221,10 +223,10 @@ as the HTTP request method and URL path at which to serve the request.</p>
 <span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;sum&quot;:7.0}&#39;)</span>
 </pre></div>
 </div>
-<p>Each action must define an action specification using the <a class="reference external" href="https://craigahobbs.github.io/chisel/spec.html">Chisel Specification Language</a>. The easiest way to provide the “spec” argument to the action
-decorator as above. The action callback is provided two arguments, a request <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Context">Context</a> and the schema-validate request input object. The input
-request object is created by combining the requests URL path parameters, query string parameters, and input JSON content
-parameters.</p>
+<p>Each action must define an action specification using the <a class="reference external" href="https://craigahobbs.github.io/chisel/spec.html">Chisel Specification Language</a>. The easiest way to define the action specification is to provide
+the “spec” argument to the action decorator as above. The action callback is passed two arguments, a request <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Context">Context</a> and the schema-validated request input object. The
+input request object is created by combining the request’s URL path parameters, query string parameters, and input JSON
+content parameters.</p>
 <p>In the example above, notice that the code does not check the input request object before using it. This is OK in a
 chisel action callback because the input request object is validated prior to calling the callback.  If there is a
 schema validation error the appropriate error code is automatically returned.</p>
@@ -239,8 +241,8 @@ schema validation error the appropriate error code is automatically returned.</p
 </div>
 <div class="section" id="api-documentation">
 <h3>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h3>
-<p>To add API documentation to your application add the Chisel documnentation application using <a class="reference external" href="https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests">create_doc_requests</a> and
-<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests">add_requests</a>.</p>
+<p>You can add API documentation by adding the Chisel documentation application to your application using
+<a class="reference external" href="https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests">create_doc_requests</a> and <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests">add_requests</a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_requests</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">create_doc_requests</span><span class="p">())</span>
 </pre></div>
