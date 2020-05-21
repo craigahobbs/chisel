@@ -38,20 +38,23 @@ endef
 $(foreach TEST, $(sort $(subst src/tests/test_,,$(subst .py,,$(wildcard src/tests/test_*.py)))), $(eval $(call COVER_TEST_COMMANDS,$(TEST))))
 
 define DUMP_DOC_APIS
+import os
 import sys
 import chisel
 application = chisel.Application()
 application.pretty_output = True
 application.add_requests(chisel.create_doc_requests())
 _, _, index_bytes = application.request('GET', '/doc/doc_index')
-_, _, request_bytes = application.request('GET', '/doc/doc_request', query_string='name=chisel_doc_request')
-with open(sys.argv[1], 'wb') as file:
-    file.write(index_bytes)
-with open(sys.argv[2], 'wb') as file:
-    file.write(request_bytes)
+with open(os.path.join(sys.argv[1], 'doc_index'), 'wb') as file:
+	file.write(index_bytes)
+os.makedirs(os.path.join(sys.argv[1], 'doc_request'))
+for name in sorted(application.requests.keys()):
+	_, _, content_bytes = application.request('GET', f'/doc/doc_request/{name}')
+	with open(os.path.join(sys.argv[1], 'doc_request', name), 'wb') as file:
+		file.write(content_bytes)
 endef
 export DUMP_DOC_APIS
 
 doc:
 	rsync -rv --delete static/src/ build/doc/html/doc/
-	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc/doc_index build/doc/html/doc/doc_request
+	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc

@@ -31,7 +31,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
 
     if api:
         yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
-        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
+        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request/{name}'),))
     if app:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
         yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
@@ -318,7 +318,7 @@ struct RequestURL
 # Get a request's documentation information
 action chisel_doc_request
 
-    query
+    path
 
         # The request name
         string name
@@ -355,6 +355,7 @@ action chisel_doc_request
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
         super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, spec=self.SPEC)
         if requests is not None:
+            #: Optional list of requests to document or None. If None, the applications request collection is used.
             self.requests = {request.name: request for request in requests}
         else:
             self.requests = None

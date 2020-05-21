@@ -149,7 +149,7 @@ test('DocPage.render, request', (t) => {
     docPage.render();
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined],
+        ['doc_request/test', undefined],
         'resource response.json'
     ]);
 });
@@ -170,7 +170,7 @@ test('DocPage.render, request error', (t) => {
     docPage.render();
     t.is(document.body.innerHTML, 'Error: UnknownName');
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined],
+        ['doc_request/test', undefined],
         'resource response.json'
     ]);
 });
@@ -185,7 +185,7 @@ test('DocPage.render, request unexpected error', (t) => {
     docPage.render();
     t.is(document.body.innerHTML, 'An unexpected error occurred.');
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined]
+        ['doc_request/test', undefined]
     ]);
 });
 
@@ -216,7 +216,7 @@ test('DocPage.render, request avoid re-render', (t) => {
     docPage.render();
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined],
+        ['doc_request/test', undefined],
         'resource response.json'
     ]);
 
