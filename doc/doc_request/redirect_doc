@@ -1,0 +1,10 @@
+{
+  "doc": "Redirect to /doc/.",
+  "name": "redirect_doc",
+  "urls": [
+    {
+      "method": "GET",
+      "url": "/doc"
+    }
+  ]
+}

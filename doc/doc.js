@@ -42,7 +42,7 @@ export class DocPage {
         // Render the page
         if ('name' in this.params) {
             // Call the request API
-            window.fetch(chisel.href(null, {'name': this.params.name}, 'doc_request')).then(
+            window.fetch(`doc_request/${this.params.name}`).then(
                 (response) => response.json()
             ).then((response) => {
                 if ('error' in response) {

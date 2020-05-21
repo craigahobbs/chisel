@@ -1,0 +1,10 @@
+{
+  "doc": "The \"chisel\" package's static resource, \"static/doc.svg\".",
+  "name": "static_doc_svg",
+  "urls": [
+    {
+      "method": "GET",
+      "url": "/doc/doc.svg"
+    }
+  ]
+}

@@ -90,10 +90,6 @@
       "name": "chisel_doc_request_output"
     },
     "path": {
-      "members": [],
-      "name": "chisel_doc_request_path"
-    },
-    "query": {
       "members": [
         {
           "doc": " The request name",
@@ -103,6 +99,10 @@
           }
         }
       ],
+      "name": "chisel_doc_request_path"
+    },
+    "query": {
+      "members": [],
       "name": "chisel_doc_request_query"
     }
   },
@@ -602,7 +602,7 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/doc_request"
+      "url": "/doc/doc_request/{name}"
     }
   ]
 }

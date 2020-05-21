@@ -1,0 +1,10 @@
+{
+  "doc": "The \"chisel\" package's static resource, \"static/chisel.js\".",
+  "name": "static_chisel_js",
+  "urls": [
+    {
+      "method": "GET",
+      "url": "/doc/chisel.js"
+    }
+  ]
+}
