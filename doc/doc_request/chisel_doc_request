@@ -602,7 +602,7 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/doc_request/{name}"
+      "url": "/chisel/doc/doc_request/{name}"
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "doc": "Redirect to /chisel/doc/.",
+  "name": "redirect_chisel_doc",
+  "urls": [
+    {
+      "method": "GET",
+      "url": "/chisel/doc"
+    }
+  ]
+}

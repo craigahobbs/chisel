@@ -4,7 +4,7 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/doc.js"
+      "url": "/chisel/doc/doc.js"
     }
   ]
 }

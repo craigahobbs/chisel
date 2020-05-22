@@ -4,11 +4,11 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/"
+      "url": "/chisel/doc/"
     },
     {
       "method": "GET",
-      "url": "/doc/index.html"
+      "url": "/chisel/doc/index.html"
     }
   ]
 }

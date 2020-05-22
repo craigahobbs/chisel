@@ -65,7 +65,7 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/doc_index"
+      "url": "/chisel/doc/doc_index"
     }
   ]
 }
