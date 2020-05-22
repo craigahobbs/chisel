@@ -42,20 +42,22 @@ endef
 $(foreach TEST, $(sort $(subst src/tests/test_,,$(subst .py,,$(wildcard src/tests/test_*.py)))), $(eval $(call COVER_TEST_COMMANDS,$(TEST))))
 
 
-# Dump API docs into doc build "doc" folder
+# Dump API docs into doc build "doc" folder - doc root_path must match GitHub pages
 define DUMP_DOC_APIS
 import os
 import sys
 import chisel
 
+# Command-line arguments
+_, root_path, doc_dir = sys.argv
+
 # Create the chisel application with documentation application
 application = chisel.Application()
 application.pretty_output = True
-application.add_requests(chisel.create_doc_requests())
+application.add_requests(chisel.create_doc_requests(root_path=root_path))
 
 # Dump chisel_doc_index API response
-doc_dir = sys.argv[1]
-_, _, index_bytes = application.request('GET', '/doc/doc_index')
+_, _, index_bytes = application.request('GET', f'{root_path}/doc_index')
 with open(os.path.join(doc_dir, 'doc_index'), 'wb') as file:
 	file.write(index_bytes)
 
@@ -63,7 +65,7 @@ with open(os.path.join(doc_dir, 'doc_index'), 'wb') as file:
 request_dir = os.path.join(doc_dir, 'doc_request')
 os.mkdir(request_dir)
 for name in application.requests.keys():
-	_, _, content_bytes = application.request('GET', f'/doc/doc_request/{name}')
+	_, _, content_bytes = application.request('GET', f'{root_path}/doc_request/{name}')
 	with open(os.path.join(request_dir, name), 'wb') as file:
 		file.write(content_bytes)
 endef
@@ -71,4 +73,5 @@ export DUMP_DOC_APIS
 
 doc:
 	rsync -rv --delete static/src/ build/doc/html/doc/
-	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc
+	mv build/doc/html/doc/doc.html build/doc/html/doc/index.html
+	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" /chisel/doc build/doc/html/doc
