@@ -284,8 +284,6 @@ class Context:
         """
         Add a header key/value to the request's response
 
-        >>> import chisel
-        ...
         >>> @chisel.action(spec='''
         ... action my_action
         ...     url
@@ -315,7 +313,6 @@ class Context:
 
         >>> from datetime import datetime
         >>> from pprint import pprint
-        >>> import chisel
         ...
         >>> @chisel.action(spec='''
         ... action my_action
@@ -358,7 +355,6 @@ class Context:
         A generic WSGI response
 
         >>> from http import HTTPStatus
-        >>> import chisel
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
@@ -393,7 +389,6 @@ class Context:
         A plain-text WSGI response
 
         >>> from http import HTTPStatus
-        >>> import chisel
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
@@ -428,7 +423,6 @@ class Context:
         A JSON response
 
         >>> from http import HTTPStatus
-        >>> import chisel
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
@@ -470,7 +464,6 @@ class Context:
         """
         Reconstruct the request's URL
 
-        >>> import chisel
         >>> application = chisel.Application()
         >>> ctx = chisel.Context(application, chisel.Context.create_environ('GET', '/hello'))
         >>> ctx.reconstruct_url()

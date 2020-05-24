@@ -7,7 +7,6 @@ The Chisel specification language is a schema definition language for JSON APIs 
 to define actions (JSON APIs), structure types, enumeration types, and typedef types. Specification parsing is done by
 the :class:`~chisel.SpecParser` class. For example:
 
->>> import chisel
 >>> parser = chisel.SpecParser('''
 ... # Sum a list of number pairs
 ... action sum_number_pairs

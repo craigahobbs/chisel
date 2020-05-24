@@ -66,4 +66,6 @@ html_show_sourcelink = False
 
 # -- Extension configuration -------------------------------------------------
 
+doctest_global_setup = 'import chisel'
+
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}

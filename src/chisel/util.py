@@ -42,7 +42,6 @@ def encode_query_string(obj, encoding='utf-8'):
     Encode an object as a query string. Dictionaries, lists, and tuples are recursed. Each member key is expressed in
     fully-qualified form. List keys are the index into the list, and are in order. For example:
 
-    >>> import chisel
     >>> chisel.encode_query_string({'a': 5, 'b': 3.14, 'c': {'d': 'foo', 'e': [1, 2, 3]}, 'f': [{'g': True}, {'g': False}]})
     'a=5&b=3.14&c.d=foo&c.e.0=1&c.e.1=2&c.e.2=3&f.0.g=true&f.1.g=false'
 
@@ -93,7 +92,6 @@ def decode_query_string(query_string, encoding='utf-8'):
     Decode an object from a query string. Each member key of the query string is expressed in fully-qualified
     form. List keys are the index into the list, must be in order. For example:
 
-    >>> import chisel
     >>> chisel.decode_query_string('a=5&b=3.14&c.d=foo&c.e.0=1&c.e.1=2&c.e.2=3&f.0.g=true&f.1.g=false')
     {'a': '5', 'b': '3.14', 'c': {'d': 'foo', 'e': ['1', '2', '3']}, 'f': [{'g': 'true'}, {'g': 'false'}]}
 

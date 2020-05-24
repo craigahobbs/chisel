@@ -25,8 +25,6 @@ def request(wsgi_callback=None, **kwargs):
     """
     Decorator for creating a :class:`~chisel.Request` object that wraps a WSGI application function. For example:
 
-    >>> import chisel
-    ...
     >>> @chisel.request
     ... def my_request(environ, start_response):
     ...    start_response('200 OK', [('Content-Type', 'text/plain')])

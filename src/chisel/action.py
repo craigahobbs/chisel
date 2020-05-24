@@ -21,8 +21,6 @@ def action(action_callback=None, **kwargs):
     """
     Decorator for creating an :class:`~chisel.Action` object that wraps an action callback function. For example:
 
-    >>> import chisel
-    ...
     >>> @chisel.action(spec='''
     ... # Sum a list of numbers
     ... action sum_numbers
@@ -71,8 +69,6 @@ class ActionError(Exception):
     """
     An action error exception. Raise this exception within an action callback function to respond with an error.
 
-    >>> import chisel
-    ...
     >>> @chisel.action(spec='''
     ... action my_action
     ...     url
