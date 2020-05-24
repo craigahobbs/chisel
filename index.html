@@ -183,12 +183,12 @@ JSON web APIs.  Here are Chisel’s features at a glance:</p>
 adding <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.request">request</a> objects to using the application’s
 <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_request">add_request</a> method. A <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Request">Request</a> object is itself a WSGI application with metadata such
 as the HTTP request method and URL path at which to serve the request.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">hello_world</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">start_response</span><span class="p">(</span><span class="s1">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">)])</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="p">[</span><span class="sa">b</span><span class="s1">&#39;Hello, World!&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">ctx</span> <span class="o">=</span> <span class="n">environ</span><span class="p">[</span><span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">ENVIRON_CTX</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response_text</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="s1">&#39;Hello, World!&#39;</span><span class="p">)</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">hello_world</span><span class="p">)</span>
@@ -201,7 +201,7 @@ as the HTTP request method and URL path at which to serve the request.</p>
 <p>Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APIs called “actions”. To
 define an, action use the <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a> decorator to wrap
 an action callback function. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1"># Sum a list of numbers</span>
 <span class="gp">... </span><span class="s1">action sum_numbers</span>
 <span class="gp">... </span><span class="s1">    url</span>
@@ -231,11 +231,12 @@ content parameters.</p>
 <p>In the example above, notice that the code does not check the input request object before using it. This is OK in a
 chisel action callback because the input request object is validated prior to calling the callback.  If there is a
 schema validation error the appropriate error code is automatically returned.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span>
 <span class="go">&#39;400 Bad Request&#39;</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">content_bytes</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">content_bytes</span>
 <span class="go">b&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;message&quot;:&quot;Required member \&#39;numbers\&#39; missing (query string)&quot;}&#39;</span>
 </pre></div>
 </div>
@@ -244,7 +245,7 @@ schema validation error the appropriate error code is automatically returned.</p
 <h3>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h3>
 <p>You can add API documentation by adding the Chisel documentation application to your application using
 <a class="reference external" href="https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests">create_doc_requests</a> and <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests">add_requests</a>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_requests</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">create_doc_requests</span><span class="p">())</span>
 </pre></div>
 </div>
