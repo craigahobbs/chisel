@@ -335,7 +335,6 @@ test('DocPage.requestPage, empty', (t) => {
             null,
             null,
             null,
-            null,
             null
         ]
     );
@@ -370,10 +369,6 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                 {'tag': 'ul', 'elems': [
                     {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/wsgiResponse'}, 'elems': {'text': 'POST /wsgiResponse'}}]}
                 ]}
-            ]},
-            {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
-                {'tag': 'b', 'elems': {'text': 'Note: '}},
-                {'text': 'The action has a non-default response. See documentation for details.'}
             ]},
             null,
             null,
@@ -410,7 +405,6 @@ test('DocPage.requestPage, request', (t) => {
                     {'tag': 'li', 'elems': [{'tag': 'a', 'attrs': {'href': '/request'}, 'elems': {'text': '/request'}}]}
                 ]}
             ]},
-            null,
             null,
             null,
             null,
@@ -629,7 +623,6 @@ test('DocPage.requestPage', (t) => {
                     {'tag': 'li', 'elems': [{'attrs': {'href': '/'}, 'elems': {'text': 'GET /'}, 'tag': 'a'}]}
                 ]}
             ]},
-            null,
             [
                 {
                     'tag': 'h2',
