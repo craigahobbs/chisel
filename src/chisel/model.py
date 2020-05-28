@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-Chisel schema validation model
+Chisel schema type model
 """
 
 from datetime import date, datetime
