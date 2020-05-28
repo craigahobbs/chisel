@@ -113,7 +113,6 @@ export class DocPage {
      */
     requestPage(request) {
         const isAction = 'action' in request;
-        const isCustomResponse = isAction && !('output' in request.action);
         return [
             // Navigation bar
             chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
@@ -131,17 +130,11 @@ export class DocPage {
                 ])))
             ]),
 
-            // Action non-default response note
-            !isCustomResponse ? null : chisel.elem('p', {'class': 'chisel-note'}, [
-                chisel.elem('b', null, chisel.text('Note: ')),
-                chisel.text('The action has a non-default response. See documentation for details.')
-            ]),
-
             // Action sections
             !(isAction && request.action.path.members.length) ? null : this.structElem(request.action.path, 'h2', 'Path Parameters'),
             !(isAction && request.action.query.members.length) ? null : this.structElem(request.action.query, 'h2', 'Query Parameters'),
             !(isAction && request.action.input.members.length) ? null : this.structElem(request.action.input, 'h2', 'Input Parameters'),
-            !(isAction && !isCustomResponse && request.action.output.members.length) ? null
+            !(isAction && 'output' in request.action && request.action.output.members.length) ? null
                 : this.structElem(request.action.output, 'h2', 'Output Parameters'),
             !(isAction && request.action.errors.values.length) ? null : this.enumElem(request.action.errors, 'h2', 'Error Codes'),
 
