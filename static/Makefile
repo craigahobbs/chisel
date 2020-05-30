@@ -4,6 +4,7 @@ NODE_IMAGE ?= node:13-buster-slim
 NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
 
 build/npm.install:
+	docker pull -q $(NODE_IMAGE)
 	$(NODE_DOCKER) npm install
 	mkdir -p $(dir $@)
 	touch $@

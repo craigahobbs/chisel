@@ -77,9 +77,9 @@ $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD := $$($(call UPPER_
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
 $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD):
+	docker pull -q $(call PYTHON_IMAGE_FN,$(4))
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $$(PIP_ARGS) install --upgrade pip setuptools
-	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) wheel
+	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) --upgrade pip setuptools wheel
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
 	touch $$@
 
