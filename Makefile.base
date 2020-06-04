@@ -83,12 +83,12 @@ $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD):
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
 	touch $$@
 
-.PHONY: $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
-$(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD)
+.PHONY: $(strip $(1))-$(subst _,-,$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))))
+$(strip $(1))-$(subst _,-,$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))): $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD)
 $(call $(3), $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD))
 
 .PHONY: $(strip $(1))
-$(strip $(1)): $(strip $(1))_$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4)))
+$(strip $(1)): $(strip $(1))-$(subst _,-,$(call LOWER_FN, $(call PYTHON_NAME_FN, $(4))))
 endef
 
 # Generate test rules
