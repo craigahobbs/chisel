@@ -102,8 +102,6 @@ define COVER_COMMANDS_FN
 	$(1)/python3 -m coverage run --branch --source src -m unittest $$(if $$(TEST),-v $$(TEST),discover -v -t src -s src/tests) $$(TEST_ARGS)
 	$(1)/python3 -m coverage html -d $$(BUILD)/coverage
 	$(1)/python3 -m coverage report $$(COVERAGE_REPORT_ARGS)
-	@echo
-	@echo Coverage report is $$(BUILD)/coverage/index.html
 endef
 $(eval $(call VENV_RULE_FN, cover, -e . -e .[tests] $(call PIP_VERSION_FN, coverage, $(COVERAGE_VERSION)), COVER_COMMANDS_FN))
 
@@ -118,8 +116,6 @@ ifneq '$(SPHINX_DOC)' ''
 define DOC_COMMANDS_FN
 	$(1)/sphinx-build $$(SPHINX_ARGS) -b doctest -d $$(BUILD)/doc/doctrees $$(SPHINX_DOC) $$(BUILD)/doc/html
 	$(1)/sphinx-build $$(SPHINX_ARGS) -b html -d $$(BUILD)/doc/doctrees $$(SPHINX_DOC) $$(BUILD)/doc/html
-	@echo
-	@echo Doc index is $$(BUILD)/doc/html/index.html
 endef
 $(eval $(call VENV_RULE_FN, doc, -e . $(call PIP_VERSION_FN, sphinx, $(SPHINX_VERSION)) $(call PIP_VERSION_FN, sphinx_rtd_theme, $(SPHINX_RTD_THEME_VERSION)), DOC_COMMANDS_FN))
 

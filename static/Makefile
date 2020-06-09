@@ -14,18 +14,25 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [clean|commit|doc|lint|test]'
+	@echo 'usage: make [clean|commit|cover|doc|lint|test]'
 
 .PHONY: commit
-commit: test lint doc
+commit: test lint doc cover
 
 .PHONY: test
 test: _test
 
 .PHONY: _test
 _test: build/npm.install
-	$(NODE_DOCKER) npx nyc $(NYC_ARGS) --check-coverage --reporter html --reporter text \
-		--report-dir build/coverage --temp-dir build/tmp ava $(AVA_ARGS) tests/test*.js
+	$(NODE_DOCKER) npx ava $(if $(TEST),--match '$(TEST)') $(AVA_ARGS) tests/test*.js
+
+.PHONY: cover
+cover: _cover
+
+.PHONY: _cover
+_cover: build/npm.install
+	$(NODE_DOCKER) npx nyc $(NYC_ARGS) --check-coverage --reporter html --reporter text --report-dir build/coverage --temp-dir build/tmp \
+		ava $(if $(TEST),--match '$(TEST)') $(AVA_ARGS) tests/test*.js
 
 .PHONY: _lint
 lint: _lint
