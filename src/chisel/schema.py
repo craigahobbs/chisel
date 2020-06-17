@@ -311,7 +311,7 @@ def get_referenced_types(types, type_name, referenced_types=None):
                             'name': 'Struct2'}}}
 
     :param dict types: The map of user type name to user type model
-    :param string type_name: The type name
+    :param str type_name: The type name
     :param dict referenced_types: An optional map of referenced user type name to user type
     :returns: The map of referenced user type name to user type model
     """
@@ -465,9 +465,9 @@ def validate_type(types, type_name, value, member_fqn=None):
     "Invalid value 'abc' (type 'str') for member 'a.b.1', expected type 'int'"
 
     :param dict types: The map of user type name to user type model
-    :param string type_name: The type name
+    :param str type_name: The type name
     :param object value: The value object to validate
-    :param string member_fqn: The fully-qualified member name
+    :param str member_fqn: The fully-qualified member name
     :returns: The validated, transformed value object
     :raises ValidationError: A validation error occurred
     """
