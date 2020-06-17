@@ -6,9 +6,7 @@
 from http import HTTPStatus
 from io import StringIO
 
-from chisel import action, Action, ActionError, Application, Request, SpecParserError
-from chisel.model import ActionModel
-from chisel.spec import SpecParser
+from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
 
 from . import TestCase
 
@@ -31,8 +29,8 @@ action my_action_default
         app.add_request(my_action_default)
         self.assertEqual(my_action_default.name, 'my_action_default')
         self.assertEqual(my_action_default.urls, (('POST', '/my_action_default'),))
-        self.assertTrue(isinstance(my_action_default.model, ActionModel))
-        self.assertEqual(my_action_default.model.name, 'my_action_default')
+        self.assertTrue(isinstance(my_action_default.model, dict))
+        self.assertEqual(my_action_default.model['name'], 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, False)
 
     # Default action decorator with missing spec
@@ -60,17 +58,17 @@ action my_action
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with spec parser
-    def test_decorator_spec_parser(self):
+    def test_decorator_types(self):
 
         spec_parser = SpecParser('''\
 action my_action
 ''')
-        @action(spec_parser=spec_parser)
+        @action(types=spec_parser.types)
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
 
@@ -81,20 +79,20 @@ action my_action
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with spec parser and a spec
-    def test_decorator_spec_parser_and_spec(self):
+    def test_decorator_types_and_spec(self):
 
         spec_parser = SpecParser('''\
 typedef int(> 0) PositiveInteger
 ''')
-        @action(spec_parser=spec_parser, spec='''\
+        @action(types=spec_parser.types, spec='''\
 action my_action
-  input
-    PositiveInteger value
+    input
+        PositiveInteger value
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -106,8 +104,8 @@ action my_action
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with parser
@@ -126,8 +124,8 @@ action my_action
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
     # Action decorator with spec with unknown action
@@ -168,34 +166,16 @@ action theAction
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'theAction')
         self.assertEqual(my_action.urls, (('POST', '/theAction'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'theAction')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'theAction')
         self.assertEqual(my_action.wsgi_response, False)
-
-    # Additional action decorator tests
-    def test_decorator_other(self):
-
-        # Action decorator with urls, custom response callback, and validate response bool
-        @action(urls=(('POST', '/foo'),), wsgi_response=True, spec='''\
-action my_action_default
-''')
-        def my_action_default(unused_ctx, unused_req):
-            pass # pragma: no cover
-
-        app = Application()
-        app.add_request(my_action_default)
-        self.assertEqual(my_action_default.name, 'my_action_default')
-        self.assertEqual(my_action_default.urls, (('POST', '/foo'),))
-        self.assertTrue(isinstance(my_action_default.model, ActionModel))
-        self.assertEqual(my_action_default.model.name, 'my_action_default')
-        self.assertEqual(my_action_default.wsgi_response, True)
 
     def test_decorator_url_spec(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
         @action(spec='''\
 action my_action
-    url
+    urls
         GET
         GET /
         *
@@ -207,9 +187,9 @@ action my_action
         app = Application()
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, (('GET', '/my_action'), ('GET', '/'), (None, '/my_action'), (None, '/star')))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTupleEqual(my_action.urls, (('GET', '/my_action'), ('GET', '/'), (None, '/my_action'), (None, '/star')))
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertFalse(my_action.wsgi_response)
 
     def test_decorator_url_spec_default(self):
@@ -217,7 +197,7 @@ action my_action
         # Action decorator with urls, custom response callback, and validate response bool
         @action(spec='''\
 action my_action
-    url
+    urls
 ''')
         def my_action(unused_ctx, unused_req):
             pass # pragma: no cover
@@ -226,20 +206,22 @@ action my_action
         app.add_request(my_action)
         self.assertEqual(my_action.name, 'my_action')
         self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, ActionModel))
-        self.assertEqual(my_action.model.name, 'my_action')
+        self.assertTrue(isinstance(my_action.model, dict))
+        self.assertEqual(my_action.model['name'], 'my_action')
         self.assertFalse(my_action.wsgi_response)
 
     # Test successful action get
     def test_get(self):
 
-        @action(urls=(('GET', None),), spec='''\
+        @action(spec='''\
 action my_action
-  query
-    int a
-    int b
-  output
-    int c
+    urls
+        GET
+    query
+        int a
+        int b
+    output
+        int c
 ''')
         def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
@@ -255,13 +237,15 @@ action my_action
     # Test successful action get
     def test_get_no_validate_output(self):
 
-        @action(urls=(('GET', None),), spec='''\
+        @action(spec='''\
 action my_action
-  query
-    int a
-    int b
-  output
-    int c
+    urls
+        GET
+    query
+        int a
+        int b
+    output
+        int c
 ''')
         def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
@@ -278,13 +262,15 @@ action my_action
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
-        @action(urls=(('GET', None),), jsonp='jsonp', spec='''\
+        @action(jsonp='jsonp', spec='''\
 action my_action
-  query
-    int a
-    int b
-  output
-    int c
+    urls
+        GET
+    query
+        int a
+        int b
+    output
+        int c
 ''')
         def my_action(unused_app, req):
             return {'c': req['a'] + req['b']}
@@ -300,16 +286,19 @@ action my_action
     # Test successful action post
     def test_post(self):
 
-        @action(urls=(None, (None, '/my/{a}')), spec='''\
+        @action(spec='''\
 action my_action
-  path
-    int a
-  query
-    int b
-  input
-    int c
-  output
-    int d
+    urls
+        *
+        * /my/{a}
+    path
+        int a
+    query
+        int b
+    input
+        int c
+    output
+        int d
 ''')
         def my_action(unused_app, req):
             return {'d': req['a'] + req['b'] + req['c']}
@@ -364,10 +353,10 @@ action my_action
 
         @action(wsgi_response=True, spec='''\
 action my_action
-  input
-    string a
-  output
-    string b
+    input
+        string a
+    output
+        string b
 ''')
         def my_action(ctx, req):
             return ctx.response_text(HTTPStatus.OK, 'Hello ' + str(req['a'].upper()))
@@ -494,8 +483,8 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
-    # Test action raising bad error enum value
-    def test_error_bad_error(self):
+    # Test action raising an unknown error enum value
+    def test_error_unknown_error(self):
 
         @action(spec='''\
 action my_action
@@ -514,7 +503,36 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
-                         'for member \'error\', expected type \'my_action_error\'"}')
+                         'for member \'error\', expected type \'my_action_errors\'"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
+        app.validate_output = False
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
+    # Test action raising an undefined error enum value (no errors type)
+    def test_error_undefined_error(self):
+
+        @action(spec='''\
+action my_action
+''')
+        def my_action(unused_app, unused_req):
+            raise ActionError('MyBadError')
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
+                         'for member \'error\', expected type \'my_action_errors\'"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
         app.validate_output = False
@@ -528,10 +546,12 @@ action my_action
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 
-        @action(urls=(('GET', None),), spec='''\
+        @action(spec='''\
 action my_action
-  query
-    int a
+    urls
+        GET
+    query
+        int a
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -547,10 +567,12 @@ action my_action
     # Test action long query string decode error
     def test_error_invalid_query_string_long(self):
 
-        @action(urls=(('GET', None),), spec='''\
+        @action(spec='''\
 action my_action
-  query
-    int a
+    urls
+        GET
+    query
+        int a
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -571,14 +593,16 @@ action my_action
     # Test action url arg
     def test_url_arg(self):
 
-        @action(urls=(('GET', '/my_action/{a}'),), spec='''\
+        @action(spec='''\
 action my_action
-  path
-    int a
-  query
-    int b
-  output
-    int sum
+    urls
+        GET /my_action/{a}
+    path
+        int a
+    query
+        int b
+    output
+        int sum
 ''')
         def my_action(unused_app, req):
             self.assertEqual(req['a'], 5)
@@ -609,8 +633,8 @@ action my_action
 
         @action(spec='''\
 action my_action
-  input
-    int a
+    input
+        int a
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -631,8 +655,8 @@ action my_action
 
         @action(spec='''\
 action my_action
-  input
-    int a
+    input
+        int a
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -650,8 +674,8 @@ action my_action
 
         @action(spec='''\
 action my_action
-  input
-    string a
+    input
+        string a
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover

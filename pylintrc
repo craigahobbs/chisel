@@ -70,6 +70,8 @@ disable=duplicate-code,
         too-many-nested-blocks,
         too-many-public-methods,
         too-many-statements,
+        unsubscriptable-object,
+        unsupported-assignment-operation,
         unsupported-membership-test,
 
 # Enable the message, report, category or checker with the given id(s). You can

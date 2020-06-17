@@ -199,17 +199,16 @@ test('DocPage.render, request avoid re-render', (t) => {
         {
             'json': {
                 'name': 'test',
-                'action': {
-                    'name': 'test',
-                    'input': {'name': 'test_input', 'members': []},
-                    'errors': {'name': 'test_error', 'values': []},
-                    'output': {'name': 'test_output', 'members': []},
-                    'path': {'name': 'test_path', 'members': []},
-                    'query': {'name': 'test_query', 'members': []}
-                },
                 'urls': [
                     {'method': 'GET', 'url': '/test'}
-                ]
+                ],
+                'types': {
+                    'test': {
+                        'action': {
+                            'name': 'test'
+                        }
+                    }
+                }
             }
         }
     ]);
@@ -233,17 +232,16 @@ test('DocPage.render, request avoid re-render', (t) => {
         {
             'json': {
                 'name': 'test2',
-                'action': {
-                    'name': 'test2',
-                    'input': {'name': 'test2_input', 'members': []},
-                    'errors': {'name': 'test2_error', 'values': []},
-                    'output': {'name': 'test2_output', 'members': []},
-                    'path': {'name': 'test2_path', 'members': []},
-                    'query': {'name': 'test2_query', 'members': []}
-                },
                 'urls': [
                     {'method': 'GET', 'url': '/test2'}
-                ]
+                ],
+                'types': {
+                    'test2': {
+                        'action': {
+                            'name': 'test2'
+                        }
+                    }
+                }
             }
         }
     ]);
@@ -335,6 +333,7 @@ test('DocPage.requestPage, empty', (t) => {
             null,
             null,
             null,
+            null,
             null
         ]
     );
@@ -362,6 +361,7 @@ test('DocPage.requestPage, wsgiResponse', (t) => {
                 'elems': {'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}}
             },
             {'tag': 'h1', 'elems': {'text': 'wsgiResponse'}},
+            null,
             null,
             {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
                 {'tag': 'b', 'elems': {'text': 'Note: '}},
@@ -398,6 +398,7 @@ test('DocPage.requestPage, request', (t) => {
             },
             {'tag': 'h1', 'elems': {'text': 'request'}},
             null,
+            null,
             {'tag': 'p', 'attrs': {'class': 'chisel-note'}, 'elems': [
                 {'tag': 'b', 'elems': {'text': 'Note: '}},
                 {'text': 'The request is exposed at the following URL:'},
@@ -426,7 +427,7 @@ test('DocPage.structElem, empty', (t) => {
         [
             {
                 'tag': 'h2',
-                'attrs': {'id': 'name=test&struct_TestStruct'},
+                'attrs': {'id': 'name=test&type_TestStruct'},
                 'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct TestStruct'}}
             },
             null,
@@ -446,7 +447,7 @@ test('DocPage.enumElem, empty', (t) => {
         [
             {
                 'tag': 'h2',
-                'attrs': {'id': 'name=test&enum_TestEnum'},
+                'attrs': {'id': 'name=test&type_TestEnum'},
                 'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum TestEnum'}}
             },
             null,
@@ -464,143 +465,179 @@ test('DocPage.requestPage', (t) => {
     t.deepEqual(
         docPage.requestPage({
             'name': 'test',
-            'doc': ' The test action.\n\n This is some more information.',
             'urls': [
                 {'url': '/test'},
                 {'method': 'GET', 'url': '/test'},
                 {'method': 'GET', 'url': '/'}
             ],
-            'action': {
-                'name': 'test',
-                'path': {
-                    'name': 'test_path',
-                    'members': [
-                        {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': ' The url member "pa".'},
-                        {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': ' The url member "pb".\n\n\n More info.\n'},
-                        {'name': 'pc', 'type': {'builtin': 'datetime'}},
-                        {'name': 'pd', 'type': {'builtin': 'float'}},
-                        {'name': 'pe', 'type': {'builtin': 'int'}},
-                        {'name': 'pf', 'type': {'builtin': 'object'}},
-                        {'name': 'pg', 'type': {'builtin': 'string'}},
-                        {'name': 'ph', 'type': {'builtin': 'uuid'}}
-                    ]
+            'types': {
+                'test': {
+                    'action': {
+                        'name': 'test',
+                        'doc': ' The test action.\n\n This is some more information.',
+                        'path': 'test_path',
+                        'query': 'test_query',
+                        'input': 'test_input',
+                        'output': 'test_output',
+                        'errors': 'test_errors'
+                    }
                 },
-                'query': {
-                    'name': 'test_query',
-                    'members': [
-                        {'name': 'qa', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0, 'lt': 10.0}},
-                        {'name': 'qb', 'type': {'builtin': 'int'}, 'attr': {'gte': 0.0, 'lte': 10.0}},
-                        {'name': 'qc', 'type': {'builtin': 'int'}, 'attr': {'eq': 10.0}},
-                        {'name': 'qd', 'type': {'builtin': 'float'}, 'attr': {'gt': 0.5, 'lt': 9.5}},
-                        {'name': 'qe', 'type': {'builtin': 'float'}, 'attr': {'gte': 0.5, 'lte': 9.5}},
-                        {'name': 'qf', 'type': {'builtin': 'float'}, 'attr': {'eq': 9.5}},
-                        {'name': 'qg', 'type': {'builtin': 'string'}, 'attr': {'len_gt': 0, 'len_lt': 10}},
-                        {'name': 'qh', 'type': {'builtin': 'string'}, 'attr': {'len_gte': 0, 'len_lte': 10}},
-                        {'name': 'qi', 'type': {'builtin': 'string'}, 'attr': {'len_eq': 10}},
-                        {'name': 'qj', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gt': 0, 'len_lt': 10}},
-                        {'name': 'qk', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gte': 0, 'len_lte': 10}},
-                        {'name': 'ql', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gte': 0, 'len_lte': 10}},
-                        {
-                            'name': 'qm',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_gt': 0, 'len_lt': 10}
-                        },
-                        {
-                            'name': 'qn',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_gte': 0, 'len_lte': 10}
-                        },
-                        {
-                            'name': 'qo',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_eq': 10}
-                        }
-                    ]
+                'test_path': {
+                    'struct': {
+                        'name': 'test_path',
+                        'members': [
+                            {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': ' The url member "pa".'},
+                            {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': ' The url member "pb".\n\n\n More info.\n'},
+                            {'name': 'pc', 'type': {'builtin': 'datetime'}},
+                            {'name': 'pd', 'type': {'builtin': 'float'}},
+                            {'name': 'pe', 'type': {'builtin': 'int'}},
+                            {'name': 'pf', 'type': {'builtin': 'object'}},
+                            {'name': 'pg', 'type': {'builtin': 'string'}},
+                            {'name': 'ph', 'type': {'builtin': 'uuid'}}
+                        ]
+                    }
                 },
-                'input': {
-                    'name': 'test_input',
-                    'members': [
-                        {'name': 'ia', 'optional': true, 'type': {'builtin': 'int'}},
-                        {'name': 'ib', 'nullable': true, 'type': {'builtin': 'float'}},
-                        {'name': 'ic', 'nullable': true, 'optional': true, 'type': {'builtin': 'string'}},
-                        {
-                            'name': 'id',
-                            'nullable': true,
-                            'optional': true,
-                            'type': {'array': {'attr': {'len_gt': 5}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_gt': 0}
-                        }
-                    ]
+                'test_query': {
+                    'struct': {
+                        'name': 'test_query',
+                        'members': [
+                            {'name': 'qa', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0, 'lt': 10.0}},
+                            {'name': 'qb', 'type': {'builtin': 'int'}, 'attr': {'gte': 0.0, 'lte': 10.0}},
+                            {'name': 'qc', 'type': {'builtin': 'int'}, 'attr': {'eq': 10.0}},
+                            {'name': 'qd', 'type': {'builtin': 'float'}, 'attr': {'gt': 0.5, 'lt': 9.5}},
+                            {'name': 'qe', 'type': {'builtin': 'float'}, 'attr': {'gte': 0.5, 'lte': 9.5}},
+                            {'name': 'qf', 'type': {'builtin': 'float'}, 'attr': {'eq': 9.5}},
+                            {'name': 'qg', 'type': {'builtin': 'string'}, 'attr': {'len_gt': 0, 'len_lt': 10}},
+                            {'name': 'qh', 'type': {'builtin': 'string'}, 'attr': {'len_gte': 0, 'len_lte': 10}},
+                            {'name': 'qi', 'type': {'builtin': 'string'}, 'attr': {'len_eq': 10}},
+                            {'name': 'qj', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gt': 0, 'len_lt': 10}},
+                            {'name': 'qk', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gte': 0, 'len_lte': 10}},
+                            {'name': 'ql', 'type': {'array': {'type': {'builtin': 'int'}}}, 'attr': {'len_gte': 0, 'len_lte': 10}},
+                            {
+                                'name': 'qm',
+                                'type': {'dict': {'type': {'builtin': 'string'}}},
+                                'attr': {'len_gt': 0, 'len_lt': 10}
+                            },
+                            {
+                                'name': 'qn',
+                                'type': {'dict': {'type': {'builtin': 'string'}}},
+                                'attr': {'len_gte': 0, 'len_lte': 10}
+                            },
+                            {
+                                'name': 'qo',
+                                'type': {'dict': {'type': {'builtin': 'string'}}},
+                                'attr': {'len_eq': 10}
+                            }
+                        ]
+                    }
                 },
-                'output': {
-                    'name': 'test_output',
-                    'members': [
-                        {'name': 'oa', 'type': {'typedef': 'PositiveInt'}},
-                        {'name': 'ob', 'type': {'typedef': 'JustAString'}},
-                        {'name': 'oc', 'type': {'struct': 'Struct1'}},
-                        {'name': 'od', 'type': {'enum': 'Enum1'}},
-                        {'name': 'oe', 'type': {'enum': 'Enum2'}},
-                        {'name': 'of', 'type': {'dict': {'key_type': {'enum': 'Enum1'}, 'type': {'builtin': 'string'}}}},
-                        {
-                            'name': 'og',
-                            'type': {'dict': {'key_type': {'typedef': 'JustAString'}, 'type': {'typedef': 'NonEmptyFloatArray'}}},
-                            'attr': {'len_gt': 0}
-                        }
-                    ]
+                'test_input': {
+                    'struct': {
+                        'name': 'test_input',
+                        'members': [
+                            {'name': 'ia', 'optional': true, 'type': {'builtin': 'int'}},
+                            {'name': 'ib', 'nullable': true, 'type': {'builtin': 'float'}},
+                            {'name': 'ic', 'nullable': true, 'optional': true, 'type': {'builtin': 'string'}},
+                            {
+                                'name': 'id',
+                                'nullable': true,
+                                'optional': true,
+                                'type': {'array': {'attr': {'len_gt': 5}, 'type': {'builtin': 'string'}}},
+                                'attr': {'len_gt': 0}
+                            }
+                        ]
+                    }
                 },
-                'errors': {
-                    'name': 'test_error',
-                    'values': [
-                        {'value': 'Error1'},
-                        {'value': 'Error2'}
-                    ]
+                'test_output': {
+                    'struct': {
+                        'name': 'test_output',
+                        'members': [
+                            {'name': 'oa', 'type': {'user': 'PositiveInt'}},
+                            {'name': 'ob', 'type': {'user': 'JustAString'}},
+                            {'name': 'oc', 'type': {'user': 'Struct1'}},
+                            {'name': 'od', 'type': {'user': 'Enum1'}},
+                            {'name': 'oe', 'type': {'user': 'Enum2'}},
+                            {'name': 'of', 'type': {'dict': {'key_type': {'user': 'Enum1'}, 'type': {'builtin': 'string'}}}},
+                            {
+                                'name': 'og',
+                                'type': {'dict': {'key_type': {'user': 'JustAString'}, 'type': {'user': 'NonEmptyFloatArray'}}},
+                                'attr': {'len_gt': 0}
+                            }
+                        ]
+                    }
+                },
+                'test_errors': {
+                    'enum': {
+                        'name': 'test_errors',
+                        'values': [
+                            {'name': 'Error1'},
+                            {'name': 'Error2'}
+                        ]
+                    }
+                },
+                'Enum1': {
+                    'enum': {
+                        'name': 'Enum1',
+                        'doc': ' An enum.',
+                        'values': [
+                            {'name': 'e1', 'doc': ' The Enum1 value "e1"'},
+                            {'name': 'e2', 'doc': ' The Enum1 value "e 2"\n\n More info.'}
+                        ]
+                    }
+                },
+                'Enum2': {
+                    'enum': {
+                        'name': 'Enum2',
+                        'doc': ' Another enum.\n\n More info.',
+                        'values': [
+                            {'name': 'e3'}
+                        ]
+                    }
+                },
+                'Struct1': {
+                    'struct': {
+                        'name': 'Struct1',
+                        'doc': ' A struct.',
+                        'members': [
+                            {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': ' The struct member "sa"'},
+                            {'name': 'sb', 'type': {'user': 'Struct2'}, 'doc': ' The struct member "sb"\n\n More info.'}
+                        ]
+                    }
+                },
+                'Struct2': {
+                    'struct': {
+                        'name': 'Struct2',
+                        'doc': ' Another struct, a union.\n\n More info.',
+                        'members': [
+                            {'name': 'sa', 'type': {'builtin': 'string'}},
+                            {'name': 'sb', 'type': {'builtin': 'int'}}
+                        ],
+                        'union': true
+                    }
+                },
+                'NonEmptyFloatArray': {
+                    'typedef': {
+                        'name': 'NonEmptyFloatArray',
+                        'type': {'array': {'type': {'builtin': 'float'}}},
+                        'attr': {'len_gt': 0}
+                    }
+                },
+                'JustAString': {
+                    'typedef': {
+                        'name': 'JustAString',
+                        'doc': ' Just a string.\n\n More info.',
+                        'type': {'builtin': 'string'}
+                    }
+                },
+                'PositiveInt': {
+                    'typedef': {
+                        'name': 'PositiveInt',
+                        'doc': ' A positive integer.',
+                        'type': {'builtin': 'int'},
+                        'attr': {'gt': 0.0}
+                    }
                 }
-            },
-            'enums': [
-                {
-                    'name': 'Enum1',
-                    'doc': ' An enum.',
-                    'values': [
-                        {'value': 'e1', 'doc': ' The Enum1 value "e1"'},
-                        {'value': 'e2', 'doc': ' The Enum1 value "e 2"\n\n More info.'}
-                    ]
-                },
-                {
-                    'name': 'Enum2',
-                    'doc': ' Another enum.\n\n More info.',
-                    'values': [
-                        {'value': 'e3'}
-                    ]
-                }
-            ],
-            'structs': [
-                {
-                    'name': 'Struct1',
-                    'doc': ' A struct.',
-                    'members': [
-                        {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': ' The struct member "sa"'},
-                        {'name': 'sb', 'type': {'struct': 'Struct2'}, 'doc': ' The struct member "sb"\n\n More info.'}
-                    ]
-                },
-                {
-                    'name': 'Struct2',
-                    'doc': ' Another struct, a union.\n\n More info.',
-                    'members': [
-                        {'name': 'sa', 'type': {'builtin': 'string'}},
-                        {'name': 'sb', 'type': {'builtin': 'int'}}
-                    ],
-                    'union': true
-                }
-            ],
-            'typedefs': [
-                {'name': 'NonEmptyFloatArray', 'type': {'array': {'type': {'builtin': 'float'}}}, 'attr': {'len_gt': 0}},
-                {
-                    'name': 'JustAString',
-                    'doc': ' Just a string.\n\n More info.',
-                    'type': {'builtin': 'string'}
-                },
-                {'name': 'PositiveInt', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0}, 'doc': ' A positive integer.'}
-            ]
+            }
         }),
         // =================
         // Begin requestPage
@@ -610,6 +647,7 @@ test('DocPage.requestPage', (t) => {
                 'tag': 'a', 'attrs': {'href': 'blank#'}, 'elems': {'text': 'Back to documentation index'}
             }},
             {'tag': 'h1', 'elems': {'text': 'test'}},
+            null,
             [
                 {'tag': 'p', 'elems': {'text': ' The test action.'}},
                 {'tag': 'p', 'elems': {'text': ' This is some more information.'}}
@@ -626,7 +664,7 @@ test('DocPage.requestPage', (t) => {
             [
                 {
                     'tag': 'h2',
-                    'attrs': {'id': 'name=test&struct_test_path'},
+                    'attrs': {'id': 'name=test&type_test_path'},
                     'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Path Parameters'}}
                 },
                 null,
@@ -695,7 +733,7 @@ test('DocPage.requestPage', (t) => {
             [
                 {
                     'tag': 'h2',
-                    'attrs': {'id': 'name=test&struct_test_query'},
+                    'attrs': {'id': 'name=test&type_test_query'},
                     'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Query Parameters'}}
                 },
                 null,
@@ -844,7 +882,7 @@ test('DocPage.requestPage', (t) => {
             [
                 {
                     'tag': 'h2',
-                    'attrs': {'id': 'name=test&struct_test_input'},
+                    'attrs': {'id': 'name=test&type_test_input'},
                     'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Input Parameters'}}
                 },
                 null,
@@ -897,7 +935,7 @@ test('DocPage.requestPage', (t) => {
             [
                 {
                     'tag': 'h2',
-                    'attrs': {'id': 'name=test&struct_test_output'},
+                    'attrs': {'id': 'name=test&type_test_output'},
                     'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Output Parameters'}, 'tag': 'a'}
                 },
                 null,
@@ -913,7 +951,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'oa'}},
                             {'tag': 'td', 'elems': {
                                 'tag': 'a',
-                                'attrs': {'href': '#name=test&typedef_PositiveInt'},
+                                'attrs': {'href': '#name=test&type_PositiveInt'},
                                 'elems': {'text': 'PositiveInt'}
                             }},
                             {'tag': 'td'},
@@ -923,7 +961,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'ob'}},
                             {'tag': 'td', 'elems': {
                                 'tag': 'a',
-                                'attrs': {'href': '#name=test&typedef_JustAString'},
+                                'attrs': {'href': '#name=test&type_JustAString'},
                                 'elems': {'text': 'JustAString'}
                             }},
                             {'tag': 'td'},
@@ -933,7 +971,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'oc'}},
                             {'tag': 'td', 'elems': {
                                 'tag': 'a',
-                                'attrs': {'href': '#name=test&struct_Struct1'},
+                                'attrs': {'href': '#name=test&type_Struct1'},
                                 'elems': {'text': 'Struct1'}
                             }},
                             {'tag': 'td'},
@@ -943,7 +981,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'od'}},
                             {'tag': 'td', 'elems': {
                                 'tag': 'a',
-                                'attrs': {'href': '#name=test&enum_Enum1'},
+                                'attrs': {'href': '#name=test&type_Enum1'},
                                 'elems': {'text': 'Enum1'}
                             }},
                             {'tag': 'td'},
@@ -953,7 +991,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'oe'}},
                             {'tag': 'td', 'elems': {
                                 'tag': 'a',
-                                'attrs': {'href': '#name=test&enum_Enum2'},
+                                'attrs': {'href': '#name=test&type_Enum2'},
                                 'elems': {'text': 'Enum2'}
                             }},
                             {'tag': 'td'},
@@ -963,7 +1001,7 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'of'}},
                             {'tag': 'td', 'elems': [
                                 [
-                                    {'tag': 'a', 'attrs': {'href': '#name=test&enum_Enum1'}, 'elems': {'text': 'Enum1'}},
+                                    {'tag': 'a', 'attrs': {'href': '#name=test&type_Enum1'}, 'elems': {'text': 'Enum1'}},
                                     {'text': `${chisel.nbsp}:${chisel.nbsp}`}
                                 ],
                                 {'text': 'string'}, {'text': `${chisel.nbsp}{}`}
@@ -975,10 +1013,10 @@ test('DocPage.requestPage', (t) => {
                             {'tag': 'td', 'elems': {'text': 'og'}},
                             {'tag': 'td', 'elems': [
                                 [
-                                    {'tag': 'a', 'attrs': {'href': '#name=test&typedef_JustAString'}, 'elems': {'text': 'JustAString'}},
+                                    {'tag': 'a', 'attrs': {'href': '#name=test&type_JustAString'}, 'elems': {'text': 'JustAString'}},
                                     {'text': `${chisel.nbsp}:${chisel.nbsp}`}
                                 ],
-                                {'tag': 'a', 'attrs': {'href': '#name=test&typedef_NonEmptyFloatArray'}, 'elems': {'text': 'NonEmptyFloatArray'}},
+                                {'tag': 'a', 'attrs': {'href': '#name=test&type_NonEmptyFloatArray'}, 'elems': {'text': 'NonEmptyFloatArray'}},
                                 {'text': `${chisel.nbsp}{}`}
                             ]},
                             {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
@@ -992,7 +1030,7 @@ test('DocPage.requestPage', (t) => {
             [
                 {
                     'tag': 'h2',
-                    'attrs': {'id': 'name=test&enum_test_error'},
+                    'attrs': {'id': 'name=test&type_test_errors'},
                     'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'Error Codes'}}
                 },
                 null,
@@ -1010,24 +1048,7 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&typedef_NonEmptyFloatArray'},
-                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}
-                        },
-                        null,
-                        {'tag': 'table', 'elems': [
-                            {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Type'}}, {'tag': 'th', 'elems': {'text': 'Attributes'}}]},
-                            {'tag': 'tr', 'elems': [
-                                {'tag': 'td', 'elems': [[{'text': 'float'}, {'text': `${chisel.nbsp}[]`}]]},
-                                {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
-                                    {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
-                                ]}}
-                            ]}
-                        ]}
-                    ],
-                    [
-                        {
-                            'tag': 'h3',
-                            'attrs': {'id': 'name=test&typedef_JustAString'},
+                            'attrs': {'id': 'name=test&type_JustAString'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef JustAString'}}
                         },
                         [
@@ -1048,7 +1069,24 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&typedef_PositiveInt'},
+                            'attrs': {'id': 'name=test&type_NonEmptyFloatArray'},
+                            'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef NonEmptyFloatArray'}}
+                        },
+                        null,
+                        {'tag': 'table', 'elems': [
+                            {'tag': 'tr', 'elems': [{'tag': 'th', 'elems': {'text': 'Type'}}, {'tag': 'th', 'elems': {'text': 'Attributes'}}]},
+                            {'tag': 'tr', 'elems': [
+                                {'tag': 'td', 'elems': [[{'text': 'float'}, {'text': `${chisel.nbsp}[]`}]]},
+                                {'tag': 'td', 'elems': {'tag': 'ul', 'attrs': {'class': 'chisel-attr-list'}, 'elems': [
+                                    {'tag': 'li', 'elems': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
+                                ]}}
+                            ]}
+                        ]}
+                    ],
+                    [
+                        {
+                            'tag': 'h3',
+                            'attrs': {'id': 'name=test&type_PositiveInt'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'typedef PositiveInt'}}
                         },
                         [
@@ -1075,7 +1113,7 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&struct_Struct1'},
+                            'attrs': {'id': 'name=test&type_Struct1'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'struct Struct1'}}
                         },
                         [
@@ -1098,7 +1136,7 @@ test('DocPage.requestPage', (t) => {
                                 {'tag': 'tr', 'elems': [
                                     {'tag': 'td', 'elems': {'text': 'sb'}},
                                     {'tag': 'td', 'elems': {
-                                        'tag': 'a', 'attrs': {'href': '#name=test&struct_Struct2'}, 'elems': {'text': 'Struct2'}
+                                        'tag': 'a', 'attrs': {'href': '#name=test&type_Struct2'}, 'elems': {'text': 'Struct2'}
                                     }},
                                     null,
                                     {'tag': 'td', 'elems': [
@@ -1112,7 +1150,7 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&struct_Struct2'},
+                            'attrs': {'id': 'name=test&type_Struct2'},
                             'elems': {'attrs': {'class': 'linktarget'}, 'elems': {'text': 'union Struct2'}, 'tag': 'a'}
                         },
                         [
@@ -1150,7 +1188,7 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&enum_Enum1'},
+                            'attrs': {'id': 'name=test&type_Enum1'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum1'}}
                         },
                         [
@@ -1179,7 +1217,7 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'tag': 'h3',
-                            'attrs': {'id': 'name=test&enum_Enum2'},
+                            'attrs': {'id': 'name=test&type_Enum2'},
                             'elems': {'tag': 'a', 'attrs': {'class': 'linktarget'}, 'elems': {'text': 'enum Enum2'}}
                         },
                         [

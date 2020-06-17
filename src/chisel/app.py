@@ -286,7 +286,7 @@ class Context:
 
         >>> @chisel.action(spec='''
         ... action my_action
-        ...     url
+        ...     urls
         ...         GET
         ... ''')
         ... def my_action(ctx, req):
@@ -316,7 +316,7 @@ class Context:
         ...
         >>> @chisel.action(spec='''
         ... action my_action
-        ...     url
+        ...     urls
         ...         GET
         ... ''')
         ... def my_action(ctx, req):
@@ -358,7 +358,7 @@ class Context:
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
-        ...     url
+        ...     urls
         ...         GET
         ... ''')
         ... def my_action(ctx, req):
@@ -392,7 +392,7 @@ class Context:
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
-        ...     url
+        ...     urls
         ...         GET
         ... ''')
         ... def my_action(ctx, req):
@@ -426,7 +426,7 @@ class Context:
         ...
         >>> @chisel.action(wsgi_response=True, spec='''
         ... action my_action
-        ...     url
+        ...     urls
         ...         GET
         ... ''')
         ... def my_action(ctx, req):

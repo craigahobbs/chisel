@@ -20,42 +20,18 @@ from .app import \
 from .doc import \
     create_doc_requests
 
-from .model import \
-    ActionModel, \
-    AttributeValidationError, \
-    EnumValue, \
-    StructMember, \
-    StructMemberAttributes, \
-    TYPE_BOOL, \
-    TYPE_DATE, \
-    TYPE_DATETIME, \
-    TYPE_FLOAT, \
-    TYPE_INT, \
-    TYPE_OBJECT, \
-    TYPE_STRING, \
-    TYPE_UUID, \
-    TypeArray, \
-    TypeBool, \
-    TypeDate, \
-    TypeDatetime, \
-    TypeDict, \
-    TypeEnum, \
-    TypeFloat, \
-    TypeInt, \
-    TypeObject, \
-    TypeString, \
-    TypeStruct, \
-    TypeUuid, \
-    Typedef, \
-    ValidationError, \
-    ValidationMode, \
-    get_referenced_types
-
 from .request import \
     RedirectRequest, \
     Request, \
     StaticRequest, \
     request
+
+from .schema import \
+    ValidationError, \
+    get_referenced_types, \
+    get_type_model, \
+    validate_types, \
+    validate_type
 
 from .spec import \
     SpecParser, \

@@ -11,7 +11,7 @@ from http import HTTPStatus
 from json import loads as json_loads
 
 from .app import Context
-from .model import ValidationError, ValidationMode, TypeStruct, TYPE_STRING
+from .schema import ValidationError, validate_type
 from .request import Request
 from .spec import SpecParser
 from .util import decode_query_string
@@ -24,7 +24,7 @@ def action(action_callback=None, **kwargs):
     >>> @chisel.action(spec='''
     ... # Sum a list of numbers
     ... action sum_numbers
-    ...     url
+    ...     urls
     ...         GET
     ...     query
     ...         # The list of numbers to sum
@@ -71,7 +71,7 @@ class ActionError(Exception):
 
     >>> @chisel.action(spec='''
     ... action my_action
-    ...     url
+    ...     urls
     ...         GET
     ...     errors
     ...         AlwaysError
@@ -133,52 +133,96 @@ class Action(Request):
     :param str name: The action request name
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
-    :param str doc: The documentation markdown text
-    :param str doc_group: The documentation group
-    :param ~chisel.SpecParser spec_parser: Optional specification parser to use for specification parsing
+    :param dict types: Optional dictionary of user type models
     :param str spec: Optional action specification (see :ref:`spec`). If a specification isn't provided it can be
-        provided through the "spec_parser" argument.
+        provided through the "types" argument.
     :param bool wsgi_response: If True, the callback function's response is a WSGI application function
         response. Default is False.
     :param str jsonp: Optional JSONP key
     """
 
-    __slots__ = ('action_callback', 'model', 'wsgi_response', 'jsonp')
+    __slots__ = ('action_callback', 'types', 'wsgi_response', 'jsonp')
 
-    def __init__(self, action_callback, name=None, urls=(('POST', None),), doc=None, doc_group=None,
-                 spec_parser=None, spec=None, wsgi_response=False, jsonp=None):
+    def __init__(self, action_callback, name=None, urls=(('POST', None),), types=None, spec=None, wsgi_response=False, jsonp=None):
 
-        # Use the action model name, if available
+        # Use the action callback name if no name is provided
         if name is None:
             name = action_callback.__name__
 
         # Spec provided?
-        if spec_parser is None:
-            spec_parser = SpecParser(spec=spec)
-        elif spec is not None:
-            spec_parser.parse_string(spec)
-        model = spec_parser.actions.get(name)
+        if types is None:
+            types = {}
+        if spec is not None:
+            SpecParser(types=types, spec=spec)
+
+        # Assert that the action model exists
+        model_type = types.get(name)
+        model = model_type.get('action') if model_type is not None else None
         assert model is not None, f'Unknown action "{name}"'
 
-        super().__init__(
-            name=name,
-            urls=model.urls or urls,
-            doc=doc if doc is not None else model.doc,
-            doc_group=doc_group if doc_group is not None else model.doc_group
-        )
+        # Get the model's URLs, if any
+        if 'urls' in model:
+            urls = [(url.get('method'), url.get('path')) for url in model['urls']]
+
+        # Initialize Request
+        super().__init__(name=name, urls=urls, doc=model.get('doc'), doc_group=model.get('doc_group'))
 
         #: The action callback function
         self.action_callback = action_callback
 
-        #: The action's :class:`~chisel.ActionModel` object. This is retrieved from the spec/spec_parser
-        #: attr:`~chisel.SpecParser.actions` collection.
-        self.model = model
+        #: The user type model dictionary that contains the action model and all referenced user types
+        self.types = types
 
         #: If True, the callback function's response is a WSGI application function response.
         self.wsgi_response = wsgi_response
 
         #: JSONP key or None
         self.jsonp = jsonp
+
+    @property
+    def model(self):
+        """Get the action model"""
+        return self.types[self.name]['action']
+
+    def _get_section_type(self, section):
+        model = self.model
+        if section in model:
+            section_type_name = model[section]
+            section_types = self.types
+        else:
+            # No section type - create an empty struct type
+            section_type_name = f'{model["name"]}_{section}'
+            section_types = {
+                section_type_name: {
+                    'struct': {
+                        'name': section_type_name
+                    }
+                }
+            }
+        return section_types, section_type_name
+
+    def _get_error_type(self):
+        model = self.model
+        output_type_name = f'{model["name"]}_output_error'
+        if 'errors' in model:
+            error_type_name = model['errors']
+            error_type = self.types[error_type_name]
+        else:
+            error_type_name = f'{model["name"]}_errors'
+            error_type = {'enum': {'name': error_type_name}}
+        output_types = {
+            error_type_name: error_type,
+            output_type_name: {
+                'struct': {
+                    'name': output_type_name,
+                    'members': [
+                        {'name': 'error', 'type': {'user': error_type_name}},
+                        {'name': 'message', 'type': {'builtin': 'string'}, 'optional': True}
+                    ]
+                }
+            }
+        }
+        return output_types, output_type_name
 
     def __call__(self, environ, unused_start_response):
         ctx = environ[Context.ENVIRON_CTX]
@@ -208,8 +252,9 @@ class Action(Request):
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'Invalid request JSON: {exc}')
 
             # Validate the content
+            input_types, input_type = self._get_section_type('input')
             try:
-                request = self.model.input_type.validate(request, ValidationMode.JSON_INPUT)
+                request = validate_type(input_types, input_type, request)
             except ValidationError as exc:
                 ctx.log.warning("Invalid content for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal(
@@ -233,8 +278,9 @@ class Action(Request):
                 del request_query[self.jsonp]
 
             # Validate the query string
+            query_types, query_type = self._get_section_type('query')
             try:
-                request_query = self.model.query_type.validate(request_query, ValidationMode.QUERY_STRING)
+                request_query = validate_type(query_types, query_type, request_query)
             except ValidationError as exc:
                 ctx.log.warning("Invalid query string for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal(
@@ -245,9 +291,10 @@ class Action(Request):
                 )
 
             # Validate the path args
+            path_types, path_type = self._get_section_type('path')
             request_path = ctx.url_args if ctx.url_args is not None else {}
             try:
-                request_path = self.model.path_type.validate(request_path, ValidationMode.QUERY_STRING)
+                request_path = validate_type(path_types, path_type, request_path)
             except ValidationError as exc:
                 ctx.log.warning("Invalid path for action '%s': %s", self.name, str(exc))
                 raise _ActionErrorInternal(
@@ -271,7 +318,7 @@ class Action(Request):
                     return response
                 if response is None:
                     response = {}
-                response_type = self.model.output_type
+                output_types, output_type = self._get_section_type('output')
             except ActionError as exc:
                 status = exc.status or HTTPStatus.BAD_REQUEST
                 response = {'error': exc.error}
@@ -281,9 +328,7 @@ class Action(Request):
                     if exc.error in ('UnexpectedError',):
                         validate_output = False
                     else:
-                        response_type = TypeStruct()
-                        response_type.add_member('error', self.model.error_type)
-                        response_type.add_member('message', TYPE_STRING, optional=True)
+                        output_types, output_type = self._get_error_type()
             except Exception as exc:
                 ctx.log.exception("Unexpected error in action '%s'", self.name)
                 raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'UnexpectedError')
@@ -291,7 +336,7 @@ class Action(Request):
             # Validate the response
             if validate_output and ctx.app.validate_output:
                 try:
-                    response_type.validate(response)
+                    validate_type(output_types, output_type, response)
                 except ValidationError as exc:
                     ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
                     raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=str(exc), member=exc.member)

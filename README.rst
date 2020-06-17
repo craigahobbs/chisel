@@ -85,7 +85,7 @@ an action callback function. For example:
 >>> @chisel.action(spec='''
 ... # Sum a list of numbers
 ... action sum_numbers
-...     url
+...     urls
 ...        GET
 ...
 ...     query

@@ -262,7 +262,7 @@ union MyUnion
 #
 # Another doc paragraph.
 action my_action
-    url
+    urls
         POST /my_action/{a}
 
     path
@@ -330,255 +330,270 @@ action my_action2
         status, _, response = app.request('GET', '/doc/doc_request/my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {
-                    'name': 'my_action_error',
-                    'values': []
-                },
-                'input': {
-                    'members': [
-                        {
-                            'doc': ' Action path member doc.',
-                            'name': 'm7',
-                            'type': {'enum': 'MyEnum2'}
-                        },
-                        {
-                            'doc': ' Action path member2 doc.',
-                            'name': 'm8',
-                            'type': {'struct': 'MyStruct2'}
-                        },
-                        {
-                            'name': 'm9',
-                            'type': {'typedef': 'MyTypedef2'}
-                        }
-                    ],
-                    'name': 'my_action_input'
-                },
-                'name': 'my_action',
-                'output': {
-                    'members': [
-                        {
-                            'doc': ' Action output member doc.',
-                            'name': 'm1',
-                            'type': {'builtin': 'bool'}
-                        },
-                        {
-                            'doc': ' Action output member2 doc.',
-                            'name': 'm2',
-                            'type': {'builtin': 'date'}
-                        },
-                        {
-                            'name': 'm3',
-                            'type': {'builtin': 'datetime'}
-                        },
-                        {
-                            'name': 'm4',
-                            'type': {'builtin': 'float'}
-                        },
-                        {
-                            'name': 'm5',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'name': 'm6',
-                            'type': {'builtin': 'object'}
-                        },
-                        {
-                            'name': 'm7',
-                            'type': {'builtin': 'string'}
-                        },
-                        {
-                            'name': 'm8',
-                            'type': {'builtin': 'uuid'}
-                        },
-                        {
-                            'name': 'm9',
-                            'type': {'array': {'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'name': 'm10',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'name': 'm11',
-                            'type': {'enum': 'MyEnum'}
-                        },
-                        {
-                            'name': 'm12',
-                            'type': {'array': {'type': {'enum': 'MyEnum'}}}
-                        },
-                        {
-                            'name': 'm13',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'enum': 'MyEnum'}}}
-                        },
-                        {
-                            'name': 'm14',
-                            'type': {'enum': 'MyEnum'}
-                        },
-                        {
-                            'name': 'm15',
-                            'type': {'struct': 'MyStruct'}
-                        },
-                        {
-                            'name': 'm16',
-                            'type': {'array': {'type': {'struct': 'MyStruct'}}}
-                        },
-                        {
-                            'name': 'm17',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'struct': 'MyStruct'}}}
-                        },
-                        {
-                            'name': 'm18',
-                            'type': {'typedef': 'MyTypedef'}
-                        },
-                        {
-                            'name': 'm19',
-                            'type': {'struct': 'MyUnion'}
-                        }
-                    ],
-                    'name': 'my_action_output'
-                },
-                'path': {
-                    'members': [
-                        {
-                            'doc': ' Action path member doc.',
-                            'name': 'm1',
-                            'type': {'enum': 'MyEnum2'}
-                        },
-                        {
-                            'doc': ' Action path member2 doc.',
-                            'name': 'm2',
-                            'type': {'struct': 'MyStruct2'}
-                        },
-                        {
-                            'name': 'm3',
-                            'type': {'typedef': 'MyTypedef2'}
-                        }
-                    ],
-                    'name': 'my_action_path'
-                },
-                'query': {
-                    'members': [
-                        {
-                            'doc': ' Action path member doc.',
-                            'name': 'm4',
-                            'type': {'enum': 'MyEnum2'}
-                        },
-                        {
-                            'doc': ' Action path member2 doc.',
-                            'name': 'm5',
-                            'type': {'struct': 'MyStruct2'}
-                        },
-                        {
-                            'name': 'm6',
-                            'type': {'typedef': 'MyTypedef2'}
-                        }
-                    ],
-                    'name': 'my_action_query'
-                }
-            },
-            'doc': ' Action doc.\n\n Another doc paragraph.',
-            'enums': [
-                {
-                    'doc': ' Enum doc.\n\n Another enum paragraph.',
-                    'name': 'MyEnum',
-                    'values': [
-                        {
-                            'doc': ' Enum value doc.\n\n Another enum value paragraph.',
-                            'value': 'V1'
-                        },
-                        {
-                            'doc': ' Enum value2 doc.',
-                            'value': 'V2'
-                        },
-                        {
-                            'value': 'V3'
-                        }
-                    ]
-                },
-                {
-                    'name': 'MyEnum2',
-                    'values': []
-                }
-            ],
             'name': 'my_action',
-            'structs': [
-                {
-                    'doc': ' Struct doc.\n\n Another doc paragraph.',
-                    'members': [
-                        {
-                            'doc': ' Struct member doc.',
-                            'name': 'm1',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'doc': ' Struct member2 doc.',
-                            'name': 'm2',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'name': 'm3',
-                            'type': {'builtin': 'int'}
-                        }
-                    ],
-                    'name': 'MyStruct'
+            'urls': [{'method': 'POST', 'url': '/my_action/{a}'}],
+            'types': {
+                'my_action': {
+                    'action': {
+                        'doc': ' Action doc.\n\n Another doc paragraph.',
+                        'name': 'my_action',
+                        'input': 'my_action_input',
+                        'output': 'my_action_output',
+                        'path': 'my_action_path',
+                        'query': 'my_action_query',
+                        'urls': [{'method': 'POST', 'path': '/my_action/{a}'}]
+                    }
                 },
-                {
-                    'members': [],
-                    'name': 'MyStruct2'
+                'my_action_input': {
+                    'struct': {
+                        'name': 'my_action_input',
+                        'members': [
+                            {
+                                'doc': ' Action path member doc.',
+                                'name': 'm7',
+                                'type': {'user': 'MyEnum2'}
+                            },
+                            {
+                                'doc': ' Action path member2 doc.',
+                                'name': 'm8',
+                                'type': {'user': 'MyStruct2'}
+                            },
+                            {
+                                'name': 'm9',
+                                'type': {'user': 'MyTypedef2'}
+                            }
+                        ]
+                    }
                 },
-                {
-                    'doc': ' Union doc.\n\n Another doc paragraph.',
-                    'members': [
-                        {
-                            'doc': ' Union member doc.',
-                            'name': 'm1',
-                            'optional': True,
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'doc': ' Union member2 doc.',
-                            'name': 'm2',
-                            'optional': True,
-                            'type': {'builtin': 'float'}
-                        },
-                        {
-                            'name': 'm3',
-                            'optional': True,
-                            'type': {'builtin': 'string'}
-                        }
-                    ],
-                    'name': 'MyUnion',
-                    'union': True
+                'my_action_output': {
+                    'struct': {
+                        'name': 'my_action_output',
+                        'members': [
+                            {
+                                'doc': ' Action output member doc.',
+                                'name': 'm1',
+                                'type': {'builtin': 'bool'}
+                            },
+                            {
+                                'doc': ' Action output member2 doc.',
+                                'name': 'm2',
+                                'type': {'builtin': 'date'}
+                            },
+                            {
+                                'name': 'm3',
+                                'type': {'builtin': 'datetime'}
+                            },
+                            {
+                                'name': 'm4',
+                                'type': {'builtin': 'float'}
+                            },
+                            {
+                                'name': 'm5',
+                                'type': {'builtin': 'int'}
+                            },
+                            {
+                                'name': 'm6',
+                                'type': {'builtin': 'object'}
+                            },
+                            {
+                                'name': 'm7',
+                                'type': {'builtin': 'string'}
+                            },
+                            {
+                                'name': 'm8',
+                                'type': {'builtin': 'uuid'}
+                            },
+                            {
+                                'name': 'm9',
+                                'type': {'array': {'type': {'builtin': 'int'}}}
+                            },
+                            {
+                                'name': 'm10',
+                                'type': {'dict': {'type': {'builtin': 'int'}}}
+                            },
+                            {
+                                'name': 'm11',
+                                'type': {'user': 'MyEnum'}
+                            },
+                            {
+                                'name': 'm12',
+                                'type': {'array': {'type': {'user': 'MyEnum'}}}
+                            },
+                            {
+                                'name': 'm13',
+                                'type': {'dict': {'type': {'user': 'MyEnum'}}}
+                            },
+                            {
+                                'name': 'm14',
+                                'type': {'user': 'MyEnum'}
+                            },
+                            {
+                                'name': 'm15',
+                                'type': {'user': 'MyStruct'}
+                            },
+                            {
+                                'name': 'm16',
+                                'type': {'array': {'type': {'user': 'MyStruct'}}}
+                            },
+                            {
+                                'name': 'm17',
+                                'type': {'dict': {'type': {'user': 'MyStruct'}}}
+                            },
+                            {
+                                'name': 'm18',
+                                'type': {'user': 'MyTypedef'}
+                            },
+                            {
+                                'name': 'm19',
+                                'type': {'user': 'MyUnion'}
+                            }
+                        ]
+                    }
+                },
+                'my_action_path': {
+                    'struct': {
+                        'name': 'my_action_path',
+                        'members': [
+                            {
+                                'doc': ' Action path member doc.',
+                                'name': 'm1',
+                                'type': {'user': 'MyEnum2'}
+                            },
+                            {
+                                'doc': ' Action path member2 doc.',
+                                'name': 'm2',
+                                'type': {'user': 'MyStruct2'}
+                            },
+                            {
+                                'name': 'm3',
+                                'type': {'user': 'MyTypedef2'}
+                            }
+                        ]
+                    }
+                },
+                'my_action_query': {
+                    'struct': {
+                        'name': 'my_action_query',
+                        'members': [
+                            {
+                                'doc': ' Action path member doc.',
+                                'name': 'm4',
+                                'type': {'user': 'MyEnum2'}
+                            },
+                            {
+                                'doc': ' Action path member2 doc.',
+                                'name': 'm5',
+                                'type': {'user': 'MyStruct2'}
+                            },
+                            {
+                                'name': 'm6',
+                                'type': {'user': 'MyTypedef2'}
+                            }
+                        ]
+                    }
+                },
+                'MyEnum': {
+                    'enum': {
+                        'name': 'MyEnum',
+                        'doc': ' Enum doc.\n\n Another enum paragraph.',
+                        'values': [
+                            {
+                                'doc': ' Enum value doc.\n\n Another enum value paragraph.',
+                                'name': 'V1'
+                            },
+                            {
+                                'doc': ' Enum value2 doc.',
+                                'name': 'V2'
+                            },
+                            {
+                                'name': 'V3'
+                            }
+                        ]
+                    }
+                },
+                'MyEnum2': {
+                    'enum': {
+                        'name': 'MyEnum2'
+                    }
+                },
+                'MyStruct': {
+                    'struct': {
+                        'name': 'MyStruct',
+                        'doc': ' Struct doc.\n\n Another doc paragraph.',
+                        'members': [
+                            {
+                                'doc': ' Struct member doc.',
+                                'name': 'm1',
+                                'type': {'builtin': 'int'}
+                            },
+                            {
+                                'doc': ' Struct member2 doc.',
+                                'name': 'm2',
+                                'type': {'builtin': 'int'}
+                            },
+                            {
+                                'name': 'm3',
+                                'type': {'builtin': 'int'}
+                            }
+                        ]
+                    }
+                },
+                'MyStruct2': {
+                    'struct': {
+                        'name': 'MyStruct2',
+                    }
+                },
+                'MyUnion': {
+                    'struct': {
+                        'name': 'MyUnion',
+                        'doc': ' Union doc.\n\n Another doc paragraph.',
+                        'members': [
+                            {
+                                'doc': ' Union member doc.',
+                                'name': 'm1',
+                                'type': {'builtin': 'int'}
+                            },
+                            {
+                                'doc': ' Union member2 doc.',
+                                'name': 'm2',
+                                'type': {'builtin': 'float'}
+                            },
+                            {
+                                'name': 'm3',
+                                'type': {'builtin': 'string'}
+                            }
+                        ],
+                        'union': True
+                    }
+                },
+                'MyTypedef': {
+                    'typedef': {
+                        'name': 'MyTypedef',
+                        'doc': ' Typedef doc.\n\n Another typedef paragraph.',
+                        'type': {'dict': {'key_type': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}
+                    }
+                },
+                'MyTypedef2': {
+                    'typedef': {
+                        'name': 'MyTypedef2',
+                        'type': {'builtin': 'int'}
+                    }
                 }
-            ],
-            'typedefs': [
-                {
-                    'doc': ' Typedef doc.\n\n Another typedef paragraph.',
-                    'name': 'MyTypedef',
-                    'type': {'dict': {'key_type': {'enum': 'MyEnum'}, 'type': {'struct': 'MyStruct'}}}
-                },
-                {
-                    'name': 'MyTypedef2',
-                    'type': {'builtin': 'int'}
-                }
-            ],
-            'urls': [{'method': 'POST', 'url': '/my_action/{a}'}]
+            }
         })
 
         status, _, response = app.request('GET', '/doc/doc_request/my_action2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {'name': 'my_action2_error', 'values': []},
-                'input': {'members': [], 'name': 'my_action2_input'},
-                'name': 'my_action2',
-                'output': {'members': [], 'name': 'my_action2_output'},
-                'path': {'members': [], 'name': 'my_action2_path'},
-                'query': {'members': [], 'name': 'my_action2_query'}
-            },
             'name': 'my_action2',
-            'urls': [{'method': 'POST', 'url': '/my_action2'}]
+            'urls': [{'method': 'POST', 'url': '/my_action2'}],
+            'types': {
+                'my_action2': {
+                    'action': {
+                        'name': 'my_action2'
+                    }
+                }
+            }
         })
 
         status, _, response = app.request('GET', '/doc/doc_request/my_request')
@@ -628,127 +643,50 @@ action my_action
         status, _, response = app.request('GET', '/doc/doc_request/my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {'name': 'my_action_error', 'values': []},
-                'input': {'members': [], 'name': 'my_action_input'},
-                'name': 'my_action',
-                'output': {
-                    'members': [
-                        {
-                            'attr': {'gt': 0.0, 'lt': 100.0},
-                            'name': 'm1',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'attr': {'gte': 0.0, 'lte': 100.0},
-                            'name': 'm2',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'attr': {'eq': 100.0},
-                            'name': 'm3',
-                            'type': {'builtin': 'int'}
-                        },
-                        {
-                            'attr': {'len_gt': 0, 'len_lt': 100},
-                            'name': 'm4',
-                            'type': {'builtin': 'string'}
-                        },
-                        {
-                            'attr': {'len_gte': 0, 'len_lte': 100},
-                            'name': 'm5',
-                            'type': {'builtin': 'string'}
-                        },
-                        {
-                            'attr': {'len_eq': 100},
-                            'name': 'm6',
-                            'type': {'builtin': 'string'}
-                        },
-                        {
-                            'attr': {'len_gt': 0, 'len_lt': 100},
-                            'name': 'm7',
-                            'type': {'array': {'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'attr': {'len_gte': 0, 'len_lte': 100},
-                            'name': 'm8',
-                            'type': {'array': {'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'attr': {'len_eq': 100},
-                            'name': 'm9',
-                            'type': {'array': {'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'name': 'm10',
-                            'type': {'array': {'attr': {'gt': 0.0}, 'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'attr': {'len_gt': 0, 'len_lt': 100},
-                            'name': 'm11',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'attr': {'len_gte': 0, 'len_lte': 100},
-                            'name': 'm12',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'attr': {'len_eq': 100},
-                            'name': 'm13',
-                            'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
-                        },
-                        {
-                            'name': 'm14',
-                            'type': {
-                                'dict': {
-                                    'attr': {'len_gt': 1},
-                                    'key_attr': {'len_gt': 0},
-                                    'key_type': {'builtin': 'string'},
-                                    'type': {'builtin': 'string'}
-                                }
-                            }
-                        },
-                        {
-                            'name': 'm15',
-                            'type': {'typedef': 'IntDict'}
-                        },
-                        {
-                            'name': 'm16',
-                            'optional': True,
-                            'type': {'builtin': 'float'}
-                        },
-                        {
-                            'name': 'm17',
-                            'nullable': True,
-                            'type': {'builtin': 'string'}
-                        },
-                        {
-                            'name': 'm18',
-                            'nullable': True,
-                            'optional': True,
-                            'type': {'builtin': 'bool'}
-                        },
-                        {
-                            'name': 'm19',
-                            'optional': True,
-                            'type': {'builtin': 'int'}
-                        }
-                    ],
-                    'name': 'my_action_output'
-                },
-                'path': {'members': [], 'name': 'my_action_path'},
-                'query': {'members': [], 'name': 'my_action_query'}
-            },
             'name': 'my_action',
-            'typedefs': [
-                {
-                    'attr': {'len_gt': 0},
-                    'name': 'IntDict',
-                    'type': {'dict': {'key_type': {'builtin': 'string'}, 'type': {'builtin': 'int'}}}
+            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'types': {
+                'IntDict': {
+                    'typedef': {
+                        'name': 'IntDict',
+                        'type': {'dict': {'type': {'builtin': 'int'}}},
+                        'attr': {'len_gt': 0}
+                    }
+                },
+                'my_action': {
+                    'action': {
+                        'name': 'my_action',
+                        'output': 'my_action_output'
+                    }
+                },
+                'my_action_output': {
+                    'struct': {
+                        'name': 'my_action_output',
+                        'members': [
+                            {'attr': {'gt': 0.0, 'lt': 100.0}, 'name': 'm1', 'type': {'builtin': 'int'}},
+                            {'attr': {'gte': 0.0, 'lte': 100.0}, 'name': 'm2', 'type': {'builtin': 'int'}},
+                            {'attr': {'eq': 100.0}, 'name': 'm3', 'type': {'builtin': 'int'}},
+                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm4', 'type': {'builtin': 'string'}},
+                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm5', 'type': {'builtin': 'string'}},
+                            {'attr': {'len_eq': 100}, 'name': 'm6', 'type': {'builtin': 'string'}},
+                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm7', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm8', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'len_eq': 100}, 'name': 'm9', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'name': 'm10', 'type': {'array': {'attr': {'gt': 0.0}, 'type': {'builtin': 'int'}}}},
+                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm11', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm12', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'len_eq': 100}, 'name': 'm13', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'name': 'm14', 'type': {'dict': {'attr': {'len_gt': 1}, 'type': {'builtin': 'string'},
+                                                              'key_attr': {'len_gt': 0}, 'key_type': {'builtin': 'string'}}}},
+                            {'name': 'm15', 'type': {'user': 'IntDict'}},
+                            {'name': 'm16', 'optional': True, 'type': {'builtin': 'float'}},
+                            {'name': 'm17', 'nullable': True, 'type': {'builtin': 'string'}},
+                            {'name': 'm18', 'nullable': True, 'optional': True, 'type': {'builtin': 'bool'}},
+                            {'name': 'm19', 'optional': True, 'type': {'builtin': 'int'}}
+                        ]
+                    }
                 }
-            ],
-            'urls': [{'method': 'POST', 'url': '/my_action'}]
+            }
         })
 
     def test_unkown_name(self):
@@ -785,22 +723,33 @@ action my_action2
         status, _, response = app.request('GET', '/doc/doc_request/my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {'name': 'my_action_error', 'values': []},
-                'input': {'members': [], 'name': 'my_action_input'},
-                'name': 'my_action',
-                'output': {'members': [], 'name': 'my_action_output'},
-                'path': {'members': [], 'name': 'my_action_path'},
-                'query': {'members': [], 'name': 'my_action_query'}
-            },
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}]
+            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'types': {
+                'my_action': {'action': {'name': 'my_action'}}
+            }
         })
 
         status, _, response = app.request('GET', '/doc/doc_request/my_action2')
         self.assertEqual(status, '400 Bad Request')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
+        })
+
+    def test_no_urls(self):
+        app = Application()
+        app.add_requests(create_doc_requests())
+        app.add_request(Action(None, name='my_action', urls=(), spec='''\
+action my_action
+'''))
+
+        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        self.assertEqual(status, '200 OK')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'name': 'my_action',
+            'types': {
+                'my_action': {'action': {'name': 'my_action'}}
+            }
         })
 
     def test_wsgi_response(self):
@@ -813,71 +762,9 @@ action my_action
         status, _, response = app.request('GET', '/doc/doc_request/my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {'name': 'my_action_error', 'values': []},
-                'input': {'members': [], 'name': 'my_action_input'},
-                'name': 'my_action',
-                'path': {'members': [], 'name': 'my_action_path'},
-                'query': {'members': [], 'name': 'my_action_query'}
-            },
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}]
-        })
-
-    def test_base_action_type(self):
-        app = Application()
-        app.add_requests(create_doc_requests())
-        app.add_request(Action(None, name='my_action', spec='''\
-struct PathBase
-    int m1
-
-struct QueryBase
-    float m2
-
-struct InputBase
-    string m3
-
-struct OutputBase
-    bool m4
-
-action my_action
-    path (PathBase)
-    query (QueryBase)
-    input (InputBase)
-    output (OutputBase)
-'''))
-
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
-        self.assertEqual(status, '200 OK')
-        self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'action': {
-                'errors': {'name': 'my_action_error', 'values': []},
-                'input': {
-                    'members': [
-                        {'name': 'm3', 'type': {'builtin': 'string'}}
-                    ],
-                    'name': 'my_action_input'
-                },
-                'name': 'my_action',
-                'output': {
-                    'members': [
-                        {'name': 'm4', 'type': {'builtin': 'bool'}}
-                    ],
-                    'name': 'my_action_output'
-                },
-                'path': {
-                    'members': [
-                        {'name': 'm1', 'type': {'builtin': 'int'}}
-                    ],
-                    'name': 'my_action_path'
-                },
-                'query': {
-                    'members': [
-                        {'name': 'm2', 'type': {'builtin': 'float'}}
-                    ],
-                    'name': 'my_action_query'
-                }
-            },
-            'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}]
+            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'types': {
+                'my_action': {'action': {'name': 'my_action'}}
+            }
         })
