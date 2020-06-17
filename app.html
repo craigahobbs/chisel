@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>WSGI Applications &mdash; chisel 0.9.100 documentation</title>
+  <title>WSGI Applications &mdash; chisel 0.9.101 documentation</title>
   
 
   
@@ -335,7 +335,7 @@ no-cache by passing control as None.</p>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
-<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
@@ -369,7 +369,7 @@ no-cache by passing control as None.</p>
 <dd><p>Add a header key/value to the request’s response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
-<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
@@ -465,7 +465,7 @@ no-cache by passing control as None.</p>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
-<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
@@ -500,7 +500,7 @@ no-cache by passing control as None.</p>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
-<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
@@ -534,7 +534,7 @@ no-cache by passing control as None.</p>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
-<span class="gp">... </span><span class="s1">    url</span>
+<span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>

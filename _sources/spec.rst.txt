@@ -10,7 +10,7 @@ the :class:`~chisel.SpecParser` class. For example:
 >>> parser = chisel.SpecParser('''
 ... # Sum a list of number pairs
 ... action sum_number_pairs
-...     url
+...     urls
 ...         GET
 ...     query
 ...         # The list of number pairs to sum
@@ -44,16 +44,10 @@ the :class:`~chisel.SpecParser` class. For example:
 ... typedef NumberPair[len > 0] NumberPairList
 ... ''')
 
-:class:`~chisel.ActionModel` objects are referenced by name in the parser's :attr:`~chisel.SpecParser.actions`
-dictionary.
-
->>> sorted(parser.actions.keys())
-['sum_number_pairs']
-
 User type objects are referenced by name in the parser's :attr:`~chisel.SpecParser.types` dictionary.
 
 >>> sorted(parser.types.keys())
-['NumberPair', 'NumberPairList', 'NumberSize']
+['NumberPair', 'NumberPairList', 'NumberSize', 'sum_number_pairs', 'sum_number_pairs_errors', 'sum_number_pairs_output', 'sum_number_pairs_query']
 
 
 Comments
@@ -69,7 +63,7 @@ Actions
 
 Actions are defined using the "action" keyword as shown above. Actions can contain any the following sections:
 
-- "url" - Contains a list of URL status/path specifications. By default actions are hosted as "POST" at the default URL
+- "urls" - Contains a list of URL status/path specifications. By default actions are hosted as "POST" at the default URL
   path ("/my_action" if the action is named "my_action). URL specifications can have the follow forms:
 
   - ``GET`` - Match the HTTP request method with the default path
@@ -150,7 +144,7 @@ Structure definitions contain zero or more member definitions. Member definition
 ...     A
 ...     B
 ... ''')
->>> [m.name for m in parser.types['MyStruct'].members()]
+>>> [m['name'] for m in parser.types['MyStruct']['struct']['members']]
 ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
 
 
@@ -214,7 +208,7 @@ enumeration value set.  For example:
 ...     # A quoted enumeration value
 ...     "Value 3"
 ... ''')
->>> [v.value for v in parser.types['TestEnum'].values()]
+>>> [v['name'] for v in parser.types['TestEnum']['enum']['values']]
 ['Value1', 'Value2', 'Value 3']
 
 
@@ -233,7 +227,7 @@ Structure types can multiple-inherit members from other structure types. For exa
 ... struct s3 (s1, s2)
 ...     datetime c
 ... ''')
->>> [m.name for m in parser.types['s3'].members()]
+>>> [m['name'] for m in parser.types['s3']['struct']['members']]
 ['a', 'b', 'c']
 
 Structure inheritance also works for the ``path``, ``query``, ``input``, and ``output`` action structure sections.
@@ -250,7 +244,7 @@ Structure inheritance also works for the ``path``, ``query``, ``input``, and ``o
 ...     query (s1, s2)
 ...         datetime c
 ... ''')
->>> [m.name for m in parser.actions['my_action'].query_type.members()]
+>>> [m['name'] for m in parser.types[parser.types['my_action']['action']['query']]['struct']['members']]
 ['a', 'b', 'c']
 
 
@@ -266,7 +260,7 @@ Likewise, enumeration types can inerit values from other enumeration types:
 ... enum e3 (e1, e2)
 ...     C
 ... ''')
->>> [v.value for v in parser.types['e3'].values()]
+>>> [v['name'] for v in parser.types['e3']['enum']['values']]
 ['A', 'B', 'C']
 
 
@@ -281,30 +275,32 @@ Chisel type model objects can be used to validate objects. For example:
 ...     int a
 ...     uuid b
 ... ''')
->>> parser.types['MyStruct'].validate({'a': 5, 'b': uuid.UUID('8252121c-7f4f-4b6d-a7e5-f42ca6fdb64c')})
+>>> chisel.validate_type(parser.types, 'MyStruct', {'a': 5, 'b': uuid.UUID('8252121c-7f4f-4b6d-a7e5-f42ca6fdb64c')})
 {'a': 5, 'b': UUID('8252121c-7f4f-4b6d-a7e5-f42ca6fdb64c')}
 
 >>> try:
-...     parser.types['MyStruct'].validate({'a': 5, 'b': 7})
+...     chisel.validate_type(parser.types, 'MyStruct', {'a': 5, 'b': 7})
 ... except chisel.ValidationError as exc:
 ...     str(exc)
 "Invalid value 7 (type 'int') for member 'b', expected type 'uuid'"
 
-If your object was deserialized from JSON you'll want to use the JSON type-massaging validation mode,
-:attr:`~chisel.ValidationMode.JSON`:
 
->>> import json
->>> json_object = json.loads('{"a": 5, "b": "8252121c-7f4f-4b6d-a7e5-f42ca6fdb64c"}')
->>> parser.types['MyStruct'].validate(json_object, mode=chisel.ValidationMode.JSON_INPUT)
-{'a': 5, 'b': UUID('8252121c-7f4f-4b6d-a7e5-f42ca6fdb64c')}
-
-
-SpecParser Reference
-------------------------------
+Utilities
+---------
 
 .. autoclass:: chisel.SpecParser
    :members:
 
+.. autofunction:: chisel.validate_type
+
+.. autofunction:: chisel.validate_types
+
+.. autofunction:: chisel.get_referenced_types
+
+.. autofunction:: chisel.get_type_model
 
 .. autoexception:: chisel.SpecParserError
+   :members:
+
+.. autoexception:: chisel.ValidationError
    :members:
