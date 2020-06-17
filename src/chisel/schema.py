@@ -5,7 +5,7 @@
 Chisel schema type model
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from math import isnan, isinf
 from uuid import UUID
@@ -548,7 +548,7 @@ def _validate_type(types, type_, value, member_fqn=None):
                     raise _member_error(type_, value, member_fqn)
 
             # Not a date?
-            elif not isinstance(value, date):
+            elif not isinstance(value, date) or isinstance(value, datetime):
                 raise _member_error(type_, value, member_fqn)
 
         # datetime?
@@ -560,6 +560,10 @@ def _validate_type(types, type_, value, member_fqn=None):
                     value = datetime.fromisoformat(value)
                 except ValueError:
                     raise _member_error(type_, value, member_fqn)
+
+                # No timezone?
+                if value.tzinfo is None:
+                    value = value.replace(tzinfo=timezone.utc)
 
             # Not a datetime?
             elif not isinstance(value, datetime):

@@ -3,7 +3,7 @@
 
 # pylint: disable=missing-docstring
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID
 
@@ -334,10 +334,34 @@ class TestValidateType(TestCase):
         obj2 = self._validate_type({'builtin': 'date'}, obj)
         self.assertIs(obj2, obj)
 
+    def test_date_datetime(self):
+        obj = datetime(2020, 6, 17, 13, 11, tzinfo=timezone.utc)
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'builtin': 'date'}, obj)
+        self.assertEqual(
+            str(cm_exc.exception),
+            "Invalid value datetime.datetime(2020, 6, 17, 13, 11, tzinfo=datetime.timezone.utc) (type 'datetime'), expected type 'date'"
+        )
+
+    def test_date_datetime_date(self):
+        obj = datetime(2020, 6, 17, tzinfo=timezone.utc)
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'builtin': 'date'}, obj)
+        self.assertEqual(
+            str(cm_exc.exception),
+            "Invalid value datetime.datetime(2020, 6, 17, 0, 0, tzinfo=datetime.timezone.utc) (type 'datetime'), expected type 'date'"
+        )
+
     def test_date_string(self):
         obj = '2013-05-26'
         obj2 = self._validate_type({'builtin': 'date'}, obj)
         self.assertEqual(obj2, date.fromisoformat(obj))
+
+    def test_date_string_datetime(self):
+        obj = '2013-05-26T13:11:00-07:00'
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'builtin': 'date'}, obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value '2013-05-26T13:11:00-07:00' (type 'str'), expected type 'date'")
 
     def test_date_string_error(self):
         obj = 'abc'
@@ -356,10 +380,21 @@ class TestValidateType(TestCase):
         obj2 = self._validate_type({'builtin': 'datetime'}, obj)
         self.assertIs(obj2, obj)
 
+    def test_datetime_date(self):
+        obj = date(2020, 6, 17)
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'builtin': 'datetime'}, obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value datetime.date(2020, 6, 17) (type 'date'), expected type 'datetime'")
+
     def test_datetime_string(self):
         obj = '2013-05-26T13:11:00-07:00'
         obj2 = self._validate_type({'builtin': 'datetime'}, obj)
-        self.assertEqual(obj2, datetime.fromisoformat(obj))
+        self.assertEqual(obj2, datetime(2013, 5, 26, 13, 11, tzinfo=timezone(-timedelta(hours=7))))
+
+    def test_datetime_string_date(self):
+        obj = '2013-05-26'
+        obj2 = self._validate_type({'builtin': 'datetime'}, obj)
+        self.assertEqual(obj2, datetime(2013, 5, 26, tzinfo=timezone.utc))
 
     def test_datetime_string_error(self):
         obj = 'abc'
