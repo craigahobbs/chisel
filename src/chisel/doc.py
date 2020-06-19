@@ -21,7 +21,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
     :type requests: list(~chisel.Request)
     :param str root_path: The documentation application URL root path. The default is "/doc".
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
-        "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`_".
+        "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation client application.
     :param bool css: If True, and "app" is True, include "/doc/doc.css" and "/doc/doc.svg". If you exclude CSS,
         you can add your own versions of these requests to customize the documentation styling.
@@ -93,7 +93,7 @@ class DocRequest(Action):
     """
     The documentation request API. This API provides all the information the documentation applicaton needs to render
     the request documentation page. The documentation request API's documentation is `here
-    <doc/doc.html#name=chisel_doc_request>`_.
+    <doc/doc.html#name=chisel_doc_request>`__.
 
     :param requests: A list of requests or None to use the application's requests
     :type requests: list(~chisel.Request)
