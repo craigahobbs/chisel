@@ -872,6 +872,45 @@ action MyAction
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
 
+    def test_error_unknown_array_type(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError) as cm_exc:
+            parser.parse_string('''\
+struct MyStruct
+    MyBadType[] a
+''', filename='foo')
+        expected_errors = [
+            "foo:2: error: Unknown array type 'MyBadType'"
+        ]
+        self.assertListEqual(cm_exc.exception.errors, expected_errors)
+        self.assertListEqual(parser.errors, expected_errors)
+
+    def test_error_unknown_dict_type(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError) as cm_exc:
+            parser.parse_string('''\
+struct MyStruct
+    MyBadType{} a
+''', filename='foo')
+        expected_errors = [
+            "foo:2: error: Unknown dict type 'MyBadType'"
+        ]
+        self.assertListEqual(cm_exc.exception.errors, expected_errors)
+        self.assertListEqual(parser.errors, expected_errors)
+
+    def test_error_unknown_dict_key_type(self):
+        parser = SpecParser()
+        with self.assertRaises(SpecParserError) as cm_exc:
+            parser.parse_string('''\
+struct MyStruct
+    MyBadType : int{} a
+''', filename='foo')
+        expected_errors = [
+            "foo:2: error: Unknown dict key type 'MyBadType'"
+        ]
+        self.assertListEqual(cm_exc.exception.errors, expected_errors)
+        self.assertListEqual(parser.errors, expected_errors)
+
     def test_error_action_type(self):
         parser = SpecParser()
         with self.assertRaises(SpecParserError) as cm_exc:

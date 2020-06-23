@@ -752,26 +752,35 @@ class SpecParser:
             array = type_['array']
 
             # Check the type and its attributes
-            array_type = cls._get_effective_type(types, array['type'])
-            yield from cls._check_type(types, array_type, array.get('attr'), type_name, member_name)
+            try:
+                array_type = cls._get_effective_type(types, array['type'])
+                yield from cls._check_type(types, array_type, array.get('attr'), type_name, member_name)
+            except KeyError as exc:
+                yield (type_name, member_name, f'Unknown array type {exc.args[0]!r}')
 
         # Dict?
         if 'dict' in type_:
             dict_ = type_['dict']
 
             # Check the type and its attributes
-            dict_type = cls._get_effective_type(types, dict_['type'])
-            yield from cls._check_type(types, dict_type, dict_.get('attr'), type_name, member_name)
+            try:
+                dict_type = cls._get_effective_type(types, dict_['type'])
+                yield from cls._check_type(types, dict_type, dict_.get('attr'), type_name, member_name)
+            except KeyError as exc:
+                yield (type_name, member_name, f'Unknown dict type {exc.args[0]!r}')
 
             # Check the dict key type and its attributes
             if 'key_type' in dict_:
-                dict_key_type = cls._get_effective_type(types, dict_['key_type'])
-                yield from cls._check_type(types, dict_key_type, dict_.get('key_attr'), type_name, member_name)
+                try:
+                    dict_key_type = cls._get_effective_type(types, dict_['key_type'])
+                    yield from cls._check_type(types, dict_key_type, dict_.get('key_attr'), type_name, member_name)
 
-                # Valid dict key type (string or enum)
-                if not ('builtin' in dict_key_type and dict_key_type['builtin'] == 'string') and \
-                   not ('user' in dict_key_type and 'enum' in types[dict_key_type['user']]):
-                    yield (type_name, member_name, 'Invalid dictionary key type')
+                    # Valid dict key type (string or enum)
+                    if not ('builtin' in dict_key_type and dict_key_type['builtin'] == 'string') and \
+                       not ('user' in dict_key_type and 'enum' in types[dict_key_type['user']]):
+                        yield (type_name, member_name, 'Invalid dictionary key type')
+                except KeyError as exc:
+                    yield (type_name, member_name, f'Unknown dict key type {exc.args[0]!r}')
 
         # User type?
         elif 'user' in type_:
