@@ -79,7 +79,7 @@ Schema-Validated JSON APIs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APIs called "actions". To
-define an, action use the `action <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__ decorator to wrap
+define an action, use the `action <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__ decorator to wrap
 an action callback function. For example:
 
 >>> @chisel.action(spec='''
@@ -115,12 +115,11 @@ In the example above, notice that the code does not check the input request obje
 chisel action callback because the input request object is validated prior to calling the callback.  If there is a
 schema validation error the appropriate error code is automatically returned.
 
->>> status, _, content_bytes = application.request('GET', '/sum_numbers')
->>> status
-'400 Bad Request'
-
->>> content_bytes
-b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
+>>> from pprint import pprint
+>>> pprint(application.request('GET', '/sum_numbers'), width=120)
+('400 Bad Request',
+ [('Content-Type', 'application/json')],
+ b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}')
 
 
 API Documentation

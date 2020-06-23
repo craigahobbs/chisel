@@ -624,9 +624,27 @@ class SpecParser:
         Post-validate a schema-valid user types dict
 
         >>> import chisel
-        >>> types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'builtin': 'int'}}]}}}
+        >>> types = {
+        ...     'MyStruct': {
+        ...         'struct': {
+        ...             'name': 'MyStruct',
+        ...             'members': [
+        ...                 {'name': 'a', 'type': {'builtin': 'int'}}
+        ...             ]
+        ...         }
+        ...     }
+        ... }
         >>> chisel.SpecParser.validate_types(types)
-        >>> types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'user': 'UnknownType'}}]}}}
+        >>> types = {
+        ...     'MyStruct': {
+        ...         'struct': {
+        ...             'name': 'MyStruct',
+        ...             'members': [
+        ...                 {'name': 'a', 'type': {'user': 'UnknownType'}}
+        ...             ]
+        ...         }
+        ...     }
+        ... }
         >>> try:
         ...     chisel.SpecParser.validate_types(types)
         ... except chisel.SpecParserError as exc:

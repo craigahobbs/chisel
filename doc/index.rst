@@ -4,9 +4,11 @@
    :caption: Contents:
    :maxdepth: 1
 
+   example
    app
    action
    spec
+   schema
    request
    encode
    changes
