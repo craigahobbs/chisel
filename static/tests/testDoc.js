@@ -81,6 +81,36 @@ test('DocPage.render, index', (t) => {
     ]);
 });
 
+test('DocPage.render, validation error', (t) => {
+    const docPage = new DocPage();
+    const indexResponse = {
+        'title': 'My APIs',
+        'groups': {
+            'My Group': ['my_api', 'my_api2']
+        }
+    };
+
+    // Do the index render
+    window.location.hash = '#';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([{'json': indexResponse}]);
+    docPage.render();
+    t.not(docPage.params, null);
+    t.true(document.body.innerHTML.startsWith('<h1>My APIs</h1>'));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['doc_index', undefined],
+        'resource response.json'
+    ]);
+
+    // Fail validation
+    window.location.hash = '#name=';
+    WindowFetchMock.reset([]);
+    docPage.render();
+    t.is(docPage.params, null);
+    t.is(document.body.innerHTML, "Error: Invalid value \"\" (type 'string') for member 'name', expected type 'string' [len &gt; 0]");
+    t.deepEqual(WindowFetchMock.calls, []);
+});
+
 test('DocPage.render, index error', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';

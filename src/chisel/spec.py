@@ -788,7 +788,7 @@ class SpecParser:
 
             # Unknown user type?
             if user_type_name not in types:
-                yield (type_name, member_name, f'Unknown member type {user_type_name!r}')
+                yield (type_name, member_name, f'Unknown {"member type" if member_name else "type"} {user_type_name!r}')
             else:
                 user_type = types[user_type_name]
 

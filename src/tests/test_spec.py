@@ -878,9 +878,14 @@ action MyAction
             parser.parse_string('''\
 struct MyStruct
     MyBadType[] a
+    MyTypedef[] b
+
+typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown array type 'MyBadType'"
+            "foo:2: error: Unknown array type 'MyBadType'",
+            "foo:3: error: Unknown array type 'MyBadType'",
+            "foo:5: error: Unknown type 'MyBadType'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -891,9 +896,14 @@ struct MyStruct
             parser.parse_string('''\
 struct MyStruct
     MyBadType{} a
+    MyTypedef{} b
+
+typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown dict type 'MyBadType'"
+            "foo:2: error: Unknown dict type 'MyBadType'",
+            "foo:3: error: Unknown dict type 'MyBadType'",
+            "foo:5: error: Unknown type 'MyBadType'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -904,9 +914,14 @@ struct MyStruct
             parser.parse_string('''\
 struct MyStruct
     MyBadType : int{} a
+    MyTypedef : int{} b
+
+typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown dict key type 'MyBadType'"
+            "foo:2: error: Unknown dict key type 'MyBadType'",
+            "foo:3: error: Unknown dict key type 'MyBadType'",
+            "foo:5: error: Unknown type 'MyBadType'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)

@@ -476,6 +476,7 @@ def validate_type(types, type_name, value, member_fqn=None):
 
 
 def _validate_type(types, type_, value, member_fqn=None):
+    value_new = value
 
     # Built-in type?
     if 'builtin' in type_:
@@ -494,10 +495,9 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string, float, or Decimal?
             if isinstance(value, (str, float, Decimal)):
                 try:
-                    value_int = int(value)
-                    if not isinstance(value, str) and value_int != value:
+                    value_new = int(value)
+                    if not isinstance(value, str) and value_new != value:
                         raise ValueError()
-                    value = value_int
                 except ValueError:
                     raise _member_error(type_, value, member_fqn) from None
 
@@ -511,8 +511,8 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string, int, or Decimal?
             if isinstance(value, (str, int, Decimal)) and not isinstance(value, bool):
                 try:
-                    value = float(value)
-                    if isnan(value) or isinf(value):
+                    value_new = float(value)
+                    if isnan(value_new) or isinf(value_new):
                         raise ValueError()
                 except ValueError:
                     raise _member_error(type_, value, member_fqn) from None
@@ -527,9 +527,9 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string?
             if isinstance(value, str):
                 if value == 'true':
-                    value = True
+                    value_new = True
                 elif value == 'false':
-                    value = False
+                    value_new = False
                 else:
                     raise _member_error(type_, value, member_fqn)
 
@@ -543,7 +543,7 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string?
             if isinstance(value, str):
                 try:
-                    value = date.fromisoformat(value)
+                    value_new = datetime.fromisoformat(value).date()
                 except ValueError:
                     raise _member_error(type_, value, member_fqn)
 
@@ -557,13 +557,13 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string?
             if isinstance(value, str):
                 try:
-                    value = datetime.fromisoformat(value)
+                    value_new = datetime.fromisoformat(value)
                 except ValueError:
                     raise _member_error(type_, value, member_fqn)
 
                 # No timezone?
-                if value.tzinfo is None:
-                    value = value.replace(tzinfo=timezone.utc)
+                if value_new.tzinfo is None:
+                    value_new = value_new.replace(tzinfo=timezone.utc)
 
             # Not a datetime?
             elif not isinstance(value, datetime):
@@ -575,7 +575,7 @@ def _validate_type(types, type_, value, member_fqn=None):
             # Convert string?
             if isinstance(value, str):
                 try:
-                    value = UUID(value)
+                    value_new = UUID(value)
                 except ValueError:
                     raise _member_error(type_, value, member_fqn)
 
@@ -597,13 +597,13 @@ def _validate_type(types, type_, value, member_fqn=None):
         array = type_['array']
         array_type = array['type']
         if isinstance(value, str) and value == '':
-            value = {}
+            value_new = []
         elif not isinstance(value, (list, tuple)):
             raise _member_error(type_, value, member_fqn)
 
         # Validate the list contents
         value_copy = []
-        for ix_array_value, array_value in enumerate(value):
+        for ix_array_value, array_value in enumerate(value_new):
             member_fqn_value = f'{ix_array_value}' if member_fqn is None else f'{member_fqn}.{ix_array_value}'
             array_value = _validate_type(types, array_type, array_value, member_fqn_value)
             if 'attr' in array:
@@ -611,7 +611,7 @@ def _validate_type(types, type_, value, member_fqn=None):
             value_copy.append(array_value)
 
         # Return the validated, transformed copy
-        value = value_copy
+        value_new = value_copy
 
     # dict?
     elif 'dict' in type_:
@@ -619,18 +619,18 @@ def _validate_type(types, type_, value, member_fqn=None):
         # Valid value type?
         dict_ = type_['dict']
         if isinstance(value, str) and value == '':
-            value = {}
+            value_new = {}
         elif not isinstance(value, dict):
             raise _member_error(type_, value, member_fqn)
 
         # Validate the dict key/value pairs
         value_copy = {}
-        for dict_key, dict_value in value.items():
+        dict_key_type = dict_['key_type'] if 'key_type' in dict_ else {'builtin': 'string'}
+        for dict_key, dict_value in value_new.items():
             member_fqn_key = dict_key if member_fqn is None else f'{member_fqn}.{dict_key}'
 
             # Validate the key
-            dict_key_type = dict_['key_type'] if 'key_type' in dict_ else {'builtin': 'string'}
-            dict_key = _validate_type(types, dict_key_type, dict_key, member_fqn)
+            _validate_type(types, dict_key_type, dict_key, member_fqn)
             if 'key_attr' in dict_:
                 _validate_attr(dict_key_type, dict_['key_attr'], dict_key, member_fqn)
 
@@ -643,7 +643,7 @@ def _validate_type(types, type_, value, member_fqn=None):
             value_copy[dict_key] = dict_value
 
         # Return the validated, transformed copy
-        value = value_copy
+        value_new = value_copy
 
     # User type?
     elif 'user' in type_:
@@ -654,25 +654,25 @@ def _validate_type(types, type_, value, member_fqn=None):
             typedef = user_type['typedef']
 
             # Validate the value
-            value = _validate_type(types, typedef['type'], value, member_fqn)
+            value_new = _validate_type(types, typedef['type'], value, member_fqn)
             if 'attr' in typedef:
-                _validate_attr(type_, typedef['attr'], value, member_fqn)
+                _validate_attr(type_, typedef['attr'], value_new, member_fqn)
 
         # enum?
         elif 'enum' in user_type:
+            enum = user_type['enum']
 
             # Not a valid enum value?
-            enum = user_type['enum']
             if 'values' not in enum or value not in (enum_value['name'] for enum_value in enum['values']):
                 raise _member_error(type_, value, member_fqn)
 
         # struct?
         elif 'struct' in user_type:
+            struct = user_type['struct']
 
             # Valid value type?
-            struct = user_type['struct']
             if isinstance(value, str) and value == '':
-                value = {}
+                value_new = {}
             elif not isinstance(value, dict):
                 raise _member_error({'user': struct['name']}, value, member_fqn)
 
@@ -696,12 +696,9 @@ def _validate_type(types, type_, value, member_fqn=None):
                         if not member_optional and not is_union:
                             raise ValidationError(f"Required member {member_fqn_member!r} missing")
                     else:
-                        # Is value null?
-                        member_value = value[member_name]
-                        if member_nullable and member_value is None:
-                            member_value = None
-                        else:
-                            # Validate the member value
+                        # Validate the member value
+                        member_value = value_new[member_name]
+                        if not (member_nullable and member_value is None):
                             member_value = _validate_type(types, member['type'], member_value, member_fqn_member)
                             if 'attr' in member:
                                 _validate_attr(member['type'], member['attr'], member_value, member_fqn_member)
@@ -710,19 +707,19 @@ def _validate_type(types, type_, value, member_fqn=None):
                         value_copy[member_name] = member_value
 
             # Any unknown members?
-            if len(value_copy) != len(value):
+            if len(value_copy) != len(value_new):
                 if 'members' in struct:
                     member_set = {member['name'] for member in struct['members']}
-                    unknown_key = next(value_name for value_name in value.keys() if value_name not in member_set) # pragma: no branch
+                    unknown_key = next(value_name for value_name in value_new.keys() if value_name not in member_set) # pragma: no branch
                 else:
-                    unknown_key = next(value_name for value_name in value.keys()) # pragma: no branch
+                    unknown_key = next(value_name for value_name in value_new.keys()) # pragma: no branch
                 unknown_fqn = unknown_key if member_fqn is None else f'{member_fqn}.{unknown_key}'
                 raise ValidationError(f"Unknown member {unknown_fqn!r:.100s}")
 
             # Return the validated, transformed copy
-            value = value_copy
+            value_new = value_copy
 
-    return value
+    return value_new
 
 
 def _member_error(type_, value, member_fqn, attr=None):

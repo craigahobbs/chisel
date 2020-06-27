@@ -26,6 +26,7 @@ module.exports = {
         // Disabled
         'array-bracket-newline': 'off',
         'array-element-newline': 'off',
+        'capitalized-comments': 'off',
         'complexity': 'off',
         'function-call-argument-newline': 'off',
         'init-declarations': 'off',

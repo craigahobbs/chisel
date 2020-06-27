@@ -584,7 +584,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a' * 2000, environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 999 + '"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 99 + '"}')
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
             r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$"

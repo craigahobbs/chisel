@@ -81,9 +81,7 @@ def _encode_query_string_items(obj, parent, encoding):
             yield parent, obj.isoformat() # quote safe
         elif isinstance(obj, UUID):
             yield parent, str(obj) # quote safe
-        elif obj is None:
-            yield parent, 'null' # quote safe
-        else: # str, float
+        elif obj is not None: # str, float
             yield parent, quote(str(obj), encoding=encoding) if encoding else str(obj)
 
 
@@ -101,23 +99,16 @@ def decode_query_string(query_string, encoding='utf-8'):
     :raises ValueError: Query string is invalid
     """
 
-    return _decode_query_string_items(
-        (key_value_str.split('=') for key_value_str in query_string.split('&') if key_value_str),
-        encoding
-    )
-
-def _decode_query_string_items(query_string_items, encoding):
-
     # Build the object
     result = [None]
-    for key_value in query_string_items:
+    for key_value in (key_value_str.split('=') for key_value_str in query_string.split('&') if key_value_str):
 
         # Split the key/value string
         try:
             key_str, value_str = key_value
             value = unquote(value_str, encoding=encoding) if encoding else value_str
         except ValueError:
-            raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
+            raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.100s}")
 
         # Find/create the object on which to set the value
         parent = result
@@ -132,15 +123,17 @@ def _decode_query_string_items(query_string_items, encoding):
                 if obj is None:
                     obj = parent[key_parent] = []
 
-                # Create the index for this key
+                # Parse the key as an integer
                 try:
                     key = int(key)
                 except:
-                    raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
+                    raise ValueError(f"Invalid array index {key!r:.100s} in key {key_str!r:.100s}")
+
+                # Append the value placeholder None
                 if key == len(obj):
                     obj.append(None)
                 elif key < 0 or key > len(obj):
-                    raise ValueError(f"Invalid key/value pair {'='.join(key_value)!r:.1000s}")
+                    raise ValueError(f"Invalid array index {key} in key {key_str!r:.100s}")
 
             # Dictionary key
             else:
@@ -159,7 +152,7 @@ def _decode_query_string_items(query_string_items, encoding):
 
         # Set the value
         if parent[key_parent] is not None:
-            raise ValueError(f"Duplicate key {'='.join(key_value)!r:.1000s}")
+            raise ValueError(f"Duplicate key {key_str!r:.100s}")
         parent[key_parent] = value
 
-    return result[0] if (result[0] is not None) else {}
+    return result[0] if result[0] is not None else {}
