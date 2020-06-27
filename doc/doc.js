@@ -5,31 +5,73 @@ import * as chisel from './chisel.js';
 
 
 /**
- * The Chisel documentation application.
+ * The Chisel documentation application hash parameters type model specification
+ *
+ * Compile the specification below with the following command:
+ *
+ * <pre><code>
+ * python3 -m chisel compile <spec_file>
+ * </code></pre>
+ *
+ * <pre><code>
+ * # The Chisel documentation application hash parameters struct
+ * struct DocPageParams
+ *
+ *     # Request name to render documentation. If not provided, the request index is displayed.
+ *     optional string(len > 0) name
+ * </code></pre>
+ */
+const docPageTypes = {
+    'DocPageParams': {
+        'struct': {
+            'name': 'DocPageParams',
+            'doc': 'The Chisel documentation application hash parameters struct',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': 'Request name to render documentation. If not provided, the request index is displayed.',
+                    'type': {'builtin': 'string'},
+                    'attr': {'len_gt': 0},
+                    'optional': true
+                }
+            ]
+        }
+    }
+};
+
+
+/**
+ * The Chisel documentation application
  *
  * @property {Object} params - The parsed and validated hash parameters object.
  */
 export class DocPage {
     /**
-     * Create a documentation application instance.
+     * Create a documentation application instance
      */
     constructor() {
         this.params = null;
     }
 
     /**
-     * Parse the hash parameters and update this.params.
+     * Parse the hash parameters and update this.params
      */
     updateParams() {
-        this.params = chisel.decodeParams();
+        this.params = null;
+        this.params = chisel.validateType(docPageTypes, 'DocPageParams', chisel.decodeParams());
     }
 
     /**
-     * Render the documentation application page.
+     * Render the documentation application page
      */
     render() {
         const oldParams = this.params;
-        this.updateParams();
+        try {
+            this.updateParams();
+        } catch ({message}) {
+            chisel.render(document.body, DocPage.errorPage(message));
+            return;
+        }
 
         // Skip the render if the page hasn't changed
         if (oldParams !== null && oldParams.name === this.params.name) {
@@ -72,7 +114,7 @@ export class DocPage {
     }
 
     /**
-     * Helper function to generate the error page's chisel.js element hierarchy model.
+     * Helper function to generate the error page's chisel.js element hierarchy model
      *
      * @param {string} [error=null] - The error code. If null, an unexpected error is reported.
      * @return {Object}
@@ -82,9 +124,9 @@ export class DocPage {
     }
 
     /**
-     * Helper function to generate the index page's chisel.js element hierarchy model.
+     * Helper function to generate the index page's chisel.js element hierarchy model
      *
-     * @param {Object} index - The Chisel documentation index API response.
+     * @param {Object} index - The Chisel documentation index API response
      * @returns {Array}
      */
     static indexPage(index) {
@@ -106,9 +148,9 @@ export class DocPage {
     }
 
     /**
-     * Helper function to generate the request page's chisel.js element hierarchy model.
+     * Helper function to generate the request page's chisel.js element hierarchy model
      *
-     * @param {Object} request - The Chisel documentation request API response.
+     * @param {Object} request - The Chisel documentation request API response
      * @returns {Array}
      */
     requestPage(request) {
@@ -172,7 +214,7 @@ export class DocPage {
     }
 
     /**
-     * Helper function to generate a text block's chisel.js element hierarchy model.
+     * Helper function to generate a text block's chisel.js element hierarchy model
      *
      * @param {string} [text=null] - Markdown text
      * @returns {?Array}
@@ -202,9 +244,9 @@ export class DocPage {
     }
 
     /**
-     * Helper method to get a type href (target).
+     * Helper method to get a type href (target)
      *
-     * @param {Object} type - The Chisel documentation request API type union.
+     * @param {Object} type - The Chisel documentation request API type union
      * @return {string}
      */
     typeHref(typeName) {
@@ -213,9 +255,9 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a member/typedef type's chisel.js element hierarchy model.
+     * Helper method to generate a member/typedef type's chisel.js element hierarchy model
      *
-     * @param {Object} type - The Chisel documentation request API type union.
+     * @param {Object} type - The Chisel documentation request API type union
      * @returns {(Object|Array)}
      */
     typeElem(type) {
@@ -235,13 +277,13 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a member/typedef's attributes chisel.js element hierarchy model.
+     * Helper method to generate a member/typedef's attributes chisel.js element hierarchy model
      *
-     * @param {Object} memberOrTypedef - Chisel documentation request API member or typedef.
-     * @param {Object} memberOrTypedef.type - The Chisel documentation request API type.
-     * @param {Object} [memberOrTypedef.attr=null] - The Chisel documentation request API attributes.
-     * @param {boolean} [memberOrTypedef.optional=false] - If true, the member is optional.
-     * @param {boolean} [memberOrTypedef.nullable=false] - If true, the member is nullable.
+     * @param {Object} memberOrTypedef - Chisel documentation request API member or typedef
+     * @param {Object} memberOrTypedef.type - The Chisel documentation request API type
+     * @param {Object} [memberOrTypedef.attr=null] - The Chisel documentation request API attributes
+     * @param {boolean} [memberOrTypedef.optional=false] - If true, the member is optional
+     * @param {boolean} [memberOrTypedef.nullable=false] - If true, the member is nullable
      * @returns {(null|Array)}
      */
     static attrElem({type, attr = null, optional = false, nullable = false}) {
@@ -296,11 +338,11 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a typedef's chisel.js element hierarchy model.
+     * Helper method to generate a typedef's chisel.js element hierarchy model
      *
-     * @param {Object} typedef - The Chisel documentation request API typedef.
-     * @param {string} titleTag - The HTML tag for the typedef title element.
-     * @param {string} title - The typedef section's title string.
+     * @param {Object} typedef - The Chisel documentation request API typedef
+     * @param {string} titleTag - The HTML tag for the typedef title element
+     * @param {string} title - The typedef section's title string
      * @returns {Array}
      */
     typedefElem(typedef, titleTag, title) {
@@ -326,11 +368,11 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a struct's chisel.js element hierarchy model.
+     * Helper method to generate a struct's chisel.js element hierarchy model
      *
-     * @param {Object} struct - The Chisel documentation request API struct.
-     * @param {string} titleTag - The HTML tag for the struct title element.
-     * @param {string} title - The struct section's title string.
+     * @param {Object} struct - The Chisel documentation request API struct
+     * @param {string} titleTag - The HTML tag for the struct title element
+     * @param {string} title - The struct section's title string
      * @returns {Array}
      */
     structElem(struct, titleTag, title) {
@@ -371,11 +413,11 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a enum's chisel.js element hierarchy model.
+     * Helper method to generate a enum's chisel.js element hierarchy model
      *
-     * @param {Object} enum - The Chisel documentation request API enum.
-     * @param {string} titleTag - The HTML tag for the enum title element.
-     * @param {string} title - The enum section's title string.
+     * @param {Object} enum - The Chisel documentation request API enum
+     * @param {string} titleTag - The HTML tag for the enum title element
+     * @param {string} title - The enum section's title string
      * @returns {Array}
      */
     enumElem(enum_, titleTag, title) {
