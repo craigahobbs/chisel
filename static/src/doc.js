@@ -33,6 +33,13 @@ const docPageTypes = {
                     'type': {'builtin': 'string'},
                     'attr': {'len_gt': 0},
                     'optional': true
+                },
+                {
+                    'name': 'url',
+                    'doc': 'Request API JSON resource URL',
+                    'type': {'builtin': 'string'},
+                    'attr': {'len_gt': 0},
+                    'optional': true
                 }
             ]
         }
@@ -82,9 +89,9 @@ export class DocPage {
         chisel.render(document.body);
 
         // Render the page
-        if ('name' in this.params) {
+        if ('name' in this.params || 'url' in this.params) {
             // Call the request API
-            window.fetch(`doc_request/${this.params.name}`).then(
+            window.fetch('url' in this.params ? this.params.url : `doc_request/${this.params.name}`).then(
                 (response) => response.json()
             ).then((response) => {
                 if ('error' in response) {

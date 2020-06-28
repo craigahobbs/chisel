@@ -184,6 +184,44 @@ test('DocPage.render, request', (t) => {
     ]);
 });
 
+test('DocPage.render, request url', (t) => {
+    window.location.hash = '#url=https%3A%2F%2Fcraigahobbs.github.io%2Fchisel%2Fdoc%2Fdoc_request%2Fchisel_doc_request';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([
+        {
+            'json': {
+                'name': 'simple',
+                'action': {
+                    'name': 'simple',
+                    'input': {'members': [], 'name': 'simple_input'},
+                    'errors': {'name': 'simple_error', 'values': []},
+                    'output': {'members': [{'name': 'sum', 'type': {'builtin': 'int'}}], 'name': 'simple_output'},
+                    'path': {'members': [], 'name': 'simple_path'},
+                    'query': {
+                        'name': 'simple_query',
+                        'members': [
+                            {'name': 'a', 'type': {'builtin': 'int'}},
+                            {'name': 'b', 'type': {'builtin': 'int'}}
+                        ]
+                    }
+                },
+                'urls': [
+                    {'method': 'GET', 'url': '/simple'}
+                ]
+            }
+        }
+    ]);
+
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
+    t.true(document.body.innerHTML.startsWith('<p>'));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['https://craigahobbs.github.io/chisel/doc/doc_request/chisel_doc_request', undefined],
+        'resource response.json'
+    ]);
+});
+
 test('DocPage.render, request error', (t) => {
     window.location.hash = '#name=test';
     document.body.innerHTML = '';
