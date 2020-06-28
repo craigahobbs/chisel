@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-NODE_IMAGE ?= node:13-buster-slim
+NODE_IMAGE ?= node:13
 NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
 
 build/npm.install:
@@ -49,5 +49,8 @@ _clean:
 	rm -rf build node_modules package-lock.json
 
 .PHONY: superclean
-superclean: clean
+superclean: clean _superclean
+
+.PHONY: _superclean
+_superclean:
 	docker rmi -f $(NODE_IMAGE)
