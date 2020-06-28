@@ -692,7 +692,7 @@ def _validate_type(types, type_, value, member_fqn=None):
                     member_nullable = member.get('nullable', False)
 
                     # Missing non-optional member?
-                    if member_name not in value:
+                    if member_name not in value_new:
                         if not member_optional and not is_union:
                             raise ValidationError(f"Required member {member_fqn_member!r} missing")
                     else:

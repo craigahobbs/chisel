@@ -535,7 +535,7 @@ function validateTypeHelper(types, type, value, memberFqn) {
                     const memberNullable = 'nullable' in member ? member.nullable : false;
 
                     // Missing non-optional member?
-                    if (!(memberName in value)) {
+                    if (!(memberName in valueNew)) {
                         if (!memberOptional && !isUnion) {
                             throw new Error(`Required member '${memberFqnMember}' missing`);
                         }
