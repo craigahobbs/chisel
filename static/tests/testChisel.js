@@ -431,10 +431,17 @@ test('chisel.decodeParams, empty string sub-key', (t) => {
     );
 });
 
+test('chisel.decodeParams, anchor tag', (t) => {
+    t.deepEqual(
+        chisel.decodeParams('a=7&b'),
+        {'a': '7'}
+    );
+});
+
 test('chisel.decodeParams, key with no equal', (t) => {
     let errorMessage = null;
     try {
-        chisel.decodeParams('a=7&b');
+        chisel.decodeParams('a=7&b&c=11');
     } catch ({message}) {
         errorMessage = message;
     }
@@ -444,7 +451,7 @@ test('chisel.decodeParams, key with no equal', (t) => {
 test('chisel.decodeParams, key with no equal - long key/value', (t) => {
     let errorMessage = null;
     try {
-        chisel.decodeParams(`a=7&${'b'.repeat(2000)}`);
+        chisel.decodeParams(`a=7&${'b'.repeat(2000)}&c=11`);
     } catch ({message}) {
         errorMessage = message;
     }
