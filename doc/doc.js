@@ -81,7 +81,7 @@ export class DocPage {
         }
 
         // Skip the render if the page hasn't changed
-        if (oldParams !== null && oldParams.name === this.params.name) {
+        if (oldParams !== null && oldParams.name === this.params.name && oldParams.url === this.params.url) {
             return;
         }
 
@@ -257,8 +257,7 @@ export class DocPage {
      * @return {string}
      */
     typeHref(typeName) {
-        const href = chisel.encodeParams({'name': this.params.name});
-        return `${href}&type_${typeName}`;
+        return `${chisel.encodeParams(this.params)}&type_${typeName}`;
     }
 
     /**

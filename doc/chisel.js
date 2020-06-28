@@ -242,9 +242,13 @@ export function decodeParams(paramStr = null) {
     // Decode the parameter string key/values
     const result = [null];
     paramStr_.split('&').filter((keyValue) => keyValue.length).forEach(
-        (keyValue) => {
+        (keyValue, ixKeyValue, keyValuesFiltered) => {
             const [keyFqn, valueEncoded = null] = keyValue.split('=');
             if (valueEncoded === null) {
+                // Ignore anchor tags
+                if (ixKeyValue === keyValuesFiltered.length - 1) {
+                    return;
+                }
                 throw new Error(`Invalid key/value pair '${keyValue.slice(0, 100)}'`);
             }
             const value = decodeURIComponent(valueEncoded);
