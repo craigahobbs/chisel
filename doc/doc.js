@@ -208,7 +208,7 @@ export class DocPage {
         if (action !== null) {
             typesFilter = [action.name, action.path, action.query, action.input, action.output, action.errors];
         } else {
-            typesFilter = [];
+            typesFilter = [typeName];
         }
         const typesSorted = Object.entries(referencedTypes).sort().filter(([name]) => !typesFilter.includes(name)).map(([, type]) => type);
         const enums = typesSorted.filter((type) => 'enum' in type).map((type) => type.enum);
