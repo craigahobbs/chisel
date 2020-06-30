@@ -607,7 +607,7 @@ transformed during validation.</p>
 <dl class="py function">
 <dt id="chisel.validate_types">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">validate_types</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">types</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.validate_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validate a user type model dict</p>
+<dd><p>Validate a user type model</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chisel</span><span class="o">.</span><span class="n">validate_types</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s1">&#39;Struct1&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -643,7 +643,7 @@ transformed during validation.</p>
 <dl class="py function">
 <dt id="chisel.get_referenced_types">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_referenced_types</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">types</span></em>, <em class="sig-param"><span class="n">type_name</span></em>, <em class="sig-param"><span class="n">referenced_types</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_referenced_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a type’s referenced types dict</p>
+<dd><p>Get a type’s referenced type model</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span>
 <span class="gp">... </span>    <span class="s1">&#39;Struct1&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -711,8 +711,8 @@ transformed during validation.</p>
 <span class="go"> &#39;Struct&#39;,</span>
 <span class="go"> &#39;StructMember&#39;,</span>
 <span class="go"> &#39;Type&#39;,</span>
-<span class="go"> &#39;TypeDict&#39;,</span>
 <span class="go"> &#39;Typedef&#39;,</span>
+<span class="go"> &#39;Types&#39;,</span>
 <span class="go"> &#39;UserType&#39;]</span>
 </pre></div>
 </div>

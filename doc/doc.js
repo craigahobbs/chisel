@@ -40,6 +40,13 @@ const docPageTypes = {
                     'type': {'builtin': 'string'},
                     'attr': {'len_gt': 0},
                     'optional': true
+                },
+                {
+                    'name': 'title',
+                    'doc': 'The index page title',
+                    'type': {'builtin': 'string'},
+                    'attr': {'len_gt': 0},
+                    'optional': true
                 }
             ]
         }
@@ -50,13 +57,20 @@ const docPageTypes = {
 /**
  * The Chisel documentation application
  *
- * @property {Object} params - The parsed and validated hash parameters object.
+ * @property {string} typesUrl - The JSON type model resource URL or null
+ * @property {string} indexTitle - The index page title or null
+ * @property {Object} params - The parsed and validated hash parameters object
  */
 export class DocPage {
     /**
      * Create a documentation application instance
+     *
+     * @param {string} [typesUrl=null] - Optional JSON type model resource URL
+     * @param {string} [indexTitle=null] - Optional index page title
      */
-    constructor() {
+    constructor(typesUrl = null, indexTitle = null) {
+        this.typesUrl = typesUrl;
+        this.indexTitle = indexTitle;
         this.params = null;
     }
 
@@ -88,63 +102,126 @@ export class DocPage {
         // Clear the page
         chisel.render(document.body);
 
-        // Render the page
-        if ('name' in this.params) {
+        // Types resource URL?
+        const typesUrl = 'types' in this.params ? this.params.types : (this.typesUrl !== null ? this.typesUrl : null);
+        if (typesUrl !== null) {
+            document.title = 'name' in this.params ? this.params.name : this.getIndexPageTitle();
+
+            // Fetch the JSON type model
+            window.fetch(typesUrl).
+                then((response) => response.json()).
+                then((response) => {
+                    chisel.render(document.body, this.typesPage(response, this.params.name));
+                }).catch(() => {
+                    chisel.render(document.body, DocPage.errorPage());
+                });
+        } else if ('name' in this.params) {
+            document.title = this.params.name;
+
             // Call the request API
-            const typesUrl = 'types' in this.params ? this.params.types : null;
-            window.fetch(typesUrl !== null ? typesUrl : `doc_request/${this.params.name}`).then(
-                (response) => response.json()
-            ).then((response) => {
-                if (typesUrl === null && 'error' in response) {
-                    chisel.render(document.body, DocPage.errorPage(response.error));
-                } else if (typesUrl === null && !('types' in response)) {
-                    document.title = response.name;
-                    chisel.render(document.body, DocPage.requestPage(response.name, response.doc, response.urls));
-                } else {
-                    document.title = this.params.name;
-                    if (typesUrl !== null) {
-                        chisel.render(document.body, this.typePage(response, this.params.name));
-                    } else {
-                        chisel.render(document.body, this.typePage(response.types, this.params.name, response.urls));
-                    }
-                }
-            }).catch(() => {
-                chisel.render(document.body, DocPage.errorPage());
-            });
+            window.fetch(`doc_request?name=${this.params.name}`).
+                then((response) => response.json()).
+                then((response) => {
+                    chisel.render(document.body, this.requestPage(response));
+                }).catch(() => {
+                    chisel.render(document.body, DocPage.errorPage());
+                });
         } else {
             // Call the index API
-            window.fetch('doc_index').then(
-                (response) => response.json()
-            ).then((response) => {
-                if ('error' in response) {
-                    chisel.render(document.body, DocPage.errorPage(response.error));
-                } else {
-                    document.title = response.title;
+            window.fetch('doc_index').
+                then((response) => response.json()).
+                then((response) => {
+                    document.title = this.getIndexPageTitle(response.title);
                     chisel.render(document.body, DocPage.indexPage(response));
-                }
-            }).catch(() => {
-                chisel.render(document.body, DocPage.errorPage());
-            });
+                }).catch(() => {
+                    document.title = this.getIndexPageTitle();
+                    chisel.render(document.body, DocPage.errorPage());
+                });
         }
     }
 
     /**
-     * Helper function to generate the error page's chisel.js element hierarchy model
+     * Helper function to generate the error page's element hierarchy model
      *
      * @param {string} [error=null] - The error code. If null, an unexpected error is reported.
      * @return {Object}
      */
     static errorPage(error = null) {
-        return chisel.text(error !== null ? `Error: ${error}` : 'An unexpected error occurred.');
+        return {
+            'tag': 'p',
+            'elems': chisel.text(error !== null ? `Error: ${error}` : 'An unexpected error occurred.')
+        };
     }
 
     /**
-     * Helper function to generate the index page's chisel.js element hierarchy model
+     * Helper function to generate the user type's element hierarchy model
+     *
+     * @param {Object} types - The type model
+     * @param {?string} [typeName=null] - The type name
+     * @returns {Array}
+     */
+    typesPage(types, typeName = null) {
+        // Invalid type model?
+        try {
+            chisel.validateTypes(types);
+        } catch (error) {
+            return DocPage.errorPage(error.message);
+        }
+
+        // Type page?
+        if (typeName !== null) {
+            // Unknown type?
+            if (!(typeName in types)) {
+                return DocPage.errorPage(`Unknown type name '${typeName}'`);
+            }
+
+            return this.requestPage({'name': typeName, 'types': types});
+        }
+
+        // Create the index response
+        const index = {
+            'title': this.getIndexPageTitle(),
+            'groups': {}
+        };
+
+        // Group by user type
+        const typesSorted = Object.entries(types).sort().map(([, userType]) => userType);
+        [['action', 'Actions'], ['enum', 'Enumerations'], ['struct', 'Structs'], ['typedef', 'Typedefs']].forEach(([key, groupName]) => {
+            const objects = typesSorted.filter((userType) => key in userType).map((userType) => userType[key].name);
+            if (objects.length) {
+                index.groups[groupName] = objects;
+            }
+        });
+
+        return DocPage.indexPage(index);
+    }
+
+    /**
+     * The index page title
+     */
+    getIndexPageTitle(title = null) {
+        if (title !== null) {
+            return title;
+        } else if ('title' in this.params) {
+            return this.params.title;
+        } else if (this.indexTitle !== null) {
+            return this.indexTitle;
+        }
+        return 'Index';
+    }
+
+    /**
+     * Helper function to generate the index page's element hierarchy model
      *
      * @param {Object} index - The Chisel documentation index API response
      * @returns {Array}
      */
     static indexPage(index) {
+        // Error?
+        if ('error' in index) {
+            return DocPage.errorPage(index.error);
+        }
+
         return [
             // Title
             chisel.elem('h1', null, chisel.text(index.title)),
@@ -168,93 +245,73 @@ export class DocPage {
      * @param {Object} request - The Chisel documentation request API response
      * @returns {Array}
      */
-    static requestPage(requestName, requestDoc = null, requestUrls = null) {
-        return [
-            // Navigation bar
-            chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
-
-            // Title
-            chisel.elem('h1', null, chisel.text(requestName)),
-            DocPage.textElem(requestDoc),
-
-            // Request URLs note
-            requestUrls === null || !requestUrls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
-                chisel.elem('b', null, chisel.text('Note: ')),
-                chisel.text(`The request is exposed at the following ${requestUrls.length > 1 ? 'URLs:' : 'URL:'}`),
-                chisel.elem('ul', null, requestUrls.map((url) => chisel.elem('li', null, [
-                    chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
-                ])))
-            ])
-        ];
-    }
-
-    /**
-     * Helper function to generate the request page's chisel.js element hierarchy model
-     *
-     * @param {Object} request - The Chisel documentation request API response
-     * @returns {Array}
-     */
-    typePage(types, typeName, urls = null) {
-        // Unknown type?
-        if (!(typeName in types)) {
-            return DocPage.errorPage(`Unknown type name '${typeName}'`);
+    requestPage(request) {
+        // Error?
+        if ('error' in request) {
+            return DocPage.errorPage(request.error);
         }
 
         // Compute the referenced types
-        const userType = types[typeName];
-        const action = 'action' in userType ? userType.action : null;
-        const referencedTypes = types;
+        const userType = 'types' in request ? request.types[request.name] : null;
+        const action = userType !== null && 'action' in userType ? userType.action : null;
+        const referencedTypes = userType !== null ? chisel.getReferencedTypes(request.types, request.name) : [];
         let typesFilter;
         if (action !== null) {
-            typesFilter = [action.name, action.path, action.query, action.input, action.output, action.errors];
+            typesFilter = [request.name, action.path, action.query, action.input, action.output, action.errors];
         } else {
-            typesFilter = [typeName];
+            typesFilter = [request.name];
         }
-        const typesSorted = Object.entries(referencedTypes).sort().filter(([name]) => !typesFilter.includes(name)).map(([, type]) => type);
+        const typesSorted =
+              Object.entries(referencedTypes).sort().filter(([name]) => !typesFilter.includes(name)).map(([, type]) => type);
         const enums = typesSorted.filter((type) => 'enum' in type).map((type) => type.enum);
         const structs = typesSorted.filter((type) => 'struct' in type).map((type) => type.struct);
         const typedefs = typesSorted.filter((type) => 'typedef' in type).map((type) => type.typedef);
 
         return [
-            // Action?
-            action && DocPage.requestPage(action.name, action.doc, urls),
-            action && 'path' in action ? this.structElem(types[action.path].struct, 'h2', 'Path Parameters') : null,
-            action && 'query' in action ? this.structElem(types[action.query].struct, 'h2', 'Query Parameters') : null,
-            action && 'input' in action ? this.structElem(types[action.input].struct, 'h2', 'Input Parameters') : null,
-            action && 'output' in action ? this.structElem(types[action.output].struct, 'h2', 'Output Parameters') : null,
-            action && 'errors' in action ? this.enumElem(types[action.errors].enum, 'h2', 'Error Codes') : null,
+            // Navigation bar
+            chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
 
-            // Struct?
-            'struct' in userType ? this.structElem(userType.struct, 'h1', typeName) : null,
+            // Title
+            chisel.elem('h1', null, chisel.text(request.name)),
+            DocPage.textElem(request.doc),
+            action !== null ? DocPage.textElem(action.doc) : null,
 
-            // Enum?
-            'enum' in userType ? this.enumElem(userType.enum, 'h1', typeName) : null,
+            // Request URLs note
+            !('urls' in request) || !request.urls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
+                chisel.elem('b', null, chisel.text('Note: ')),
+                chisel.text(`The request is exposed at the following ${request.urls.length > 1 ? 'URLs:' : 'URL:'}`),
+                chisel.elem('ul', null, request.urls.map((url) => chisel.elem('li', null, [
+                    chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
+                ])))
+            ]),
 
-            // Typedef?
-            'typedef' in userType ? this.typedefElem(userType.typedef, 'h1', typeName) : null,
+            // The user type
+            userType !== null ? this.userTypeElem(request.types, request.name) : null,
 
             // Referenced typedefs
-            !typedefs || !typedefs.length ? null : [
+            !typedefs.length ? null : [
                 chisel.elem('h2', null, chisel.text('Typedefs')),
-                typedefs.map((typedef) => this.typedefElem(typedef, 'h3', `typedef ${typedef.name}`))
+                typedefs.map((typedef) => this.userTypeElem(request.types, typedef.name, 'h3', `typedef ${typedef.name}`))
             ],
 
             // Referenced structs
-            !structs || !structs.length ? null : [
+            !structs.length ? null : [
                 chisel.elem('h2', null, chisel.text('Struct Types')),
-                structs.map((struct) => this.structElem(struct, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`))
+                structs.map(
+                    (struct) => this.userTypeElem(request.types, struct.name, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`)
+                )
             ],
 
             // Referenced enums
-            !enums || !enums.length ? null : [
+            !enums.length ? null : [
                 chisel.elem('h2', null, chisel.text('Enum Types')),
-                enums.map((enum_) => this.enumElem(enum_, 'h3', `enum ${enum_.name}`))
+                enums.map((enum_) => this.userTypeElem(request.types, enum_.name, 'h3', `enum ${enum_.name}`))
             ]
         ];
     }
 
     /**
-     * Helper function to generate a text block's chisel.js element hierarchy model
+     * Helper function to generate a text block's element hierarchy model
      *
      * @param {string} [text=null] - Markdown text
      * @returns {?Array}
@@ -286,7 +343,7 @@ export class DocPage {
     /**
      * Helper method to get a type href (target)
      *
-     * @param {Object} type - The Chisel documentation request API type union
+     * @param {Object} typeName - The type name
      * @return {string}
      */
     typeHref(typeName) {
@@ -294,9 +351,9 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a member/typedef type's chisel.js element hierarchy model
+     * Helper method to generate a member/typedef type's element hierarchy model
      *
-     * @param {Object} type - The Chisel documentation request API type union
+     * @param {Object} type - The type model
      * @returns {(Object|Array)}
      */
     typeElem(type) {
@@ -316,13 +373,12 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a member/typedef's attributes chisel.js element hierarchy model
+     * Helper method to generate a member/typedef's attributes element hierarchy model
      *
-     * @param {Object} memberOrTypedef - Chisel documentation request API member or typedef
-     * @param {Object} memberOrTypedef.type - The Chisel documentation request API type
-     * @param {Object} [memberOrTypedef.attr=null] - The Chisel documentation request API attributes
-     * @param {boolean} [memberOrTypedef.optional=false] - If true, the member is optional
-     * @param {boolean} [memberOrTypedef.nullable=false] - If true, the member is nullable
+     * @param {Object} type - The type model
+     * @param {Object} attr - The attribute model
+     * @param {boolean} optional - If true, the type has the optional attribute
+     * @param {boolean} nullable - If true, the type has the nullable attribute
      * @returns {(null|Array)}
      */
     static attrElem({type, attr = null, optional = false, nullable = false}) {
@@ -377,11 +433,41 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a typedef's chisel.js element hierarchy model
+     * Helper method to generate a user type's element hierarchy model
      *
-     * @param {Object} typedef - The Chisel documentation request API typedef
-     * @param {string} titleTag - The HTML tag for the typedef title element
-     * @param {string} title - The typedef section's title string
+     * @param {Object} types - The type model
+     * @param {string} typeName - The type name
+     * @param {string} [titleTag='h1'] - The HTML tag for the title element
+     * @param {string} [title=null] - The section's title string
+     * @returns {Array}
+     */
+    userTypeElem(types, typeName, titleTag = 'h1', title = null) {
+        const userType = types[typeName];
+        if ('action' in userType) {
+            const {action} = userType;
+            return [
+                'path' in action ? this.userTypeElem(types, action.path, 'h2', 'Path Parameters') : null,
+                'query' in action ? this.userTypeElem(types, action.query, 'h2', 'Query Parameters') : null,
+                'input' in action ? this.userTypeElem(types, action.input, 'h2', 'Input Parameters') : null,
+                'output' in action ? this.userTypeElem(types, action.output, 'h2', 'Output Parameters') : null,
+                'errors' in action ? this.userTypeElem(types, action.errors, 'h2', 'Error Codes') : null
+            ];
+        } else if ('struct' in userType) {
+            return this.structElem(userType.struct, titleTag, title !== null ? title : typeName);
+        } else if ('enum' in userType) {
+            return this.enumElem(userType.enum, titleTag, title !== null ? title : typeName);
+        } else if ('typedef' in userType) {
+            return this.typedefElem(userType.typedef, titleTag, title !== null ? title : typeName);
+        }
+        return null;
+    }
+
+    /**
+     * Helper method to generate a typedef's element hierarchy model
+     *
+     * @param {Object} typedef - The typedef model
+     * @param {string} titleTag - The HTML tag for the title element
+     * @param {string} title - The section's title string
      * @returns {Array}
      */
     typedefElem(typedef, titleTag, title) {
@@ -407,11 +493,11 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a struct's chisel.js element hierarchy model
+     * Helper method to generate a struct's element hierarchy model
      *
-     * @param {Object} struct - The Chisel documentation request API struct
-     * @param {string} titleTag - The HTML tag for the struct title element
-     * @param {string} title - The struct section's title string
+     * @param {Object} struct - The struct model
+     * @param {string} titleTag - The HTML tag for the title element
+     * @param {string} title - The section's title string
      * @returns {Array}
      */
     structElem(struct, titleTag, title) {
@@ -452,11 +538,11 @@ export class DocPage {
     }
 
     /**
-     * Helper method to generate a enum's chisel.js element hierarchy model
+     * Helper method to generate a enum's element hierarchy model
      *
-     * @param {Object} enum - The Chisel documentation request API enum
-     * @param {string} titleTag - The HTML tag for the enum title element
-     * @param {string} title - The enum section's title string
+     * @param {Object} enum - The enum model
+     * @param {string} titleTag - The HTML tag for the title element
+     * @param {string} title - The section's title string
      * @returns {Array}
      */
     enumElem(enum_, titleTag, title) {
