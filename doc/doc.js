@@ -6,20 +6,6 @@ import * as chisel from './chisel.js';
 
 /**
  * The Chisel documentation application hash parameters type model specification
- *
- * Compile the specification below with the following command:
- *
- * <pre><code>
- * python3 -m chisel compile <spec_file>
- * </code></pre>
- *
- * <pre><code>
- * # The Chisel documentation application hash parameters struct
- * struct DocPageParams
- *
- *     # Request name to render documentation. If not provided, the request index is displayed.
- *     optional string(len > 0) name
- * </code></pre>
  */
 const docPageTypes = {
     'DocPageParams': {
@@ -271,41 +257,27 @@ export class DocPage {
             // Navigation bar
             chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
 
-            // Title
-            chisel.elem('h1', null, chisel.text(request.name)),
-            DocPage.textElem(request.doc),
-            action !== null ? DocPage.textElem(action.doc) : null,
-
-            // Request URLs note
-            !('urls' in request) || !request.urls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
-                chisel.elem('b', null, chisel.text('Note: ')),
-                chisel.text(`The request is exposed at the following ${request.urls.length > 1 ? 'URLs:' : 'URL:'}`),
-                chisel.elem('ul', null, request.urls.map((url) => chisel.elem('li', null, [
-                    chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
-                ])))
-            ]),
-
             // The user type
-            userType !== null ? this.userTypeElem(request.types, request.name) : null,
+            userType === null ? DocPage.requestElem(request) : this.userTypeElem(request.types, request.name, request.urls),
 
             // Referenced typedefs
             !typedefs.length ? null : [
                 chisel.elem('h2', null, chisel.text('Typedefs')),
-                typedefs.map((typedef) => this.userTypeElem(request.types, typedef.name, 'h3', `typedef ${typedef.name}`))
+                typedefs.map((typedef) => this.userTypeElem(request.types, typedef.name, null, 'h3', `typedef ${typedef.name}`))
             ],
 
             // Referenced structs
             !structs.length ? null : [
                 chisel.elem('h2', null, chisel.text('Struct Types')),
-                structs.map(
-                    (struct) => this.userTypeElem(request.types, struct.name, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`)
-                )
+                structs.map((struct) => this.userTypeElem(
+                    request.types, struct.name, null, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`
+                ))
             ],
 
             // Referenced enums
             !enums.length ? null : [
                 chisel.elem('h2', null, chisel.text('Enum Types')),
-                enums.map((enum_) => this.userTypeElem(request.types, enum_.name, 'h3', `enum ${enum_.name}`))
+                enums.map((enum_) => this.userTypeElem(request.types, enum_.name, null, 'h3', `enum ${enum_.name}`))
             ]
         ];
     }
@@ -433,141 +405,148 @@ export class DocPage {
     }
 
     /**
+     * Helper method to generate a non-action request's element model
+     *
+     * @param {Object} request - The Chisel documentation request API response
+     * @returns {Array}
+     */
+    static requestElem(request) {
+        return [
+            chisel.elem('h1', null, chisel.text(request.name)),
+            DocPage.textElem(request.doc),
+            DocPage.urlsNoteElem(request.urls)
+        ];
+    }
+
+    /**
+     * Helper method to generate a request's URL note element model
+     *
+     * @param {?Object[]} [urls=null] - The array of request URL models or null
+     * @returns {Object}
+     */
+    static urlsNoteElem(urls = null) {
+        return urls === null || !urls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
+            chisel.elem('b', null, chisel.text('Note: ')),
+            chisel.text(`The request is exposed at the following ${urls.length > 1 ? 'URLs:' : 'URL:'}`),
+            chisel.elem('ul', null, urls.map((url) => chisel.elem('li', null, [
+                chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
+            ])))
+        ]);
+    }
+
+    /**
      * Helper method to generate a user type's element hierarchy model
      *
      * @param {Object} types - The type model
      * @param {string} typeName - The type name
+     * @param {?Object[]} [urls=null] - The array of request URL models or null
      * @param {string} [titleTag='h1'] - The HTML tag for the title element
-     * @param {string} [title=null] - The section's title string
+     * @param {?string} [title=null] - The section's title string
      * @returns {Array}
      */
-    userTypeElem(types, typeName, titleTag = 'h1', title = null) {
+    userTypeElem(types, typeName, urls = null, titleTag = 'h1', title = null) {
         const userType = types[typeName];
+
+        // Generate the header element models
+        const titleElem = chisel.elem(
+            titleTag,
+            {'id': this.typeHref(typeName)},
+            chisel.elem('a', {'class': 'linktarget'}, chisel.text(title !== null ? title : typeName))
+        );
+
+        // Action?
         if ('action' in userType) {
             const {action} = userType;
             return [
-                'path' in action ? this.userTypeElem(types, action.path, 'h2', 'Path Parameters') : null,
-                'query' in action ? this.userTypeElem(types, action.query, 'h2', 'Query Parameters') : null,
-                'input' in action ? this.userTypeElem(types, action.input, 'h2', 'Input Parameters') : null,
-                'output' in action ? this.userTypeElem(types, action.output, 'h2', 'Output Parameters') : null,
-                'errors' in action ? this.userTypeElem(types, action.errors, 'h2', 'Error Codes') : null
+                titleElem,
+                DocPage.textElem(action.doc),
+                DocPage.urlsNoteElem(urls),
+
+                // Action types
+                'path' in action ? this.userTypeElem(types, action.path, null, 'h2', 'Path Parameters') : null,
+                'query' in action ? this.userTypeElem(types, action.query, null, 'h2', 'Query Parameters') : null,
+                'input' in action ? this.userTypeElem(types, action.input, null, 'h2', 'Input Parameters') : null,
+                'output' in action ? this.userTypeElem(types, action.output, null, 'h2', 'Output Parameters') : null,
+                'errors' in action ? this.userTypeElem(types, action.errors, null, 'h2', 'Error Codes') : null
             ];
+
+        // Struct?
         } else if ('struct' in userType) {
-            return this.structElem(userType.struct, titleTag, title !== null ? title : typeName);
-        } else if ('enum' in userType) {
-            return this.enumElem(userType.enum, titleTag, title !== null ? title : typeName);
-        } else if ('typedef' in userType) {
-            return this.typedefElem(userType.typedef, titleTag, title !== null ? title : typeName);
-        }
-        return null;
-    }
+            const {struct} = userType;
+            const members = 'members' in struct && struct.members;
+            const hasAttributes = members && members.reduce(
+                (prevValue, curValue) => prevValue || 'optional' in curValue || 'nullable' in curValue || 'attr' in curValue,
+                false
+            );
+            const hasDescription = members && members.reduce(
+                (prevValue, curValue) => prevValue || 'doc' in curValue,
+                false
+            );
+            return [
+                titleElem,
+                DocPage.textElem(struct.doc),
 
-    /**
-     * Helper method to generate a typedef's element hierarchy model
-     *
-     * @param {Object} typedef - The typedef model
-     * @param {string} titleTag - The HTML tag for the title element
-     * @param {string} title - The section's title string
-     * @returns {Array}
-     */
-    typedefElem(typedef, titleTag, title) {
-        const hasAttributes = !!typedef.attr;
-        return [
-            chisel.elem(
-                titleTag,
-                {'id': this.typeHref(typedef.name)},
-                chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ),
-            DocPage.textElem(typedef.doc),
-            chisel.elem('table', null, [
-                chisel.elem('tr', null, [
-                    chisel.elem('th', null, chisel.text('Type')),
-                    hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null
-                ]),
-                chisel.elem('tr', null, [
-                    chisel.elem('td', null, [this.typeElem(typedef.type)]),
-                    hasAttributes ? chisel.elem('td', null, DocPage.attrElem(typedef)) : null
+                // Struct members
+                !members || !members.length ? DocPage.textElem('The struct is empty.') : chisel.elem('table', null, [
+                    chisel.elem('tr', null, [
+                        chisel.elem('th', null, chisel.text('Name')),
+                        chisel.elem('th', null, chisel.text('Type')),
+                        hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null,
+                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
+                    ]),
+                    members.map((member) => chisel.elem('tr', null, [
+                        chisel.elem('td', null, chisel.text(member.name)),
+                        chisel.elem('td', null, this.typeElem(member.type)),
+                        hasAttributes ? chisel.elem('td', null, DocPage.attrElem(member)) : null,
+                        hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
+                    ]))
                 ])
-            ])
-        ];
-    }
+            ];
 
-    /**
-     * Helper method to generate a struct's element hierarchy model
-     *
-     * @param {Object} struct - The struct model
-     * @param {string} titleTag - The HTML tag for the title element
-     * @param {string} title - The section's title string
-     * @returns {Array}
-     */
-    structElem(struct, titleTag, title) {
-        const members = 'members' in struct && struct.members;
-        const hasAttributes = members && members.reduce(
-            (prevValue, curValue) => prevValue || 'optional' in curValue || 'nullable' in curValue || 'attr' in curValue,
-            false
-        );
-        const hasDescription = members && members.reduce(
-            (prevValue, curValue) => prevValue || 'doc' in curValue,
-            false
-        );
-        return [
-            // Section title
-            chisel.elem(
-                titleTag,
-                {'id': this.typeHref(struct.name)},
-                chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ),
-            DocPage.textElem(struct.doc),
+        // Enumeration?
+        } else if ('enum' in userType) {
+            const enum_ = userType.enum;
+            const values = 'values' in enum_ && enum_.values;
+            const hasDescription = values && values.reduce((prevValue, curValue) => prevValue || 'doc' in curValue, false);
+            return [
+                titleElem,
+                DocPage.textElem(enum_.doc),
 
-            // Struct members
-            !members || !members.length ? DocPage.textElem('The struct is empty.') : chisel.elem('table', null, [
-                chisel.elem('tr', null, [
-                    chisel.elem('th', null, chisel.text('Name')),
-                    chisel.elem('th', null, chisel.text('Type')),
-                    hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null,
-                    hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                ]),
-                members.map((member) => chisel.elem('tr', null, [
-                    chisel.elem('td', null, chisel.text(member.name)),
-                    chisel.elem('td', null, this.typeElem(member.type)),
-                    hasAttributes ? chisel.elem('td', null, DocPage.attrElem(member)) : null,
-                    hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
-                ]))
-            ])
-        ];
-    }
+                // Enumeration values
+                !values || !values.length ? DocPage.textElem('The enum is empty.') : chisel.elem('table', null, [
+                    chisel.elem('tr', null, [
+                        chisel.elem('th', null, chisel.text('Value')),
+                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
+                    ]),
+                    values.map((value) => chisel.elem('tr', null, [
+                        chisel.elem('td', null, chisel.text(value.name)),
+                        hasDescription ? chisel.elem('td', null, DocPage.textElem(value.doc)) : null
+                    ]))
+                ])
+            ];
 
-    /**
-     * Helper method to generate a enum's element hierarchy model
-     *
-     * @param {Object} enum - The enum model
-     * @param {string} titleTag - The HTML tag for the title element
-     * @param {string} title - The section's title string
-     * @returns {Array}
-     */
-    enumElem(enum_, titleTag, title) {
-        const values = 'values' in enum_ && enum_.values;
-        const hasDescription = values && values.reduce((prevValue, curValue) => prevValue || 'doc' in curValue, false);
-        return [
-            // Section title
-            chisel.elem(
-                titleTag,
-                {'id': this.typeHref(enum_.name)},
-                chisel.elem('a', {'class': 'linktarget'}, chisel.text(title))
-            ),
-            DocPage.textElem(enum_.doc),
+        // Typedef?
+        } else if ('typedef' in userType) {
+            const {typedef} = userType;
+            const hasAttributes = !!typedef.attr;
+            return [
+                titleElem,
+                DocPage.textElem(typedef.doc),
 
-            // Enum values
-            !values || !values.length ? DocPage.textElem('The enum is empty.') : chisel.elem('table', null, [
-                chisel.elem('tr', null, [
-                    chisel.elem('th', null, chisel.text('Value')),
-                    hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                ]),
-                values.map((value) => chisel.elem('tr', null, [
-                    chisel.elem('td', null, chisel.text(value.name)),
-                    hasDescription ? chisel.elem('td', null, DocPage.textElem(value.doc)) : null
-                ]))
-            ])
-        ];
+                // Typedef type description
+                chisel.elem('table', null, [
+                    chisel.elem('tr', null, [
+                        chisel.elem('th', null, chisel.text('Type')),
+                        hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null
+                    ]),
+                    chisel.elem('tr', null, [
+                        chisel.elem('td', null, [this.typeElem(typedef.type)]),
+                        hasAttributes ? chisel.elem('td', null, DocPage.attrElem(typedef)) : null
+                    ])
+                ])
+            ];
+        }
+
+        return null;
     }
 }
