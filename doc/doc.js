@@ -72,16 +72,17 @@ export class DocPage {
      * Render the documentation application page
      */
     render() {
-        const oldParams = this.params;
+        // Update hash parameters
         try {
+            const oldParams = this.params;
             this.updateParams();
+
+            // Skip the render if the page params haven't changed
+            if (oldParams !== null && JSON.stringify(oldParams) === JSON.stringify(this.params)) {
+                return;
+            }
         } catch ({message}) {
             chisel.render(document.body, DocPage.errorPage(message));
-            return;
-        }
-
-        // Skip the render if the page hasn't changed
-        if (oldParams !== null && oldParams.name === this.params.name && oldParams.types === this.params.types) {
             return;
         }
 
@@ -118,7 +119,7 @@ export class DocPage {
                 then((response) => response.json()).
                 then((response) => {
                     document.title = this.getIndexPageTitle(response.title);
-                    chisel.render(document.body, DocPage.indexPage(response));
+                    chisel.render(document.body, this.indexPage(response));
                 }).catch(() => {
                     document.title = this.getIndexPageTitle();
                     chisel.render(document.body, DocPage.errorPage());
@@ -179,7 +180,7 @@ export class DocPage {
             }
         });
 
-        return DocPage.indexPage(index);
+        return this.indexPage(index);
     }
 
     /**
@@ -202,7 +203,7 @@ export class DocPage {
      * @param {Object} index - The Chisel documentation index API response
      * @returns {Array}
      */
-    static indexPage(index) {
+    indexPage(index) {
         // Error?
         if ('error' in index) {
             return DocPage.errorPage(index.error);
@@ -218,7 +219,9 @@ export class DocPage {
                 chisel.elem(
                     'ul', {'class': 'chisel-request-list'},
                     chisel.elem('li', null, chisel.elem('ul', null, index.groups[group].sort().map(
-                        (name) => chisel.elem('li', null, chisel.elem('a', {'href': chisel.href({'name': name})}, chisel.text(name)))
+                        (name) => chisel.elem(
+                            'li', null, chisel.elem('a', {'href': chisel.href({...this.params, 'name': name})}, chisel.text(name))
+                        )
                     )))
                 )
             ])
@@ -255,7 +258,9 @@ export class DocPage {
 
         return [
             // Navigation bar
-            chisel.elem('p', null, chisel.elem('a', {'href': chisel.href()}, chisel.text('Back to documentation index'))),
+            chisel.elem('p', null, chisel.elem(
+                'a', {'href': chisel.href({...this.params, 'name': null})}, chisel.text('Back to documentation index')
+            )),
 
             // The user type
             userType === null ? DocPage.requestElem(request) : this.userTypeElem(request.types, request.name, request.urls),
