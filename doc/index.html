@@ -12,8 +12,6 @@
     </body>
     <script type="module">
         import {DocPage} from './doc.js';
-        const docPage = new DocPage('types.json', 'The Chisel Type Model');
-        docPage.render();
-        window.addEventListener('hashchange', () => docPage.render(), false);
+        DocPage.run('types.json', 'The Chisel Type Model');
     </script>
 </html>

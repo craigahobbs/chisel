@@ -61,6 +61,37 @@ export class DocPage {
     }
 
     /**
+     * Run the application
+     *
+     * @param {string} [typesUrl=null] - Optional JSON type model resource URL
+     * @param {string} [indexTitle=null] - Optional index page title
+     * @returns {Object} Object meant to be passed to "runCleanup" for application shutdown
+     */
+    static run(typesUrl = null, indexTitle = null) {
+        // Create the applicaton object and render
+        const docPage = new DocPage(typesUrl, indexTitle);
+        docPage.render();
+
+        // Add the hash parameters listener
+        const addEventListenerArgs = ['hashchange', () => docPage.render(), false];
+        window.addEventListener(...addEventListenerArgs);
+
+        // Return the cleanup object
+        return {
+            'windowRemoveEventListener': addEventListenerArgs
+        };
+    }
+
+    /*
+     * Cleanup global state created by "run"
+     *
+     * @param {Object} runResult - The return value of "run"
+     */
+    static runCleanup(runResult) {
+        window.removeEventListener(...runResult.windowRemoveEventListener);
+    }
+
+    /**
      * Parse the hash parameters and update this.params
      */
     updateParams() {

@@ -1149,7 +1149,7 @@ const typeModel =
                     }
                 },
                 {
-                    "doc": " If true, the struct is a union and exactly one of the optional members is present.",
+                    "doc": " If true, the struct is a union and exactly one of the optional members is present",
                     "name": "union",
                     "optional": true,
                     "type": {
@@ -1195,7 +1195,7 @@ const typeModel =
                     }
                 },
                 {
-                    "doc": " If true, the member is optional and may not be present.",
+                    "doc": " If true, the member is optional and may not be present",
                     "name": "optional",
                     "optional": true,
                     "type": {
@@ -1203,7 +1203,7 @@ const typeModel =
                     }
                 },
                 {
-                    "doc": " If true, the member may be null.",
+                    "doc": " If true, the member may be null",
                     "name": "nullable",
                     "optional": true,
                     "type": {
