@@ -313,6 +313,16 @@ export function decodeParams(paramStr = null) {
 
 
 /**
+ * Get a copy of the Chisel type model types dict
+ *
+ * @returns {object}
+ */
+export function getTypeModel() {
+    return {...typeModel};
+}
+
+
+/**
  * Get a user type's referenced type model
  *
  * @param {Object} types - The map of user type name to user type model
@@ -575,6 +585,11 @@ function validateTypeHelper(types, type, value, memberFqn) {
     // User type?
     } else if ('user' in type) {
         const userType = types[type.user];
+
+        // action?
+        if ('action' in userType) {
+            throwMemberError(type, value, memberFqn);
+        }
 
         // typedef?
         if ('typedef' in userType) {

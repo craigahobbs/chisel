@@ -12,6 +12,7 @@
     </body>
     <script type="module">
         import {DocPage} from './doc.js';
-        DocPage.run('types.json', 'The Chisel Type Model');
+        import {getTypeModel} from './chisel.js';
+        DocPage.run(getTypeModel(), 'The Chisel Type Model');
     </script>
 </html>

@@ -43,16 +43,16 @@ const docPageTypes = {
 /**
  * The Chisel documentation application
  *
- * @property {string} typesUrl - The JSON type model resource URL or null
- * @property {string} indexTitle - The index page title or null
- * @property {Object} params - The parsed and validated hash parameters object
+ * @property {?string} typesUrl - The JSON type model resource URL, type model object, or null
+ * @property {?string} indexTitle - The index page title or null
+ * @property {?Object} params - The parsed and validated hash parameters object
  */
 export class DocPage {
     /**
      * Create a documentation application instance
      *
-     * @param {string} [typesUrl=null] - Optional JSON type model resource URL
-     * @param {string} [indexTitle=null] - Optional index page title
+     * @param {?string|Object} [typesUrl=null] - Optional JSON type model resource URL or type model object
+     * @param {?string} [indexTitle=null] - Optional index page title
      */
     constructor(typesUrl = null, indexTitle = null) {
         this.typesUrl = typesUrl;
@@ -63,8 +63,8 @@ export class DocPage {
     /**
      * Run the application
      *
-     * @param {string} [typesUrl=null] - Optional JSON type model resource URL
-     * @param {string} [indexTitle=null] - Optional index page title
+     * @param {?string|Object} [typesUrl=null] - Optional JSON type model resource URL or type model object
+     * @param {?string} [indexTitle=null] - Optional index page title
      * @returns {Object} Object meant to be passed to "runCleanup" for application shutdown
      */
     static run(typesUrl = null, indexTitle = null) {
@@ -125,14 +125,19 @@ export class DocPage {
         if (typesUrl !== null) {
             document.title = 'name' in this.params ? this.params.name : this.getIndexPageTitle();
 
-            // Fetch the JSON type model
-            window.fetch(typesUrl).
-                then((response) => response.json()).
-                then((response) => {
-                    chisel.render(document.body, this.typesPage(response, this.params.name));
-                }).catch(() => {
-                    chisel.render(document.body, DocPage.errorPage());
-                });
+            // Types object?
+            if (typeof typesUrl === 'object') {
+                chisel.render(document.body, this.typesPage(typesUrl, this.params.name));
+            } else {
+                // Fetch the JSON type model
+                window.fetch(typesUrl).
+                    then((response) => response.json()).
+                    then((response) => {
+                        chisel.render(document.body, this.typesPage(response, this.params.name));
+                    }).catch(() => {
+                        chisel.render(document.body, DocPage.errorPage());
+                    });
+            }
         } else if ('name' in this.params) {
             document.title = this.params.name;
 
@@ -493,10 +498,25 @@ export class DocPage {
         // Action?
         if ('action' in userType) {
             const {action} = userType;
+
+            // If no URLs passed use the action's URLs
+            let actionUrls = urls;
+            if (urls === null && 'urls' in action) {
+                actionUrls = action.urls.map(({method = null, path = null}) => {
+                    const url = {
+                        'url': path !== null ? path : `/${typeName}`
+                    };
+                    if (method !== null) {
+                        url.method = method;
+                    }
+                    return url;
+                });
+            }
+
             return [
                 titleElem,
                 DocPage.textElem(action.doc),
-                DocPage.urlsNoteElem(urls),
+                DocPage.urlsNoteElem(actionUrls),
 
                 // Action types
                 'path' in action ? this.userTypeElem(types, action.path, null, 'h2', 'Path Parameters') : null,
