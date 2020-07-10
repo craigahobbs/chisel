@@ -9,15 +9,15 @@ export const nbsp = String.fromCharCode(160);
  * Render a document element hierarchy model
  *
  * @param {Element} parent - The parent element to render within
- * @param {(null|Object|Array)} [elems=null] - The element heirarchy model.
+ * @param {?(Object|Array)} [elements=null] - The element heirarchy model.
  *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
  * @param {boolean} [clear=true] - If true, empty parent before rendering
  */
-export function render(parent, elems = null, clear = true) {
+export function render(parent, elements = null, clear = true) {
     if (clear) {
         parent.innerHTML = '';
     }
-    appendElements(parent, elems);
+    renderElements(parent, elements);
 }
 
 
@@ -25,112 +25,52 @@ export function render(parent, elems = null, clear = true) {
  * Helper function to create an Element object and append it to the given parent Element object
  *
  * @param {Element} parent - The parent document element
- * @param {(null|Object|Array)} [elems=null] - The element heirarchy model.
+ * @param {?(Object|Array)} elements - The element heirarchy model.
  *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
  *
  * @ignore
  */
-function appendElements(parent, elems = null) {
-    if (Array.isArray(elems)) {
-        for (let iElem = 0; iElem < elems.length; iElem++) {
-            appendElements(parent, elems[iElem]);
+function renderElements(parent, elements) {
+    if (Array.isArray(elements)) {
+        for (let iElem = 0; iElem < elements.length; iElem++) {
+            renderElements(parent, elements[iElem]);
         }
-    } else if (elems !== null) {
-        parent.appendChild(createElement(elems));
-    }
-}
+    } else if (elements !== null) {
+        const element = elements;
+        let browserElement;
 
+        // Create an element of the appropriate type
+        if ('text' in element) {
+            browserElement = document.createTextNode(element.text);
+        } else if ('svg' in element) {
+            browserElement = document.createElementNS('http://www.w3.org/2000/svg', element.svg);
+        } else {
+            browserElement = document.createElement(element.html);
+        }
 
-/**
- * Create an Element object from a chisel.js element model object
- *
- * @param {Object} element - A chisel.js element model object
- * @returns {Element}
- *
- * @ignore
- */
-function createElement(element) {
-    let browserElement;
+        // Add attributes, if any, to the newly created element
+        if ('attr' in element) {
+            for (const [attr, value] of Object.entries(element.attr)) {
+                // Skip null values as well as the special "_callback" attribute
+                if (attr !== '_callback' && value !== null) {
+                    browserElement.setAttribute(attr, value);
+                }
+            }
 
-    // Create an element of the appropriate type
-    if (element.text) {
-        browserElement = document.createTextNode(element.text);
-    } else if ('ns' in element) {
-        browserElement = document.createElementNS(element.ns, element.tag);
-    } else {
-        browserElement = document.createElement(element.tag);
-    }
-
-    // Add attributes, if any, to the newly created element
-    if ('attrs' in element) {
-        for (const [attr, value] of Object.entries(element.attrs)) {
-            // Skip null values as well as the special "_callback" attribute
-            if (attr !== '_callback' && value !== null) {
-                browserElement.setAttribute(attr, value);
+            // Call the element callback, if any
+            if ('_callback' in element.attr && element.attr._callback !== null) {
+                element.attr._callback(browserElement);
             }
         }
 
-        // Call the element callback, if any
-        if ('_callback' in element.attrs && element.attrs._callback !== null) {
-            element.attrs._callback(browserElement);
+        // Create the newly created element's child elements
+        if ('elem' in element) {
+            renderElements(browserElement, element.elem);
         }
+
+        // Add the child element
+        parent.appendChild(browserElement);
     }
-
-    // Create the newly created element's child elements
-    appendElements(browserElement, element.elems);
-
-    return browserElement;
-}
-
-
-/**
- * Create a chisel.js element model object
- *
- * @param {string} tag - The element tag
- * @param {Object} [attrs=null] - The element attributes
- * @param {(null|Object|Array)} [elems=null] - The element heirarchy model.
- *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
- * @param {string} [ns=null] - The element namespace.
- *     If null, the returned element is of the namespace "http://www.w3.org/1999/xhtml".
- * @returns {Object}
- */
-export function elem(tag, attrs = null, elems = null, ns = null) {
-    const element = {'tag': tag};
-    if (attrs !== null) {
-        element.attrs = attrs;
-    }
-    if (elems !== null) {
-        element.elems = elems;
-    }
-    if (ns !== null) {
-        element.ns = ns;
-    }
-    return element;
-}
-
-
-/**
- * Create a chisel.js SVG element model object
- *
- * @param {string} tag - The element tag
- * @param {Object} [attrs=null] - The element attributes
- * @param {(null|Object|Array)} [elems=null] - The element heirarchy model.
- *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
- * @returns {Object}
- */
-export function svg(tag, attrs, elems) {
-    return elem(tag, attrs, elems, 'http://www.w3.org/2000/svg');
-}
-
-
-/**
- * Create a chilel.js text model object
- *
- * @param {string} str - The element text
- * @returns {Object}
- */
-export function text(str) {
-    return {'text': str};
 }
 
 
@@ -189,6 +129,8 @@ export function encodeParams(obj) {
  * @param {string} memberFqn - The fully qualified member name. If null, this is a top-level object.
  * @param {string} keyValues - The list of encoded key/value strings
  * @returns {string[]}
+ *
+ * @ignore
  */
 function encodeParamsHelper(obj, memberFqn = null, keyValues = []) {
     const objType = typeof obj;
@@ -337,6 +279,8 @@ export function validateType(types, typeName, value, memberFqn = null) {
  * @param {string} memberFqn - The fully-qualified member name
  * @returns {Object} The validated, transformed value object
  * @throws {Error} Validation error string
+ *
+ * @ignore
  */
 function validateTypeHelper(types, type, value, memberFqn) {
     let valueNew = value;
@@ -589,6 +533,8 @@ function validateTypeHelper(types, type, value, memberFqn) {
  * @param {string} memberFqn - The fully-qualified member name
  * @param {string} [attr = null] - Optional attribute string
  * @throws {Error} Validation error string
+ *
+ * @ignore
  */
 function throwMemberError(type, value, memberFqn, attr = null) {
     const memberPart = memberFqn !== null ? ` for member '${memberFqn}'` : '';
@@ -608,6 +554,8 @@ function throwMemberError(type, value, memberFqn, attr = null) {
  * @param {Object} value - The value object to validate
  * @param {string} memberFqn - The fully-qualified member name
  * @throws {Error} Validation error string
+ *
+ * @ignore
  */
 function validateAttr(type, attr, value, memberFqn) {
     const length = Array.isArray(value) || typeof value === 'string' ? value.length
