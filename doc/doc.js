@@ -171,8 +171,8 @@ export class DocPage {
      */
     static errorPage(error = null) {
         return {
-            'tag': 'p',
-            'elems': chisel.text(error !== null ? `Error: ${error}` : 'An unexpected error occurred.')
+            'html': 'p',
+            'elem': {'text': error !== null ? `Error: ${error}` : 'An unexpected error occurred.'}
         };
     }
 
@@ -247,19 +247,21 @@ export class DocPage {
 
         return [
             // Title
-            chisel.elem('h1', null, chisel.text(index.title)),
+            {'html': 'h1', 'elem': {'text': index.title}},
 
             // Groups
             Object.keys(index.groups).sort().map((group) => [
-                chisel.elem('h2', null, chisel.text(group)),
-                chisel.elem(
-                    'ul', {'class': 'chisel-request-list'},
-                    chisel.elem('li', null, chisel.elem('ul', null, index.groups[group].sort().map(
-                        (name) => chisel.elem(
-                            'li', null, chisel.elem('a', {'href': chisel.href({...this.params, 'name': name})}, chisel.text(name))
-                        )
-                    )))
-                )
+                {'html': 'h2', 'elem': {'text': group}},
+                {
+                    'html': 'ul',
+                    'attr': {'class': 'chisel-request-list'},
+                    'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': index.groups[group].sort().map(
+                        (name) => ({
+                            'html': 'li',
+                            'elem': {'html': 'a', 'attr': {'href': chisel.href({...this.params, 'name': name})}, 'elem': {'text': name}}
+                        })
+                    )}}
+                }
             ])
         ];
     }
@@ -294,22 +296,27 @@ export class DocPage {
 
         return [
             // Navigation bar
-            chisel.elem('p', null, chisel.elem(
-                'a', {'href': chisel.href({...this.params, 'name': null})}, chisel.text('Back to documentation index')
-            )),
+            {
+                'html': 'p',
+                'elem': {
+                    'html': 'a',
+                    'attr': {'href': chisel.href({...this.params, 'name': null})},
+                    'elem': {'text': 'Back to documentation index'}
+                }
+            },
 
             // The user type
             userType === null ? DocPage.requestElem(request) : this.userTypeElem(request.types, request.name, request.urls),
 
             // Referenced typedefs
             !typedefs.length ? null : [
-                chisel.elem('h2', null, chisel.text('Typedefs')),
+                {'html': 'h2', 'elem': {'text': 'Typedefs'}},
                 typedefs.map((typedef) => this.userTypeElem(request.types, typedef.name, null, 'h3', `typedef ${typedef.name}`))
             ],
 
             // Referenced structs
             !structs.length ? null : [
-                chisel.elem('h2', null, chisel.text('Struct Types')),
+                {'html': 'h2', 'elem': {'text': 'Struct Types'}},
                 structs.map((struct) => this.userTypeElem(
                     request.types, struct.name, null, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`
                 ))
@@ -317,7 +324,7 @@ export class DocPage {
 
             // Referenced enums
             !enums.length ? null : [
-                chisel.elem('h2', null, chisel.text('Enum Types')),
+                {'html': 'h2', 'elem': {'text': 'Enum Types'}},
                 enums.map((enum_) => this.userTypeElem(request.types, enum_.name, null, 'h3', `enum ${enum_.name}`))
             ]
         ];
@@ -340,12 +347,12 @@ export class DocPage {
                 if (lines[iLine].length) {
                     paragraph.push(lines[iLine]);
                 } else if (paragraph.length) {
-                    elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+                    elems.push({'html': 'p', 'elem': {'text': paragraph.join('\n')}});
                     paragraph = [];
                 }
             }
             if (paragraph.length) {
-                elems.push(chisel.elem('p', null, chisel.text(paragraph.join('\n'))));
+                elems.push({'html': 'p', 'elem': {'text': paragraph.join('\n')}});
             }
         }
 
@@ -371,18 +378,18 @@ export class DocPage {
      */
     typeElem(type) {
         if ('array' in type) {
-            return [this.typeElem(type.array.type), chisel.text(`${chisel.nbsp}[]`)];
+            return [this.typeElem(type.array.type), {'text': `${chisel.nbsp}[]`}];
         } else if ('dict' in type) {
             return [
                 !('key_type' in type.dict) || 'builtin' in type.dict ? null
-                    : [this.typeElem(type.dict.key_type), chisel.text(`${chisel.nbsp}:${chisel.nbsp}`)],
+                    : [this.typeElem(type.dict.key_type), {'text': `${chisel.nbsp}:${chisel.nbsp}`}],
                 this.typeElem(type.dict.type),
-                chisel.text(`${chisel.nbsp}{}`)
+                {'text': `${chisel.nbsp}{}`}
             ];
         } else if ('user' in type) {
-            return chisel.elem('a', {'href': `#${this.typeHref(type.user)}`}, chisel.text(type.user));
+            return {'html': 'a', 'attr': {'href': `#${this.typeHref(type.user)}`}, 'elem': {'text': type.user}};
         }
-        return chisel.text(type.builtin);
+        return {'text': type.builtin};
     }
 
     /**
@@ -436,13 +443,12 @@ export class DocPage {
         }
 
         // Return the attributes element hierarchy model
-        return !parts.length ? null : chisel.elem('ul', {'class': 'chisel-attr-list'}, parts.map(
-            (part) => chisel.elem(
-                'li',
-                null,
-                chisel.text(part.op ? `${part.lhs}${chisel.nbsp}${part.op}${chisel.nbsp}${part.rhs}` : part.lhs)
-            )
-        ));
+        return !parts.length ? null : {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': parts.map(
+            (part) => ({
+                'html': 'li',
+                'elem': {'text': part.op ? `${part.lhs}${chisel.nbsp}${part.op}${chisel.nbsp}${part.rhs}` : part.lhs}
+            })
+        )};
     }
 
     /**
@@ -453,7 +459,7 @@ export class DocPage {
      */
     static requestElem(request) {
         return [
-            chisel.elem('h1', null, chisel.text(request.name)),
+            {'html': 'h1', 'elem': {'text': request.name}},
             DocPage.textElem(request.doc),
             DocPage.urlsNoteElem(request.urls)
         ];
@@ -466,13 +472,13 @@ export class DocPage {
      * @returns {Object}
      */
     static urlsNoteElem(urls = null) {
-        return urls === null || !urls.length ? null : chisel.elem('p', {'class': 'chisel-note'}, [
-            chisel.elem('b', null, chisel.text('Note: ')),
-            chisel.text(`The request is exposed at the following ${urls.length > 1 ? 'URLs:' : 'URL:'}`),
-            chisel.elem('ul', null, urls.map((url) => chisel.elem('li', null, [
-                chisel.elem('a', {'href': url.url}, chisel.text(url.method ? `${url.method} ${url.url}` : url.url))
-            ])))
-        ]);
+        return urls === null || !urls.length ? null : {'html': 'p', 'attr': {'class': 'chisel-note'}, 'elem': [
+            {'html': 'b', 'elem': {'text': 'Note: '}},
+            {'text': `The request is exposed at the following ${urls.length > 1 ? 'URLs:' : 'URL:'}`},
+            {'html': 'ul', 'elem': urls.map((url) => ({'html': 'li', 'elem': [
+                {'html': 'a', 'attr': {'href': url.url}, 'elem': {'text': url.method ? `${url.method} ${url.url}` : url.url}}
+            ]}))}
+        ]};
     }
 
     /**
@@ -489,11 +495,11 @@ export class DocPage {
         const userType = types[typeName];
 
         // Generate the header element models
-        const titleElem = chisel.elem(
-            titleTag,
-            {'id': this.typeHref(typeName)},
-            chisel.elem('a', {'class': 'linktarget'}, chisel.text(title !== null ? title : typeName))
-        );
+        const titleElem = {
+            'html': titleTag,
+            'attr': {'id': this.typeHref(typeName)},
+            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': title !== null ? title : typeName}}
+        };
 
         // Action?
         if ('action' in userType) {
@@ -529,77 +535,77 @@ export class DocPage {
         // Struct?
         } else if ('struct' in userType) {
             const {struct} = userType;
-            const members = 'members' in struct && struct.members;
-            const hasAttributes = members && members.reduce(
-                (prevValue, curValue) => prevValue || 'optional' in curValue || 'nullable' in curValue || 'attr' in curValue,
-                false
-            );
-            const hasDescription = members && members.reduce(
-                (prevValue, curValue) => prevValue || 'doc' in curValue,
-                false
-            );
+            const members = 'members' in struct ? struct.members : null;
+            const memberAttrElem = members !== null
+                ? Object.fromEntries(members.map((member) => [member.name, DocPage.attrElem(member)])) : null;
+            const hasAttr = members !== null && Object.values(memberAttrElem).some((attrElem) => attrElem !== null);
+            const memberDocElem = members !== null
+                ? Object.fromEntries(members.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
+            const hasDoc = members !== null && Object.values(memberDocElem).some((docElem) => docElem !== null);
             return [
                 titleElem,
                 DocPage.textElem(struct.doc),
 
                 // Struct members
-                !members || !members.length ? DocPage.textElem('The struct is empty.') : chisel.elem('table', null, [
-                    chisel.elem('tr', null, [
-                        chisel.elem('th', null, chisel.text('Name')),
-                        chisel.elem('th', null, chisel.text('Type')),
-                        hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null,
-                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                    ]),
-                    members.map((member) => chisel.elem('tr', null, [
-                        chisel.elem('td', null, chisel.text(member.name)),
-                        chisel.elem('td', null, this.typeElem(member.type)),
-                        hasAttributes ? chisel.elem('td', null, DocPage.attrElem(member)) : null,
-                        hasDescription ? chisel.elem('td', null, DocPage.textElem(member.doc)) : null
-                    ]))
-                ])
+                !members || !members.length ? DocPage.textElem('The struct is empty.') : {'html': 'table', 'elem': [
+                    {'html': 'tr', 'elem': [
+                        {'html': 'th', 'elem': {'text': 'Name'}},
+                        {'html': 'th', 'elem': {'text': 'Type'}},
+                        hasAttr ? {'html': 'th', 'elem': {'text': 'Attributes'}} : null,
+                        hasDoc ? {'html': 'th', 'elem': {'text': 'Description'}} : null
+                    ]},
+                    members.map((member) => ({'html': 'tr', 'elem': [
+                        {'html': 'td', 'elem': {'text': member.name}},
+                        {'html': 'td', 'elem': this.typeElem(member.type)},
+                        hasAttr ? {'html': 'td', 'elem': memberAttrElem[member.name]} : null,
+                        hasDoc ? {'html': 'td', 'elem': memberDocElem[member.name]} : null
+                    ]}))
+                ]}
             ];
 
         // Enumeration?
         } else if ('enum' in userType) {
             const enum_ = userType.enum;
-            const values = 'values' in enum_ && enum_.values;
-            const hasDescription = values && values.reduce((prevValue, curValue) => prevValue || 'doc' in curValue, false);
+            const values = 'values' in enum_ ? enum_.values : null;
+            const valueDocElem = values !== null
+                ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
+            const hasDoc = values !== null && Object.values(valueDocElem).some((docElem) => docElem !== null);
             return [
                 titleElem,
                 DocPage.textElem(enum_.doc),
 
                 // Enumeration values
-                !values || !values.length ? DocPage.textElem('The enum is empty.') : chisel.elem('table', null, [
-                    chisel.elem('tr', null, [
-                        chisel.elem('th', null, chisel.text('Value')),
-                        hasDescription ? chisel.elem('th', null, chisel.text('Description')) : null
-                    ]),
-                    values.map((value) => chisel.elem('tr', null, [
-                        chisel.elem('td', null, chisel.text(value.name)),
-                        hasDescription ? chisel.elem('td', null, DocPage.textElem(value.doc)) : null
-                    ]))
-                ])
+                !values || !values.length ? DocPage.textElem('The enum is empty.') : {'html': 'table', 'elem': [
+                    {'html': 'tr', 'elem': [
+                        {'html': 'th', 'elem': {'text': 'Value'}},
+                        hasDoc ? {'html': 'th', 'elem': {'text': 'Description'}} : null
+                    ]},
+                    values.map((value) => ({'html': 'tr', 'elem': [
+                        {'html': 'td', 'elem': {'text': value.name}},
+                        hasDoc ? {'html': 'td', 'elem': valueDocElem[value.name]} : null
+                    ]}))
+                ]}
             ];
 
         // Typedef?
         } else if ('typedef' in userType) {
             const {typedef} = userType;
-            const hasAttributes = !!typedef.attr;
+            const attrElem = 'attr' in typedef ? DocPage.attrElem(typedef) : null;
             return [
                 titleElem,
                 DocPage.textElem(typedef.doc),
 
                 // Typedef type description
-                chisel.elem('table', null, [
-                    chisel.elem('tr', null, [
-                        chisel.elem('th', null, chisel.text('Type')),
-                        hasAttributes ? chisel.elem('th', null, chisel.text('Attributes')) : null
-                    ]),
-                    chisel.elem('tr', null, [
-                        chisel.elem('td', null, [this.typeElem(typedef.type)]),
-                        hasAttributes ? chisel.elem('td', null, DocPage.attrElem(typedef)) : null
-                    ])
-                ])
+                {'html': 'table', 'elem': [
+                    {'html': 'tr', 'elem': [
+                        {'html': 'th', 'elem': {'text': 'Type'}},
+                        attrElem !== null ? {'html': 'th', 'elem': {'text': 'Attributes'}} : null
+                    ]},
+                    {'html': 'tr', 'elem': [
+                        {'html': 'td', 'elem': this.typeElem(typedef.type)},
+                        attrElem !== null ? {'html': 'td', 'elem': attrElem} : null
+                    ]}
+                ]}
             ];
         }
 
