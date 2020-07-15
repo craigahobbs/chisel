@@ -5,250 +5,16 @@
 Chisel schema type model
 """
 
+from collections import Counter, defaultdict
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from math import isnan, isinf
 from uuid import UUID
 
-from .spec import SpecParser, SpecParserError
-
-
-# The Chisel schema type model types dict
-_TYPE_MODEL = SpecParser('''
-
-# Map of user type name to user type model
-typedef UserType{len > 0} TypeDict
-
-# Union representing a member type
-union Type
-
-    # A built-in type
-    BuiltinType builtin
-
-    # An array type
-    Array array
-
-    # A dictionary type
-    Dict dict
-
-    # A user type name
-    string user
-
-# A type or member's attributes
-struct Attributes
-
-    # The value is equal
-    optional float eq
-
-    # The value is less than
-    optional float lt
-
-    # The value is less than or equal to
-    optional float lte
-
-    # The value is greater than
-    optional float gt
-
-    # The value is greater than or equal to
-    optional float gte
-
-    # The length is equal to
-    optional int len_eq
-
-    # The length is less-than
-    optional int len_lt
-
-    # The length is less than or equal to
-    optional int len_lte
-
-    # The length is greater than
-    optional int len_gt
-
-    # The length is greater than or equal to
-    optional int len_gte
-
-# The built-in type enumeration
-enum BuiltinType
-
-    # The string type
-    string
-
-    # The integer type
-    int
-
-    # The float type
-    float
-
-    # The boolean type
-    bool
-
-    # A date formatted as an ISO-8601 date string
-    date
-
-    # A date/time formatted as an ISO-8601 date/time string
-    datetime
-
-    # A UUID formatted as string
-    uuid
-
-    # An object of any type
-    object
-
-# An array type
-struct Array
-
-    # The contained type
-    Type type
-
-    # The contained type's attributes
-    optional Attributes attr
-
-# A dictionary type
-struct Dict
-
-    # The contained key type
-    Type type
-
-    # The contained key type's attributes
-    optional Attributes attr
-
-    # The contained value type
-    optional Type key_type
-
-    # The contained value type's attributes
-    optional Attributes key_attr
-
-# A user type
-union UserType
-
-    # An enumeration type
-    Enum enum
-
-    # A struct type
-    Struct struct
-
-    # A type definition
-    Typedef typedef
-
-    # A JSON web API (not reference-able)
-    Action action
-
-# An enumeration type
-struct Enum
-
-    # The enum type name
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-    # The enumeration values
-    optional EnumValue[len > 0] values
-
-# An enumeration type value
-struct EnumValue
-
-    # The value string
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-# A struct type
-struct Struct
-
-    # The struct type name
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-    # The struct members
-    optional StructMember[len > 0] members
-
-    # If true, the struct is a union and exactly one of the optional members is present.
-    optional bool union
-
-# A struct member
-struct StructMember
-
-    # The member name
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-    # The member type
-    Type type
-
-    # The member type attributes
-    optional Attributes attr
-
-    # If true, the member is optional and may not be present.
-    optional bool optional
-
-    # If true, the member may be null.
-    optional bool nullable
-
-# A typedef type
-struct Typedef
-
-    # The typedef type name
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-    # The typedef's type
-    Type type
-
-    # The typedef's type attributes
-    optional Attributes attr
-
-# A JSON web service API
-struct Action
-
-    # The action name
-    string name
-
-    # The documentation markdown text
-    optional string doc
-
-    # The action's documentation group name
-    optional string doc_group
-
-    # The action's URLs
-    optional ActionURL[len > 0] urls
-
-    # The path parameters struct type name
-    optional string path
-
-    # The query parameters struct type name
-    optional string query
-
-    # The content body struct type name
-    optional string input
-
-    # The response body struct type name
-    optional string output
-
-    # The custom error response codes enum type name
-    optional string errors
-
-# An action URL model
-struct ActionURL
-
-    # The HTTP method. If not provided, matches all HTTP methods.
-    optional string method
-
-    # The URL path. If not provided, uses the default URL path of "/<action_name>".
-    optional string path
-''').types
-
 
 def get_type_model():
     """
-    Get a copy of the Chisel type model types dict
+    Get a copy of the Chisel type model
 
     >>> import chisel
     >>> from pprint import pprint
@@ -264,9 +30,11 @@ def get_type_model():
      'Struct',
      'StructMember',
      'Type',
-     'TypeDict',
      'Typedef',
+     'Types',
      'UserType']
+
+    :returns: The map of referenced user type name to user type model
     """
 
     return dict(_TYPE_MODEL)
@@ -274,7 +42,7 @@ def get_type_model():
 
 def get_referenced_types(types, type_name, referenced_types=None):
     """
-    Get a type's referenced types dict
+    Get a type's referenced type model
 
     >>> import chisel
     >>> types = {
@@ -334,8 +102,8 @@ def _get_referenced_types(types, type_, referenced_types=None):
     elif 'dict' in type_:
         dict_ = type_['dict']
         _get_referenced_types(types, dict_['type'], referenced_types)
-        if 'key_type' in dict_:
-            _get_referenced_types(types, dict_['key_type'], referenced_types)
+        if 'keyType' in dict_:
+            _get_referenced_types(types, dict_['keyType'], referenced_types)
 
     # User type?
     elif 'user' in type_:
@@ -391,43 +159,6 @@ class ValidationError(Exception):
 
         #: The fully qualified member name or None
         self.member = member_fqn
-
-
-def validate_types(types):
-    """
-    Validate a user type model dict
-
-    >>> import chisel
-    >>> chisel.validate_types({
-    ...     'Struct1': {
-    ...         'struct': {
-    ...             'name': 'Struct1',
-    ...             'members': [
-    ...                 {'name': 'a', 'type': {'user': 'Struct2'}}
-    ...             ]
-    ...         }
-    ...     }
-    ... }) # doctest: +SKIP
-    >>> try:
-    ...     chisel.validate_types({
-    ...         'MyStruct': {
-    ...             'struct': {}
-    ...         }
-    ...     })
-    ... except Exception as exc:
-    ...     str(exc)
-    "Required member 'MyStruct.struct.name' missing"
-
-    :param dict types: The map of user type name to user type model
-    :raises ValidationError: A validation error occurred
-    """
-
-    validated_types = validate_type(_TYPE_MODEL, 'TypeDict', types)
-    try:
-        SpecParser.validate_types(types)
-    except SpecParserError as exc:
-        raise ValidationError('\n'.join(exc.errors))
-    return validated_types
 
 
 def validate_type(types, type_name, value, member_fqn=None):
@@ -625,14 +356,14 @@ def _validate_type(types, type_, value, member_fqn=None):
 
         # Validate the dict key/value pairs
         value_copy = {}
-        dict_key_type = dict_['key_type'] if 'key_type' in dict_ else {'builtin': 'string'}
+        dict_key_type = dict_['keyType'] if 'keyType' in dict_ else {'builtin': 'string'}
         for dict_key, dict_value in value_new.items():
             member_fqn_key = dict_key if member_fqn is None else f'{member_fqn}.{dict_key}'
 
             # Validate the key
             _validate_type(types, dict_key_type, dict_key, member_fqn)
-            if 'key_attr' in dict_:
-                _validate_attr(dict_key_type, dict_['key_attr'], dict_key, member_fqn)
+            if 'keyAttr' in dict_:
+                _validate_attr(dict_key_type, dict_['keyAttr'], dict_key, member_fqn)
 
             # Validate the value
             dict_value = _validate_type(types, dict_['type'], dict_value, member_fqn_key)
@@ -648,6 +379,10 @@ def _validate_type(types, type_, value, member_fqn=None):
     # User type?
     elif 'user' in type_:
         user_type = types[type_['user']]
+
+        # action?
+        if 'action' in user_type:
+            raise _member_error(type_, value, member_fqn)
 
         # typedef?
         if 'typedef' in user_type:
@@ -747,13 +482,714 @@ def _validate_attr(type_, attr, value, member_fqn):
         attr_error('gt', '>')
     if 'gte' in attr and not value >= attr['gte']:
         attr_error('gte', '>=')
-    if 'len_eq' in attr and not len(value) == attr['len_eq']:
-        attr_error('len_eq', 'len ==')
-    if 'len_lt' in attr and not len(value) < attr['len_lt']:
-        attr_error('len_lt', 'len <')
-    if 'len_lte' in attr and not len(value) <= attr['len_lte']:
-        attr_error('len_lte', 'len <=')
-    if 'len_gt' in attr and not len(value) > attr['len_gt']:
-        attr_error('len_gt', 'len >')
-    if 'len_gte' in attr and not len(value) >= attr['len_gte']:
-        attr_error('len_gte', 'len >=')
+    if 'lenEq' in attr and not len(value) == attr['lenEq']:
+        attr_error('lenEq', 'len ==')
+    if 'lenLT' in attr and not len(value) < attr['lenLT']:
+        attr_error('lenLT', 'len <')
+    if 'lenLTE' in attr and not len(value) <= attr['lenLTE']:
+        attr_error('lenLTE', 'len <=')
+    if 'lenGT' in attr and not len(value) > attr['lenGT']:
+        attr_error('lenGT', 'len >')
+    if 'lenGTE' in attr and not len(value) >= attr['lenGTE']:
+        attr_error('lenGTE', 'len >=')
+
+
+def validate_types(types):
+    """
+    Validate a user type model
+
+    >>> import chisel
+    >>> chisel.validate_types({
+    ...     'Struct1': {
+    ...         'struct': {
+    ...             'name': 'Struct1',
+    ...             'members': [
+    ...                 {'name': 'a', 'type': {'user': 'Struct2'}}
+    ...             ]
+    ...         }
+    ...     }
+    ... }) # doctest: +SKIP
+    >>> try:
+    ...     chisel.validate_types({
+    ...         'MyStruct': {
+    ...             'struct': {}
+    ...         }
+    ...     })
+    ... except Exception as exc:
+    ...     str(exc)
+    "Required member 'MyStruct.struct.name' missing"
+
+    :param dict types: The map of user type name to user type model
+    :raises ValidationError: A validation error occurred
+    """
+
+    # Validate with the type model
+    validated_types = validate_type(_TYPE_MODEL, 'Types', types)
+
+    # Do additional type model validation
+    errors = validate_types_errors(validated_types)
+    if errors:
+        raise ValidationError('\n'.join(message for _, _, message in sorted(errors)))
+
+    return validated_types
+
+
+def get_effective_type(types, type_):
+    """
+    Get a type model's effective type (e.g. typedef int is an int)
+
+    :param dict types: The map of user type name to user type model
+    :param dict type_: The type model
+    """
+
+    if 'user' in type_ and type_['user'] in types:
+        user_type = types[type_['user']]
+        if 'typedef' in user_type:
+            return get_effective_type(types, user_type['typedef']['type'])
+    return type_
+
+
+def validate_types_errors(types):
+    """
+    Validate a user type model
+
+    :param dict types: The map of user type name to user type model
+    :returns: The list of type name, member name, and error message tuples
+    """
+
+    errors = []
+
+    # Check each user type
+    for type_name, user_type in types.items():
+
+        # Struct?
+        if 'struct' in user_type:
+            struct = user_type['struct']
+
+            # Inconsistent type name?
+            if type_name != struct['name']:
+                errors.append((type_name, None, f'Inconsistent type name {struct["name"]!r} for {type_name!r}'))
+
+            # Has members?
+            if 'members' in struct:
+
+                # Check member types and their attributes
+                for member in struct['members']:
+                    _validate_types_type(errors, types, member['type'], member.get('attr'), struct['name'], member['name'])
+
+                # Check for duplicate members
+                member_counts = Counter(member['name'] for member in struct['members'])
+                for member_name in (member_name for member_name, member_count in member_counts.items() if member_count > 1):
+                    errors.append((type_name, member_name, f'Redefinition of {type_name!r} member {member_name!r}'))
+
+        # Enum?
+        elif 'enum' in user_type:
+            enum = user_type['enum']
+
+            # Inconsistent type name?
+            if type_name != enum['name']:
+                errors.append((type_name, None, f'Inconsistent type name {enum["name"]!r} for {type_name!r}'))
+
+            # Check for duplicate enumeration values
+            if 'values' in enum:
+                value_counts = Counter(value['name'] for value in enum['values'])
+                for value_name in (value_name for value_name, value_count in value_counts.items() if value_count > 1):
+                    errors.append((type_name, value_name, f'Redefinition of {type_name!r} value {value_name!r}'))
+
+        # Typedef?
+        elif 'typedef' in user_type:
+            typedef = user_type['typedef']
+
+            # Inconsistent type name?
+            if type_name != typedef['name']:
+                errors.append((type_name, None, f'Inconsistent type name {typedef["name"]!r} for {type_name!r}'))
+
+            # Check the type and its attributes
+            _validate_types_type(errors, types, typedef['type'], typedef.get('attr'), type_name, None)
+
+        # Action?
+        elif 'action' in user_type: # pragma: no branch
+            action = user_type['action']
+
+            # Inconsistent type name?
+            if type_name != action['name']:
+                errors.append((type_name, None, f'Inconsistent type name {action["name"]!r} for {type_name!r}'))
+
+            # Check action section types
+            for section in ('path', 'query', 'input', 'output', 'errors'):
+                if section in action:
+                    section_type_name = action[section]
+
+                    # Check the section type
+                    _validate_types_type(errors, types, {'user': section_type_name}, None, type_name, None)
+
+            # Compute effective input member counts
+            member_counts = Counter()
+            member_sections = defaultdict(list)
+            for section in ('path', 'query', 'input'):
+                if section in action:
+                    section_type_name = action[section]
+                    if section_type_name in types:
+                        section_type = get_effective_type(types, {'user': section_type_name})
+                        if 'user' in section_type and 'struct' in types[section_type['user']]:
+                            section_struct = types[section_type['user']]['struct']
+                            if 'members' in section_struct:
+                                member_counts.update(member['name'] for member in section_struct['members'])
+                                for member in section_struct['members']:
+                                    member_sections[member['name']].append(section_struct['name'])
+
+            # Check for duplicate input members
+            for member_name in (member_name for member_name, member_count in member_counts.items() if member_count > 1):
+                for section_type in member_sections[member_name]:
+                    errors.append((section_type, member_name, f'Redefinition of {section_type!r} member {member_name!r}'))
+
+    return errors
+
+
+# Map of attribute struct member name to attribute description
+_ATTR_TO_TEXT = {
+    'eq': '==',
+    'lt': '<',
+    'lte': '<=',
+    'gt': '>',
+    'gte': '>=',
+    'lenEq': 'len ==',
+    'lenLT': 'len <',
+    'lenLTE': 'len <=',
+    'lenGT': 'len >',
+    'lenGTE': 'len >='
+}
+
+
+# Map of type name to valid attribute set
+_TYPE_TO_ALLOWED_ATTR = {
+    'float': set(['eq', 'lt', 'lte', 'gt', 'gte']),
+    'int': set(['eq', 'lt', 'lte', 'gt', 'gte']),
+    'string': set(['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE']),
+    'array': set(['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE']),
+    'dict': set(['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'])
+}
+
+
+def _validate_types_type(errors, types, type_, attr, type_name, member_name):
+
+    # Helper function to push an error tuple
+    def error(message):
+        if member_name is not None:
+            errors.append((type_name, member_name, f'{message} from {type_name!r} member {member_name!r}'))
+        else:
+            errors.append((type_name, None, f'{message} from {type_name!r}'))
+
+    # Array?
+    if 'array' in type_:
+        array = type_['array']
+
+        # Check the type and its attributes
+        array_type = get_effective_type(types, array['type'])
+        _validate_types_type(errors, types, array_type, array.get('attr'), type_name, member_name)
+
+    # Dict?
+    elif 'dict' in type_:
+        dict_ = type_['dict']
+
+        # Check the type and its attributes
+        dict_type = get_effective_type(types, dict_['type'])
+        _validate_types_type(errors, types, dict_type, dict_.get('attr'), type_name, member_name)
+
+        # Check the dict key type and its attributes
+        if 'keyType' in dict_:
+            dict_key_type = get_effective_type(types, dict_['keyType'])
+            _validate_types_type(errors, types, dict_key_type, dict_.get('keyAttr'), type_name, member_name)
+
+            # Valid dict key type (string or enum)
+            if not ('builtin' in dict_key_type and dict_key_type['builtin'] == 'string') and \
+               not ('user' in dict_key_type and dict_key_type['user'] in types and 'enum' in types[dict_key_type['user']]):
+                error('Invalid dictionary key type')
+
+    # User type?
+    elif 'user' in type_:
+        user_type_name = type_['user']
+
+        # Unknown user type?
+        if user_type_name not in types:
+            error(f'Unknown type {user_type_name!r}')
+        else:
+            user_type = types[user_type_name]
+
+            # Action type references not allowed
+            if 'action' in user_type:
+                error(f'Invalid reference to action {user_type_name!r}')
+
+    # Any not-allowed attributes?
+    if attr is not None:
+        type_effective = get_effective_type(types, type_)
+        type_key = next(iter(type_effective.keys()), None)
+        allowed_attr = _TYPE_TO_ALLOWED_ATTR.get(type_effective[type_key] if type_key == 'builtin' else type_key)
+        disallowed_attr = set(attr)
+        if allowed_attr is not None:
+            disallowed_attr -= allowed_attr
+        if disallowed_attr:
+            for attr_key in disallowed_attr:
+                attr_value = f'{attr[attr_key]:.6f}'.rstrip('0').rstrip('.')
+                attr_text = f'{_ATTR_TO_TEXT[attr_key]} {attr_value}'
+                error(f'Invalid attribute {attr_text!r}')
+
+
+# The type model's type model
+_TYPE_MODEL = {
+    'Action': {
+        'struct': {
+            'name': 'Action',
+            'doc': ' A JSON web service API',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The action name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'docGroup',
+                    'doc': ' The action@s documentation group name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'urls',
+                    'doc': ' The action@s URLs',
+                    'type': {'array': {'type': {'user': 'ActionURL'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': True
+                },
+                {
+                    'name': 'path',
+                    'doc': ' The path parameters struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'query',
+                    'doc': ' The query parameters struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'input',
+                    'doc': ' The content body struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'output',
+                    'doc': ' The response body struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'errors',
+                    'doc': ' The custom error response codes enum type name',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'ActionURL': {
+        'struct': {
+            'name': 'ActionURL',
+            'doc': ' An action URL model',
+            'members': [
+                {
+                    'name': 'method',
+                    'doc': ' The HTTP method. If not provided, matches all HTTP methods.',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'path',
+                    'doc': ' The URL path. If not provided, uses the default URL path of \'/<actionName>\'.',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Array': {
+        'struct': {
+            'name': 'Array',
+            'doc': ' An array type',
+            'members': [
+                {
+                    'name': 'type',
+                    'doc': ' The contained type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The contained type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Attributes': {
+        'struct': {
+            'name': 'Attributes',
+            'doc': ' A type or member@s attributes',
+            'members': [
+                {
+                    'name': 'eq',
+                    'doc': ' The value is equal',
+                    'type': {'builtin': 'float'},
+                    'optional': True
+                },
+                {
+                    'name': 'lt',
+                    'doc': ' The value is less than',
+                    'type': {'builtin': 'float'},
+                    'optional': True
+                },
+                {
+                    'name': 'lte',
+                    'doc': ' The value is less than or equal to',
+                    'type': {'builtin': 'float'},
+                    'optional': True
+                },
+                {
+                    'name': 'gt',
+                    'doc': ' The value is greater than',
+                    'type': {'builtin': 'float'},
+                    'optional': True
+                },
+                {
+                    'name': 'gte',
+                    'doc': ' The value is greater than or equal to',
+                    'type': {'builtin': 'float'},
+                    'optional': True
+                },
+                {
+                    'name': 'lenEq',
+                    'doc': ' The length is equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': True
+                },
+                {
+                    'name': 'lenLT',
+                    'doc': ' The length is less-than',
+                    'type': {'builtin': 'int'},
+                    'optional': True
+                },
+                {
+                    'name': 'lenLTE',
+                    'doc': ' The length is less than or equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': True
+                },
+                {
+                    'name': 'lenGT',
+                    'doc': ' The length is greater than',
+                    'type': {'builtin': 'int'},
+                    'optional': True
+                },
+                {
+                    'name': 'lenGTE',
+                    'doc': ' The length is greater than or equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'BuiltinType': {
+        'enum': {
+            'name': 'BuiltinType',
+            'doc': ' The built-in type enumeration',
+            'values': [
+                {
+                    'name': 'string',
+                    'doc': ' The string type'
+                },
+                {
+                    'name': 'int',
+                    'doc': ' The integer type'
+                },
+                {
+                    'name': 'float',
+                    'doc': ' The float type'
+                },
+                {
+                    'name': 'bool',
+                    'doc': ' The boolean type'
+                },
+                {
+                    'name': 'date',
+                    'doc': ' A date formatted as an ISO-8601 date string'
+                },
+                {
+                    'name': 'datetime',
+                    'doc': ' A date/time formatted as an ISO-8601 date/time string'
+                },
+                {
+                    'name': 'uuid',
+                    'doc': ' A UUID formatted as string'
+                },
+                {
+                    'name': 'object',
+                    'doc': ' An object of any type'
+                }
+            ]
+        }
+    },
+    'Dict': {
+        'struct': {
+            'name': 'Dict',
+            'doc': ' A dictionary type',
+            'members': [
+                {
+                    'name': 'type',
+                    'doc': ' The contained key type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The contained key type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': True
+                },
+                {
+                    'name': 'keyType',
+                    'doc': ' The contained value type',
+                    'type': {'user': 'Type'},
+                    'optional': True
+                },
+                {
+                    'name': 'keyAttr',
+                    'doc': ' The contained value type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Enum': {
+        'struct': {
+            'name': 'Enum',
+            'doc': ' An enumeration type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The enum type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'values',
+                    'doc': ' The enumeration values',
+                    'type': {'array': {'type': {'user': 'EnumValue'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'EnumValue': {
+        'struct': {
+            'name': 'EnumValue',
+            'doc': ' An enumeration type value',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The value string',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Struct': {
+        'struct': {
+            'name': 'Struct',
+            'doc': ' A struct type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The struct type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'members',
+                    'doc': ' The struct members',
+                    'type': {'array': {'type': {'user': 'StructMember'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': True
+                },
+                {
+                    'name': 'union',
+                    'doc': ' If true, the struct is a union and exactly one of the optional members is present',
+                    'type': {'builtin': 'bool'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'StructMember': {
+        'struct': {
+            'name': 'StructMember',
+            'doc': ' A struct member',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The member name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'type',
+                    'doc': ' The member type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The member type attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': True
+                },
+                {
+                    'name': 'optional',
+                    'doc': ' If true, the member is optional and may not be present',
+                    'type': {'builtin': 'bool'},
+                    'optional': True
+                },
+                {
+                    'name': 'nullable',
+                    'doc': ' If true, the member may be null',
+                    'type': {'builtin': 'bool'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Type': {
+        'struct': {
+            'name': 'Type',
+            'doc': ' Union representing a member type',
+            'union': True,
+            'members': [
+                {
+                    'name': 'builtin',
+                    'doc': ' A built-in type',
+                    'type': {'user': 'BuiltinType'}
+                },
+                {
+                    'name': 'array',
+                    'doc': ' An array type',
+                    'type': {'user': 'Array'}
+                },
+                {
+                    'name': 'dict',
+                    'doc': ' A dictionary type',
+                    'type': {'user': 'Dict'}
+                },
+                {
+                    'name': 'user',
+                    'doc': ' A user type name',
+                    'type': {'builtin': 'string'}
+                }
+            ]
+        }
+    },
+    'Typedef': {
+        'struct': {
+            'name': 'Typedef',
+            'doc': ' A typedef type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The typedef type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': True
+                },
+                {
+                    'name': 'type',
+                    'doc': ' The typedef@s type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The typedef@s type attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': True
+                }
+            ]
+        }
+    },
+    'Types': {
+        'typedef': {
+            'name': 'Types',
+            'doc': ' Map of user type name to user type model',
+            'type': {'dict': {'type': {'user': 'UserType'}}},
+            'attr': {'lenGT': 0}
+        }
+    },
+    'UserType': {
+        'struct': {
+            'name': 'UserType',
+            'doc': ' A user type',
+            'union': True,
+            'members': [
+                {
+                    'name': 'enum',
+                    'doc': ' An enumeration type',
+                    'type': {'user': 'Enum'}
+                },
+                {
+                    'name': 'struct',
+                    'doc': ' A struct type',
+                    'type': {'user': 'Struct'}
+                },
+                {
+                    'name': 'typedef',
+                    'doc': ' A type definition',
+                    'type': {'user': 'Typedef'}
+                },
+                {
+                    'name': 'action',
+                    'doc': ' A JSON web API (not reference-able)',
+                    'type': {'user': 'Action'}
+                }
+            ]
+        }
+    }
+}

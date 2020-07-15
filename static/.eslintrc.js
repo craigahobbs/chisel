@@ -31,6 +31,7 @@ module.exports = {
         'function-call-argument-newline': 'off',
         'init-declarations': 'off',
         'max-classes-per-file': 'off',
+        'max-depth': 'off',
         'max-lines': 'off',
         'max-lines-per-function': 'off',
         'max-params': 'off',

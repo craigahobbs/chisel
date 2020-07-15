@@ -275,7 +275,7 @@ action MyAction4 \\
                         {'name': 'h', 'optional': True, 'type': {'builtin': 'datetime'}},
                         {'name': 'i', 'optional': True, 'type': {'builtin': 'uuid'}},
                         {'name': 'j', 'optional': True,
-                         'type': {'dict': {'key_type': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}},
+                         'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}},
                         {'name': 'k', 'nullable': True, 'optional': True, 'type': {'builtin': 'date'}},
                         {'name': 'l', 'optional': True, 'type': {'builtin': 'object'}}
                     ]
@@ -487,9 +487,9 @@ struct MyStruct5 (MyStruct4, MyDict)
         self.assertListEqual(cm_exc.exception.errors, [
             ":1: error: Invalid struct base type 'MyEnum'",
             ":7: error: Invalid struct base type 'MyEnum'",
-            ":8: error: Redefinition of member 'a'",
+            ":8: error: Redefinition of 'MyStruct3' member 'a'",
             ":15: error: Invalid struct base type 'MyDict'",
-            ":16: error: Redefinition of member 'b'"
+            ":16: error: Redefinition of 'MyStruct5' member 'b'"
         ])
 
     def test_struct_base_types_circular(self):
@@ -567,9 +567,9 @@ enum MyEnum5 (MyEnum4, MyDict)
         self.assertListEqual(cm_exc.exception.errors, [
             ":1: error: Invalid enum base type 'MyStruct'",
             ":7: error: Invalid enum base type 'MyStruct'",
-            ":8: error: Redefinition of enumeration value 'A'",
+            ":8: error: Redefinition of 'MyEnum3' value 'A'",
             ":15: error: Invalid enum base type 'MyDict'",
-            ":16: error: Redefinition of enumeration value 'B'"
+            ":16: error: Redefinition of 'MyEnum5' value 'B'"
         ])
 
     def test_enum_base_types_circular(self):
@@ -787,7 +787,7 @@ struct MyStruct2
                 'struct': {
                     'name': 'MyStruct',
                     'members': [
-                        {'attr': {'len_gt': 0}, 'name': 'a', 'type': {'array': {'type': {'user': 'MyStruct2'}}}}
+                        {'attr': {'lenGT': 0}, 'name': 'a', 'type': {'array': {'type': {'user': 'MyStruct2'}}}}
                     ]
                 }
             },
@@ -814,8 +814,8 @@ struct MyStruct2
                 'struct': {
                     'name': 'MyStruct',
                     'members': [
-                        {'attr': {'len_gt': 0}, 'name': 'a',
-                         'type': {'dict': {'key_type': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct2'}}}}
+                        {'attr': {'lenGT': 0}, 'name': 'a',
+                         'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct2'}}}}
                     ]
                 }
             },
@@ -846,7 +846,7 @@ struct MyStruct
 struct MyStruct2
 ''')
         expected_errors = [
-            ":2: error: Invalid attribute 'len > 0'"
+            ":2: error: Invalid attribute 'len > 0' from 'MyStruct' member 'a'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -865,9 +865,9 @@ action MyAction
         MyBadType b
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown member type 'MyBadType'",
-            "foo:6: error: Unknown member type 'MyBadType2'",
-            "foo:8: error: Unknown member type 'MyBadType'"
+            "foo:2: error: Unknown type 'MyBadType' from 'Foo' member 'a'",
+            "foo:6: error: Unknown type 'MyBadType2' from 'MyAction_input' member 'a'",
+            "foo:8: error: Unknown type 'MyBadType' from 'MyAction_output' member 'b'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -883,9 +883,9 @@ struct MyStruct
 typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown array type 'MyBadType'",
-            "foo:3: error: Unknown array type 'MyBadType'",
-            "foo:5: error: Unknown type 'MyBadType'"
+            "foo:2: error: Unknown type 'MyBadType' from 'MyStruct' member 'a'",
+            "foo:3: error: Unknown type 'MyBadType' from 'MyStruct' member 'b'",
+            "foo:5: error: Unknown type 'MyBadType' from 'MyTypedef'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -901,9 +901,9 @@ struct MyStruct
 typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown dict type 'MyBadType'",
-            "foo:3: error: Unknown dict type 'MyBadType'",
-            "foo:5: error: Unknown type 'MyBadType'"
+            "foo:2: error: Unknown type 'MyBadType' from 'MyStruct' member 'a'",
+            "foo:3: error: Unknown type 'MyBadType' from 'MyStruct' member 'b'",
+            "foo:5: error: Unknown type 'MyBadType' from 'MyTypedef'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -919,9 +919,11 @@ struct MyStruct
 typedef MyBadType MyTypedef
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Unknown dict key type 'MyBadType'",
-            "foo:3: error: Unknown dict key type 'MyBadType'",
-            "foo:5: error: Unknown type 'MyBadType'"
+            "foo:2: error: Invalid dictionary key type from 'MyStruct' member 'a'",
+            "foo:2: error: Unknown type 'MyBadType' from 'MyStruct' member 'a'",
+            "foo:3: error: Invalid dictionary key type from 'MyStruct' member 'b'",
+            "foo:3: error: Unknown type 'MyBadType' from 'MyStruct' member 'b'",
+            "foo:5: error: Unknown type 'MyBadType' from 'MyTypedef'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -936,7 +938,7 @@ struct Foo
 action MyAction
 ''', filename='foo')
         expected_errors = [
-            "foo:2: error: Invalid reference to action 'MyAction'",
+            "foo:2: error: Invalid reference to action 'MyAction' from 'Foo' member 'a'",
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -1233,17 +1235,17 @@ struct MyStruct
                         {
                             'name': 's1',
                             'type': {'builtin': 'string'},
-                            'attr': {'len_gt': 5, 'len_lt': 101}
+                            'attr': {'lenGT': 5, 'lenLT': 101}
                         },
                         {
                             'name': 's2',
                             'type': {'builtin': 'string'},
-                            'attr': {'len_gte': 5, 'len_lte': 100}
+                            'attr': {'lenGTE': 5, 'lenLTE': 100}
                         },
                         {
                             'name': 's3',
                             'type': {'builtin': 'string'},
-                            'attr': {'len_eq': 2}
+                            'attr': {'lenEq': 2}
                         },
                         {
                             'name': 'ai1',
@@ -1251,13 +1253,13 @@ struct MyStruct
                         },
                         {
                             'name': 'as1',
-                            'type': {'array': {'attr': {'len_lt': 5}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_lt': 10}
+                            'type': {'array': {'attr': {'lenLT': 5}, 'type': {'builtin': 'string'}}},
+                            'attr': {'lenLT': 10}
                         },
                         {
                             'name': 'as2',
-                            'type': {'array': {'attr': {'len_eq': 2}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_eq': 3}
+                            'type': {'array': {'attr': {'lenEq': 2}, 'type': {'builtin': 'string'}}},
+                            'attr': {'lenEq': 3}
                         },
                         {
                             'name': 'di1',
@@ -1265,22 +1267,22 @@ struct MyStruct
                         },
                         {
                             'name': 'ds1',
-                            'type': {'dict': {'attr': {'len_gt': 5}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_gt': 10}
+                            'type': {'dict': {'attr': {'lenGT': 5}, 'type': {'builtin': 'string'}}},
+                            'attr': {'lenGT': 10}
                         },
                         {
                             'name': 'ds2',
-                            'type': {'dict': {'attr': {'len_eq': 2}, 'type': {'builtin': 'string'}}},
-                            'attr': {'len_eq': 3}
+                            'type': {'dict': {'attr': {'lenEq': 2}, 'type': {'builtin': 'string'}}},
+                            'attr': {'lenEq': 3}
                         },
                         {
-                            'attr': {'len_eq': 3},
+                            'attr': {'lenEq': 3},
                             'name': 'ds3',
                             'type': {
                                 'dict': {
-                                    'attr': {'len_eq': 2},
-                                    'key_attr': {'len_eq': 1},
-                                    'key_type': {'builtin': 'string'},
+                                    'attr': {'lenEq': 2},
+                                    'keyAttr': {'lenEq': 1},
+                                    'keyType': {'builtin': 'string'},
                                     'type': {'builtin': 'string'}
                                 }
                             }
@@ -1300,33 +1302,33 @@ struct MyStruct
         self.assertListEqual(parser.errors, errors)
 
     def test_error_attribute_eq(self):
-        self._test_spec_error([":2: error: Invalid attribute '== 7'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute '== 7' from 'MyStruct' member 's'"], '''\
 struct MyStruct
     string(== 7) s
 ''')
 
     def test_error_attribute_lt(self):
-        self._test_spec_error([":2: error: Invalid attribute '< 7'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute '< 7' from 'MyStruct' member 's'"], '''\
 struct MyStruct
     string(< 7) s
 ''')
 
     def test_error_attribute_gt(self):
-        self._test_spec_error([":2: error: Invalid attribute '> 7'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute '> 7' from 'MyStruct' member 's'"], '''\
 struct MyStruct
     string(> 7) s
 ''')
 
     def test_error_attribute_lt_gt(self):
-        self._test_spec_error([":2: error: Invalid attribute '< 7'",
-                               ":2: error: Invalid attribute '> 7'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute '< 7' from 'MyStruct' member 's'",
+                               ":2: error: Invalid attribute '> 7' from 'MyStruct' member 's'"], '''\
 struct MyStruct
     string(< 7, > 7) s
 ''')
 
     def test_error_attribute_lte_gte(self):
-        self._test_spec_error([":6: error: Invalid attribute '>= 1'",
-                               ":7: error: Invalid attribute '<= 2'"], '''\
+        self._test_spec_error([":6: error: Invalid attribute '>= 1' from 'MyStruct' member 'a'",
+                               ":7: error: Invalid attribute '<= 2' from 'MyStruct' member 'b'"], '''\
 enum MyEnum
     Foo
     Bar
@@ -1337,33 +1339,33 @@ struct MyStruct
 ''')
 
     def test_error_attribute_len_eq(self):
-        self._test_spec_error([":2: error: Invalid attribute 'len == 1'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute 'len == 1' from 'MyStruct' member 'i'"], '''\
 struct MyStruct
     int(len == 1) i
 ''')
 
     def test_error_attribute_len_lt(self):
-        self._test_spec_error([":2: error: Invalid attribute 'len < 10'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute 'len < 10' from 'MyStruct' member 'f'"], '''\
 struct MyStruct
     float(len < 10) f
 ''')
 
     def test_error_attribute_len_gt(self):
-        self._test_spec_error([":2: error: Invalid attribute 'len > 1'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute 'len > 1' from 'MyStruct' member 'i'"], '''\
 struct MyStruct
     int(len > 1) i
 ''')
 
     def test_error_attribute_len_lt_gt(self):
-        self._test_spec_error([":2: error: Invalid attribute 'len < 10'",
-                               ":2: error: Invalid attribute 'len > 10'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute 'len < 10' from 'MyStruct' member 'f'",
+                               ":2: error: Invalid attribute 'len > 10' from 'MyStruct' member 'f'"], '''\
 struct MyStruct
     float(len < 10, len > 10) f
 ''')
 
     def test_error_attribute_len_lte_gte(self):
-        self._test_spec_error([":2: error: Invalid attribute 'len <= 10'",
-                               ":3: error: Invalid attribute 'len >= 10'"], '''\
+        self._test_spec_error([":2: error: Invalid attribute 'len <= 10' from 'MyStruct' member 'f'",
+                               ":3: error: Invalid attribute 'len >= 10' from 'MyStruct' member 'f2'"], '''\
 struct MyStruct
     float(len <= 10) f
     float(len >= 10) f2
@@ -1386,7 +1388,7 @@ enum MyEnum
 ''')
 
     def test_error_member_redefinition(self):
-        self._test_spec_error([":4: error: Redefinition of member 'b'"], '''\
+        self._test_spec_error([":4: error: Redefinition of 'MyStruct' member 'b'"], '''\
 struct MyStruct
     string b
     int a
@@ -1394,7 +1396,7 @@ struct MyStruct
 ''')
 
     def test_error_enum_duplicate_value(self):
-        self._test_spec_error([":4: error: Redefinition of enumeration value 'bar'"], '''\
+        self._test_spec_error([":4: error: Redefinition of 'MyEnum' value 'bar'"], '''\
 enum MyEnum
     bar
     foo
@@ -1556,8 +1558,8 @@ struct MyStruct
                 'typedef': {
                     'name': 'MyTypedef',
                     'doc': ' My typedef',
-                    'type': {'dict': {'key_type': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}},
-                    'attr': {'len_gt': 0}
+                    'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}},
+                    'attr': {'lenGT': 0}
                 }
             },
             'MyTypedef2': {
@@ -1577,7 +1579,7 @@ struct Foo
     int : int {} a
 ''')
         expected_errors = [
-            ':2: error: Invalid dictionary key type',
+            ":2: error: Invalid dictionary key type from 'Foo' member 'a'",
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -1644,14 +1646,14 @@ struct Base
     int b
 ''')
         expected_errors = [
-            ":3: error: Redefinition of member 'a'",
-            ":4: error: Redefinition of member 'b'",
-            ":6: error: Redefinition of member 'a'",
-            ":8: error: Redefinition of member 'b'",
-            ":11: error: Redefinition of member 'a'",
-            ":11: error: Redefinition of member 'b'",
-            ":13: error: Redefinition of member 'a'",
-            ":15: error: Redefinition of member 'b'"
+            ":3: error: Redefinition of 'MyAction_path' member 'a'",
+            ":4: error: Redefinition of 'MyAction_path' member 'b'",
+            ":6: error: Redefinition of 'MyAction_query' member 'a'",
+            ":8: error: Redefinition of 'MyAction_input' member 'b'",
+            ":11: error: Redefinition of 'MyAction2_path' member 'a'",
+            ":11: error: Redefinition of 'MyAction2_path' member 'b'",
+            ":13: error: Redefinition of 'MyAction2_query' member 'a'",
+            ":15: error: Redefinition of 'MyAction2_input' member 'b'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -1771,7 +1773,7 @@ action MyDictAction
             ":2: error: Invalid struct base type 'Foo'",
             ":14: error: Invalid struct base type 'Foo'",
             ":19: error: Invalid struct base type 'MyUnion'",
-            ":20: error: Redefinition of member 'a'",
+            ":20: error: Redefinition of 'BonkAction_path' member 'a'",
             ":25: error: Invalid struct base type 'MyDict'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
@@ -1892,7 +1894,7 @@ action MyDictAction
             ":2: error: Invalid struct base type 'Foo'",
             ":14: error: Invalid struct base type 'Foo'",
             ":19: error: Invalid struct base type 'MyUnion'",
-            ":20: error: Redefinition of member 'a'",
+            ":20: error: Redefinition of 'BonkAction_query' member 'a'",
             ":25: error: Invalid struct base type 'MyDict'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
@@ -2013,7 +2015,7 @@ action MyDictAction
             ":2: error: Invalid struct base type 'Foo'",
             ":14: error: Invalid struct base type 'Foo'",
             ":19: error: Invalid struct base type 'MyUnion'",
-            ":20: error: Redefinition of member 'a'",
+            ":20: error: Redefinition of 'BonkAction_input' member 'a'",
             ":25: error: Invalid struct base type 'MyDict'",
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
@@ -2054,7 +2056,7 @@ action MyDictAction
             ":2: error: Invalid struct base type 'Foo'",
             ":14: error: Invalid struct base type 'Foo'",
             ":19: error: Invalid struct base type 'MyUnion'",
-            ":20: error: Redefinition of member 'a'",
+            ":20: error: Redefinition of 'BonkAction_input' member 'a'",
             ":25: error: Invalid struct base type 'MyDict'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
@@ -2176,7 +2178,7 @@ action MyDictAction
             ":2: error: Invalid struct base type 'Foo'",
             ":14: error: Invalid struct base type 'Foo'",
             ":19: error: Invalid struct base type 'MyUnion'",
-            ":20: error: Redefinition of member 'a'",
+            ":20: error: Redefinition of 'BonkAction_output' member 'a'",
             ":25: error: Invalid struct base type 'MyDict'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
@@ -2289,8 +2291,8 @@ action BonkAction
         expected_errors = [
             ":2: error: Invalid enum base type 'Foo'",
             ":14: error: Invalid enum base type 'Bar'",
-            ":15: error: Redefinition of enumeration value 'A'",
-            ":19: error: Redefinition of enumeration value 'A'"
+            ":15: error: Redefinition of 'BarAction_errors' value 'A'",
+            ":19: error: Redefinition of 'BonkAction_errors' value 'A'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
@@ -2347,22 +2349,10 @@ action BonkAction
         with self.assertRaises(SpecParserError) as cm_exc:
             parser.finalize()
         expected_errors = [
-            ":1: error: Invalid action input type 'PositiveInt'",
-            ":1: error: Redefinition of member 'a'",
-            ":1: error: Unknown action output type 'MyAction_output'",
-            ":1: error: Unknown action query type 'MyAction_query'",
-            ":1: error: Unknown member type 'NegativeInt'"
+            ":1: error: Redefinition of 'MyAction_input' member 'a'",
+            ":1: error: Unknown type 'MyAction_output' from 'MyAction'",
+            ":1: error: Unknown type 'MyAction_query' from 'MyAction'",
+            ":1: error: Unknown type 'NegativeInt' from 'MyAction_input' member 'a'"
         ]
         self.assertListEqual(cm_exc.exception.errors, expected_errors)
         self.assertListEqual(parser.errors, expected_errors)
-
-    @staticmethod
-    def test_validate_types():
-        types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'builtin': 'int'}}]}}}
-        SpecParser.validate_types(types)
-
-    def test_validate_types_error(self):
-        types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'user': 'UnknownType'}}]}}}
-        with self.assertRaises(SpecParserError) as cm_exc:
-            SpecParser.validate_types(types)
-        self.assertEqual(str(cm_exc.exception), "Unknown member type 'UnknownType'")

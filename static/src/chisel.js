@@ -32,8 +32,8 @@ export function render(parent, elements = null, clear = true) {
  */
 function renderElements(parent, elements) {
     if (Array.isArray(elements)) {
-        for (let iElem = 0; iElem < elements.length; iElem++) {
-            renderElements(parent, elements[iElem]);
+        for (const element of elements) {
+            renderElements(parent, element);
         }
     } else if (elements !== null) {
         const element = elements;
@@ -155,8 +155,7 @@ function encodeParamsHelper(obj, memberFqn = null, keyValues = []) {
         if (keys.length === 0) {
             keyValues.push(memberFqn !== null ? `${memberFqn}=` : '');
         } else {
-            for (let ixKey = 0; ixKey < keys.length; ixKey++) {
-                const key = keys[ixKey];
+            for (const key of keys) {
                 const keyEncoded = encodeParamsHelper(key);
                 encodeParamsHelper(obj[key], memberFqn !== null ? `${memberFqn}.${keyEncoded}` : `${keyEncoded}`, keyValues);
             }
@@ -199,8 +198,8 @@ export function decodeParams(paramStr = null) {
             let parent = result;
             let keyParent = 0;
             const keys = keyFqn.split('.');
-            for (let ixKey = 0; ixKey < keys.length; ixKey++) {
-                let key = decodeURIComponent(keys[ixKey]);
+            for (const keyEncoded of keys) {
+                let key = decodeURIComponent(keyEncoded);
                 let obj = parent[keyParent];
 
                 // Array key?  First "key" of an array must start with "0".
@@ -251,6 +250,103 @@ export function decodeParams(paramStr = null) {
     );
 
     return result[0] !== null ? result[0] : {};
+}
+
+
+/**
+ * Get a copy of the Chisel type model
+ *
+ * @returns {object}
+ */
+export function getTypeModel() {
+    return {...typeModel};
+}
+
+
+/**
+ * Get a user type's referenced type model
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @param {string} typeName - The type name
+ * @param {Object} [referencedTypes=null] - Optional map of referenced user type name to user type model
+ * @returns {Object}
+ */
+export function getReferencedTypes(types, typeName, referencedTypes = {}) {
+    return getReferencedTypesHelper(types, {'user': typeName}, referencedTypes);
+}
+
+
+/**
+ * Get a type's referenced type model
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @param {string} type - The type model
+ * @param {Object} [referencedTypes=null] - Optional map of referenced user type name to user type model
+ * @returns {Object}
+ *
+ * @ignore
+ */
+// eslint-disable-next-line no-unused-vars
+function getReferencedTypesHelper(types, type, referencedTypes) {
+    // Array?
+    if ('array' in type) {
+        const {array} = type;
+        getReferencedTypesHelper(types, array.type, referencedTypes);
+
+    // Dict?
+    } else if ('dict' in type) {
+        const {dict} = type;
+        getReferencedTypesHelper(types, dict.type, referencedTypes);
+        if ('keyType' in dict) {
+            getReferencedTypesHelper(types, dict.keyType, referencedTypes);
+        }
+
+    // User type?
+    } else if ('user' in type) {
+        const typeName = type.user;
+
+        // Already encountered?
+        if (!(typeName in referencedTypes)) {
+            const userType = types[typeName];
+            referencedTypes[typeName] = userType;
+
+            // Struct?
+            if ('struct' in userType) {
+                const {struct} = userType;
+                if ('members' in struct) {
+                    for (const member of struct.members) {
+                        getReferencedTypesHelper(types, member.type, referencedTypes);
+                    }
+                }
+
+            // Typedef?
+            } else if ('typedef' in userType) {
+                const {typedef} = userType;
+                getReferencedTypesHelper(types, typedef.type, referencedTypes);
+
+            // Action?
+            } else if ('action' in userType) {
+                const {action} = userType;
+                if ('path' in action) {
+                    getReferencedTypesHelper(types, {'user': action.path}, referencedTypes);
+                }
+                if ('query' in action) {
+                    getReferencedTypesHelper(types, {'user': action.query}, referencedTypes);
+                }
+                if ('input' in action) {
+                    getReferencedTypesHelper(types, {'user': action.input}, referencedTypes);
+                }
+                if ('output' in action) {
+                    getReferencedTypesHelper(types, {'user': action.output}, referencedTypes);
+                }
+                if ('errors' in action) {
+                    getReferencedTypesHelper(types, {'user': action.errors}, referencedTypes);
+                }
+            }
+        }
+    }
+
+    return referencedTypes;
 }
 
 
@@ -407,14 +503,14 @@ function validateTypeHelper(types, type, value, memberFqn) {
 
         // Validate the dict key/value pairs
         const valueCopy = {};
-        const dictKeyType = 'key_type' in dict ? dict.key_type : {'builtin': 'string'};
+        const dictKeyType = 'keyType' in dict ? dict.keyType : {'builtin': 'string'};
         Object.keys(valueNew).forEach((dictKey) => {
             const memberFqnKey = memberFqn !== null ? `${memberFqn}.${dictKey}` : `${dictKey}`;
 
             // Validate the key
             validateTypeHelper(types, dictKeyType, dictKey, memberFqn);
-            if ('key_attr' in dict) {
-                validateAttr(dictKeyType, dict.key_attr, dictKey, memberFqn);
+            if ('keyAttr' in dict) {
+                validateAttr(dictKeyType, dict.keyAttr, dictKey, memberFqn);
             }
 
             // Validate the value
@@ -433,6 +529,11 @@ function validateTypeHelper(types, type, value, memberFqn) {
     // User type?
     } else if ('user' in type) {
         const userType = types[type.user];
+
+        // action?
+        if ('action' in userType) {
+            throwMemberError(type, value, memberFqn);
+        }
 
         // typedef?
         if ('typedef' in userType) {
@@ -475,8 +576,7 @@ function validateTypeHelper(types, type, value, memberFqn) {
             // Validate the struct members
             const valueCopy = {};
             if ('members' in struct) {
-                for (let ixMember = 0; ixMember < struct.members.length; ixMember++) {
-                    const member = struct.members[ixMember];
+                for (const member of struct.members) {
                     const memberName = member.name;
                     const memberFqnMember = memberFqn !== null ? `${memberFqn}.${memberName}` : `${memberName}`;
                     const memberOptional = 'optional' in member ? member.optional : false;
@@ -580,19 +680,782 @@ function validateAttr(type, attr, value, memberFqn) {
     if ('gte' in attr && !(value >= attr.gte)) {
         attrError('gte', '>=');
     }
-    if ('len_eq' in attr && !(length === attr.len_eq)) {
-        attrError('len_eq', 'len ==');
+    if ('lenEq' in attr && !(length === attr.lenEq)) {
+        attrError('lenEq', 'len ==');
     }
-    if ('len_lt' in attr && !(length < attr.len_lt)) {
-        attrError('len_lt', 'len <');
+    if ('lenLT' in attr && !(length < attr.lenLT)) {
+        attrError('lenLT', 'len <');
     }
-    if ('len_lte' in attr && !(length <= attr.len_lte)) {
-        attrError('len_lte', 'len <=');
+    if ('lenLTE' in attr && !(length <= attr.lenLTE)) {
+        attrError('lenLTE', 'len <=');
     }
-    if ('len_gt' in attr && !(length > attr.len_gt)) {
-        attrError('len_gt', 'len >');
+    if ('lenGT' in attr && !(length > attr.lenGT)) {
+        attrError('lenGT', 'len >');
     }
-    if ('len_gte' in attr && !(length >= attr.len_gte)) {
-        attrError('len_gte', 'len >=');
+    if ('lenGTE' in attr && !(length >= attr.lenGTE)) {
+        attrError('lenGTE', 'len >=');
     }
 }
+
+
+/**
+ * Validate a user type model
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @returns {Object} The validated, transformed type model
+ */
+export function validateTypes(types) {
+    // Validate with the type model
+    const validatedTypes = validateType(typeModel, 'Types', types);
+
+    // Do additional type model validation
+    const errors = validateTypesErrors(validatedTypes);
+    if (errors.length) {
+        throw new Error(errors.map(([,, message]) => message).join('\n'));
+    }
+
+    return validatedTypes;
+}
+
+
+/**
+ * Get a type model's effective type (e.g. typedef int is an int)
+ *
+ * @param {Object} types: The map of user type name to user type model
+ * @param {Object} type: The type model
+ *
+ * @ignore
+ */
+function getEffectiveType(types, type) {
+    if ('user' in type && type.user in types) {
+        const userType = types[type.user];
+        if ('typedef' in userType) {
+            return getEffectiveType(types, userType.typedef.type);
+        }
+    }
+    return type;
+}
+
+
+/**
+ * Count string occurrences in an array of strings
+ *
+ * @param {string[]} strings - The array of strings
+ * @returns {Object} The map of string to number of occurrences
+ *
+ * @ignore
+ */
+function countStrings(strings, stringCounts = {}) {
+    for (const string of strings) {
+        if (string in stringCounts) {
+            stringCounts[string] += 1;
+        } else {
+            stringCounts[string] = 1;
+        }
+    }
+    return stringCounts;
+}
+
+
+/**
+ * Validate a user type model
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @returns {Array<Array>} The list of type name, member name, and error message tuples
+ *
+ * @ignore
+ */
+function validateTypesErrors(types) {
+    const errors = [];
+
+    // Check each user type
+    for (const [typeName, userType] of Object.entries(types)) {
+        // Struct?
+        /* istanbul ignore else */
+        if ('struct' in userType) {
+            const {struct} = userType;
+
+            // Inconsistent type name?
+            if (typeName !== struct.name) {
+                errors.push([typeName, null, `Inconsistent type name '${struct.name}' for '${typeName}'`]);
+            }
+
+            // Has members?
+            if ('members' in struct) {
+                // Check member types and their attributes
+                for (const member of struct.members) {
+                    validateTypesType(errors, types, member.type, 'attr' in member ? member.attr : null, struct.name, member.name);
+                }
+
+                // Check for duplicate members
+                const memberCounts = countStrings(struct.members.map((member) => member.name));
+                for (const [memberName, memberCount] of Object.entries(memberCounts)) {
+                    if (memberCount > 1) {
+                        errors.push([typeName, memberName, `Redefinition of '${typeName}' member '${memberName}'`]);
+                    }
+                }
+            }
+
+        // Enum?
+        } else if ('enum' in userType) {
+            const enum_ = userType.enum;
+
+            // Inconsistent type name?
+            if (typeName !== enum_.name) {
+                errors.push([typeName, null, `Inconsistent type name '${enum_.name}' for '${typeName}'`]);
+            }
+
+            // Check for duplicate enumeration values
+            if ('values' in enum_) {
+                const valueCounts = countStrings(enum_.values.map((value) => value.name));
+                for (const [valueName, valueCount] of Object.entries(valueCounts)) {
+                    if (valueCount > 1) {
+                        errors.push([typeName, valueName, `Redefinition of '${typeName}' value '${valueName}'`]);
+                    }
+                }
+            }
+
+        // Typedef?
+        } else if ('typedef' in userType) {
+            const {typedef} = userType;
+
+            // Inconsistent type name?
+            if (typeName !== typedef.name) {
+                errors.push([typeName, null, `Inconsistent type name '${typedef.name}' for '${typeName}'`]);
+            }
+
+            // Check the type and its attributes
+            validateTypesType(errors, types, typedef.type, 'attr' in typedef ? typedef.attr : null, typeName, null);
+
+        // Action?
+        } else if ('action' in userType) {
+            const {action} = userType;
+
+            // Inconsistent type name?
+            if (typeName !== action.name) {
+                errors.push([typeName, null, `Inconsistent type name '${action.name}' for '${typeName}'`]);
+            }
+
+            // Check action section types
+            for (const section of ['path', 'query', 'input', 'output', 'errors']) {
+                if (section in action) {
+                    const sectionTypeName = action[section];
+
+                    // Check the section type
+                    validateTypesType(errors, types, {'user': sectionTypeName}, null, typeName, null);
+                }
+            }
+
+            // Compute effective input member counts
+            const memberCounts = {};
+            const memberSections = {};
+            for (const section of ['path', 'query', 'input']) {
+                if (section in action) {
+                    const sectionTypeName = action[section];
+                    if (sectionTypeName in types) {
+                        const sectionType = getEffectiveType(types, {'user': sectionTypeName});
+                        if ('user' in sectionType && 'struct' in types[sectionType.user]) {
+                            const sectionStruct = types[sectionType.user].struct;
+                            if ('members' in sectionStruct) {
+                                countStrings(sectionStruct.members.map((member) => member.name), memberCounts);
+                                for (const member of sectionStruct.members) {
+                                    if (!(member.name in memberSections)) {
+                                        memberSections[member.name] = [];
+                                    }
+                                    memberSections[member.name].push(sectionStruct.name);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check for duplicate input members
+            for (const [memberName, memberCount] of Object.entries(memberCounts)) {
+                if (memberCount > 1) {
+                    for (const sectionType of memberSections[memberName]) {
+                        errors.push([sectionType, memberName, `Redefinition of '${sectionType}' member '${memberName}'`]);
+                    }
+                }
+            }
+        }
+    }
+
+    return errors;
+}
+
+
+// Map of attribute struct member name to attribute description
+const attrToText = {
+    'eq': '==',
+    'lt': '<',
+    'lte': '<=',
+    'gt': '>',
+    'gte': '>=',
+    'lenEq': 'len ==',
+    'lenLT': 'len <',
+    'lenLTE': 'len <=',
+    'lenGT': 'len >',
+    'lenGTE': 'len >='
+};
+
+
+// Map of type name to valid attribute set
+const typeToAllowedAttr = {
+    'float': ['eq', 'lt', 'lte', 'gt', 'gte'],
+    'int': ['eq', 'lt', 'lte', 'gt', 'gte'],
+    'string': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'],
+    'array': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'],
+    'dict': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE']
+};
+
+
+/**
+ * Helper function for validateTypes to validate a type model
+ *
+ * @param {Array<Array>} The list of type name, member name, and error message tuples
+ * @param {Object} types - The map of user type name to user type model
+ * @param {Object} type - The type model
+ * @param {Object} attr - The type attribute model
+ * @param {string} typeName - The containing type's name
+ * @param {string} memberName - The contianing struct's member name
+ * @returns {Array<Array>} The list of type name, member name, and error message tuples
+ *
+ * @ignore
+ */
+function validateTypesType(errors, types, type, attr, typeName, memberName) {
+    // Helper function to push an error tuple
+    const error = (message) => {
+        if (memberName !== null) {
+            errors.push([typeName, memberName, `${message} from '${typeName}' member '${memberName}'`]);
+        } else {
+            errors.push([typeName, null, `${message} from '${typeName}'`]);
+        }
+    };
+
+    // Array?
+    if ('array' in type) {
+        const {array} = type;
+
+        // Check the type and its attributes
+        const arrayType = getEffectiveType(types, array.type);
+        validateTypesType(errors, types, arrayType, 'attr' in array ? array.attr : null, typeName, memberName);
+
+    // Dict?
+    } else if ('dict' in type) {
+        const {dict} = type;
+
+        // Check the type and its attributes
+        const dictType = getEffectiveType(types, dict.type);
+        validateTypesType(errors, types, dictType, 'attr' in dict ? dict.attr : null, typeName, memberName);
+
+        // Check the dict key type and its attributes
+        if ('keyType' in dict) {
+            const dictKeyType = getEffectiveType(types, dict.keyType);
+            validateTypesType(errors, types, dictKeyType, 'keyAttr' in dict ? dict.keyAttr : null, typeName, memberName);
+
+            // Valid dict key type (string or enum)
+            if (!('builtin' in dictKeyType && dictKeyType.builtin === 'string') &&
+                !('user' in dictKeyType && dictKeyType.user in types && 'enum' in types[dictKeyType.user])) {
+                error('Invalid dictionary key type');
+            }
+        }
+
+    // User type?
+    } else if ('user' in type) {
+        const userTypeName = type.user;
+
+        // Unknown user type?
+        if (!(userTypeName in types)) {
+            error(`Unknown type '${userTypeName}'`);
+        } else {
+            const userType = types[userTypeName];
+
+            // Action type references not allowed
+            if ('action' in userType) {
+                error(`Invalid reference to action '${userTypeName}'`);
+            }
+        }
+    }
+
+    // Any not-allowed attributes?
+    if (attr !== null) {
+        const typeEffective = getEffectiveType(types, type);
+        const [typeKey] = Object.keys(typeEffective);
+        const typeAttrKey = typeKey === 'builtin' ? typeEffective[typeKey] : typeKey;
+        const allowedAttr = typeAttrKey in typeToAllowedAttr ? typeToAllowedAttr[typeAttrKey] : null;
+        const disallowedAttr = Object.fromEntries(Object.keys(attr).map((attrKey) => [attrKey, null]));
+        if (allowedAttr !== null) {
+            for (const attrKey of allowedAttr) {
+                delete disallowedAttr[attrKey];
+            }
+        }
+        if (Object.keys(disallowedAttr).length) {
+            for (const attrKey of Object.keys(disallowedAttr)) {
+                const attrValue = `${attr[attrKey]}`;
+                const attrText = `${attrToText[attrKey]} ${attrValue}`;
+                error(`Invalid attribute '${attrText}'`);
+            }
+        }
+    }
+}
+
+
+// The type model's type model
+const typeModel = {
+    'Action': {
+        'struct': {
+            'name': 'Action',
+            'doc': ' A JSON web service API',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The action name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'docGroup',
+                    'doc': ' The action@s documentation group name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'urls',
+                    'doc': ' The action@s URLs',
+                    'type': {'array': {'type': {'user': 'ActionURL'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': true
+                },
+                {
+                    'name': 'path',
+                    'doc': ' The path parameters struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'query',
+                    'doc': ' The query parameters struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'input',
+                    'doc': ' The content body struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'output',
+                    'doc': ' The response body struct type name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'errors',
+                    'doc': ' The custom error response codes enum type name',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'ActionURL': {
+        'struct': {
+            'name': 'ActionURL',
+            'doc': ' An action URL model',
+            'members': [
+                {
+                    'name': 'method',
+                    'doc': ' The HTTP method. If not provided, matches all HTTP methods.',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'path',
+                    'doc': ' The URL path. If not provided, uses the default URL path of \'/<actionName>\'.',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Array': {
+        'struct': {
+            'name': 'Array',
+            'doc': ' An array type',
+            'members': [
+                {
+                    'name': 'type',
+                    'doc': ' The contained type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The contained type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Attributes': {
+        'struct': {
+            'name': 'Attributes',
+            'doc': ' A type or member@s attributes',
+            'members': [
+                {
+                    'name': 'eq',
+                    'doc': ' The value is equal',
+                    'type': {'builtin': 'float'},
+                    'optional': true
+                },
+                {
+                    'name': 'lt',
+                    'doc': ' The value is less than',
+                    'type': {'builtin': 'float'},
+                    'optional': true
+                },
+                {
+                    'name': 'lte',
+                    'doc': ' The value is less than or equal to',
+                    'type': {'builtin': 'float'},
+                    'optional': true
+                },
+                {
+                    'name': 'gt',
+                    'doc': ' The value is greater than',
+                    'type': {'builtin': 'float'},
+                    'optional': true
+                },
+                {
+                    'name': 'gte',
+                    'doc': ' The value is greater than or equal to',
+                    'type': {'builtin': 'float'},
+                    'optional': true
+                },
+                {
+                    'name': 'lenEq',
+                    'doc': ' The length is equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': true
+                },
+                {
+                    'name': 'lenLT',
+                    'doc': ' The length is less-than',
+                    'type': {'builtin': 'int'},
+                    'optional': true
+                },
+                {
+                    'name': 'lenLTE',
+                    'doc': ' The length is less than or equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': true
+                },
+                {
+                    'name': 'lenGT',
+                    'doc': ' The length is greater than',
+                    'type': {'builtin': 'int'},
+                    'optional': true
+                },
+                {
+                    'name': 'lenGTE',
+                    'doc': ' The length is greater than or equal to',
+                    'type': {'builtin': 'int'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'BuiltinType': {
+        'enum': {
+            'name': 'BuiltinType',
+            'doc': ' The built-in type enumeration',
+            'values': [
+                {
+                    'name': 'string',
+                    'doc': ' The string type'
+                },
+                {
+                    'name': 'int',
+                    'doc': ' The integer type'
+                },
+                {
+                    'name': 'float',
+                    'doc': ' The float type'
+                },
+                {
+                    'name': 'bool',
+                    'doc': ' The boolean type'
+                },
+                {
+                    'name': 'date',
+                    'doc': ' A date formatted as an ISO-8601 date string'
+                },
+                {
+                    'name': 'datetime',
+                    'doc': ' A date/time formatted as an ISO-8601 date/time string'
+                },
+                {
+                    'name': 'uuid',
+                    'doc': ' A UUID formatted as string'
+                },
+                {
+                    'name': 'object',
+                    'doc': ' An object of any type'
+                }
+            ]
+        }
+    },
+    'Dict': {
+        'struct': {
+            'name': 'Dict',
+            'doc': ' A dictionary type',
+            'members': [
+                {
+                    'name': 'type',
+                    'doc': ' The contained key type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The contained key type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': true
+                },
+                {
+                    'name': 'keyType',
+                    'doc': ' The contained value type',
+                    'type': {'user': 'Type'},
+                    'optional': true
+                },
+                {
+                    'name': 'keyAttr',
+                    'doc': ' The contained value type@s attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Enum': {
+        'struct': {
+            'name': 'Enum',
+            'doc': ' An enumeration type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The enum type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'values',
+                    'doc': ' The enumeration values',
+                    'type': {'array': {'type': {'user': 'EnumValue'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'EnumValue': {
+        'struct': {
+            'name': 'EnumValue',
+            'doc': ' An enumeration type value',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The value string',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Struct': {
+        'struct': {
+            'name': 'Struct',
+            'doc': ' A struct type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The struct type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'members',
+                    'doc': ' The struct members',
+                    'type': {'array': {'type': {'user': 'StructMember'}}},
+                    'attr': {'lenGT': 0},
+                    'optional': true
+                },
+                {
+                    'name': 'union',
+                    'doc': ' If true, the struct is a union and exactly one of the optional members is present',
+                    'type': {'builtin': 'bool'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'StructMember': {
+        'struct': {
+            'name': 'StructMember',
+            'doc': ' A struct member',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The member name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'type',
+                    'doc': ' The member type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The member type attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': true
+                },
+                {
+                    'name': 'optional',
+                    'doc': ' If true, the member is optional and may not be present',
+                    'type': {'builtin': 'bool'},
+                    'optional': true
+                },
+                {
+                    'name': 'nullable',
+                    'doc': ' If true, the member may be null',
+                    'type': {'builtin': 'bool'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Type': {
+        'struct': {
+            'name': 'Type',
+            'doc': ' Union representing a member type',
+            'union': true,
+            'members': [
+                {
+                    'name': 'builtin',
+                    'doc': ' A built-in type',
+                    'type': {'user': 'BuiltinType'}
+                },
+                {
+                    'name': 'array',
+                    'doc': ' An array type',
+                    'type': {'user': 'Array'}
+                },
+                {
+                    'name': 'dict',
+                    'doc': ' A dictionary type',
+                    'type': {'user': 'Dict'}
+                },
+                {
+                    'name': 'user',
+                    'doc': ' A user type name',
+                    'type': {'builtin': 'string'}
+                }
+            ]
+        }
+    },
+    'Typedef': {
+        'struct': {
+            'name': 'Typedef',
+            'doc': ' A typedef type',
+            'members': [
+                {
+                    'name': 'name',
+                    'doc': ' The typedef type name',
+                    'type': {'builtin': 'string'}
+                },
+                {
+                    'name': 'doc',
+                    'doc': ' The documentation markdown text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'type',
+                    'doc': ' The typedef@s type',
+                    'type': {'user': 'Type'}
+                },
+                {
+                    'name': 'attr',
+                    'doc': ' The typedef@s type attributes',
+                    'type': {'user': 'Attributes'},
+                    'optional': true
+                }
+            ]
+        }
+    },
+    'Types': {
+        'typedef': {
+            'name': 'Types',
+            'doc': ' Map of user type name to user type model',
+            'type': {'dict': {'type': {'user': 'UserType'}}},
+            'attr': {'lenGT': 0}
+        }
+    },
+    'UserType': {
+        'struct': {
+            'name': 'UserType',
+            'doc': ' A user type',
+            'union': true,
+            'members': [
+                {
+                    'name': 'enum',
+                    'doc': ' An enumeration type',
+                    'type': {'user': 'Enum'}
+                },
+                {
+                    'name': 'struct',
+                    'doc': ' A struct type',
+                    'type': {'user': 'Struct'}
+                },
+                {
+                    'name': 'typedef',
+                    'doc': ' A type definition',
+                    'type': {'user': 'Typedef'}
+                },
+                {
+                    'name': 'action',
+                    'doc': ' A JSON web API (not reference-able)',
+                    'type': {'user': 'Action'}
+                }
+            ]
+        }
+    }
+};

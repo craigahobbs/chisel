@@ -5,10 +5,11 @@
 Chisel schema specification language parser
 """
 
-from collections import Counter, defaultdict
 from itertools import chain
 import os
 import re
+
+from .schema import get_effective_type, validate_types_errors
 
 
 # Spec language regex
@@ -110,7 +111,7 @@ class SpecParser:
 
         # Do the finalization
         self._finalize_bases()
-        for type_name, member_name, error_msg in self._validate_types(self.types):
+        for type_name, member_name, error_msg in validate_types_errors(self.types):
             self._error(error_msg, *self._get_filepos(type_name, member_name))
 
         # Raise a parser exception if there are any errors
@@ -478,11 +479,11 @@ class SpecParser:
                 dict_type = {
                     'type': self._create_type(value_type_name)
                 }
-                dict_type['key_type'] = self._create_type(key_type_name)
+                dict_type['keyType'] = self._create_type(key_type_name)
                 if value_attr is not None:
                     dict_type['attr'] = value_attr
                 if key_attr is not None:
-                    dict_type['key_attr'] = key_attr
+                    dict_type['keyAttr'] = key_attr
             else:
                 value_type_name = match_typedef.group('type')
                 value_attr = self._parse_attr(match_typedef.group('attrs'))
@@ -529,15 +530,15 @@ class SpecParser:
                 else:  # attr_length_op is not None:
                     attr_value = int(match_attr.group('lopnum'))
                     if attr_length_op == '<':
-                        attrs['len_lt'] = attr_value
+                        attrs['lenLT'] = attr_value
                     elif attr_length_op == '<=':
-                        attrs['len_lte'] = attr_value
+                        attrs['lenLTE'] = attr_value
                     elif attr_length_op == '>':
-                        attrs['len_gt'] = attr_value
+                        attrs['lenGT'] = attr_value
                     elif attr_length_op == '>=':
-                        attrs['len_gte'] = attr_value
+                        attrs['lenGTE'] = attr_value
                     else:  # ==
-                        attrs['len_eq'] = attr_value
+                        attrs['lenEq'] = attr_value
         return attrs
 
     def _finalize_bases(self):
@@ -572,14 +573,6 @@ class SpecParser:
             filepos = ('', 1)
         return filepos
 
-    @classmethod
-    def _get_effective_type(cls, types, type_):
-        if 'user' in type_:
-            user_type = types[type_['user']]
-            if 'typedef' in user_type:
-                return cls._get_effective_type(types, user_type['typedef']['type'])
-        return type_
-
     def _get_base_objects(self, type_name, user_type_key, object_key, filepos, type_names):
         base_objects = []
 
@@ -593,7 +586,7 @@ class SpecParser:
         # Compute the base objects
         if type_name in self._bases:
             for base_name in self._bases[type_name]:
-                base_type = self._get_effective_type(self.types, {'user': base_name})
+                base_type = get_effective_type(self.types, {'user': base_name})
                 invalid_base = True
                 if 'user' in base_type:
                     user_type = self.types[base_type['user']]
@@ -617,194 +610,3 @@ class SpecParser:
             base_objects.extend(type_model[object_key])
 
         return base_objects
-
-    @classmethod
-    def validate_types(cls, types):
-        """
-        Post-validate a schema-valid user types dict
-
-        >>> import chisel
-        >>> types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'builtin': 'int'}}]}}}
-        >>> chisel.SpecParser.validate_types(types)
-        >>> types = {'MyStruct': {'struct': {'name': 'MyStruct', 'members': [{'name': 'a', 'type': {'user': 'UnknownType'}}]}}}
-        >>> try:
-        ...     chisel.SpecParser.validate_types(types)
-        ... except chisel.SpecParserError as exc:
-        ...     str(exc)
-        "Unknown member type 'UnknownType'"
-
-        :param dict types: A map of user type name to user type model
-        :raises SpecParserError: A validation error occurred
-        """
-
-        errors = sorted(error_msg for _, _, error_msg in cls._validate_types(types))
-        if errors:
-            raise SpecParserError(errors)
-
-    @classmethod
-    def _validate_types(cls, types):
-
-        # Check each user type
-        for type_name, user_type in types.items():
-
-            # Struct?
-            if 'struct' in user_type:
-                struct = user_type['struct']
-
-                # Has members?
-                if 'members' in struct:
-
-                    # Check member types and their attributes
-                    for member in struct['members']:
-                        yield from cls._check_type(types, member['type'], member.get('attr'), struct['name'], member['name'])
-
-                    # Check for duplicate members
-                    member_counts = Counter(member['name'] for member in struct['members'])
-                    for member_name in (member_name for member_name, member_count in member_counts.items() if member_count > 1):
-                        yield (type_name, member_name, f'Redefinition of member {member_name!r}')
-
-            # Enum?
-            elif 'enum' in user_type:
-                enum = user_type['enum']
-
-                # Check for duplicate enumeration values
-                if 'values' in enum:
-                    value_counts = Counter(value['name'] for value in enum['values'])
-                    for value_name in (value_name for value_name, value_count in value_counts.items() if value_count > 1):
-                        yield (type_name, value_name, f'Redefinition of enumeration value {value_name!r}')
-
-            # Typedef?
-            elif 'typedef' in user_type:
-                typedef = user_type['typedef']
-
-                # Check the type and its attributes
-                yield from cls._check_type(types, typedef['type'], typedef.get('attr'), type_name, None)
-
-            # Action?
-            elif 'action' in user_type:
-                action = user_type['action']
-
-                # Check action section types
-                for section in ('path', 'query', 'input', 'output', 'errors'):
-                    if section in action:
-                        section_type_name = action[section]
-
-                        # Unknown user type?
-                        if section_type_name not in types:
-                            yield (type_name, None, f'Unknown action {section} type {section_type_name!r}')
-                            continue
-
-                        # Incorrect section type?
-                        section_user_type = types[action[section]]
-                        section_user_type_key = 'enum' if section == 'errors' else 'struct'
-                        if section_user_type_key not in section_user_type:
-                            yield (type_name, None, f'Invalid action {section} type {section_type_name!r}')
-
-                # Check for combined path, query, and input struct duplicate members
-                member_counts = Counter()
-                member_sections = defaultdict(set)
-                for section in ('path', 'query', 'input'):
-                    if section in action:
-                        section_type_name = action[section]
-                        if section_type_name not in types:
-                            continue
-
-                        # Update effective input member counts
-                        section_user_type = types[action[section]]
-                        if 'struct' in section_user_type:
-                            section_struct = section_user_type['struct']
-                            if 'members' in section_struct:
-                                member_counts.update(member['name'] for member in section_struct['members'])
-                                for member in section_struct['members']:
-                                    member_sections[member['name']].add(section_struct['name'])
-
-                # Check for duplicate input members
-                for member_name in (member_name for member_name, member_count in member_counts.items() if member_count > 1):
-                    for section_type in member_sections[member_name]:
-                        yield (section_type, member_name, f'Redefinition of member {member_name!r}')
-
-    _ATTR_TO_TEXT = {
-        'eq': '==',
-        'lt': '<',
-        'lte': '<=',
-        'gt': '>',
-        'gte': '>=',
-        'len_eq': 'len ==',
-        'len_lt': 'len <',
-        'len_lte': 'len <=',
-        'len_gt': 'len >',
-        'len_gte': 'len >='
-    }
-
-    _TYPE_TO_ALLOWED_ATTR = {
-        'float': set(['eq', 'lt', 'lte', 'gt', 'gte']),
-        'int': set(['eq', 'lt', 'lte', 'gt', 'gte']),
-        'string': set(['len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte']),
-        'array': set(['len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte']),
-        'dict': set(['len_eq', 'len_lt', 'len_lte', 'len_gt', 'len_gte'])
-    }
-
-    @classmethod
-    def _check_type(cls, types, type_, attr, type_name, member_name):
-
-        # Array?
-        if 'array' in type_:
-            array = type_['array']
-
-            # Check the type and its attributes
-            try:
-                array_type = cls._get_effective_type(types, array['type'])
-                yield from cls._check_type(types, array_type, array.get('attr'), type_name, member_name)
-            except KeyError as exc:
-                yield (type_name, member_name, f'Unknown array type {exc.args[0]!r}')
-
-        # Dict?
-        if 'dict' in type_:
-            dict_ = type_['dict']
-
-            # Check the type and its attributes
-            try:
-                dict_type = cls._get_effective_type(types, dict_['type'])
-                yield from cls._check_type(types, dict_type, dict_.get('attr'), type_name, member_name)
-            except KeyError as exc:
-                yield (type_name, member_name, f'Unknown dict type {exc.args[0]!r}')
-
-            # Check the dict key type and its attributes
-            if 'key_type' in dict_:
-                try:
-                    dict_key_type = cls._get_effective_type(types, dict_['key_type'])
-                    yield from cls._check_type(types, dict_key_type, dict_.get('key_attr'), type_name, member_name)
-
-                    # Valid dict key type (string or enum)
-                    if not ('builtin' in dict_key_type and dict_key_type['builtin'] == 'string') and \
-                       not ('user' in dict_key_type and 'enum' in types[dict_key_type['user']]):
-                        yield (type_name, member_name, 'Invalid dictionary key type')
-                except KeyError as exc:
-                    yield (type_name, member_name, f'Unknown dict key type {exc.args[0]!r}')
-
-        # User type?
-        elif 'user' in type_:
-            user_type_name = type_['user']
-
-            # Unknown user type?
-            if user_type_name not in types:
-                yield (type_name, member_name, f'Unknown {"member type" if member_name else "type"} {user_type_name!r}')
-            else:
-                user_type = types[user_type_name]
-
-                # Action type references not allowed
-                if 'action' in user_type:
-                    yield (type_name, member_name, f'Invalid reference to action {user_type_name!r}')
-
-        # Any not-allowed attributes?
-        if attr is not None:
-            type_key = next(iter(type_.keys()), None)
-            allowed_attr = cls._TYPE_TO_ALLOWED_ATTR.get(type_[type_key] if type_key == 'builtin' else type_key)
-            disallowed_attr = set(attr)
-            if allowed_attr is not None:
-                disallowed_attr -= allowed_attr
-            if disallowed_attr:
-                for attr_key in disallowed_attr:
-                    attr_value = f'{attr[attr_key]:.6f}'.rstrip('0').rstrip('.')
-                    attr_text = f'{cls._ATTR_TO_TEXT[attr_key]} {attr_value}'
-                    yield (type_name, member_name, f'Invalid attribute {attr_text!r}')

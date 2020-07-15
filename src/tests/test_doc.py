@@ -28,7 +28,7 @@ class TestGetDocRequests(TestCase):
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request/{name}'),)
+                    'urls': (('GET', '/doc/doc_request'),)
                 },
                 {
                     'name': 'redirect_doc',
@@ -110,7 +110,7 @@ class TestGetDocRequests(TestCase):
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request/{name}'),)
+                    'urls': (('GET', '/doc/doc_request'),)
                 }
             ]
         )
@@ -131,7 +131,7 @@ class TestGetDocRequests(TestCase):
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request/{name}'),)
+                    'urls': (('GET', '/doc/doc_request'),)
                 },
                 {
                     'name': 'redirect_doc',
@@ -327,7 +327,7 @@ action my_action2
         app.add_request(Request(None, name='my_request', doc='Request doc.'))
         app.add_request(Request(None, name='my_request2'))
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -570,7 +570,7 @@ action my_action2
                     'typedef': {
                         'name': 'MyTypedef',
                         'doc': ' Typedef doc.\n\n Another typedef paragraph.',
-                        'type': {'dict': {'key_type': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}
+                        'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}
                     }
                 },
                 'MyTypedef2': {
@@ -582,7 +582,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action2')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action2',
@@ -596,7 +596,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_request')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'doc': 'Request doc.',
@@ -604,7 +604,7 @@ action my_action2
             'urls': [{'url': '/my_request'}]
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_request2')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_request2',
@@ -640,7 +640,7 @@ action my_action
         optional int m19
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -650,7 +650,7 @@ action my_action
                     'typedef': {
                         'name': 'IntDict',
                         'type': {'dict': {'type': {'builtin': 'int'}}},
-                        'attr': {'len_gt': 0}
+                        'attr': {'lenGT': 0}
                     }
                 },
                 'my_action': {
@@ -666,18 +666,18 @@ action my_action
                             {'attr': {'gt': 0.0, 'lt': 100.0}, 'name': 'm1', 'type': {'builtin': 'int'}},
                             {'attr': {'gte': 0.0, 'lte': 100.0}, 'name': 'm2', 'type': {'builtin': 'int'}},
                             {'attr': {'eq': 100.0}, 'name': 'm3', 'type': {'builtin': 'int'}},
-                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm4', 'type': {'builtin': 'string'}},
-                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm5', 'type': {'builtin': 'string'}},
-                            {'attr': {'len_eq': 100}, 'name': 'm6', 'type': {'builtin': 'string'}},
-                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm7', 'type': {'array': {'type': {'builtin': 'int'}}}},
-                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm8', 'type': {'array': {'type': {'builtin': 'int'}}}},
-                            {'attr': {'len_eq': 100}, 'name': 'm9', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'lenGT': 0, 'lenLT': 100}, 'name': 'm4', 'type': {'builtin': 'string'}},
+                            {'attr': {'lenGTE': 0, 'lenLTE': 100}, 'name': 'm5', 'type': {'builtin': 'string'}},
+                            {'attr': {'lenEq': 100}, 'name': 'm6', 'type': {'builtin': 'string'}},
+                            {'attr': {'lenGT': 0, 'lenLT': 100}, 'name': 'm7', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'lenGTE': 0, 'lenLTE': 100}, 'name': 'm8', 'type': {'array': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'lenEq': 100}, 'name': 'm9', 'type': {'array': {'type': {'builtin': 'int'}}}},
                             {'name': 'm10', 'type': {'array': {'attr': {'gt': 0.0}, 'type': {'builtin': 'int'}}}},
-                            {'attr': {'len_gt': 0, 'len_lt': 100}, 'name': 'm11', 'type': {'dict': {'type': {'builtin': 'int'}}}},
-                            {'attr': {'len_gte': 0, 'len_lte': 100}, 'name': 'm12', 'type': {'dict': {'type': {'builtin': 'int'}}}},
-                            {'attr': {'len_eq': 100}, 'name': 'm13', 'type': {'dict': {'type': {'builtin': 'int'}}}},
-                            {'name': 'm14', 'type': {'dict': {'attr': {'len_gt': 1}, 'type': {'builtin': 'string'},
-                                                              'key_attr': {'len_gt': 0}, 'key_type': {'builtin': 'string'}}}},
+                            {'attr': {'lenGT': 0, 'lenLT': 100}, 'name': 'm11', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'lenGTE': 0, 'lenLTE': 100}, 'name': 'm12', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'attr': {'lenEq': 100}, 'name': 'm13', 'type': {'dict': {'type': {'builtin': 'int'}}}},
+                            {'name': 'm14', 'type': {'dict': {'attr': {'lenGT': 1}, 'type': {'builtin': 'string'},
+                                                              'keyAttr': {'lenGT': 0}, 'keyType': {'builtin': 'string'}}}},
                             {'name': 'm15', 'type': {'user': 'IntDict'}},
                             {'name': 'm16', 'optional': True, 'type': {'builtin': 'float'}},
                             {'name': 'm17', 'nullable': True, 'type': {'builtin': 'string'}},
@@ -693,7 +693,7 @@ action my_action
         app = Application()
         app.add_requests(create_doc_requests())
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '400 Bad Request')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
@@ -720,7 +720,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -730,7 +730,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action2')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
         self.assertEqual(status, '400 Bad Request')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
@@ -743,7 +743,7 @@ action my_action2
 action my_action
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -759,7 +759,7 @@ action my_action
 action my_action
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request/my_action')
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
