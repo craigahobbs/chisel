@@ -1,4 +1,4 @@
-Results of doctest builder run on 2020-07-10 19:19:08
+Results of doctest builder run on 2020-07-15 23:25:44
 =====================================================
 
 Document: action
@@ -36,14 +36,14 @@ Test passed.
 Document: spec
 --------------
 1 items passed all tests:
-  36 tests in default
-36 tests in 1 items.
-36 passed and 0 failed.
+  31 tests in default
+31 tests in 1 items.
+31 passed and 0 failed.
 Test passed.
 
 Doctest summary
 ===============
-  101 tests
+   96 tests
     0 failures in tests
     0 failures in setup code
     0 failures in cleanup code

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Chisel Specification Language &mdash; chisel 0.9.104 documentation</title>
+  <title>Chisel Specification Language &mdash; chisel 0.9.105 documentation</title>
   
 
   
@@ -523,31 +523,6 @@ specification files. Be sure to call <a class="reference internal" href="#chisel
 <dd><p>The dictionary of user type name to user type model</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="chisel.SpecParser.validate_types">
-<em class="property">classmethod </em><code class="sig-name descname">validate_types</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">types</span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.SpecParser.validate_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>Post-validate a schema-valid user types dict</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;MyStruct&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;struct&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;MyStruct&#39;</span><span class="p">,</span> <span class="s1">&#39;members&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;builtin&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">}}]}}}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chisel</span><span class="o">.</span><span class="n">SpecParser</span><span class="o">.</span><span class="n">validate_types</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;MyStruct&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;struct&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;MyStruct&#39;</span><span class="p">,</span> <span class="s1">&#39;members&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;UnknownType&#39;</span><span class="p">}}]}}}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">chisel</span><span class="o">.</span><span class="n">SpecParser</span><span class="o">.</span><span class="n">validate_types</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
-<span class="gp">... </span><span class="k">except</span> <span class="n">chisel</span><span class="o">.</span><span class="n">SpecParserError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
-<span class="go">&quot;Unknown member type &#39;UnknownType&#39;&quot;</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – A map of user type name to user type model</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="#chisel.SpecParserError" title="chisel.SpecParserError"><strong>SpecParserError</strong></a> – A validation error occurred</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
@@ -696,7 +671,7 @@ transformed during validation.</p>
 <dl class="py function">
 <dt id="chisel.get_type_model">
 <code class="sig-prename descclassname">chisel.</code><code class="sig-name descname">get_type_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chisel.get_type_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a copy of the Chisel type model types dict</p>
+<dd><p>Get a copy of the Chisel type model</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chisel</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">get_type_model</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>

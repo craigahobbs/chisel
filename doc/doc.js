@@ -17,21 +17,21 @@ const docPageTypes = {
                     'name': 'name',
                     'doc': 'Request name to render documentation. If not provided, the request index is displayed.',
                     'type': {'builtin': 'string'},
-                    'attr': {'len_gt': 0},
+                    'attr': {'lenGT': 0},
                     'optional': true
                 },
                 {
                     'name': 'types',
                     'doc': 'JSON user type model resource URL',
                     'type': {'builtin': 'string'},
-                    'attr': {'len_gt': 0},
+                    'attr': {'lenGT': 0},
                     'optional': true
                 },
                 {
                     'name': 'title',
                     'doc': 'The index page title',
                     'type': {'builtin': 'string'},
-                    'attr': {'len_gt': 0},
+                    'attr': {'lenGT': 0},
                     'optional': true
                 }
             ]
@@ -43,7 +43,7 @@ const docPageTypes = {
 /**
  * The Chisel documentation application
  *
- * @property {?string} typesUrl - The JSON type model resource URL, type model object, or null
+ * @property {?string} types - The type model object, JSON type model resource URL, or null
  * @property {?string} indexTitle - The index page title or null
  * @property {?Object} params - The parsed and validated hash parameters object
  */
@@ -51,11 +51,11 @@ export class DocPage {
     /**
      * Create a documentation application instance
      *
-     * @param {?string|Object} [typesUrl=null] - Optional JSON type model resource URL or type model object
+     * @param {?string|Object} [types=null] - Optional type model object or JSON type model resource URL
      * @param {?string} [indexTitle=null] - Optional index page title
      */
-    constructor(typesUrl = null, indexTitle = null) {
-        this.typesUrl = typesUrl;
+    constructor(types = null, indexTitle = null) {
+        this.types = types;
         this.indexTitle = indexTitle;
         this.params = null;
     }
@@ -63,13 +63,13 @@ export class DocPage {
     /**
      * Run the application
      *
-     * @param {?string|Object} [typesUrl=null] - Optional JSON type model resource URL or type model object
+     * @param {?string|Object} [types=null] - Optional type model object or JSON type model resource URL
      * @param {?string} [indexTitle=null] - Optional index page title
      * @returns {Object} Object meant to be passed to "runCleanup" for application shutdown
      */
-    static run(typesUrl = null, indexTitle = null) {
+    static run(types = null, indexTitle = null) {
         // Create the applicaton object and render
-        const docPage = new DocPage(typesUrl, indexTitle);
+        const docPage = new DocPage(types, indexTitle);
         docPage.render();
 
         // Add the hash parameters listener
@@ -120,27 +120,33 @@ export class DocPage {
         // Clear the page
         chisel.render(document.body);
 
-        // Types resource URL?
-        const typesUrl = 'types' in this.params ? this.params.types : (this.typesUrl !== null ? this.typesUrl : null);
-        if (typesUrl !== null) {
-            document.title = 'name' in this.params ? this.params.name : this.getIndexPageTitle();
+        // Compute the document title
+        let title;
+        if ('name' in this.params) {
+            title = this.params.name;
+        } else if ('types' in this.params) {
+            title = 'title' in this.params ? this.params.title : 'Index';
+        } else {
+            title = this.indexTitle !== null ? this.indexTitle : 'Index';
+        }
 
+        // Types resource URL?
+        const types = 'types' in this.params ? this.params.types : (this.types !== null ? this.types : null);
+        if (types !== null) {
             // Types object?
-            if (typeof typesUrl === 'object') {
-                chisel.render(document.body, this.typesPage(typesUrl, this.params.name));
-            } else {
+            if (typeof types === 'string') {
                 // Fetch the JSON type model
-                window.fetch(typesUrl).
+                window.fetch(types).
                     then((response) => response.json()).
                     then((response) => {
-                        chisel.render(document.body, this.typesPage(response, this.params.name));
+                        chisel.render(document.body, this.typesPage(response, title, this.params.name));
                     }).catch(() => {
                         chisel.render(document.body, DocPage.errorPage());
                     });
+            } else {
+                chisel.render(document.body, this.typesPage(types, title, this.params.name));
             }
         } else if ('name' in this.params) {
-            document.title = this.params.name;
-
             // Call the request API
             window.fetch(`doc_request?name=${this.params.name}`).
                 then((response) => response.json()).
@@ -154,13 +160,17 @@ export class DocPage {
             window.fetch('doc_index').
                 then((response) => response.json()).
                 then((response) => {
-                    document.title = this.getIndexPageTitle(response.title);
+                    if ('title' in response) {
+                        ({title} = response);
+                    }
                     chisel.render(document.body, this.indexPage(response));
                 }).catch(() => {
-                    document.title = this.getIndexPageTitle();
                     chisel.render(document.body, DocPage.errorPage());
                 });
         }
+
+        // Set the document title
+        document.title = title;
     }
 
     /**
@@ -180,11 +190,12 @@ export class DocPage {
      * Helper function to generate the user type's element hierarchy model
      *
      * @param {Object} types - The type model
+     * @param {string} title - The types page title
      * @param {?string} [typeName=null] - The type name
      * @returns {Array}
      */
-    typesPage(types, typeName = null) {
-        // Invalid type model?
+    typesPage(types, title, typeName = null) {
+        // Validate the type model
         try {
             chisel.validateTypes(types);
         } catch (error) {
@@ -203,7 +214,7 @@ export class DocPage {
 
         // Create the index response
         const index = {
-            'title': this.getIndexPageTitle(),
+            'title': title,
             'groups': {}
         };
 
@@ -217,20 +228,6 @@ export class DocPage {
         });
 
         return this.indexPage(index);
-    }
-
-    /**
-     * The index page title
-     */
-    getIndexPageTitle(title = null) {
-        if (title !== null) {
-            return title;
-        } else if ('title' in this.params) {
-            return this.params.title;
-        } else if (this.indexTitle !== null) {
-            return this.indexTitle;
-        }
-        return 'Index';
     }
 
     /**
@@ -343,9 +340,9 @@ export class DocPage {
         if (text !== null) {
             const lines = text.split('\n');
             let paragraph = [];
-            for (let iLine = 0; iLine < lines.length; iLine++) {
-                if (lines[iLine].length) {
-                    paragraph.push(lines[iLine]);
+            for (const line of lines) {
+                if (line.length) {
+                    paragraph.push(line);
                 } else if (paragraph.length) {
                     elems.push({'html': 'p', 'elem': {'text': paragraph.join('\n')}});
                     paragraph = [];
@@ -381,8 +378,8 @@ export class DocPage {
             return [this.typeElem(type.array.type), {'text': `${chisel.nbsp}[]`}];
         } else if ('dict' in type) {
             return [
-                !('key_type' in type.dict) || 'builtin' in type.dict ? null
-                    : [this.typeElem(type.dict.key_type), {'text': `${chisel.nbsp}:${chisel.nbsp}`}],
+                !('keyType' in type.dict) || 'builtin' in type.dict ? null
+                    : [this.typeElem(type.dict.keyType), {'text': `${chisel.nbsp}:${chisel.nbsp}`}],
                 this.typeElem(type.dict.type),
                 {'text': `${chisel.nbsp}{}`}
             ];
@@ -426,20 +423,20 @@ export class DocPage {
         if (attr !== null && 'eq' in attr) {
             parts.push({'lhs': typeName, 'op': '==', 'rhs': attr.eq});
         }
-        if (attr !== null && 'len_gt' in attr) {
-            parts.push({'lhs': `len(${typeName})`, 'op': '>', 'rhs': attr.len_gt});
+        if (attr !== null && 'lenGT' in attr) {
+            parts.push({'lhs': `len(${typeName})`, 'op': '>', 'rhs': attr.lenGT});
         }
-        if (attr !== null && 'len_gte' in attr) {
-            parts.push({'lhs': `len(${typeName})`, 'op': '>=', 'rhs': attr.len_gte});
+        if (attr !== null && 'lenGTE' in attr) {
+            parts.push({'lhs': `len(${typeName})`, 'op': '>=', 'rhs': attr.lenGTE});
         }
-        if (attr !== null && 'len_lt' in attr) {
-            parts.push({'lhs': `len(${typeName})`, 'op': '<', 'rhs': attr.len_lt});
+        if (attr !== null && 'lenLT' in attr) {
+            parts.push({'lhs': `len(${typeName})`, 'op': '<', 'rhs': attr.lenLT});
         }
-        if (attr !== null && 'len_lte' in attr) {
-            parts.push({'lhs': `len(${typeName})`, 'op': '<=', 'rhs': attr.len_lte});
+        if (attr !== null && 'lenLTE' in attr) {
+            parts.push({'lhs': `len(${typeName})`, 'op': '<=', 'rhs': attr.lenLTE});
         }
-        if (attr !== null && 'len_eq' in attr) {
-            parts.push({'lhs': `len(${typeName})`, 'op': '==', 'rhs': attr.len_eq});
+        if (attr !== null && 'lenEq' in attr) {
+            parts.push({'lhs': `len(${typeName})`, 'op': '==', 'rhs': attr.lenEq});
         }
 
         // Return the attributes element hierarchy model
