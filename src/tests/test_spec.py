@@ -381,8 +381,8 @@ action MyAction4
 ''')
         self.assertDictEqual(parser.types, {
             'MyAction': {'action': {'name': 'MyAction'}},
-            'MyAction2': {'action': {'doc_group': 'Stuff', 'name': 'MyAction2'}},
-            'MyAction3': {'action': {'doc_group': 'Other Stuff', 'name': 'MyAction3'}},
+            'MyAction2': {'action': {'docGroup': 'Stuff', 'name': 'MyAction2'}},
+            'MyAction3': {'action': {'docGroup': 'Other Stuff', 'name': 'MyAction3'}},
             'MyAction4': {'action': {'name': 'MyAction4'}}
         })
         self.assertListEqual(parser.errors, [])

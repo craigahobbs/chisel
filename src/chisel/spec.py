@@ -260,7 +260,7 @@ class SpecParser:
                 if action_doc is not None:
                     action['doc'] = action_doc
                 if doc_group is not None:
-                    action['doc_group'] = doc_group
+                    action['docGroup'] = doc_group
 
             # Definition?
             elif match_name == 'definition':
