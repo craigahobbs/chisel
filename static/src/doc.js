@@ -285,11 +285,8 @@ export class DocPage {
         } else {
             typesFilter = [request.name];
         }
-        const typesSorted =
+        const filteredTypes =
               Object.entries(referencedTypes).sort().filter(([name]) => !typesFilter.includes(name)).map(([, type]) => type);
-        const enums = typesSorted.filter((type) => 'enum' in type).map((type) => type.enum);
-        const structs = typesSorted.filter((type) => 'struct' in type).map((type) => type.struct);
-        const typedefs = typesSorted.filter((type) => 'typedef' in type).map((type) => type.typedef);
 
         return [
             // Navigation bar
@@ -303,26 +300,14 @@ export class DocPage {
             },
 
             // The user type
-            userType === null ? DocPage.requestElem(request) : this.userTypeElem(request.types, request.name, request.urls),
+            userType !== null
+                ? this.userTypeElem(request.types, request.name, request.urls, 'h1', request.name)
+                : DocPage.requestElem(request),
 
-            // Referenced typedefs
-            !typedefs.length ? null : [
-                {'html': 'h2', 'elem': {'text': 'Typedefs'}},
-                typedefs.map((typedef) => this.userTypeElem(request.types, typedef.name, null, 'h3', `typedef ${typedef.name}`))
-            ],
-
-            // Referenced structs
-            !structs.length ? null : [
-                {'html': 'h2', 'elem': {'text': 'Struct Types'}},
-                structs.map((struct) => this.userTypeElem(
-                    request.types, struct.name, null, 'h3', `${struct.union ? 'union' : 'struct'} ${struct.name}`
-                ))
-            ],
-
-            // Referenced enums
-            !enums.length ? null : [
-                {'html': 'h2', 'elem': {'text': 'Enum Types'}},
-                enums.map((enum_) => this.userTypeElem(request.types, enum_.name, null, 'h3', `enum ${enum_.name}`))
+            // Referenced types
+            !filteredTypes.length ? null : [
+                {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
+                filteredTypes.map((refType) => this.userTypeElem(request.types, Object.values(refType)[0].name, null, 'h3'))
             ]
         ];
     }
@@ -488,15 +473,15 @@ export class DocPage {
      * @param {?string} [title=null] - The section's title string
      * @returns {Array}
      */
-    userTypeElem(types, typeName, urls = null, titleTag = 'h1', title = null) {
+    userTypeElem(types, typeName, urls, titleTag, title = null) {
         const userType = types[typeName];
 
         // Generate the header element models
-        const titleElem = {
+        const titleElem = (titleDefault) => ({
             'html': titleTag,
             'attr': {'id': this.typeHref(typeName)},
-            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': title !== null ? title : typeName}}
-        };
+            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': title !== null ? title : titleDefault}}
+        });
 
         // Action?
         if ('action' in userType) {
@@ -517,7 +502,7 @@ export class DocPage {
             }
 
             return [
-                titleElem,
+                titleElem(`action ${typeName}`),
                 DocPage.textElem(action.doc),
                 DocPage.urlsNoteElem(actionUrls),
 
@@ -540,7 +525,7 @@ export class DocPage {
                 ? Object.fromEntries(members.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
             const hasDoc = members !== null && Object.values(memberDocElem).some((docElem) => docElem !== null);
             return [
-                titleElem,
+                titleElem('union' in struct && struct.union ? `union ${typeName}` : `struct ${typeName}`),
                 DocPage.textElem(struct.doc),
 
                 // Struct members
@@ -568,7 +553,7 @@ export class DocPage {
                 ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
             const hasDoc = values !== null && Object.values(valueDocElem).some((docElem) => docElem !== null);
             return [
-                titleElem,
+                titleElem(`enum ${typeName}`),
                 DocPage.textElem(enum_.doc),
 
                 // Enumeration values
@@ -589,7 +574,7 @@ export class DocPage {
             const {typedef} = userType;
             const attrElem = 'attr' in typedef ? DocPage.attrElem(typedef) : null;
             return [
-                titleElem,
+                titleElem(`typedef ${typeName}`),
                 DocPage.textElem(typedef.doc),
 
                 // Typedef type description

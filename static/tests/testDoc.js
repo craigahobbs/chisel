@@ -606,12 +606,12 @@ test('DocPage.userTypeElem, empty struct', (t) => {
         }
     };
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyStruct'),
+        docPage.userTypeElem(types, 'MyStruct', null, 'h1'),
         [
             {
                 'html': 'h1',
                 'attr': {'id': 'name=test&type_MyStruct'},
-                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyStruct'}}
+                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'struct MyStruct'}}
             },
             null,
             [
@@ -633,12 +633,12 @@ test('DocPage.userTypeElem, empty enum', (t) => {
         }
     };
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyEnum'),
+        docPage.userTypeElem(types, 'MyEnum', null, 'h1'),
         [
             {
                 'html': 'h1',
                 'attr': {'id': 'name=test&type_MyEnum'},
-                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyEnum'}}
+                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum MyEnum'}}
             },
             null,
             [
@@ -661,12 +661,12 @@ test('DocPage.userTypeElem, empty typedef', (t) => {
         }
     };
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyTypedef'),
+        docPage.userTypeElem(types, 'MyTypedef', null, 'h1'),
         [
             {
                 'html': 'h1',
                 'attr': {'id': 'name=test&type_MyTypedef'},
-                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyTypedef'}}
+                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'typedef MyTypedef'}}
             },
             null,
             {
@@ -710,12 +710,12 @@ test('DocPage.userTypeElem, empty action with URLs', (t) => {
         }
     };
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyAction'),
+        docPage.userTypeElem(types, 'MyAction', null, 'h1'),
         [
             {
                 'html': 'h1',
                 'attr': {'id': 'name=MyAction&type_MyAction'},
-                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyAction'}}
+                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'action MyAction'}}
             },
             null,
             {
@@ -743,12 +743,12 @@ test('DocPage.userTypeElem, empty action with URLs', (t) => {
         ]
     );
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyAction', [{'method': 'GET', 'url': '/my_action'}]),
+        docPage.userTypeElem(types, 'MyAction', [{'method': 'GET', 'url': '/my_action'}], 'h1'),
         [
             {
                 'html': 'h1',
                 'attr': {'id': 'name=MyAction&type_MyAction'},
-                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyAction'}}
+                'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'action MyAction'}}
             },
             null,
             {
@@ -782,7 +782,7 @@ test('DocPage.userTypeElem, unknown', (t) => {
         'MyTypedef': {}
     };
     t.deepEqual(
-        docPage.userTypeElem(types, 'MyTypedef'),
+        docPage.userTypeElem(types, 'MyTypedef', null, 'h1'),
         null
     );
 });
@@ -958,8 +958,6 @@ test('DocPage.typesPage, empty action', (t) => {
                 null,
                 null
             ],
-            null,
-            null,
             null
         ]
     );
@@ -994,8 +992,6 @@ test('DocPage.typesPage, empty struct', (t) => {
                     {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
                 ]
             ],
-            null,
-            null,
             null
         ]
     );
@@ -1135,8 +1131,28 @@ test('DocPage.typesPage, referenced types', (t) => {
                 ]}
             ],
             [
-                {'html': 'h2', 'elem': {'text': 'Typedefs'}},
+                {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
                 [
+                    [
+                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyEnumRef'}, 'elem': {
+                            'html': 'a',
+                            'attr': {'class': 'linktarget'},
+                            'elem': {'text': 'enum MyEnumRef'}
+                        }},
+                        null,
+                        [
+                            {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
+                        ]
+                    ],
+                    [
+                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyStructRef'}, 'elem': {
+                            'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'struct MyStructRef'}}
+                        },
+                        null,
+                        [
+                            {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
+                        ]
+                    ],
                     [
                         {'html': 'h3', 'attr': {'id': 'name=test&type_MyTypedefRef'}, 'elem': {
                             'html': 'a',
@@ -1154,36 +1170,6 @@ test('DocPage.typesPage, referenced types', (t) => {
                                 null
                             ]}
                         ]}
-                    ]
-                ]
-            ],
-            [
-                {'html': 'h2', 'elem': {'text': 'Struct Types'}},
-                [
-                    [
-                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyStructRef'}, 'elem': {
-                            'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'struct MyStructRef'}}
-                        },
-                        null,
-                        [
-                            {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
-                        ]
-                    ]
-                ]
-            ],
-            [
-                {'html': 'h2', 'elem': {'text': 'Enum Types'}},
-                [
-                    [
-                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyEnumRef'}, 'elem': {
-                            'html': 'a',
-                            'attr': {'class': 'linktarget'},
-                            'elem': {'text': 'enum MyEnumRef'}
-                        }},
-                        null,
-                        [
-                            {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
-                        ]
                     ]
                 ]
             ]
@@ -1215,8 +1201,6 @@ test('DocPage.requestPage, request', (t) => {
                     ]}
                 ]}
             ],
-            null,
-            null,
             null
         ]
     );
@@ -1238,8 +1222,6 @@ test('DocPage.requestPage, request with no doc or urls', (t) => {
                 null,
                 null
             ],
-            null,
-            null,
             null
         ]
     );
@@ -1836,8 +1818,54 @@ test('DocPage.requestPage', (t) => {
                 ]
             ],
             [
-                {'html': 'h2', 'elem': {'text': 'Typedefs'}},
+                {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
                 [
+                    [
+                        {
+                            'html': 'h3',
+                            'attr': {'id': 'name=MyAction&type_Enum1'},
+                            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum1'}}
+                        },
+                        [
+                            {'html': 'p', 'elem': {'text': ' An enum.'}}
+                        ],
+                        {'html': 'table', 'elem': [
+                            {'html': 'tr', 'elem': [
+                                {'html': 'th', 'elem': {'text': 'Value'}},
+                                {'html': 'th', 'elem': {'text': 'Description'}}
+                            ]},
+                            [
+                                {'html': 'tr', 'elem': [
+                                    {'html': 'td', 'elem': {'text': 'e1'}},
+                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': {'text': ' The Enum1 value "e1"'}}]}
+                                ]},
+                                {'html': 'tr', 'elem': [
+                                    {'html': 'td', 'elem': {'text': 'e2'}},
+                                    {'html': 'td', 'elem': [
+                                        {'html': 'p', 'elem': {'text': ' The Enum1 value "e 2"'}},
+                                        {'html': 'p', 'elem': {'text': ' More info.'}}
+                                    ]}
+                                ]}
+                            ]
+                        ]}
+                    ],
+                    [
+                        {
+                            'html': 'h3',
+                            'attr': {'id': 'name=MyAction&type_Enum2'},
+                            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum2'}}
+                        },
+                        [
+                            {'html': 'p', 'elem': {'text': ' Another enum.'}},
+                            {'html': 'p', 'elem': {'text': ' More info.'}}
+                        ],
+                        {'html': 'table', 'elem': [
+                            {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Value'}}, null]},
+                            [
+                                {'html': 'tr', 'elem': [{'html': 'td', 'elem': {'text': 'e3'}}, null]}
+                            ]
+                        ]}
+                    ],
                     [
                         {
                             'html': 'h3',
@@ -1897,12 +1925,7 @@ test('DocPage.requestPage', (t) => {
                                 ]}}
                             ]}
                         ]}
-                    ]
-                ]
-            ],
-            [
-                {'html': 'h2', 'elem': {'text': 'Struct Types'}},
-                [
+                    ],
                     [
                         {
                             'html': 'h3',
@@ -1970,57 +1993,6 @@ test('DocPage.requestPage', (t) => {
                                     null,
                                     null
                                 ]}
-                            ]
-                        ]}
-                    ]
-                ]
-            ],
-            [
-                {'html': 'h2', 'elem': {'text': 'Enum Types'}},
-                [
-                    [
-                        {
-                            'html': 'h3',
-                            'attr': {'id': 'name=MyAction&type_Enum1'},
-                            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum1'}}
-                        },
-                        [
-                            {'html': 'p', 'elem': {'text': ' An enum.'}}
-                        ],
-                        {'html': 'table', 'elem': [
-                            {'html': 'tr', 'elem': [
-                                {'html': 'th', 'elem': {'text': 'Value'}},
-                                {'html': 'th', 'elem': {'text': 'Description'}}
-                            ]},
-                            [
-                                {'html': 'tr', 'elem': [
-                                    {'html': 'td', 'elem': {'text': 'e1'}},
-                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': {'text': ' The Enum1 value "e1"'}}]}
-                                ]},
-                                {'html': 'tr', 'elem': [
-                                    {'html': 'td', 'elem': {'text': 'e2'}},
-                                    {'html': 'td', 'elem': [
-                                        {'html': 'p', 'elem': {'text': ' The Enum1 value "e 2"'}},
-                                        {'html': 'p', 'elem': {'text': ' More info.'}}
-                                    ]}
-                                ]}
-                            ]
-                        ]}
-                    ],
-                    [
-                        {
-                            'html': 'h3',
-                            'attr': {'id': 'name=MyAction&type_Enum2'},
-                            'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum2'}}
-                        },
-                        [
-                            {'html': 'p', 'elem': {'text': ' Another enum.'}},
-                            {'html': 'p', 'elem': {'text': ' More info.'}}
-                        ],
-                        {'html': 'table', 'elem': [
-                            {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Value'}}, null]},
-                            [
-                                {'html': 'tr', 'elem': [{'html': 'td', 'elem': {'text': 'e3'}}, null]}
                             ]
                         ]}
                     ]
