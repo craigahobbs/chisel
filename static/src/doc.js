@@ -380,17 +380,16 @@ export class DocPage {
      * @param {Object} type - The type model
      * @param {Object} attr - The attribute model
      * @param {boolean} optional - If true, the type has the optional attribute
-     * @param {boolean} nullable - If true, the type has the nullable attribute
      * @returns {(null|Array)}
      */
-    static attrElem({type, attr = null, optional = false, nullable = false}) {
+    static attrElem({type, attr = null, optional = false}) {
         // Create the array of attribute "parts" (lhs, op, rhs)
         const parts = [];
         const typeName = type.array ? 'array' : (type.dict ? 'dict' : 'value');
         if (optional) {
             parts.push({'lhs': 'optional'});
         }
-        if (nullable) {
+        if (attr !== null && 'nullable' in attr) {
             parts.push({'lhs': 'nullable'});
         }
         if (attr !== null && 'gt' in attr) {

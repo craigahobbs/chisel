@@ -355,6 +355,24 @@ test('chisel.validateTypes, invalid user type attribute', (t) => {
     t.is(errorMessage, "Invalid attribute '< 0' from 'MyTypedef'");
 });
 
+test('chisel.validateTypes, nullable user type', (t) => {
+    const types = {
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'MyStruct'},
+                'attr': {'nullable': true}
+            }
+        },
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct'
+            }
+        }
+    };
+    t.deepEqual(chisel.validateTypes(types), types);
+});
+
 test('chisel.validateTypes, typedef attributes', (t) => {
     const types = {
         'MyTypedef': {

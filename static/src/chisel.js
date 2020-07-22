@@ -457,13 +457,6 @@ function validateTypeHelper(types, type, value, memberFqn) {
             if (builtin === 'date') {
                 valueNew = new Date(valueNew.getFullYear(), valueNew.getMonth(), valueNew.getUTCDate());
             }
-
-        // object?
-        } else if (builtin === 'object') {
-            // null?
-            if (value === null) {
-                throwMemberError(type, value, memberFqn);
-            }
         }
 
     // array?
@@ -481,10 +474,11 @@ function validateTypeHelper(types, type, value, memberFqn) {
         const valueCopy = [];
         for (let ixArrayValue = 0; ixArrayValue < valueNew.length; ixArrayValue++) {
             const memberFqnValue = memberFqn !== null ? `${memberFqn}.${ixArrayValue}` : `${ixArrayValue}`;
-            const arrayValue = validateTypeHelper(types, arrayType, valueNew[ixArrayValue], memberFqnValue);
-            if ('attr' in array) {
-                validateAttr(arrayType, array.attr, arrayValue, memberFqnValue);
+            let arrayValue = valueNew[ixArrayValue];
+            if (arrayValue !== null) {
+                arrayValue = validateTypeHelper(types, arrayType, arrayValue, memberFqnValue);
             }
+            validateAttr(arrayType, 'attr' in array ? array.attr : null, arrayValue, memberFqnValue);
             valueCopy.push(arrayValue);
         }
 
@@ -497,31 +491,35 @@ function validateTypeHelper(types, type, value, memberFqn) {
         const {dict} = type;
         if (value === '') {
             valueNew = {};
-        } else if (value.constructor !== Object) {
+        } else if (typeof value !== 'object') {
             throwMemberError(type, value, memberFqn);
         }
 
         // Validate the dict key/value pairs
-        const valueCopy = {};
+        const valueCopy = valueNew instanceof Map ? new Map() : {};
         const dictKeyType = 'keyType' in dict ? dict.keyType : {'builtin': 'string'};
-        Object.keys(valueNew).forEach((dictKey) => {
+        for (let [dictKey, dictValue] of (valueNew instanceof Map ? valueNew.entries() : Object.entries(valueNew))) {
             const memberFqnKey = memberFqn !== null ? `${memberFqn}.${dictKey}` : `${dictKey}`;
 
             // Validate the key
-            validateTypeHelper(types, dictKeyType, dictKey, memberFqn);
-            if ('keyAttr' in dict) {
-                validateAttr(dictKeyType, dict.keyAttr, dictKey, memberFqn);
+            if (dictKey !== null) {
+                dictKey = validateTypeHelper(types, dictKeyType, dictKey, memberFqn);
             }
+            validateAttr(dictKeyType, 'keyAttr' in dict ? dict.keyAttr : null, dictKey, memberFqn);
 
             // Validate the value
-            const dictValue = validateTypeHelper(types, dict.type, valueNew[dictKey], memberFqnKey);
-            if ('attr' in dict) {
-                validateAttr(dict.type, dict.attr, dictValue, memberFqnKey);
+            if (dictValue !== null) {
+                dictValue = validateTypeHelper(types, dict.type, dictValue, memberFqnKey);
             }
+            validateAttr(dict.type, 'attr' in dict ? dict.attr : null, dictValue, memberFqnKey);
 
             // Copy the key/value
-            valueCopy[dictKey] = dictValue;
-        });
+            if (valueCopy instanceof Map) {
+                valueCopy.set(dictKey, dictValue);
+            } else {
+                valueCopy[dictKey] = dictValue;
+            }
+        }
 
         // Return the validated, transformed copy
         valueNew = valueCopy;
@@ -540,10 +538,10 @@ function validateTypeHelper(types, type, value, memberFqn) {
             const {typedef} = userType;
 
             // Validate the value
-            valueNew = validateTypeHelper(types, typedef.type, value, memberFqn);
-            if ('attr' in typedef) {
-                validateAttr(type, typedef.attr, valueNew, memberFqn);
+            if (value !== null) {
+                valueNew = validateTypeHelper(types, typedef.type, value, memberFqn);
             }
+            validateAttr(type, 'attr' in typedef ? typedef.attr : null, valueNew, memberFqn);
 
         // enum?
         } else if ('enum' in userType) {
@@ -574,43 +572,46 @@ function validateTypeHelper(types, type, value, memberFqn) {
             }
 
             // Validate the struct members
-            const valueCopy = {};
+            const valueCopy = valueNew instanceof Map ? new Map() : {};
             if ('members' in struct) {
                 for (const member of struct.members) {
                     const memberName = member.name;
                     const memberFqnMember = memberFqn !== null ? `${memberFqn}.${memberName}` : `${memberName}`;
                     const memberOptional = 'optional' in member ? member.optional : false;
-                    const memberNullable = 'nullable' in member ? member.nullable : false;
 
                     // Missing non-optional member?
-                    if (!(memberName in valueNew)) {
+                    if (!(valueNew instanceof Map ? valueNew.has(memberName) : memberName in valueNew)) {
                         if (!memberOptional && !isUnion) {
                             throw new Error(`Required member '${memberFqnMember}' missing`);
                         }
                     } else {
                         // Validate the member value
-                        let memberValue = valueNew[memberName];
-                        if (!(memberNullable && memberValue === null)) {
+                        let memberValue = valueNew instanceof Map ? valueNew.get(memberName) : valueNew[memberName];
+                        if (memberValue !== null) {
                             memberValue = validateTypeHelper(types, member.type, memberValue, memberFqnMember);
-                            if ('attr' in member) {
-                                validateAttr(member.type, member.attr, memberValue, memberFqnMember);
-                            }
                         }
+                        validateAttr(member.type, 'attr' in member ? member.attr : null, memberValue, memberFqnMember);
 
                         // Copy the validated member
-                        valueCopy[memberName] = memberValue;
+                        if (valueCopy instanceof Map) {
+                            valueCopy.set(memberName, memberValue);
+                        } else {
+                            valueCopy[memberName] = memberValue;
+                        }
                     }
                 }
             }
 
             // Any unknown members?
-            if (Object.keys(valueCopy).length !== Object.keys(valueNew).length) {
+            const valueCopyKeys = valueCopy instanceof Map ? Array.from(valueCopy.keys()) : Object.keys(valueCopy);
+            const valueNewKeys = valueNew instanceof Map ? Array.from(valueNew.keys()) : Object.keys(valueNew);
+            if (valueCopyKeys.length !== valueNewKeys.length) {
                 let unknownKey;
                 if ('members' in struct) {
                     const memberSet = new Set(struct.members.map((member) => member.name));
-                    [unknownKey] = Object.keys(valueNew).filter((key) => !memberSet.has(key));
+                    [unknownKey] = valueNewKeys.filter((key) => !memberSet.has(key));
                 } else {
-                    [unknownKey] = Object.keys(valueNew);
+                    [unknownKey] = valueNewKeys;
                 }
                 const unknownFqn = memberFqn !== null ? `${memberFqn}.${unknownKey}` : `${unknownKey}`;
                 throw new Error(`Unknown member '${unknownFqn.slice(0, 100)}'`);
@@ -650,7 +651,7 @@ function throwMemberError(type, value, memberFqn, attr = null) {
  * Attribute-validate a value using an attribute model
  *
  * @param {Object} type - The type object model
- * @param {Object} attr - The attribute model
+ * @param {?Object} attr - The attribute model
  * @param {Object} value - The value object to validate
  * @param {string} memberFqn - The fully-qualified member name
  * @throws {Error} Validation error string
@@ -658,42 +659,44 @@ function throwMemberError(type, value, memberFqn, attr = null) {
  * @ignore
  */
 function validateAttr(type, attr, value, memberFqn) {
-    const length = Array.isArray(value) || typeof value === 'string' ? value.length
-        : (typeof value === 'object' ? Object.keys(value).length : null);
-    const attrError = (attrKey, attrStr) => {
-        const attrValue = `${attr[attrKey]}`;
-        throwMemberError(type, value, memberFqn, `${attrStr} ${attrValue}`);
-    };
+    if (value === null) {
+        if (attr === null || ('nullable' in attr && !attr.nullable)) {
+            throwMemberError(type, value, memberFqn);
+        }
+    } else if (attr !== null) {
+        const length = Array.isArray(value) || typeof value === 'string' ? value.length
+            : (typeof value === 'object' ? Object.keys(value).length : null);
 
-    if ('eq' in attr && !(value === attr.eq)) {
-        attrError('eq', '==');
-    }
-    if ('lt' in attr && !(value < attr.lt)) {
-        attrError('lt', '<');
-    }
-    if ('lte' in attr && !(value <= attr.lte)) {
-        attrError('lte', '<=');
-    }
-    if ('gt' in attr && !(value > attr.gt)) {
-        attrError('gt', '>');
-    }
-    if ('gte' in attr && !(value >= attr.gte)) {
-        attrError('gte', '>=');
-    }
-    if ('lenEq' in attr && !(length === attr.lenEq)) {
-        attrError('lenEq', 'len ==');
-    }
-    if ('lenLT' in attr && !(length < attr.lenLT)) {
-        attrError('lenLT', 'len <');
-    }
-    if ('lenLTE' in attr && !(length <= attr.lenLTE)) {
-        attrError('lenLTE', 'len <=');
-    }
-    if ('lenGT' in attr && !(length > attr.lenGT)) {
-        attrError('lenGT', 'len >');
-    }
-    if ('lenGTE' in attr && !(length >= attr.lenGTE)) {
-        attrError('lenGTE', 'len >=');
+        if ('eq' in attr && !(value === attr.eq)) {
+            throwMemberError(type, value, memberFqn, `== ${attr.eq}`);
+        }
+        if ('lt' in attr && !(value < attr.lt)) {
+            throwMemberError(type, value, memberFqn, `< ${attr.lt}`);
+        }
+        if ('lte' in attr && !(value <= attr.lte)) {
+            throwMemberError(type, value, memberFqn, `<= ${attr.lte}`);
+        }
+        if ('gt' in attr && !(value > attr.gt)) {
+            throwMemberError(type, value, memberFqn, `> ${attr.gt}`);
+        }
+        if ('gte' in attr && !(value >= attr.gte)) {
+            throwMemberError(type, value, memberFqn, `>= ${attr.gte}`);
+        }
+        if ('lenEq' in attr && !(length === attr.lenEq)) {
+            throwMemberError(type, value, memberFqn, `len == ${attr.lenEq}`);
+        }
+        if ('lenLT' in attr && !(length < attr.lenLT)) {
+            throwMemberError(type, value, memberFqn, `len < ${attr.lenLT}`);
+        }
+        if ('lenLTE' in attr && !(length <= attr.lenLTE)) {
+            throwMemberError(type, value, memberFqn, `len <= ${attr.lenLTE}`);
+        }
+        if ('lenGT' in attr && !(length > attr.lenGT)) {
+            throwMemberError(type, value, memberFqn, `len > ${attr.lenGT}`);
+        }
+        if ('lenGTE' in attr && !(length >= attr.lenGTE)) {
+            throwMemberError(type, value, memberFqn, `len >= ${attr.lenGTE}`);
+        }
     }
 }
 
@@ -985,6 +988,7 @@ function validateTypesType(errors, types, type, attr, typeName, memberName) {
         const typeAttrKey = typeKey === 'builtin' ? typeEffective[typeKey] : typeKey;
         const allowedAttr = typeAttrKey in typeToAllowedAttr ? typeToAllowedAttr[typeAttrKey] : null;
         const disallowedAttr = Object.fromEntries(Object.keys(attr).map((attrKey) => [attrKey, null]));
+        delete disallowedAttr.nullable;
         if (allowedAttr !== null) {
             for (const attrKey of allowedAttr) {
                 delete disallowedAttr[attrKey];
@@ -1109,6 +1113,12 @@ const typeModel = {
             'name': 'Attributes',
             'doc': ' A type or member@s attributes',
             'members': [
+                {
+                    'name': 'nullable',
+                    'doc': ' If true, the value may be null',
+                    'type': {'builtin': 'bool'},
+                    'optional': true
+                },
                 {
                     'name': 'eq',
                     'doc': ' The value is equal',
@@ -1350,12 +1360,6 @@ const typeModel = {
                 {
                     'name': 'optional',
                     'doc': ' If true, the member is optional and may not be present',
-                    'type': {'builtin': 'bool'},
-                    'optional': true
-                },
-                {
-                    'name': 'nullable',
-                    'doc': ' If true, the member may be null',
                     'type': {'builtin': 'bool'},
                     'optional': true
                 }

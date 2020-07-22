@@ -635,8 +635,8 @@ action my_action
         string(len > 0) : string(len > 1){} m14
         IntDict m15
         optional float m16
-        nullable string m17
-        optional nullable bool m18
+        string(nullable) m17
+        optional bool(nullable) m18
         optional int m19
 '''))
 
@@ -680,8 +680,8 @@ action my_action
                                                               'keyAttr': {'lenGT': 0}, 'keyType': {'builtin': 'string'}}}},
                             {'name': 'm15', 'type': {'user': 'IntDict'}},
                             {'name': 'm16', 'optional': True, 'type': {'builtin': 'float'}},
-                            {'name': 'm17', 'nullable': True, 'type': {'builtin': 'string'}},
-                            {'name': 'm18', 'nullable': True, 'optional': True, 'type': {'builtin': 'bool'}},
+                            {'name': 'm17', 'type': {'builtin': 'string'}, 'attr': {'nullable': True}},
+                            {'name': 'm18', 'optional': True, 'type': {'builtin': 'bool'}, 'attr': {'nullable': True}},
                             {'name': 'm19', 'optional': True, 'type': {'builtin': 'int'}}
                         ]
                     }

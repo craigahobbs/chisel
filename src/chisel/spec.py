@@ -15,7 +15,8 @@ from .schema import get_effective_type, validate_types_errors
 # Spec language regex
 RE_PART_ID = r'(?:[A-Za-z]\w*)'
 RE_PART_ATTR_GROUP = \
-    r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
+    r'(?:(?P<nullable>nullable)' \
+    r'|(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
     r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
 RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', RE_PART_ATTR_GROUP)
 RE_PART_ATTRS = r'(?:' + RE_PART_ATTR + r'(?:\s*,\s*' + RE_PART_ATTR + r')*)'
@@ -44,7 +45,7 @@ RE_PART_TYPEDEF = \
     r')' \
     r'\s+(?P<id>' + RE_PART_ID + r')'
 RE_TYPEDEF = re.compile(r'^typedef\s+' + RE_PART_TYPEDEF + r'\s*$')
-RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + RE_PART_TYPEDEF + r'\s*$')
+RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?' + RE_PART_TYPEDEF + r'\s*$')
 RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
 
@@ -367,7 +368,6 @@ class SpecParser:
             # Struct member?
             elif match_name == 'member':
                 optional = match.group('optional') is not None
-                nullable = match.group('nullable') is not None
                 member_name = match.group('id')
 
                 # Add the member
@@ -387,8 +387,6 @@ class SpecParser:
                     member['doc'] = member_doc
                 if optional:
                     member['optional'] = True
-                if nullable:
-                    member['nullable'] = True
 
                 # Record finalization information
                 self._filepos[(struct['name'], member_name)] = (filename, linenum)
@@ -515,7 +513,9 @@ class SpecParser:
                 attr_op = match_attr.group('op')
                 attr_length_op = match_attr.group('lop') if attr_op is None else None
 
-                if attr_op is not None:
+                if match_attr.group('nullable') is not None:
+                    attrs['nullable'] = True
+                elif attr_op is not None:
                     attr_value = float(match_attr.group('opnum'))
                     if attr_op == '<':
                         attrs['lt'] = attr_value

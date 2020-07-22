@@ -314,13 +314,6 @@ def _validate_type(types, type_, value, member_fqn=None):
             elif not isinstance(value, UUID):
                 raise _member_error(type_, value, member_fqn)
 
-        # object?
-        elif builtin == 'object':
-
-            # None?
-            if value is None:
-                raise _member_error(type_, value, member_fqn)
-
     # array?
     elif 'array' in type_:
 
@@ -336,9 +329,9 @@ def _validate_type(types, type_, value, member_fqn=None):
         value_copy = []
         for ix_array_value, array_value in enumerate(value_new):
             member_fqn_value = f'{ix_array_value}' if member_fqn is None else f'{member_fqn}.{ix_array_value}'
-            array_value = _validate_type(types, array_type, array_value, member_fqn_value)
-            if 'attr' in array:
-                _validate_attr(array_type, array['attr'], array_value, member_fqn_value)
+            if array_value is not None:
+                array_value = _validate_type(types, array_type, array_value, member_fqn_value)
+            _validate_attr(array_type, array.get('attr'), array_value, member_fqn_value)
             value_copy.append(array_value)
 
         # Return the validated, transformed copy
@@ -361,14 +354,14 @@ def _validate_type(types, type_, value, member_fqn=None):
             member_fqn_key = dict_key if member_fqn is None else f'{member_fqn}.{dict_key}'
 
             # Validate the key
-            _validate_type(types, dict_key_type, dict_key, member_fqn)
-            if 'keyAttr' in dict_:
-                _validate_attr(dict_key_type, dict_['keyAttr'], dict_key, member_fqn)
+            if dict_key is not None:
+                dict_key = _validate_type(types, dict_key_type, dict_key, member_fqn)
+            _validate_attr(dict_key_type, dict_.get('keyAttr'), dict_key, member_fqn)
 
             # Validate the value
-            dict_value = _validate_type(types, dict_['type'], dict_value, member_fqn_key)
-            if 'attr' in dict_:
-                _validate_attr(dict_['type'], dict_['attr'], dict_value, member_fqn_key)
+            if dict_value is not None:
+                dict_value = _validate_type(types, dict_['type'], dict_value, member_fqn_key)
+            _validate_attr(dict_['type'], dict_.get('attr'), dict_value, member_fqn_key)
 
             # Copy the key/value
             value_copy[dict_key] = dict_value
@@ -389,9 +382,9 @@ def _validate_type(types, type_, value, member_fqn=None):
             typedef = user_type['typedef']
 
             # Validate the value
-            value_new = _validate_type(types, typedef['type'], value, member_fqn)
-            if 'attr' in typedef:
-                _validate_attr(type_, typedef['attr'], value_new, member_fqn)
+            if value is not None:
+                value_new = _validate_type(types, typedef['type'], value, member_fqn)
+            _validate_attr(type_, typedef.get('attr'), value_new, member_fqn)
 
         # enum?
         elif 'enum' in user_type:
@@ -424,7 +417,6 @@ def _validate_type(types, type_, value, member_fqn=None):
                     member_name = member['name']
                     member_fqn_member = member_name if member_fqn is None else f'{member_fqn}.{member_name}'
                     member_optional = member.get('optional', False)
-                    member_nullable = member.get('nullable', False)
 
                     # Missing non-optional member?
                     if member_name not in value_new:
@@ -433,10 +425,9 @@ def _validate_type(types, type_, value, member_fqn=None):
                     else:
                         # Validate the member value
                         member_value = value_new[member_name]
-                        if not (member_nullable and member_value is None):
+                        if member_value is not None:
                             member_value = _validate_type(types, member['type'], member_value, member_fqn_member)
-                            if 'attr' in member:
-                                _validate_attr(member['type'], member['attr'], member_value, member_fqn_member)
+                        _validate_attr(member['type'], member.get('attr'), member_value, member_fqn_member)
 
                         # Copy the validated member
                         value_copy[member_name] = member_value
@@ -467,31 +458,30 @@ def _member_error(type_, value, member_fqn, attr=None):
 
 
 def _validate_attr(type_, attr, value, member_fqn):
-
-    def attr_error(attr_key, attr_str):
-        attr_value = f'{attr[attr_key]:.6f}'.rstrip('0').rstrip('.')
-        raise _member_error(type_, value, member_fqn, f'{attr_str} {attr_value}')
-
-    if 'eq' in attr and not value == attr['eq']:
-        attr_error('eq', '==')
-    if 'lt' in attr and not value < attr['lt']:
-        attr_error('lt', '<')
-    if 'lte' in attr and not value <= attr['lte']:
-        attr_error('lte', '<=')
-    if 'gt' in attr and not value > attr['gt']:
-        attr_error('gt', '>')
-    if 'gte' in attr and not value >= attr['gte']:
-        attr_error('gte', '>=')
-    if 'lenEq' in attr and not len(value) == attr['lenEq']:
-        attr_error('lenEq', 'len ==')
-    if 'lenLT' in attr and not len(value) < attr['lenLT']:
-        attr_error('lenLT', 'len <')
-    if 'lenLTE' in attr and not len(value) <= attr['lenLTE']:
-        attr_error('lenLTE', 'len <=')
-    if 'lenGT' in attr and not len(value) > attr['lenGT']:
-        attr_error('lenGT', 'len >')
-    if 'lenGTE' in attr and not len(value) >= attr['lenGTE']:
-        attr_error('lenGTE', 'len >=')
+    if value is None:
+        if attr is None or ('nullable' in attr and not attr['nullable']):
+            raise _member_error(type_, value, member_fqn)
+    elif attr is not None:
+        if 'eq' in attr and not value == attr['eq']:
+            raise _member_error(type_, value, member_fqn, f'== {attr["eq"]}')
+        if 'lt' in attr and not value < attr['lt']:
+            raise _member_error(type_, value, member_fqn, f'< {attr["lt"]}')
+        if 'lte' in attr and not value <= attr['lte']:
+            raise _member_error(type_, value, member_fqn, f'<= {attr["lte"]}')
+        if 'gt' in attr and not value > attr['gt']:
+            raise _member_error(type_, value, member_fqn, f'> {attr["gt"]}')
+        if 'gte' in attr and not value >= attr['gte']:
+            raise _member_error(type_, value, member_fqn, f'>= {attr["gte"]}')
+        if 'lenEq' in attr and not len(value) == attr['lenEq']:
+            raise _member_error(type_, value, member_fqn, f'len == {attr["lenEq"]}')
+        if 'lenLT' in attr and not len(value) < attr['lenLT']:
+            raise _member_error(type_, value, member_fqn, f'len < {attr["lenLT"]}')
+        if 'lenLTE' in attr and not len(value) <= attr['lenLTE']:
+            raise _member_error(type_, value, member_fqn, f'len <= {attr["lenLTE"]}')
+        if 'lenGT' in attr and not len(value) > attr['lenGT']:
+            raise _member_error(type_, value, member_fqn, f'len > {attr["lenGT"]}')
+        if 'lenGTE' in attr and not len(value) >= attr['lenGTE']:
+            raise _member_error(type_, value, member_fqn, f'len >= {attr["lenGTE"]}')
 
 
 def validate_types(types):
@@ -726,6 +716,7 @@ def _validate_types_type(errors, types, type_, attr, type_name, member_name):
         type_key = next(iter(type_effective.keys()), None)
         allowed_attr = _TYPE_TO_ALLOWED_ATTR.get(type_effective[type_key] if type_key == 'builtin' else type_key)
         disallowed_attr = set(attr)
+        disallowed_attr.discard('nullable')
         if allowed_attr is not None:
             disallowed_attr -= allowed_attr
         if disallowed_attr:
@@ -843,6 +834,12 @@ _TYPE_MODEL = {
             'name': 'Attributes',
             'doc': ' A type or member@s attributes',
             'members': [
+                {
+                    'name': 'nullable',
+                    'doc': ' If true, the value may be null',
+                    'type': {'builtin': 'bool'},
+                    'optional': True
+                },
                 {
                     'name': 'eq',
                     'doc': ' The value is equal',
@@ -1084,12 +1081,6 @@ _TYPE_MODEL = {
                 {
                     'name': 'optional',
                     'doc': ' If true, the member is optional and may not be present',
-                    'type': {'builtin': 'bool'},
-                    'optional': True
-                },
-                {
-                    'name': 'nullable',
-                    'doc': ' If true, the member may be null',
                     'type': {'builtin': 'bool'},
                     'optional': True
                 }

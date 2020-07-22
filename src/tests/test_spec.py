@@ -91,7 +91,7 @@ struct MyStruct2
     int a
     optional \\
         float b
-    nullable string \\
+    string(nullable) \\
         c
     bool d
     int[] e
@@ -100,7 +100,7 @@ struct MyStruct2
     optional datetime h
     optional uuid i
     optional MyEnum : MyStruct{} j
-    optional nullable date k
+    optional date(nullable) k
     optional object l
 
 # This is a union
@@ -267,7 +267,7 @@ action MyAction4 \\
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'float'}},
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'string'}},
+                        {'name': 'c', 'type': {'builtin': 'string'}, 'attr': {'nullable': True}},
                         {'name': 'd', 'type': {'builtin': 'bool'}},
                         {'name': 'e', 'type': {'array': {'type': {'builtin': 'int'}}}},
                         {'name': 'f', 'optional': True, 'type': {'array': {'type': {'user': 'MyStruct'}}}},
@@ -276,7 +276,7 @@ action MyAction4 \\
                         {'name': 'i', 'optional': True, 'type': {'builtin': 'uuid'}},
                         {'name': 'j', 'optional': True,
                          'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}},
-                        {'name': 'k', 'nullable': True, 'optional': True, 'type': {'builtin': 'date'}},
+                        {'name': 'k', 'optional': True, 'type': {'builtin': 'date'}, 'attr': {'nullable': True}},
                         {'name': 'l', 'optional': True, 'type': {'builtin': 'object'}}
                     ]
                 }
@@ -827,15 +827,68 @@ struct MyStruct2
         })
         self.assertListEqual(parser.errors, [])
 
-    def test_invalid_nullable_order(self):
-
-        with self.assertRaises(SpecParserError) as cm_exc:
-            SpecParser('''\
+    def test_nullable(self):
+        parser = SpecParser('''\
 struct MyStruct
-    nullable optional int a
+    int(nullable) a
+    float[nullable] b
+    float(nullable)[nullable] c
+    bool{nullable} d
+    bool(nullable){nullable} e
+    string(nullable) : date{} f
+
+typedef string(nullable) MyTypedef
 ''')
-        self.assertEqual(str(cm_exc.exception), '''\
-:2: error: Syntax error''')
+        self.assertDictEqual(parser.types, {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct',
+                    'members': [
+                        {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'nullable': True}},
+                        {'name': 'b', 'type': {'array': {'type': {'builtin': 'float'}}}, 'attr': {'nullable': True}},
+                        {
+                            'name': 'c',
+                            'type': {'array': {'type': {'builtin': 'float'}, 'attr': {'nullable': True}}},
+                            'attr': {'nullable': True}
+                        },
+                        {'name': 'd', 'type': {'dict': {'type': {'builtin': 'bool'}}}, 'attr': {'nullable': True}},
+                        {
+                            'name': 'e',
+                            'type': {'dict': {'type': {'builtin': 'bool'}, 'attr': {'nullable': True}}},
+                            'attr': {'nullable': True}
+                        },
+                        {'name': 'f',
+                         'type': {
+                             'dict': {
+                                 'type': {'builtin': 'date'},
+                                 'keyType': {'builtin': 'string'},
+                                 'keyAttr': {'nullable': True}
+                             }
+                         }
+                        }
+                    ],
+                }
+            },
+            'MyTypedef': {
+                'typedef': {'name': 'MyTypedef', 'type': {'builtin': 'string'}, 'attr': {'nullable': True}}
+            }
+        })
+
+    def test_nullable_with_attr(self):
+        parser = SpecParser('''\
+struct MyStruct
+    int(nullable, > 0) a
+''')
+        self.assertDictEqual(parser.types, {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct',
+                    'members': [
+                        {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0.0, 'nullable': True}},
+                    ]
+                }
+            }
+        })
 
     def test_invalid_attr(self):
         parser = SpecParser()
@@ -1666,7 +1719,7 @@ struct Foo
     optional string b
 
 struct Bonk
-    nullable float c
+    float(nullable) c
 
 typedef Bonk Bar
 
@@ -1697,7 +1750,7 @@ action BarAction
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'string'}},
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}},
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}},
                         {'name': 'd', 'type': {'builtin': 'datetime'}}
                     ]
                 }
@@ -1706,7 +1759,7 @@ action BarAction
                 'struct': {
                     'name': 'Bonk',
                     'members': [
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}}
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}}
                     ]
                 }
             },
@@ -1787,7 +1840,7 @@ struct Foo
     optional string b
 
 struct Bonk
-    nullable float c
+    float(nullable) c
 
 typedef Bonk Bar
 
@@ -1818,7 +1871,7 @@ action BarAction
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'string'}},
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}},
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}},
                         {'name': 'd', 'type': {'builtin': 'datetime'}}
                     ]
                 }
@@ -1827,7 +1880,7 @@ action BarAction
                 'struct': {
                     'name': 'Bonk',
                     'members': [
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}}
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}}
                     ]
                 }
             },
@@ -1908,7 +1961,7 @@ struct Foo
     optional string b
 
 struct Bonk
-    nullable float c
+    float(nullable) c
 
 typedef Bonk Bar
 
@@ -1939,7 +1992,7 @@ action BarAction
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'string'}},
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}},
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}},
                         {'name': 'd', 'type': {'builtin': 'datetime'}}
                     ]
                 }
@@ -1948,7 +2001,7 @@ action BarAction
                 'struct': {
                     'name': 'Bonk',
                     'members': [
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}}
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}}
                     ]
                 }
             },
@@ -2070,7 +2123,7 @@ struct Foo
     optional string b
 
 struct Bonk
-    nullable float c
+    float(nullable) c
 
 typedef Bonk Bar
 
@@ -2101,7 +2154,7 @@ action BarAction
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'string'}},
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}},
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}},
                         {'name': 'd', 'type': {'builtin': 'datetime'}}
                     ]
                 }
@@ -2110,7 +2163,7 @@ action BarAction
                 'struct': {
                     'name': 'Bonk',
                     'members': [
-                        {'name': 'c', 'nullable': True, 'type': {'builtin': 'float'}}
+                        {'name': 'c', 'type': {'builtin': 'float'}, 'attr': {'nullable': True}}
                     ]
                 }
             },

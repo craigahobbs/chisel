@@ -1304,14 +1304,13 @@ test('DocPage.requestPage', (t) => {
                     'name': 'MyAction_input',
                     'members': [
                         {'name': 'ia', 'optional': true, 'type': {'builtin': 'int'}},
-                        {'name': 'ib', 'nullable': true, 'type': {'builtin': 'float'}},
-                        {'name': 'ic', 'nullable': true, 'optional': true, 'type': {'builtin': 'string'}},
+                        {'name': 'ib', 'type': {'builtin': 'float'}, 'attr': {'nullable': true}},
+                        {'name': 'ic', 'optional': true, 'type': {'builtin': 'string'}, 'attr': {'nullable': true}},
                         {
                             'name': 'id',
-                            'nullable': true,
                             'optional': true,
                             'type': {'array': {'attr': {'lenGT': 5}, 'type': {'builtin': 'string'}}},
-                            'attr': {'lenGT': 0}
+                            'attr': {'nullable': true, 'lenGT': 0}
                         }
                     ]
                 }

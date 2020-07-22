@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-NODE_IMAGE ?= node:14
+NODE_IMAGE ?= node:14-slim
 NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
 
 build/npm.install:
