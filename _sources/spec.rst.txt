@@ -123,7 +123,7 @@ Structure definitions contain zero or more member definitions. Member definition
 ...     optional float c
 ...
 ...     # An optional, nullable member - value may be null
-...     optional nullable string d
+...     optional string(nullable) d
 ...
 ...     # An array member
 ...     bool[] e
