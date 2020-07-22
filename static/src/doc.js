@@ -472,7 +472,7 @@ export class DocPage {
      * @param {?string} [title=null] - The section's title string
      * @returns {Array}
      */
-    userTypeElem(types, typeName, urls, titleTag, title = null) {
+    userTypeElem(types, typeName, urls, titleTag, title = null, introMarkdown = null) {
         const userType = types[typeName];
 
         // Generate the header element models
@@ -510,7 +510,24 @@ export class DocPage {
                 'query' in action ? this.userTypeElem(types, action.query, null, 'h2', 'Query Parameters') : null,
                 'input' in action ? this.userTypeElem(types, action.input, null, 'h2', 'Input Parameters') : null,
                 'output' in action ? this.userTypeElem(types, action.output, null, 'h2', 'Output Parameters') : null,
-                'errors' in action ? this.userTypeElem(types, action.errors, null, 'h2', 'Error Codes') : null
+                'errors' in action
+                    ? this.userTypeElem(
+                        types,
+                        action.errors,
+                        null,
+                        'h2',
+                        'Error Codes',
+                        `\
+If an application error occurs, the response is of the form:
+
+    {
+        "error": "<code>",
+        "message": "<message>"
+    }
+
+"message" is optional. "<code>" is one of the following values:`
+                    )
+                    : null
             ];
 
         // Struct?
@@ -554,6 +571,7 @@ export class DocPage {
             return [
                 titleElem(`enum ${typeName}`),
                 DocPage.textElem(enum_.doc),
+                introMarkdown !== null ? DocPage.textElem(introMarkdown) : null,
 
                 // Enumeration values
                 !values || !values.length ? DocPage.textElem('The enum is empty.') : {'html': 'table', 'elem': [

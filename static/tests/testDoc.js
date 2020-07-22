@@ -641,6 +641,7 @@ test('DocPage.userTypeElem, empty enum', (t) => {
                 'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum MyEnum'}}
             },
             null,
+            null,
             [
                 {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
             ]
@@ -1139,6 +1140,7 @@ test('DocPage.typesPage, referenced types', (t) => {
                             'attr': {'class': 'linktarget'},
                             'elem': {'text': 'enum MyEnumRef'}
                         }},
+                        null,
                         null,
                         [
                             {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
@@ -1805,6 +1807,20 @@ test('DocPage.requestPage', (t) => {
                         'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'Error Codes'}}
                     },
                     null,
+                    [
+                        {
+                            'html': 'p',
+                            'elem': {'text': 'If an application error occurs, the response is of the form:'}
+                        },
+                        {
+                            'html': 'p',
+                            'elem': {'text': '    {\n        "error": "<code>",\n        "message": "<message>"\n    }'}
+                        },
+                        {
+                            'html': 'p',
+                            'elem': {'text': '"message" is optional. "<code>" is one of the following values:'}
+                        }
+                    ],
                     {
                         'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Value'}}, null]},
@@ -1828,6 +1844,7 @@ test('DocPage.requestPage', (t) => {
                         [
                             {'html': 'p', 'elem': {'text': ' An enum.'}}
                         ],
+                        null,
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [
                                 {'html': 'th', 'elem': {'text': 'Value'}},
@@ -1858,6 +1875,7 @@ test('DocPage.requestPage', (t) => {
                             {'html': 'p', 'elem': {'text': ' Another enum.'}},
                             {'html': 'p', 'elem': {'text': ' More info.'}}
                         ],
+                        null,
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Value'}}, null]},
                             [
