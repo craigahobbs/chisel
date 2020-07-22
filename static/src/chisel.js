@@ -6,14 +6,15 @@ export const nbsp = String.fromCharCode(160);
 
 
 /**
- * Render a document element hierarchy model
+ * Render an element model
  *
  * @param {Element} parent - The parent element to render within
- * @param {?(Object|Array)} [elements=null] - The element heirarchy model.
- *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
+ * @param {?(Object|Array)} [elements=null] - The element model.
+ *     An element model is either null, an element object, or an array of any of these.
  * @param {boolean} [clear=true] - If true, empty parent before rendering
  */
 export function render(parent, elements = null, clear = true) {
+    validateElements(elements);
     if (clear) {
         parent.innerHTML = '';
     }
@@ -25,8 +26,8 @@ export function render(parent, elements = null, clear = true) {
  * Helper function to create an Element object and append it to the given parent Element object
  *
  * @param {Element} parent - The parent document element
- * @param {?(Object|Array)} elements - The element heirarchy model.
- *     An element hierarchy model is either null, a chisel.js element object, or an array of any of these.
+ * @param {?(Object|Array)} elements - The element model.
+ *     An element model is either null, an element object, or an array of any of these.
  *
  * @ignore
  */
@@ -49,7 +50,7 @@ function renderElements(parent, elements) {
         }
 
         // Add attributes, if any, to the newly created element
-        if ('attr' in element) {
+        if ('attr' in element && element.attr !== null) {
             for (const [attr, value] of Object.entries(element.attr)) {
                 // Skip null values as well as the special "_callback" attribute
                 if (attr !== '_callback' && value !== null) {
@@ -72,6 +73,116 @@ function renderElements(parent, elements) {
         parent.appendChild(browserElement);
     }
 }
+
+
+/**
+ * Validate an element model
+ *
+ * @param {?(Object|Array)} elements - The element model.
+ *     An element model is either null, an element object, or an array of any of these.
+ * @throws {Error} Validation error string
+ */
+export function validateElements(elements) {
+    // Array?
+    if (Array.isArray(elements)) {
+        // Validate the sub-elements
+        for (const subElements of elements) {
+            validateElements(subElements);
+        }
+
+    // Non-null?
+    } else if (elements !== null) {
+        // Validation error exception helper function
+        const throwValueError = (message, value) => {
+            throw new Error(`${message} ${JSON.stringify(value).slice(0, 100)} (type '${typeof value}')`);
+        };
+
+        // Non-object?
+        if (typeof elements !== 'object') {
+            throwValueError('Invalid element', elements);
+        }
+
+        // Validate the element model
+        validateType(elementTypes, 'Element', elements);
+
+        // Text?
+        if ('text' in elements) {
+            // Text elements don't have attributes or children
+            if ('attr' in elements) {
+                throwValueError('Invalid text element member "attr"', elements.text);
+            }
+            if ('elem' in elements) {
+                throwValueError('Invalid text element member "elem"', elements.text);
+            }
+
+        // HTML or SVG?
+        } else if ('html' in elements || 'svg' in elements) {
+            // Validate attribute values
+            if ('attr' in elements) {
+                for (const [attrKey, attrValue] of Object.entries(elements.attr)) {
+                    // Validate creation callback
+                    if (attrKey === '_callback') {
+                        if (attrValue !== null && typeof attrValue !== 'function') {
+                            throwValueError('Invalid element attribute callback', attrValue);
+                        }
+
+                    // Validate attribute value
+                    } else if (attrValue !== null && typeof attrValue !== 'string') {
+                        throwValueError('Invalid element attribute value', attrValue);
+                    }
+                }
+            }
+
+            // Validate the sub-elements
+            if ('elem' in elements) {
+                validateElements(elements.elem);
+            }
+        } else {
+            throwValueError('Missing element key', elements);
+        }
+    }
+}
+
+
+// The element model
+const elementTypes = {
+    'Element': {
+        'struct': {
+            'name': 'Element',
+            'members': [
+                {
+                    'name': 'html',
+                    'type': {'builtin': 'string'},
+                    'attr': {'lenGT': 0, 'lenLT': 100},
+                    'optional': true
+                },
+                {
+                    'name': 'svg',
+                    'type': {'builtin': 'string'},
+                    'attr': {'lenGT': 0, 'lenLT': 100},
+                    'optional': true
+                },
+                {
+                    'name': 'text',
+                    'type': {'builtin': 'string'},
+                    'optional': true
+                },
+                {
+                    'name': 'attr',
+                    'type': {'dict': {'type': {'builtin': 'object'}, 'attr': {'nullable': true}, 'keyAttr': {'lenGT': 0, 'lenLT': 100}}},
+                    'attr': {'nullable': true},
+                    'optional': true
+                },
+                {
+                    'name': 'elem',
+                    'type': {'builtin': 'object'},
+                    'attr': {'nullable': true},
+                    'optional': true
+                }
+            ]
+        }
+    }
+};
 
 
 /**
@@ -644,7 +755,7 @@ function throwMemberError(type, value, memberFqn, attr = null) {
     const memberPart = memberFqn !== null ? ` for member '${memberFqn}'` : '';
     const typeName = 'builtin' in type ? type.builtin : ('array' in type ? 'array' : ('dict' in type ? 'dict' : type.user));
     const attrPart = attr !== null ? ` [${attr}]` : '';
-    const msg = `Invalid value ${JSON.stringify(value).slice(0, 1000)} (type '${typeof value}')` +
+    const msg = `Invalid value ${JSON.stringify(value).slice(0, 100)} (type '${typeof value}')` +
           `${memberPart}, expected type '${typeName}'${attrPart}`;
     throw new Error(msg);
 }
