@@ -180,6 +180,11 @@ class TestValidateType(TestCase):
         }
         return validate_type(types, 'MyTypedef', obj)
 
+    def test_unknown(self):
+        with self.assertRaises(ValidationError) as cm_exc:
+            validate_type({}, 'Unknown', None)
+        self.assertEqual(str(cm_exc.exception), "Unknown type 'Unknown'")
+
     def test_string(self):
         obj = 'abc'
         self.assertEqual(self._validate_type({'builtin': 'string'}, obj), obj)

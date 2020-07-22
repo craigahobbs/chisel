@@ -362,6 +362,9 @@ function getReferencedTypesHelper(types, type, referencedTypes) {
  * @throws {Error} Validation error string
  */
 export function validateType(types, typeName, value, memberFqn = null) {
+    if (!(typeName in types)) {
+        throw new Error(`Unknown type '${typeName}'`);
+    }
     return validateTypeHelper(types, {'user': typeName}, value, memberFqn);
 }
 

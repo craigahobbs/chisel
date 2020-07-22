@@ -22,6 +22,16 @@ function validateType(type, obj) {
     return chisel.validateType(types, 'MyTypedef', obj);
 }
 
+test('chisel.validateType, unknown', (t) => {
+    let errorMessage = null;
+    try {
+        chisel.validateType({}, 'Unknown', null);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Unknown type 'Unknown'");
+});
+
 test('chisel.validateType, string', (t) => {
     const obj = 'abc';
     t.is(validateType({'builtin': 'string'}, obj), obj);

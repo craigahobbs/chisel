@@ -203,6 +203,8 @@ def validate_type(types, type_name, value, member_fqn=None):
     :raises ValidationError: A validation error occurred
     """
 
+    if type_name not in types:
+        raise ValidationError(f"Unknown type {type_name!r}")
     return _validate_type(types, {'user': type_name}, value, member_fqn)
 
 
