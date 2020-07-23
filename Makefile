@@ -41,37 +41,12 @@ cover-test: cover-test-$(1)
 endef
 $(foreach TEST, $(sort $(subst src/tests/test_,,$(subst .py,,$(wildcard src/tests/test_*.py)))), $(eval $(call COVER_TEST_COMMANDS,$(TEST))))
 
-
-# Dump API docs into doc build "doc" folder - doc root_path must match GitHub pages
-define DUMP_DOC_APIS
-import os
-import sys
-import chisel
-
-# Command-line arguments
-_, root_path, doc_dir = sys.argv
-
-# Create the chisel application with documentation application
-application = chisel.Application()
-application.pretty_output = True
-application.add_requests(chisel.create_doc_requests(root_path=root_path))
-
-# Dump chisel_doc_index API response
-_, _, index_bytes = application.request('GET', f'{root_path}/doc_index')
-with open(os.path.join(doc_dir, 'doc_index'), 'wb') as file:
-	file.write(index_bytes)
-
-# Dump chisel_doc_request API response for each request
-request_dir = os.path.join(doc_dir, 'doc_request')
-os.mkdir(request_dir)
-for name in application.requests.keys():
-	_, _, content_bytes = application.request('GET', f'{root_path}/doc_request/{name}')
-	with open(os.path.join(request_dir, name), 'wb') as file:
-		file.write(content_bytes)
+define DOC_PAGE_RUN_REPLACE
+s/DocPage.run()/import {getTypeModel} from '.\/chisel.js';\n        DocPage.run(getTypeModel(), 'The Chisel Type Model')/
 endef
-export DUMP_DOC_APIS
+export DOC_PAGE_RUN_REPLACE
 
 doc:
 	rsync -rv --delete static/src/ build/doc/html/doc/
-	mv build/doc/html/doc/doc.html build/doc/html/doc/index.html
-	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" /chisel/doc build/doc/html/doc
+	sed "$$DOC_PAGE_RUN_REPLACE" build/doc/html/doc/doc.html > build/doc/html/doc/index.html
+	rm build/doc/html/doc/doc.html

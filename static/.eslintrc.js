@@ -26,10 +26,12 @@ module.exports = {
         // Disabled
         'array-bracket-newline': 'off',
         'array-element-newline': 'off',
+        'capitalized-comments': 'off',
         'complexity': 'off',
         'function-call-argument-newline': 'off',
         'init-declarations': 'off',
         'max-classes-per-file': 'off',
+        'max-depth': 'off',
         'max-lines': 'off',
         'max-lines-per-function': 'off',
         'max-params': 'off',

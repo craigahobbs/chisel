@@ -31,7 +31,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
 
     if api:
         yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
-        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request/{name}'),))
+        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
     if app:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
         yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
@@ -117,7 +117,7 @@ struct RequestURL
 
 # Get a request's documentation information
 action chisel_doc_request
-    path
+    query
         # The request name
         string name
 
@@ -132,7 +132,7 @@ action chisel_doc_request
         optional RequestURL[] urls
 
         # The map of the action's type name's to type models. This member is only present for JSON APIs.
-        optional TypeDict types
+        optional Types types
 
     errors
         # The request name is unknown

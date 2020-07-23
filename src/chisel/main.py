@@ -9,7 +9,7 @@ import argparse
 import json
 import sys
 
-from .schema import validate_type, validate_types
+from .schema import get_type_model, validate_type, validate_types
 from .spec import SpecParser
 from .util import JSONEncoder
 
@@ -22,18 +22,20 @@ def main():
     # Command line arguments
     arg_parser = argparse.ArgumentParser()
     subparsers = arg_parser.add_subparsers(required=True, dest='command')
-    parser_spec = subparsers.add_parser('compile', help='Parse a Chisel Specification Language file and output its Chisel type model JSON')
-    parser_spec.add_argument('infile', nargs='?', help='Optional Chisel Specification Language file path. Default is stdin.')
-    parser_spec.add_argument('outfile', nargs='?', help='Optional JSON Chisel schema type model output file path. Default is stdout.')
-    parser_spec.add_argument('--compact', action='store_true', help='Write the JSON in a compact format')
-    parser_validate = subparsers.add_parser('validate', help='Validate a JSON file with a Chisel schema')
-    parser_validate.add_argument('infile', nargs='?', help='Optional path of JSON file to validate. Default is stdin.')
-    parser_validate.add_argument('outfile', nargs='?', help='Optional path of output JSON file. Default is stdout.')
-    parser_validate.add_argument('--spec', help='Path of Chisel Specification Language file')
-    parser_validate.add_argument('--spec-str', metavar='SPEC', help='Chisel Specification Language string')
-    parser_validate.add_argument('--model', help='Path of Chisel type model JSON file')
-    parser_validate.add_argument('--model-str', metavar='MODEL', help='Chisel type model JSON string')
+    parser_spec = subparsers.add_parser('compile', help='Parse specification language files and output their type model JSON')
+    parser_spec.add_argument('paths', nargs='*', help='One or more specification language file paths. If none, defaults is stdin.')
+    parser_spec.add_argument('-o', metavar='PATH', dest='output', help='Optional JSON type model output file path. Default is stdout.')
+    parser_spec.add_argument('--compact', action='store_true', help='Generate compact JSON')
+    parser_validate = subparsers.add_parser('validate', help='Validate JSON files with a type model')
+    parser_validate.add_argument('paths', nargs='*', help='One or more JSON file paths to validate. If none, defaults is stdin.')
+    parser_validate.add_argument('--spec', help='Specification language file path')
+    parser_validate.add_argument('--spec-str', metavar='SPEC', help='Specification language string')
+    parser_validate.add_argument('--model', help='JSON type model file path')
+    parser_validate.add_argument('--model-str', metavar='MODEL', help='JSON type model string')
     parser_validate.add_argument('--type', required=True, help='Name of type to validate')
+    parser_model = subparsers.add_parser('model', help='Dump the type model')
+    parser_model.add_argument('-o', metavar='PATH', dest='output', help='Optional JSON type model output file path. Default is stdout.')
+    parser_model.add_argument('--compact', action='store_true', help='Generate compact JSON')
     args = arg_parser.parse_args()
 
     # Spec parse command?
@@ -41,24 +43,24 @@ def main():
 
         # Parse the spec
         parser = SpecParser()
-        if args.infile is not None and args.infile != '-':
-            with open(args.infile, 'r') as spec_file:
-                parser.parse(spec_file)
-        else:
+        if not args.paths:
             parser.parse(sys.stdin)
+        else:
+            for path in args.paths:
+                with open(path, 'r') as spec_file:
+                    parser.parse(spec_file, finalize=False)
+            parser.finalize()
 
         # Write the JSON
         json_encoder = JSONEncoder(indent=None if args.compact else 4, sort_keys=True)
-        if args.outfile is not None and args.outfile != '-':
-            with open(args.outfile, 'w') as json_file:
+        if args.output is not None:
+            with open(args.output, 'w') as json_file:
                 json_file.write(json_encoder.encode(parser.types))
         else:
             sys.stdout.write(json_encoder.encode(parser.types))
 
     # Validate command?
-    else: # args.command == 'validate'
-        if sum(arg is not None for arg in (args.spec, args.spec_str, args.model, args.model_str)) != 1:
-            arg_parser.error('Must specify either --spec, --model, --spec-str, or --model-str')
+    elif args.command == 'validate':
 
         # Parse the spec or model
         if args.spec is not None:
@@ -71,21 +73,26 @@ def main():
             types = validate_types(types)
         elif args.spec_str is not None:
             types = SpecParser(args.spec_str).types
-        else: # args.model_str is not None
+        elif args.model_str is not None:
             types = validate_types(json.loads(args.model_str))
+        else:
+            types = get_type_model()
 
         # Validate the input JSON
-        if args.infile is not None and args.infile != '-':
-            with open(args.infile, 'r') as input_file:
-                value = json.load(input_file)
-        else:
+        if not args.paths:
             value = json.load(sys.stdin)
-        value = validate_type(types, args.type, value)
-
-        # Write the validated value JSON
-        json_encoder = JSONEncoder(indent=4, sort_keys=True)
-        if args.outfile is not None and args.outfile != '-':
-            with open(args.outfile, 'w') as output_file:
-                output_file.write(json_encoder.encode(value))
         else:
-            sys.stdout.write(json_encoder.encode(value))
+            for path in args.paths:
+                with open(path, 'r') as input_file:
+                    value = json.load(input_file)
+                validate_type(types, args.type, value)
+
+    # Model command?
+    else: # args.command == 'model'
+        json_encoder = JSONEncoder(indent=None if args.compact else 4, sort_keys=True)
+        types = get_type_model()
+        if args.output is not None:
+            with open(args.output, 'w') as json_file:
+                json_file.write(json_encoder.encode(types))
+        else:
+            sys.stdout.write(json_encoder.encode(types))

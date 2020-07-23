@@ -165,7 +165,7 @@ class Action(Request):
             urls = [(url.get('method'), url.get('path')) for url in model['urls']]
 
         # Initialize Request
-        super().__init__(name=name, urls=urls, doc=model.get('doc'), doc_group=model.get('doc_group'))
+        super().__init__(name=name, urls=urls, doc=model.get('doc'), doc_group=model.get('docGroup'))
 
         #: The action callback function
         self.action_callback = action_callback
