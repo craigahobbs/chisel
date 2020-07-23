@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+The package build script
 """
 
 import re
@@ -16,7 +16,7 @@ TESTS_REQUIRE = []
 
 def main():
     """
-    TODO
+    The package build script's main entry point
     """
 
     # Read the package version
@@ -37,7 +37,7 @@ def main():
         author='Craig Hobbs',
         author_email='craigahobbs@gmail.com',
         keywords='api json framework schema wsgi',
-        url='https://github.com/craigahobbs/chisel',
+        url='https://github.com/craigahobbs/' + PACKAGE_NAME,
         license='MIT',
         classifiers=[
             'Development Status :: 5 - Production/Stable',
@@ -57,9 +57,7 @@ def main():
         packages=[MODULE_NAME],
         package_data={
             '': [
-                'static/*.html',
-                'static/*.css',
-                'static/*.js'
+                'static/*'
             ]
         },
         test_suite='tests',

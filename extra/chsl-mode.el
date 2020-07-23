@@ -35,7 +35,7 @@
         "struct"
         "typedef"
         "union"
-        "url"
+        "urls"
         )
       (list
        (cons
@@ -53,7 +53,7 @@
         )
       '(".chsl\\'")
       nil
-      "Major mode for editing CHisel Specification Language")
+      "Major mode for editing the Chisel specification language")
 
 (provide 'chsl-mode)
 ;;; chsl-mode.el ends here

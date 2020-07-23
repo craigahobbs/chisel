@@ -8,16 +8,6 @@ WSGI Applications
 
 .. autodecorator:: chisel.request
 
-.. autofunction:: chisel.create_doc_requests
-
-.. autoclass:: chisel.RedirectRequest
-   :show-inheritance:
-   :members:
-
-.. autoclass:: chisel.StaticRequest
-   :show-inheritance:
-   :members:
-
 .. autoclass:: chisel.Context
    :members:
 

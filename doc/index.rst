@@ -4,10 +4,10 @@
    :caption: Contents:
    :maxdepth: 1
 
-   basics
    app
    action
    spec
+   request
    encode
    changes
 

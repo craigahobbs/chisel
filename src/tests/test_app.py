@@ -270,7 +270,7 @@ class TestContext(TestCase):
         })
         ctx.environ[Context.ENVIRON_CTX] = ctx
 
-        ctx.add_cache_headers()
+        ctx.add_cache_headers(None)
         self.assertEqual(ctx.headers['Cache-Control'], 'no-cache')
         self.assertNotIn('Expires', ctx.headers)
 

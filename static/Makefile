@@ -1,33 +1,56 @@
 .DEFAULT_GOAL := help
 
-NODE_IMAGE := node:13-buster-slim
-NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v $(CURDIR):$(CURDIR) -w $(CURDIR) -e HOME=$(CURDIR)/build $(NODE_IMAGE)
+NODE_IMAGE ?= node:14-slim
+NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
 
 build/npm.install:
+	docker pull -q $(NODE_IMAGE)
 	$(NODE_DOCKER) npm install
 	mkdir -p $(dir $@)
 	touch $@
 
 .PHONY: help
-help:
-	@echo 'usage: make [clean|commit|lint|test]'
+help: _help
+
+.PHONY: _help
+_help:
+	@echo 'usage: make [clean|commit|doc|lint|test]'
 
 .PHONY: commit
-commit: test lint
+commit: test lint doc
 
 .PHONY: test
-test: build/npm.install
-	$(NODE_DOCKER) npx nyc --check-coverage --reporter html --reporter text \
-		--report-dir build/coverage --temp-dir build/tmp ava tests/test*.js
+test: _test
 
-.PHONY: lint
-lint: build/npm.install
-	$(NODE_DOCKER) npx eslint -c .eslintrc.js -f unix .eslintrc.js src tests
+.PHONY: _test
+_test: build/npm.install
+	$(NODE_DOCKER) npx nyc $(NYC_ARGS) --check-coverage --reporter html --reporter text --report-dir build/coverage --temp-dir build/tmp \
+		ava $(if $(TEST),--match '$(TEST)') $(AVA_ARGS) tests/test*.js
+
+.PHONY: _lint
+lint: _lint
+
+.PHONY: _lint
+_lint: build/npm.install
+	$(NODE_DOCKER) npx eslint $(ESLINT_ARGS) -c .eslintrc.js -f unix .eslintrc.js src tests
+
+.PHONY: doc
+doc: _doc
+
+.PHONY: _doc
+_doc: build/npm.install
+	$(NODE_DOCKER) npx jsdoc $(JSDOC_ARGS) --pedantic -d build/doc src
 
 .PHONY: clean
-clean:
+clean: _clean
+
+.PHONY: _clean
+_clean:
 	rm -rf build node_modules package-lock.json
 
 .PHONY: superclean
-superclean: clean
+superclean: clean _superclean
+
+.PHONY: _superclean
+_superclean:
 	docker rmi -f $(NODE_IMAGE)

@@ -2,40 +2,21 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 """
-TODO
+Chisel schema specification language parser
 """
 
-from functools import partial
 from itertools import chain
 import os
 import re
 
-from .model import \
-    ActionModel, AttributeValidationError, StructMemberAttributes, \
-    TYPE_BOOL, TYPE_DATE, TYPE_DATETIME, TYPE_FLOAT, TYPE_INT, TYPE_OBJECT, TYPE_STRING, TYPE_UUID, \
-    TypeArray, TypeDict, TypeEnum, TypeStruct, Typedef
-
-
-class SpecParserError(Exception):
-    """
-    TODO
-
-    :param list(str) errors: TODO
-    """
-
-    __slots__ = ('errors',)
-
-    def __init__(self, errors):
-        super().__init__('\n'.join(errors))
-
-        #: TODO
-        self.errors = errors
+from .schema import get_effective_type, validate_types_errors
 
 
 # Spec language regex
 RE_PART_ID = r'(?:[A-Za-z]\w*)'
 RE_PART_ATTR_GROUP = \
-    r'(?:(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
+    r'(?:(?P<nullable>nullable)' \
+    r'|(?P<op><=|<|>|>=|==)\s*(?P<opnum>-?\d+(?:\.\d+)?)' \
     r'|(?P<ltype>len)\s*(?P<lop><=|<|>|>=|==)\s*(?P<lopnum>\d+))'
 RE_PART_ATTR = re.sub(r'\(\?P<[^>]+>', r'(?:', RE_PART_ATTR_GROUP)
 RE_PART_ATTRS = r'(?:' + RE_PART_ATTR + r'(?:\s*,\s*' + RE_PART_ATTR + r')*)'
@@ -49,7 +30,7 @@ RE_PART_BASE_IDS = r'(?:\s*\(\s*(?P<base_ids>' + RE_PART_ID + r'(?:\s*,\s*' + RE
 RE_BASE_IDS_SPLIT = re.compile(r'\s*,\s*')
 RE_DEFINITION = re.compile(r'^(?P<type>struct|union|enum)\s+(?P<id>' + RE_PART_ID + r')' + RE_PART_BASE_IDS + r'?\s*$')
 RE_SECTION = re.compile(r'^\s+(?P<type>path|query|input|output|errors)' + RE_PART_BASE_IDS + r'?\s*$')
-RE_SECTION_PLAIN = re.compile(r'^\s+(?P<type>url)\s*$')
+RE_SECTION_PLAIN = re.compile(r'^\s+(?P<type>urls)\s*$')
 RE_PART_TYPEDEF = \
     r'(?P<type>' + RE_PART_ID + r')' \
     r'(?:\s*\(\s*(?P<attrs>' + RE_PART_ATTRS + r')\s*\))?' \
@@ -64,134 +45,89 @@ RE_PART_TYPEDEF = \
     r')' \
     r'\s+(?P<id>' + RE_PART_ID + r')'
 RE_TYPEDEF = re.compile(r'^typedef\s+' + RE_PART_TYPEDEF + r'\s*$')
-RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?(?P<nullable>nullable\s+)?' + RE_PART_TYPEDEF + r'\s*$')
+RE_MEMBER = re.compile(r'^\s+(?P<optional>optional\s+)?' + RE_PART_TYPEDEF + r'\s*$')
 RE_VALUE = re.compile(r'^\s+"?(?P<id>(?<!")' + RE_PART_ID + r'(?!")|(?<=").*?(?="))"?\s*$')
 RE_URL = re.compile(r'^\s+(?P<method>[A-Za-z]+|\*)(?:\s+(?P<path>/[^\s]*))?')
 
 
-# Built-in types
-TYPES = {
-    'bool': TYPE_BOOL,
-    'date': TYPE_DATE,
-    'datetime': TYPE_DATETIME,
-    'float': TYPE_FLOAT,
-    'int': TYPE_INT,
-    'object': TYPE_OBJECT,
-    'string': TYPE_STRING,
-    'uuid': TYPE_UUID
-}
+class SpecParserError(Exception):
+    """
+    Chisel specification language parser exception
+
+    :param list(str) errors: The list of error strings
+    """
+
+    __slots__ = ('errors',)
+
+    def __init__(self, errors):
+        super().__init__('\n'.join(errors))
+
+        #: The list of error strings
+        self.errors = errors
 
 
-# Specification language parser class
 class SpecParser:
     """
-    TODO
+    The parser class for the Chisel specification language. Parsing can occur at initialization time or by calling the
+    :meth:`~chisel.SpecParser.parse_string` method, which can be called repeatedly.
 
-    :param str spec: TODO
+    :param str spec: An optional specification string to parse
+    :param dict types: An optional map of user type name to user type model
+    :raises SpecParserError: A parsing error occurred
     """
 
-    __slots__ = (
-        'types',
-        'actions',
-        'errors',
-        '_parse_lines',
-        '_parse_filename',
-        '_parse_linenum',
-        '_action',
-        '_action_sections',
-        '_urls',
-        '_type',
-        '_doc',
-        '_doc_group',
-        '_typerefs',
-        '_finalize_checks'
-    )
+    __slots__ = ('types', '_errors', '_filepos', '_bases')
 
-    def __init__(self, spec=None):
+    #: Built-in types
+    BUILTIN_TYPES = {'bool', 'date', 'datetime', 'float', 'int', 'object', 'string', 'uuid'}
 
-        #: TODO
-        self.types = {}
+    def __init__(self, spec=None, types=None):
 
-        #: TODO
-        self.actions = {}
+        #: The dictionary of user type name to user type model
+        self.types = {} if types is None else types
 
-        #: TODO
-        self.errors = []
+        self._errors = set()
+        self._filepos = {}
+        self._bases = {}
 
-        self._typerefs = []
-        self._finalize_checks = []
-        self._action = None
-        self._action_sections = None
-        self._urls = None
-        self._type = None
-        self._doc = None
-        self._doc_group = None
-        self._parse_lines = None
-        self._parse_filename = None
-        self._parse_linenum = 0
+        # Parse the specification string, if any
         if spec is not None:
             self.parse_string(spec)
 
-    # Parse a specification from an iterator of spec lines (e.g an input stream)
-    def parse(self, lines, filename='', finalize=True):
+    @property
+    def errors(self):
         """
-        TODO
-
-        :param ~collections.abc.Iterable(str) lines: TODO
-        :param str filename: TODO
-        :param bool finalize: TODO
+        The list of parser errors
         """
 
-        # Set the parser state
-        self._action = None
-        self._urls = None
-        self._type = None
-        self._doc = []
-        self._doc_group = None
-        self._parse_lines = lines
-        self._parse_filename = filename
-        self._parse_linenum = 0
+        return [error for _, _, error in sorted(self._errors)]
 
-        # Do the work
-        self._parse()
-        if finalize:
-            self.finalize()
-
-    # Parse a specification string
-    def parse_string(self, spec, filename='', finalize=True):
-        """
-        TODO
-
-        :param str spec: TODO
-        :param str filename: TODO
-        :param bool finalize: TODO
-        """
-
-        self.parse(spec.splitlines(), finalize=finalize, filename=filename)
-
-    # Finalize parsing (must call after calling parse one or more times - can be repeated)
     def finalize(self):
         """
-        TODO
+        Finalize a parsing operation. You only need to call this method if you set :meth:`~chisel.SpecParser.parse`
+        "finalize" argument to False.
+
+        :raises SpecParserError: If type name resolution fails
         """
 
-        # Fixup type refs
-        for typeref in self._typerefs:
-            typeref(True)
-        self._typerefs = []
-
-        # Additional finalization checks
-        for finalize_check in self._finalize_checks:
-            finalize_check()
-        self._finalize_checks = []
+        # Do the finalization
+        self._finalize_bases()
+        for type_name, member_name, error_msg in validate_types_errors(self.types):
+            self._error(error_msg, *self._get_filepos(type_name, member_name))
 
         # Raise a parser exception if there are any errors
-        if self.errors:
+        if self._errors:
             raise SpecParserError(self.errors)
 
     def load(self, path, spec_ext='.chsl', finalize=True):
         """
-        TODO
+        Recursively load and parse specification files. This method can be called repeatedly.
+
+        :param str path: Directory or file path from which to load and parse specification files
+        :param str spec_ext: The specification file extension.  The default specification file extension is ".chsl".
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
         """
 
         if os.path.isdir(path):
@@ -209,195 +145,51 @@ class SpecParser:
         if finalize:
             self.finalize()
 
-    # Set a type attribute by name
-    def _set_type(self, parent_type, parent_object, parent_type_attr, type_name, type_attr, validate_fn=None):
-        filename = self._parse_filename
-        linenum = self._parse_linenum
+    def parse_string(self, spec, filename='', finalize=True):
+        """
+        Parse a specification string. This method can be called repeatedly.
 
-        def set_type(error):
-            type_ = TYPES.get(type_name) or self.types.get(type_name)
-            if type_ is not None:
-                error_count = len(self.errors)
-                if validate_fn is not None:
-                    validate_fn(parent_type, type_, filename, linenum)
-                self._validate_attr(type_, type_attr, filename, linenum)
-                if error_count == len(self.errors):
-                    if isinstance(parent_type_attr, int):
-                        parent_object[parent_type_attr] = type_
-                    else:
-                        setattr(parent_object, parent_type_attr, type_)
-            elif error:
-                self._error("Unknown member type '" + type_name + "'", filename, linenum)
-            return type_
+        :param str spec: The specification string
+        :param str filename: The name of file being parsed (for error messages)
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
+        """
 
-        type_ = set_type(False)
-        if type_ is None:
-            self._typerefs.append(set_type)
+        self.parse(spec.splitlines(), finalize=finalize, filename=filename)
 
-    def _validate_dict_key_type(self, dict_type, key_type, filename, linenum):
-        if not dict_type.valid_key_type(key_type):
-            self._error('Invalid dictionary key type', filename, linenum)
+    def parse(self, lines, filename='', finalize=True):
+        """
+        Parse a specification from an iterator of line strings (e.g an input stream). This method can be called repeatedly.
 
-    def _validate_struct_base_type(self, struct_type, base_type, filename, linenum, def_type=None):
-        base_type_base = Typedef.base_type(base_type)
-        if not isinstance(base_type_base, TypeStruct) or base_type_base.union != struct_type.union:
-            if def_type is None:
-                def_type = 'union' if struct_type.union else 'struct'
-            self._error(f"Invalid {def_type} base type '{base_type.type_name}'", filename, linenum)
+        :param ~collections.abc.Iterable(str) lines: An iterator of specification line strings
+        :param str filename: The name of file being parsed (for error messages)
+        :param bool finalize: If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+            specification files. Be sure to call :meth:`~chisel.SpecParser.finalize` when finished.
+        :raises SpecParserError: A parsing error occurred
+        """
 
-    def _validate_enum_base_type(self, unused_enum_type, base_type, filename, linenum, def_type=None):
-        if not isinstance(Typedef.base_type(base_type), TypeEnum):
-            if def_type is None:
-                def_type = 'enum'
-            self._error(f"Invalid {def_type} base type '{base_type.type_name}'", filename, linenum)
+        # Current parser state
+        action = None
+        urls = None
+        user_type = None
+        doc = []
+        doc_group = None
+        linenum = 0
 
-    def _finalize_circular_base_type(self, type_, filename, linenum):
-        is_circular = False
-        base_types = {}
-        def traverse_base_types(type_):
-            if type_.base_types:
-                for base_type in (base_type for base_type in type_.base_types if base_type):
-                    base_type_name = Typedef.base_type(base_type).type_name
-                    base_type_count = base_types[base_type_name] = base_types.get(base_type_name, 0) + 1
-                    if base_type_count == 1:
-                        traverse_base_types(Typedef.base_type(base_type))
-        traverse_base_types(type_)
-        for base_type_name, base_type_count in base_types.items():
-            if base_type_count != 1:
-                is_circular = True
-                self._error("Circular base type detected for type '" + base_type_name + "'", filename, linenum)
-        return is_circular
-
-    def _finalize_struct_base_type(self, action, struct_type, filename, linenum):
-        if struct_type.base_types is not None and not self._finalize_circular_base_type(struct_type, filename, linenum):
-            members = {}
-            if action is None or struct_type is action.output_type:
-                struct_members = struct_type.members
-            else:
-                struct_members = action.input_members
-            for member in struct_members():
-                member_count = members[member.name] = members.get(member.name, 0) + 1
-                if member_count == 2:
-                    self._error("Redefinition of member '" + member.name + "' from base type", filename, linenum)
-
-    def _finalize_enum_base_type(self, unused_action, enum_type, filename, linenum):
-        if enum_type.base_types is not None and not self._finalize_circular_base_type(enum_type, filename, linenum):
-            values = {}
-            for value in enum_type.values():
-                value_count = values[value.value] = values.get(value.value, 0) + 1
-                if value_count == 2:
-                    self._error("Redefinition of enumeration value '" + value.value + "' from base type", filename, linenum)
-
-    # Record an error
-    def _error(self, msg, filename=None, linenum=None):
-        self.errors.append(f'{filename or self._parse_filename}:{linenum or self._parse_linenum}: error: {msg}')
-
-    # Validate a type's attributes
-    def _validate_attr(self, type_, attr, filename=None, linenum=None):
-        try:
-            if attr is not None:
-                type_.validate_attr(attr)
-        except AttributeValidationError as exc:
-            self._error("Invalid attribute '" + exc.attr + "'", filename, linenum)
-
-    # Parse an attributes string
-    @classmethod
-    def _parse_attr(cls, attrs_string):
-        has_attrs = False
-        op_lt, op_lte, op_gt, op_gte, op_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte, op_len_eq = \
-            None, None, None, None, None, None, None, None, None, None
-        if attrs_string is not None:
-            for attr_string in RE_FIND_ATTRS.findall(attrs_string):
-                has_attrs = True
-                match_attr = RE_ATTR_GROUP.match(attr_string)
-                attr_op = match_attr.group('op')
-                attr_length_op = match_attr.group('lop') if attr_op is None else None
-
-                if attr_op is not None:
-                    attr_value = float(match_attr.group('opnum'))
-                    if attr_op == '<':
-                        op_lt = attr_value
-                    elif attr_op == '<=':
-                        op_lte = attr_value
-                    elif attr_op == '>':
-                        op_gt = attr_value
-                    elif attr_op == '>=':
-                        op_gte = attr_value
-                    else:  # ==
-                        op_eq = attr_value
-                else:  # attr_length_op is not None:
-                    attr_value = int(match_attr.group('lopnum'))
-                    if attr_length_op == '<':
-                        op_len_lt = attr_value
-                    elif attr_length_op == '<=':
-                        op_len_lte = attr_value
-                    elif attr_length_op == '>':
-                        op_len_gt = attr_value
-                    elif attr_length_op == '>=':
-                        op_len_gte = attr_value
-                    else:  # ==
-                        op_len_eq = attr_value
-
-        if not has_attrs:
-            return None
-        return StructMemberAttributes(op_eq, op_lt, op_lte, op_gt, op_gte, op_len_eq, op_len_lt, op_len_lte, op_len_gt, op_len_gte)
-
-    # Construct typedef parts
-    def _parse_typedef(self, parent, parent_type_attr, parent_attr_attr, match_typedef):
-        array_attrs_string = match_typedef.group('array')
-        dict_attrs_string = match_typedef.group('dict')
-
-        # Array member?
-        if array_attrs_string is not None:
-            value_type_name = match_typedef.group('type')
-            value_attr = self._parse_attr(match_typedef.group('attrs'))
-            array_type = TypeArray(None, attr=value_attr)
-            self._set_type(array_type, array_type, 'type', value_type_name, value_attr)
-
-            array_attr = self._parse_attr(array_attrs_string)
-            self._validate_attr(array_type, array_attr)
-
-            setattr(parent, parent_type_attr, array_type)
-            setattr(parent, parent_attr_attr, array_attr)
-
-        # Dictionary member?
-        elif dict_attrs_string is not None:
-            value_type_name = match_typedef.group('dictValueType')
-            if value_type_name is not None:
-                value_attr = self._parse_attr(match_typedef.group('dictValueAttrs'))
-                key_type_name = match_typedef.group('type')
-                key_attr = self._parse_attr(match_typedef.group('attrs'))
-                dict_type = TypeDict(None, attr=value_attr, key_type=None, key_attr=key_attr)
-                self._set_type(dict_type, dict_type, 'type', value_type_name, value_attr)
-                self._set_type(dict_type, dict_type, 'key_type', key_type_name, key_attr, self._validate_dict_key_type)
-            else:
-                value_type_name = match_typedef.group('type')
-                value_attr = self._parse_attr(match_typedef.group('attrs'))
-                dict_type = TypeDict(None, attr=value_attr)
-                self._set_type(dict_type, dict_type, 'type', value_type_name, value_attr)
-
-            dict_attr = self._parse_attr(dict_attrs_string)
-            self._validate_attr(dict_type, dict_attr)
-
-            setattr(parent, parent_type_attr, dict_type)
-            setattr(parent, parent_attr_attr, dict_attr)
-
-        # Non-container member...
-        else:
-            member_type_name = match_typedef.group('type')
-            member_attr = self._parse_attr(match_typedef.group('attrs'))
-
-            self._set_type(parent, parent, parent_type_attr, member_type_name, member_attr)
-            setattr(parent, parent_attr_attr, member_attr)
-
-    # Parse a specification from a stream
-    def _parse(self):
+        # Helper function to get documentation strings
+        def get_doc():
+            nonlocal doc
+            doc_str = None
+            if doc:
+                doc_str = '\n'.join(doc)
+                doc = []
+            return doc_str
 
         # Process each line
-        self._parse_linenum = 0
         line_continuation = []
-        for line_part in chain(self._parse_lines, ('',)):
-            self._parse_linenum += 1
+        for line_part in chain(lines, ('',)):
+            linenum += 1
 
             # Line continuation?
             line_part_no_continuation = RE_LINE_CONT.sub('', line_part)
@@ -419,16 +211,16 @@ class SpecParser:
                 match_name, match = 'action', RE_ACTION.search(line)
             if match is None:
                 match_name, match = 'definition', RE_DEFINITION.search(line)
-            if match is None and self._action is not None:
+            if match is None and action is not None:
                 match_name, match = 'section', RE_SECTION.search(line)
-            if match is None and self._action is not None:
+            if match is None and action is not None:
                 match_name, match = 'section_plain', RE_SECTION_PLAIN.search(line)
-            if match is None and isinstance(self._type, TypeEnum):
+            if match is None and user_type is not None and 'enum' in user_type:
                 match_name, match = 'value', RE_VALUE.search(line)
-            if match is None and isinstance(self._type, TypeStruct):
+            if match is None and user_type is not None and 'struct' in user_type:
                 match_name, match = 'member', RE_MEMBER.search(line)
-            if match is None and self._urls is not None:
-                match_name, match = 'url', RE_URL.search(line)
+            if match is None and urls is not None:
+                match_name, match = 'urls', RE_URL.search(line)
             if match is None:
                 match_name, match = 'typedef', RE_TYPEDEF.search(line)
             if match is None:
@@ -438,201 +230,383 @@ class SpecParser:
             if match_name == 'comment':
                 doc_string = match.group('doc')
                 if doc_string is not None:
-                    self._doc.append(doc_string)
+                    doc.append(doc_string)
 
             # Documentation group?
             elif match_name == 'group':
                 doc_group = match.group('group')
                 if doc_group is not None:
-                    self._doc_group = doc_group.strip()
+                    doc_group = doc_group.strip()
                 else:
-                    self._doc_group = None
+                    doc_group = None
 
             # Action?
             elif match_name == 'action':
                 action_id = match.group('id')
 
                 # Action already defined?
-                if action_id in self.actions:
-                    self._error("Redefinition of action '" + action_id + "'")
+                if action_id in self.types:
+                    self._error(f"Redefinition of action '{action_id}'", filename, linenum)
+
+                # Clear parser state
+                urls = None
+                user_type = None
+                action_doc = get_doc()
 
                 # Create the new action
-                self._action = ActionModel(action_id, doc=self._doc, doc_group=self._doc_group)
-                self._action_sections = set()
-                self._urls = None
-                self._type = None
-                self._doc = []
-                self.actions[self._action.name] = self._action
+                action = {
+                    'name': action_id
+                }
+                self.types[action_id] = {'action': action}
+                if action_doc is not None:
+                    action['doc'] = action_doc
+                if doc_group is not None:
+                    action['docGroup'] = doc_group
 
             # Definition?
             elif match_name == 'definition':
                 definition_string = match.group('type')
                 definition_id = match.group('id')
                 definition_base_ids = match.group('base_ids')
-                if definition_base_ids is not None:
-                    definition_base_ids = RE_BASE_IDS_SPLIT.split(definition_base_ids)
+
+                # Type already defined?
+                if definition_id in self.BUILTIN_TYPES or definition_id in self.types:
+                    self._error(f"Redefinition of type '{definition_id}'", filename, linenum)
+
+                # Clear parser state
+                action = None
+                urls = None
+                definition_doc = get_doc()
 
                 # Struct definition
                 if definition_string in ('struct', 'union'):
 
-                    # Type already defined?
-                    if definition_id in TYPES or definition_id in self.types:
-                        self._error("Redefinition of type '" + definition_id + "'")
-
                     # Create the new struct type
-                    self._action = None
-                    self._urls = None
-                    self._type = TypeStruct(type_name=definition_id, union=(definition_string == 'union'), doc=self._doc)
-                    if definition_base_ids is not None:
-                        self._type.base_types = [None for _ in definition_base_ids]
-                        for base_index, base_id in enumerate(definition_base_ids):
-                            self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_struct_base_type)
-                        self._finalize_checks.append(
-                            partial(self._finalize_struct_base_type, None, self._type, self._parse_filename, self._parse_linenum)
-                        )
-                    self._doc = []
-                    self.types[self._type.type_name] = self._type
+                    struct = {
+                        'name': definition_id
+                    }
+                    user_type = self.types[definition_id] = {'struct': struct}
+                    if definition_doc is not None:
+                        struct['doc'] = definition_doc
+                    if definition_string == 'union':
+                        struct['union'] = True
 
                 # Enum definition
                 else:  # definition_string == 'enum':
 
-                    # Type already defined?
-                    if definition_id in TYPES or definition_id in self.types:
-                        self._error("Redefinition of type '" + definition_id + "'")
-
                     # Create the new enum type
-                    self._action = None
-                    self._urls = None
-                    self._type = TypeEnum(type_name=definition_id, doc=self._doc)
-                    if definition_base_ids is not None:
-                        self._type.base_types = [None for _ in definition_base_ids]
-                        for base_index, base_id in enumerate(definition_base_ids):
-                            self._set_type(self._type, self._type.base_types, base_index, base_id, None, self._validate_enum_base_type)
-                        self._finalize_checks.append(
-                            partial(self._finalize_enum_base_type, None, self._type, self._parse_filename, self._parse_linenum)
-                        )
-                    self._doc = []
-                    self.types[self._type.type_name] = self._type
+                    enum = {
+                        'name': definition_id
+                    }
+                    user_type = self.types[definition_id] = {'enum': enum}
+                    if definition_doc is not None:
+                        enum['doc'] = definition_doc
 
-            # Section?
+                # Record finalization information
+                self._filepos[definition_id] = (filename, linenum)
+                if definition_base_ids is not None:
+                    self._bases[definition_id] = RE_BASE_IDS_SPLIT.split(definition_base_ids)
+
+            # Action section?
             elif match_name == 'section':
                 section_string = match.group('type')
                 section_base_ids = match.group('base_ids')
-                if section_base_ids is not None:
-                    section_base_ids = RE_BASE_IDS_SPLIT.split(section_base_ids)
 
                 # Action section redefinition?
-                if section_string in self._action_sections:
-                    self._error(f'Redefinition of action {section_string}')
-                self._action_sections.add(section_string)
+                if section_string in action:
+                    self._error(f'Redefinition of action {section_string}', filename, linenum)
+
+                # Clear parser state
+                urls = None
 
                 # Set the action section type
-                self._urls = None
-                if section_string == 'path':
-                    self._type = self._action.path_type
-                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
-                elif section_string == 'query':
-                    self._type = self._action.query_type
-                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
-                elif section_string == 'input':
-                    self._type = self._action.input_type
-                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
-                elif section_string == 'output':
-                    self._type = self._action.output_type
-                    validate_base_type_fn, finalize_base_type_fn = self._validate_struct_base_type, self._finalize_struct_base_type
-                else: # section_string == 'errors':
-                    self._type = self._action.error_type
-                    validate_base_type_fn, finalize_base_type_fn = self._validate_enum_base_type, self._finalize_enum_base_type
+                section_type_name = f'{action["name"]}_{section_string}'
+                action[section_string] = section_type_name
+                if section_string == 'errors':
+                    user_type = self.types[section_type_name] = {'enum': {'name': section_type_name}}
+                else:
+                    user_type = self.types[section_type_name] = {'struct': {'name': section_type_name}}
 
+                # Record finalization information
+                self._filepos[section_type_name] = (filename, linenum)
                 if section_base_ids is not None:
-                    self._type.base_types = [None for _ in section_base_ids]
-                    for base_index, base_id in enumerate(section_base_ids):
-                        self._set_type(
-                            self._type, self._type.base_types, base_index, base_id, None,
-                            partial(validate_base_type_fn, def_type=f'action {section_string}')
-                        )
-                    self._finalize_checks.append(
-                        partial(finalize_base_type_fn, self._action, self._type, self._parse_filename, self._parse_linenum)
-                    )
+                    self._bases[section_type_name] = RE_BASE_IDS_SPLIT.split(section_base_ids)
 
-            # Plain section?
+            # Plain action section?
             elif match_name == 'section_plain':
                 section_string = match.group('type')
 
                 # Action section redefinition?
-                if section_string in self._action_sections:
-                    self._error(f'Redefinition of action {section_string}')
-                self._action_sections.add(section_string)
+                if section_string in action:
+                    self._error(f'Redefinition of action {section_string}', filename, linenum)
 
-                # Set the action section data
-                assert section_string == 'url'
-                self._urls = self._action.urls
-                self._type = None
+                # Clear parser state
+                user_type = None
+
+                # Update the parser state
+                urls = []
 
             # Enum value?
             elif match_name == 'value':
                 value_string = match.group('id')
 
-                # Redefinition of enum value?
-                if value_string in self._type.values(include_base_types=False):
-                    self._error("Redefinition of enumeration value '" + value_string + "'")
-
                 # Add the enum value
-                self._type.add_value(value_string, doc=self._doc)
-                self._doc = []
+                enum = user_type['enum']
+                if 'values' not in enum:
+                    enum['values'] = []
+                enum_value = {
+                    'name': value_string,
+                }
+                enum['values'].append(enum_value)
+                enum_value_doc = get_doc()
+                if enum_value_doc is not None:
+                    enum_value['doc'] = enum_value_doc
+
+                # Record finalization information
+                self._filepos[(enum['name'], value_string)] = (filename, linenum)
 
             # Struct member?
             elif match_name == 'member':
                 optional = match.group('optional') is not None
-                nullable = match.group('nullable') is not None
                 member_name = match.group('id')
 
-                # Member name already defined?
-                if self._action is None or self._type is self._action.output_type:
-                    struct_members = self._type.members
-                else:
-                    struct_members = self._action.input_members
-                if member_name in (mem.name for mem in struct_members(include_base_types=False)):
-                    self._error("Redefinition of member '" + member_name + "'")
+                # Add the member
+                struct = user_type['struct']
+                if 'members' not in struct:
+                    struct['members'] = []
+                member_type, member_attr = self._parse_typedef(match)
+                member_doc = get_doc()
+                member = {
+                    'name': member_name,
+                    'type': member_type
+                }
+                struct['members'].append(member)
+                if member_attr is not None:
+                    member['attr'] = member_attr
+                if member_doc is not None:
+                    member['doc'] = member_doc
+                if optional:
+                    member['optional'] = True
 
-                # Create the member
-                member = self._type.add_member(member_name, None, optional=optional, nullable=nullable, attr=None, doc=self._doc)
-                self._parse_typedef(member, 'type', 'attr', match)
-                self._doc = []
+                # Record finalization information
+                self._filepos[(struct['name'], member_name)] = (filename, linenum)
 
             # URL?
-            elif match_name == 'url':
+            elif match_name == 'urls':
                 method = match.group('method')
                 path = match.group('path')
-                url = (method if method != '*' else None, path)
+
+                # Create the action URL object
+                action_url = {}
+                if method != '*':
+                    action_url['method'] = method
+                if path is not None:
+                    action_url['path'] = path
 
                 # Duplicate URL?
-                if url in self._urls:
-                    self._error(f'Duplicate URL: {method} {"" if path is None else path}')
+                if action_url in urls:
+                    self._error(f'Duplicate URL: {method} {"" if path is None else path}', filename, linenum)
 
                 # Add the URL
-                self._urls.append(url)
-                self._doc = []
+                if 'urls' not in action:
+                    action['urls'] = urls
+                urls.append(action_url)
 
             # Typedef?
             elif match_name == 'typedef':
-                typedef_name = match.group('id')
+                definition_id = match.group('id')
 
                 # Type already defined?
-                if typedef_name in TYPES or typedef_name in self.types:
-                    self._error("Redefinition of type '" + typedef_name + "'")
+                if definition_id in self.BUILTIN_TYPES or definition_id in self.types:
+                    self._error(f"Redefinition of type '{definition_id}'", filename, linenum)
+
+                # Clear parser state
+                action = None
+                urls = None
+                user_type = None
+                typedef_doc = get_doc()
 
                 # Create the typedef
-                typedef = Typedef(None, attr=None, type_name=typedef_name, doc=self._doc)
-                self._parse_typedef(typedef, 'type', 'attr', match)
-                self.types[typedef_name] = typedef
+                typedef_type, typedef_attr = self._parse_typedef(match)
+                typedef = {
+                    'name': definition_id,
+                    'type': typedef_type
+                }
+                self.types[definition_id] = {'typedef': typedef}
+                if typedef_attr is not None:
+                    typedef['attr'] = typedef_attr
+                if typedef_doc is not None:
+                    typedef['doc'] = typedef_doc
 
-                # Reset current action/type
-                self._action = None
-                self._urls = None
-                self._type = None
-                self._doc = []
+                # Record finalization information
+                self._filepos[definition_id] = (filename, linenum)
 
             # Unrecognized line syntax
             else:
-                self._error('Syntax error')
+                self._error('Syntax error', filename, linenum)
+
+        # Finalize, if requested
+        if finalize:
+            self.finalize()
+
+    def _error(self, msg, filename, linenum):
+        self._errors.add((filename, linenum, f'{filename}:{linenum}: error: {msg}'))
+
+    def _parse_typedef(self, match_typedef):
+        array_attrs_string = match_typedef.group('array')
+        dict_attrs_string = match_typedef.group('dict')
+
+        # Array type?
+        if array_attrs_string is not None:
+            value_type_name = match_typedef.group('type')
+            value_attr = self._parse_attr(match_typedef.group('attrs'))
+            array_type = {
+                'type': self._create_type(value_type_name)
+            }
+            if value_attr is not None:
+                array_type['attr'] = value_attr
+            return {'array': array_type}, self._parse_attr(array_attrs_string)
+
+        # Dictionary type?
+        if dict_attrs_string is not None:
+            value_type_name = match_typedef.group('dictValueType')
+            if value_type_name is not None:
+                value_attr = self._parse_attr(match_typedef.group('dictValueAttrs'))
+                key_type_name = match_typedef.group('type')
+                key_attr = self._parse_attr(match_typedef.group('attrs'))
+                dict_type = {
+                    'type': self._create_type(value_type_name)
+                }
+                dict_type['keyType'] = self._create_type(key_type_name)
+                if value_attr is not None:
+                    dict_type['attr'] = value_attr
+                if key_attr is not None:
+                    dict_type['keyAttr'] = key_attr
+            else:
+                value_type_name = match_typedef.group('type')
+                value_attr = self._parse_attr(match_typedef.group('attrs'))
+                dict_type = {
+                    'type': self._create_type(value_type_name)
+                }
+                if value_attr is not None:
+                    dict_type['attr'] = value_attr
+            return {'dict': dict_type}, self._parse_attr(dict_attrs_string)
+
+        # Non-container type...
+        member_type_name = match_typedef.group('type')
+        return self._create_type(member_type_name), self._parse_attr(match_typedef.group('attrs'))
+
+    @classmethod
+    def _create_type(cls, type_name):
+        if type_name in cls.BUILTIN_TYPES:
+            return {'builtin': type_name}
+        return {'user': type_name}
+
+    @classmethod
+    def _parse_attr(cls, attrs_string):
+        attrs = None
+        if attrs_string is not None:
+            for attr_string in RE_FIND_ATTRS.findall(attrs_string):
+                if attrs is None:
+                    attrs = {}
+                match_attr = RE_ATTR_GROUP.match(attr_string)
+                attr_op = match_attr.group('op')
+                attr_length_op = match_attr.group('lop') if attr_op is None else None
+
+                if match_attr.group('nullable') is not None:
+                    attrs['nullable'] = True
+                elif attr_op is not None:
+                    attr_value = float(match_attr.group('opnum'))
+                    if attr_op == '<':
+                        attrs['lt'] = attr_value
+                    elif attr_op == '<=':
+                        attrs['lte'] = attr_value
+                    elif attr_op == '>':
+                        attrs['gt'] = attr_value
+                    elif attr_op == '>=':
+                        attrs['gte'] = attr_value
+                    else:  # ==
+                        attrs['eq'] = attr_value
+                else:  # attr_length_op is not None:
+                    attr_value = int(match_attr.group('lopnum'))
+                    if attr_length_op == '<':
+                        attrs['lenLT'] = attr_value
+                    elif attr_length_op == '<=':
+                        attrs['lenLTE'] = attr_value
+                    elif attr_length_op == '>':
+                        attrs['lenGT'] = attr_value
+                    elif attr_length_op == '>=':
+                        attrs['lenGTE'] = attr_value
+                    else:  # ==
+                        attrs['lenEq'] = attr_value
+        return attrs
+
+    def _finalize_bases(self):
+
+        # Compute the base type members/values
+        type_objects = []
+        for type_name in self._bases:
+            user_type = self.types[type_name]
+            filepos = self._get_filepos(type_name)
+            if 'struct' in user_type:
+                type_objects.append(
+                    (type_name, 'struct', 'members', self._get_base_objects(type_name, 'struct', 'members', filepos, set()))
+                )
+            else:
+                type_objects.append(
+                    (type_name, 'enum', 'values', self._get_base_objects(type_name, 'enum', 'values', filepos, set()))
+                )
+
+        # Update the members/values
+        for type_name, user_type_key, object_key, objects in type_objects:
+            self.types[type_name][user_type_key][object_key] = objects
+
+        # Clear the base type state (so we don't process again)
+        self._bases = {}
+
+    def _get_filepos(self, type_name, type_key=None):
+        if type_key is None:
+            filepos = self._filepos.get(type_name)
+        else:
+            filepos = self._filepos.get((type_name, type_key))
+        if filepos is None:
+            filepos = ('', 1)
+        return filepos
+
+    def _get_base_objects(self, type_name, user_type_key, object_key, filepos, type_names):
+        base_objects = []
+
+        # Check for cycle
+        is_cycle = type_name in type_names
+        type_names.add(type_name)
+        if is_cycle:
+            self._error(f'Circular base type detected for type {type_name!r}', *filepos)
+            return base_objects
+
+        # Compute the base objects
+        if type_name in self._bases:
+            for base_name in self._bases[type_name]:
+                base_type = get_effective_type(self.types, {'user': base_name})
+                invalid_base = True
+                if 'user' in base_type:
+                    user_type = self.types[base_type['user']]
+                    if user_type_key in user_type:
+                        type_model = user_type[user_type_key]
+                        if not type_model.get('union', False):
+                            base_objects.extend(self._get_base_objects(base_type['user'], user_type_key, object_key, filepos, type_names))
+                            invalid_base = False
+                if invalid_base:
+                    self._error(f'Invalid {user_type_key} base type {base_name!r}', *filepos)
+
+        # Add missing filepos
+        for obj in base_objects:
+            filepos_key = (type_name, obj['name'])
+            if filepos_key not in self._filepos:
+                self._filepos[filepos_key] = filepos
+
+        # Add the type's objects
+        type_model = self.types[type_name][user_type_key]
+        if object_key in type_model:
+            base_objects.extend(type_model[object_key])
+
+        return base_objects

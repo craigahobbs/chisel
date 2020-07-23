@@ -10,13 +10,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-
-import os
-import sys
-
-# Import the chisel module.
-sys.path.insert(0, os.path.abspath(os.path.join('..', 'src')))
-import chisel
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
@@ -26,6 +22,7 @@ copyright = '2012, Craig Hobbs'
 author = 'Craig Hobbs'
 
 # The full version, including alpha/beta/rc tags
+import chisel
 release = chisel.__version__
 
 
@@ -67,5 +64,7 @@ html_show_sourcelink = False
 
 
 # -- Extension configuration -------------------------------------------------
+
+doctest_global_setup = 'import chisel'
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
