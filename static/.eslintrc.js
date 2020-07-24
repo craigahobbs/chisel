@@ -41,6 +41,7 @@ module.exports = {
         'newline-per-chained-call': 'off',
         'no-extra-parens': 'off',
         'no-implicit-coercion': 'off',
+        'no-inline-comments': 'off',
         'no-lonely-if': 'off',
         'no-magic-numbers': 'off',
         'no-mixed-operators': 'off',
