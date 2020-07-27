@@ -118,7 +118,7 @@ export function validateElements(elements) {
         // HTML or SVG?
         } else if ('html' in elements || 'svg' in elements) {
             // Validate attribute values
-            if ('attr' in elements) {
+            if ('attr' in elements && elements.attr !== null) {
                 for (const [attrKey, attrValue] of Object.entries(elements.attr)) {
                     // Validate creation callback
                     if (attrKey === '_callback') {

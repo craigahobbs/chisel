@@ -89,6 +89,7 @@ test('chisel.validateElements', (t) => {
             },
             {
                 'html': 'p',
+                'attr': null,
                 'elem': [
                     {'text': 'This is some '},
                     {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'bolded text!'}}
