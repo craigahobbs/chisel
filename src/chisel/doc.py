@@ -40,6 +40,9 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
             yield StaticRequest('chisel', 'static/doc.svg', urls=(('GET', root_path + '/doc.svg'),), cache=cache)
         yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/markdown.js', urls=(('GET', root_path + '/markdown.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/markdownTypes.js', urls=(('GET', root_path + '/markdownTypes.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/typeModel.js', urls=(('GET', root_path + '/typeModel.js'),), cache=cache)
 
 
 class DocIndex(Action):

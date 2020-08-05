@@ -48,6 +48,17 @@ test('chisel.validateType, string error', (t) => {
     t.is(errorMessage, "Invalid value 7 (type 'number'), expected type 'string'");
 });
 
+test('chisel.validateType, string error undefined', (t) => {
+    let errorMessage = null;
+    const obj = undefined;
+    try {
+        validateType({'builtin': 'string'}, obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value undefined (type 'undefined'), expected type 'string'");
+});
+
 test('chisel.validateType, int', (t) => {
     const obj = 7;
     t.is(validateType({'builtin': 'int'}, obj), obj);

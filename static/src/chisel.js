@@ -1,6 +1,9 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+import {typeModel} from './typeModel.js';
+
+
 /** The non-breaking space character. */
 export const nbsp = String.fromCharCode(160);
 
@@ -52,15 +55,10 @@ function renderElements(parent, elements) {
         // Add attributes, if any, to the newly created element
         if ('attr' in element && element.attr !== null) {
             for (const [attr, value] of Object.entries(element.attr)) {
-                // Skip null values as well as the special "_callback" attribute
-                if (attr !== '_callback' && value !== null) {
+                // Skip null values
+                if (value !== null) {
                     browserElement.setAttribute(attr, value);
                 }
-            }
-
-            // Call the element callback, if any
-            if ('_callback' in element.attr && element.attr._callback !== null) {
-                element.attr._callback(browserElement);
             }
         }
 
@@ -71,6 +69,11 @@ function renderElements(parent, elements) {
 
         // Add the child element
         parent.appendChild(browserElement);
+
+        // Call the element callback, if any
+        if ('callback' in element) {
+            element.callback(browserElement);
+        }
     }
 }
 
@@ -94,7 +97,8 @@ export function validateElements(elements) {
     } else if (elements !== null) {
         // Validation error exception helper function
         const throwValueError = (message, value) => {
-            throw new Error(`${message} ${JSON.stringify(value).slice(0, 100)} (type '${typeof value}')`);
+            const valueStr = `${JSON.stringify(value)}`;
+            throw new Error(`${message} ${valueStr.slice(0, 100)} (type '${typeof value}')`);
         };
 
         // Non-object?
@@ -104,6 +108,11 @@ export function validateElements(elements) {
 
         // Validate the element model
         validateType(elementTypes, 'Element', elements);
+
+        // Validate creation callback
+        if ('callback' in elements && typeof elements.callback !== 'function') {
+            throwValueError('Invalid element callback function', elements.callback);
+        }
 
         // Text?
         if ('text' in elements) {
@@ -119,15 +128,9 @@ export function validateElements(elements) {
         } else if ('html' in elements || 'svg' in elements) {
             // Validate attribute values
             if ('attr' in elements && elements.attr !== null) {
-                for (const [attrKey, attrValue] of Object.entries(elements.attr)) {
-                    // Validate creation callback
-                    if (attrKey === '_callback') {
-                        if (attrValue !== null && typeof attrValue !== 'function') {
-                            throwValueError('Invalid element attribute callback', attrValue);
-                        }
-
+                for (const attrValue of Object.values(elements.attr)) {
                     // Validate attribute value
-                    } else if (attrValue !== null && typeof attrValue !== 'string') {
+                    if (attrValue !== null && typeof attrValue !== 'string') {
                         throwValueError('Invalid element attribute value', attrValue);
                     }
                 }
@@ -182,6 +185,12 @@ const elementTypes = {
                     'doc': 'An element model or an array of element models',
                     'type': {'builtin': 'object'},
                     'attr': {'nullable': true},
+                    'optional': true
+                },
+                {
+                    'name': 'callback',
+                    'doc': 'The element creation callback function',
+                    'type': {'builtin': 'object'},
                     'optional': true
                 }
             ]
@@ -485,6 +494,11 @@ export function validateType(types, typeName, value, memberFqn = null) {
 }
 
 
+// Regular expressions used by validateTypeHelper
+const rDate = /^\d{4}-\d{2}-\d{2}$/;
+const rDatetime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+
 /**
  * Type-validate a value using a type model
  *
@@ -561,9 +575,7 @@ function validateTypeHelper(types, type, value, memberFqn) {
                 }
 
                 // Invalid date format?
-                const isDate = value.match(/^\d{4}-\d{2}-\d{2}$/) !== null;
-                const isDatetime = value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})$/) !== null;
-                if (!(isDate || isDatetime)) {
+                if (!(rDate.test(value) || rDatetime.test(value))) {
                     throwMemberError(type, value, memberFqn);
                 }
 
@@ -760,11 +772,10 @@ function throwMemberError(type, value, memberFqn, attr = null) {
     const memberPart = memberFqn !== null ? ` for member '${memberFqn}'` : '';
     const typeName = 'builtin' in type ? type.builtin : ('array' in type ? 'array' : ('dict' in type ? 'dict' : type.user));
     const attrPart = attr !== null ? ` [${attr}]` : '';
-    const msg = `Invalid value ${JSON.stringify(value).slice(0, 100)} (type '${typeof value}')` +
-          `${memberPart}, expected type '${typeName}'${attrPart}`;
+    const valueStr = `${JSON.stringify(value)}`;
+    const msg = `Invalid value ${valueStr.slice(0, 100)} (type '${typeof value}')${memberPart}, expected type '${typeName}'${attrPart}`;
     throw new Error(msg);
 }
-
 
 /**
  * Attribute-validate a value using an attribute model
@@ -1122,463 +1133,3 @@ function validateTypesType(errors, types, type, attr, typeName, memberName) {
         }
     }
 }
-
-
-// The type model's type model
-const typeModel = {
-    'Action': {
-        'struct': {
-            'name': 'Action',
-            'doc': ' A JSON web service API',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The action name',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'docGroup',
-                    'doc': ' The action@s documentation group name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'urls',
-                    'doc': ' The action@s URLs',
-                    'type': {'array': {'type': {'user': 'ActionURL'}}},
-                    'attr': {'lenGT': 0},
-                    'optional': true
-                },
-                {
-                    'name': 'path',
-                    'doc': ' The path parameters struct type name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'query',
-                    'doc': ' The query parameters struct type name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'input',
-                    'doc': ' The content body struct type name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'output',
-                    'doc': ' The response body struct type name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'errors',
-                    'doc': ' The custom error response codes enum type name',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'ActionURL': {
-        'struct': {
-            'name': 'ActionURL',
-            'doc': ' An action URL model',
-            'members': [
-                {
-                    'name': 'method',
-                    'doc': ' The HTTP method. If not provided, matches all HTTP methods.',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'path',
-                    'doc': ' The URL path. If not provided, uses the default URL path of \'/<actionName>\'.',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Array': {
-        'struct': {
-            'name': 'Array',
-            'doc': ' An array type',
-            'members': [
-                {
-                    'name': 'type',
-                    'doc': ' The contained type',
-                    'type': {'user': 'Type'}
-                },
-                {
-                    'name': 'attr',
-                    'doc': ' The contained type@s attributes',
-                    'type': {'user': 'Attributes'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Attributes': {
-        'struct': {
-            'name': 'Attributes',
-            'doc': ' A type or member@s attributes',
-            'members': [
-                {
-                    'name': 'nullable',
-                    'doc': ' If true, the value may be null',
-                    'type': {'builtin': 'bool'},
-                    'optional': true
-                },
-                {
-                    'name': 'eq',
-                    'doc': ' The value is equal',
-                    'type': {'builtin': 'float'},
-                    'optional': true
-                },
-                {
-                    'name': 'lt',
-                    'doc': ' The value is less than',
-                    'type': {'builtin': 'float'},
-                    'optional': true
-                },
-                {
-                    'name': 'lte',
-                    'doc': ' The value is less than or equal to',
-                    'type': {'builtin': 'float'},
-                    'optional': true
-                },
-                {
-                    'name': 'gt',
-                    'doc': ' The value is greater than',
-                    'type': {'builtin': 'float'},
-                    'optional': true
-                },
-                {
-                    'name': 'gte',
-                    'doc': ' The value is greater than or equal to',
-                    'type': {'builtin': 'float'},
-                    'optional': true
-                },
-                {
-                    'name': 'lenEq',
-                    'doc': ' The length is equal to',
-                    'type': {'builtin': 'int'},
-                    'optional': true
-                },
-                {
-                    'name': 'lenLT',
-                    'doc': ' The length is less-than',
-                    'type': {'builtin': 'int'},
-                    'optional': true
-                },
-                {
-                    'name': 'lenLTE',
-                    'doc': ' The length is less than or equal to',
-                    'type': {'builtin': 'int'},
-                    'optional': true
-                },
-                {
-                    'name': 'lenGT',
-                    'doc': ' The length is greater than',
-                    'type': {'builtin': 'int'},
-                    'optional': true
-                },
-                {
-                    'name': 'lenGTE',
-                    'doc': ' The length is greater than or equal to',
-                    'type': {'builtin': 'int'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'BuiltinType': {
-        'enum': {
-            'name': 'BuiltinType',
-            'doc': ' The built-in type enumeration',
-            'values': [
-                {
-                    'name': 'string',
-                    'doc': ' The string type'
-                },
-                {
-                    'name': 'int',
-                    'doc': ' The integer type'
-                },
-                {
-                    'name': 'float',
-                    'doc': ' The float type'
-                },
-                {
-                    'name': 'bool',
-                    'doc': ' The boolean type'
-                },
-                {
-                    'name': 'date',
-                    'doc': ' A date formatted as an ISO-8601 date string'
-                },
-                {
-                    'name': 'datetime',
-                    'doc': ' A date/time formatted as an ISO-8601 date/time string'
-                },
-                {
-                    'name': 'uuid',
-                    'doc': ' A UUID formatted as string'
-                },
-                {
-                    'name': 'object',
-                    'doc': ' An object of any type'
-                }
-            ]
-        }
-    },
-    'Dict': {
-        'struct': {
-            'name': 'Dict',
-            'doc': ' A dictionary type',
-            'members': [
-                {
-                    'name': 'type',
-                    'doc': ' The contained key type',
-                    'type': {'user': 'Type'}
-                },
-                {
-                    'name': 'attr',
-                    'doc': ' The contained key type@s attributes',
-                    'type': {'user': 'Attributes'},
-                    'optional': true
-                },
-                {
-                    'name': 'keyType',
-                    'doc': ' The contained value type',
-                    'type': {'user': 'Type'},
-                    'optional': true
-                },
-                {
-                    'name': 'keyAttr',
-                    'doc': ' The contained value type@s attributes',
-                    'type': {'user': 'Attributes'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Enum': {
-        'struct': {
-            'name': 'Enum',
-            'doc': ' An enumeration type',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The enum type name',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'values',
-                    'doc': ' The enumeration values',
-                    'type': {'array': {'type': {'user': 'EnumValue'}}},
-                    'attr': {'lenGT': 0},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'EnumValue': {
-        'struct': {
-            'name': 'EnumValue',
-            'doc': ' An enumeration type value',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The value string',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Struct': {
-        'struct': {
-            'name': 'Struct',
-            'doc': ' A struct type',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The struct type name',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'members',
-                    'doc': ' The struct members',
-                    'type': {'array': {'type': {'user': 'StructMember'}}},
-                    'attr': {'lenGT': 0},
-                    'optional': true
-                },
-                {
-                    'name': 'union',
-                    'doc': ' If true, the struct is a union and exactly one of the optional members is present',
-                    'type': {'builtin': 'bool'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'StructMember': {
-        'struct': {
-            'name': 'StructMember',
-            'doc': ' A struct member',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The member name',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'type',
-                    'doc': ' The member type',
-                    'type': {'user': 'Type'}
-                },
-                {
-                    'name': 'attr',
-                    'doc': ' The member type attributes',
-                    'type': {'user': 'Attributes'},
-                    'optional': true
-                },
-                {
-                    'name': 'optional',
-                    'doc': ' If true, the member is optional and may not be present',
-                    'type': {'builtin': 'bool'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Type': {
-        'struct': {
-            'name': 'Type',
-            'doc': ' Union representing a member type',
-            'union': true,
-            'members': [
-                {
-                    'name': 'builtin',
-                    'doc': ' A built-in type',
-                    'type': {'user': 'BuiltinType'}
-                },
-                {
-                    'name': 'array',
-                    'doc': ' An array type',
-                    'type': {'user': 'Array'}
-                },
-                {
-                    'name': 'dict',
-                    'doc': ' A dictionary type',
-                    'type': {'user': 'Dict'}
-                },
-                {
-                    'name': 'user',
-                    'doc': ' A user type name',
-                    'type': {'builtin': 'string'}
-                }
-            ]
-        }
-    },
-    'Typedef': {
-        'struct': {
-            'name': 'Typedef',
-            'doc': ' A typedef type',
-            'members': [
-                {
-                    'name': 'name',
-                    'doc': ' The typedef type name',
-                    'type': {'builtin': 'string'}
-                },
-                {
-                    'name': 'doc',
-                    'doc': ' The documentation markdown text',
-                    'type': {'builtin': 'string'},
-                    'optional': true
-                },
-                {
-                    'name': 'type',
-                    'doc': ' The typedef@s type',
-                    'type': {'user': 'Type'}
-                },
-                {
-                    'name': 'attr',
-                    'doc': ' The typedef@s type attributes',
-                    'type': {'user': 'Attributes'},
-                    'optional': true
-                }
-            ]
-        }
-    },
-    'Types': {
-        'typedef': {
-            'name': 'Types',
-            'doc': ' Map of user type name to user type model',
-            'type': {'dict': {'type': {'user': 'UserType'}}},
-            'attr': {'lenGT': 0}
-        }
-    },
-    'UserType': {
-        'struct': {
-            'name': 'UserType',
-            'doc': ' A user type',
-            'union': true,
-            'members': [
-                {
-                    'name': 'enum',
-                    'doc': ' An enumeration type',
-                    'type': {'user': 'Enum'}
-                },
-                {
-                    'name': 'struct',
-                    'doc': ' A struct type',
-                    'type': {'user': 'Struct'}
-                },
-                {
-                    'name': 'typedef',
-                    'doc': ' A type definition',
-                    'type': {'user': 'Typedef'}
-                },
-                {
-                    'name': 'action',
-                    'doc': ' A JSON web API (not reference-able)',
-                    'type': {'user': 'Action'}
-                }
-            ]
-        }
-    }
-};

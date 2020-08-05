@@ -69,12 +69,11 @@ test('chisel.render, element callback', (t) => {
         callbackCount += 1;
     };
     chisel.render(document.body, [
-        {'html': 'div', 'attr': {'_callback': callback}},
-        {'html': 'div', 'attr': {'_callback': null}}
+        {'html': 'div', 'callback': callback}
     ]);
     t.is(
         document.body.innerHTML,
-        '<div></div><div></div>'
+        '<div></div>'
     );
     t.is(callbackCount, 1);
 });
@@ -141,7 +140,7 @@ test('chisel.validateElements, error missing element key', (t) => {
 });
 
 test('chisel.validateElements, invalid attribute value', (t) => {
-    const elements = {'html': 'span', 'attr': {'style': 0, '_callback': null}};
+    const elements = {'html': 'span', 'attr': {'style': 0}};
     let errorMessage = null;
     try {
         chisel.validateElements(elements);
@@ -151,15 +150,37 @@ test('chisel.validateElements, invalid attribute value', (t) => {
     t.is(errorMessage, "Invalid element attribute value 0 (type 'number')");
 });
 
-test('chisel.validateElements, invalid callback attribute value', (t) => {
-    const elements = {'html': 'span', 'attr': {'style': null, '_callback': 0}};
+test('chisel.validateElements, undefined attribute value', (t) => {
+    const elements = {'html': 'span', 'attr': {'style': undefined}};
     let errorMessage = null;
     try {
         chisel.validateElements(elements);
     } catch ({message}) {
         errorMessage = message;
     }
-    t.is(errorMessage, "Invalid element attribute callback 0 (type 'number')");
+    t.is(errorMessage, "Invalid element attribute value undefined (type 'undefined')");
+});
+
+test('chisel.validateElements, null callback value', (t) => {
+    const elements = {'html': 'span', 'attr': {'style': null}, 'callback': null};
+    let errorMessage = null;
+    try {
+        chisel.validateElements(elements);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value null (type 'object') for member 'callback', expected type 'object'");
+});
+
+test('chisel.validateElements, invalid callback value', (t) => {
+    const elements = {'html': 'span', 'attr': {'style': null}, 'callback': 0};
+    let errorMessage = null;
+    try {
+        chisel.validateElements(elements);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid element callback function 0 (type 'number')");
 });
 
 test('chisel.validateElements, error text element with attr', (t) => {

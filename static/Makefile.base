@@ -1,0 +1,90 @@
+# -*- makefile-gmake -*-
+# Licensed under the MIT License
+# https://github.com/craigahobbs/chisel/blob/master/LICENSE
+
+.DEFAULT_GOAL := help
+
+NODE_IMAGE ?= node:14-slim
+NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
+
+PYTHON_IMAGE ?= python:3.8
+PYTHON_DOCKER := docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(PYTHON_IMAGE)
+
+build/npm.build:
+	docker pull -q $(NODE_IMAGE)
+	$(NODE_DOCKER) npm install
+	mkdir -p $(dir $@)
+	touch $@
+
+build/env.build:
+	docker pull -q $(PYTHON_IMAGE)
+	$(PYTHON_DOCKER) python3 -m venv build/env
+	$(PYTHON_DOCKER) build/env/bin/pip install -U pip setuptools wheel
+	$(PYTHON_DOCKER) build/env/bin/pip install chisel
+	touch $@
+
+define COMPILE_CHSL
+src/$(strip $(1)).json: src/$(strip $(1)).chsl | build/env.build
+	$(PYTHON_DOCKER) build/env/bin/python3 -m chisel compile $$< > $$@
+
+src/$(strip $(1)).js: src/$(strip $(1)).json
+	echo '/* eslint-disable quotes */' > $$@
+	echo 'export const $(strip $(1)) =' >> $$@
+	cat $$< >> $$@
+	echo ';' >> $$@
+
+.PHONY: _test
+_test: src/$(strip $(1)).js
+
+.PHONY: _lint
+_lint: src/$(strip $(1)).js
+
+.PHONY: _doc
+_doc: src/$(strip $(1)).js
+endef
+
+.PHONY: help
+help: _help
+
+.PHONY: _help
+_help:
+	@echo 'usage: make [clean|commit|doc|lint|superclean|test]'
+
+.PHONY: commit
+commit: test lint doc
+
+.PHONY: test
+test: _test
+
+.PHONY: _test
+_test: build/npm.build $(CHISEL_TARGETS)
+	$(NODE_DOCKER) npx nyc $(NYC_ARGS) --check-coverage --reporter html --reporter text --report-dir build/coverage --temp-dir build/tmp \
+		ava $(if $(TEST),--match '$(TEST)') $(AVA_ARGS) tests/test*.js
+
+.PHONY: _lint
+lint: _lint
+
+.PHONY: _lint
+_lint: build/npm.build
+	$(NODE_DOCKER) npx eslint $(ESLINT_ARGS) -c .eslintrc.js -f unix .eslintrc.js src tests
+
+.PHONY: doc
+doc: _doc
+
+.PHONY: _doc
+_doc: build/npm.build
+	$(NODE_DOCKER) npx jsdoc $(JSDOC_ARGS) --pedantic -d build/doc src
+
+.PHONY: clean
+clean: _clean
+
+.PHONY: _clean
+_clean:
+	rm -rf build node_modules package-lock.json
+
+.PHONY: superclean
+superclean: clean _superclean
+
+.PHONY: _superclean
+_superclean:
+	docker rmi -f $(NODE_IMAGE) $(PYTHON_IMAGE)

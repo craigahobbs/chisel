@@ -615,7 +615,7 @@ test('DocPage.userTypeElem, empty struct', (t) => {
             },
             null,
             [
-                {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
+                {'html': 'p', 'elem': [{'text': 'The struct is empty.'}]}
             ]
         ]
     );
@@ -643,7 +643,7 @@ test('DocPage.userTypeElem, empty enum', (t) => {
             null,
             null,
             [
-                {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
+                {'html': 'p', 'elem': [{'text': 'The enum is empty.'}]}
             ]
         ]
     );
@@ -693,6 +693,42 @@ test('DocPage.userTypeElem, empty typedef', (t) => {
     );
 });
 
+const emptyActionErrorElements = [
+    {
+        'html': 'h2',
+        'attr': {'id': 'name=MyAction&type_MyAction_errors'},
+        'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'Error Codes'}}
+    },
+    null,
+    [
+        {'html': 'p', 'elem': [{'text': 'If an application error occurs, the response is of the form:'}]},
+        {'html': 'pre', 'elem': {'html': 'code', 'elem': [
+            {'text': '{\n'},
+            {'text': '    "error": "<code>",\n'},
+            {'text': '    "message": "<message>"\n'},
+            {'text': '}\n'}
+        ]}},
+        {'html': 'p', 'elem': [{'text': '"message" is optional. "<code>" is one of the following values:'}]}
+    ],
+    {
+        'html': 'table',
+        'elem': [
+            {'html': 'tr', 'elem': [
+                {'html': 'th', 'elem': {'text': 'Value'}},
+                {'html': 'th', 'elem': {'text': 'Description'}}
+            ]},
+            [
+                {'html': 'tr', 'elem': [
+                    {'html': 'td', 'elem': {'text': 'UnexpectedError'}},
+                    {'html': 'td', 'elem': [
+                        {'html': 'p', 'elem': [{'text': 'An unexpected error occurred while processing the request'}]}
+                    ]}
+                ]}
+            ]
+        ]
+    }
+];
+
 test('DocPage.userTypeElem, empty action with URLs', (t) => {
     window.location.hash = '#name=MyAction';
     const docPage = new DocPage();
@@ -740,7 +776,7 @@ test('DocPage.userTypeElem, empty action with URLs', (t) => {
             null,
             null,
             null,
-            null
+            emptyActionErrorElements
         ]
     );
     t.deepEqual(
@@ -770,7 +806,7 @@ test('DocPage.userTypeElem, empty action with URLs', (t) => {
             null,
             null,
             null,
-            null
+            emptyActionErrorElements
         ]
     );
 });
@@ -957,7 +993,7 @@ test('DocPage.typesPage, empty action', (t) => {
                 null,
                 null,
                 null,
-                null
+                emptyActionErrorElements
             ],
             null
         ]
@@ -990,7 +1026,7 @@ test('DocPage.typesPage, empty struct', (t) => {
                 },
                 null,
                 [
-                    {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
+                    {'html': 'p', 'elem': [{'text': 'The struct is empty.'}]}
                 ]
             ],
             null
@@ -1132,6 +1168,7 @@ test('DocPage.typesPage, referenced types', (t) => {
                 ]}
             ],
             [
+                {'html': 'hr'},
                 {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
                 [
                     [
@@ -1143,7 +1180,7 @@ test('DocPage.typesPage, referenced types', (t) => {
                         null,
                         null,
                         [
-                            {'html': 'p', 'elem': {'text': 'The enum is empty.'}}
+                            {'html': 'p', 'elem': [{'text': 'The enum is empty.'}]}
                         ]
                     ],
                     [
@@ -1152,7 +1189,7 @@ test('DocPage.typesPage, referenced types', (t) => {
                         },
                         null,
                         [
-                            {'html': 'p', 'elem': {'text': 'The struct is empty.'}}
+                            {'html': 'p', 'elem': [{'text': 'The struct is empty.'}]}
                         ]
                     ],
                     [
@@ -1193,7 +1230,7 @@ test('DocPage.requestPage, request', (t) => {
             [
                 {'html': 'h1', 'elem': {'text': 'request'}},
                 [
-                    {'html': 'p', 'elem': {'text': 'This is my request'}}
+                    {'html': 'p', 'elem': [{'text': 'This is my request'}]}
                 ],
                 {'html': 'p', 'attr': {'class': 'chisel-note'}, 'elem': [
                     {'html': 'b', 'elem': {'text': 'Note: '}},
@@ -1244,7 +1281,7 @@ test('DocPage.requestPage', (t) => {
             'MyAction': {
                 'action': {
                     'name': 'MyAction',
-                    'doc': ' The test action.\n\n This is some more information.',
+                    'doc': 'The test action.\n\nThis is some more information.',
                     'path': 'MyAction_path',
                     'query': 'MyAction_query',
                     'input': 'MyAction_input',
@@ -1256,8 +1293,8 @@ test('DocPage.requestPage', (t) => {
                 'struct': {
                     'name': 'MyAction_path',
                     'members': [
-                        {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': ' The url member "pa".'},
-                        {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': ' The url member "pb".\n\n\n More info.\n'},
+                        {'name': 'pa', 'type': {'builtin': 'bool'}, 'doc': 'The url member "pa".'},
+                        {'name': 'pb', 'type': {'builtin': 'date'}, 'doc': 'The url member "pb".\n\n\nMore info.\n'},
                         {'name': 'pc', 'type': {'builtin': 'datetime'}},
                         {'name': 'pd', 'type': {'builtin': 'float'}},
                         {'name': 'pe', 'type': {'builtin': 'int'}},
@@ -1347,17 +1384,17 @@ test('DocPage.requestPage', (t) => {
             'Enum1': {
                 'enum': {
                     'name': 'Enum1',
-                    'doc': ' An enum.',
+                    'doc': 'An enum.',
                     'values': [
-                        {'name': 'e1', 'doc': ' The Enum1 value "e1"'},
-                        {'name': 'e2', 'doc': ' The Enum1 value "e 2"\n\n More info.'}
+                        {'name': 'e1', 'doc': 'The Enum1 value "e1"'},
+                        {'name': 'e2', 'doc': 'The Enum1 value "e 2"\n\nMore info.'}
                     ]
                 }
             },
             'Enum2': {
                 'enum': {
                     'name': 'Enum2',
-                    'doc': ' Another enum.\n\n More info.',
+                    'doc': 'Another enum.\n\nMore info.',
                     'values': [
                         {'name': 'e3'}
                     ]
@@ -1366,17 +1403,17 @@ test('DocPage.requestPage', (t) => {
             'Struct1': {
                 'struct': {
                     'name': 'Struct1',
-                    'doc': ' A struct.',
+                    'doc': 'A struct.',
                     'members': [
-                        {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': ' The struct member "sa"'},
-                        {'name': 'sb', 'type': {'user': 'Struct2'}, 'doc': ' The struct member "sb"\n\n More info.'}
+                        {'name': 'sa', 'type': {'builtin': 'int'}, 'doc': 'The struct member "sa"'},
+                        {'name': 'sb', 'type': {'user': 'Struct2'}, 'doc': 'The struct member "sb"\n\nMore info.'}
                     ]
                 }
             },
             'Struct2': {
                 'struct': {
                     'name': 'Struct2',
-                    'doc': ' Another struct, a union.\n\n More info.',
+                    'doc': 'Another struct, a union.\n\nMore info.',
                     'members': [
                         {'name': 'sa', 'type': {'builtin': 'string'}},
                         {'name': 'sb', 'type': {'builtin': 'int'}}
@@ -1394,14 +1431,14 @@ test('DocPage.requestPage', (t) => {
             'JustAString': {
                 'typedef': {
                     'name': 'JustAString',
-                    'doc': ' Just a string.\n\n More info.',
+                    'doc': 'Just a string.\n\nMore info.',
                     'type': {'builtin': 'string'}
                 }
             },
             'PositiveInt': {
                 'typedef': {
                     'name': 'PositiveInt',
-                    'doc': ' A positive integer.',
+                    'doc': 'A positive integer.',
                     'type': {'builtin': 'int'},
                     'attr': {'gt': 0.0}
                 }
@@ -1422,8 +1459,8 @@ test('DocPage.requestPage', (t) => {
                     'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyAction'}}
                 },
                 [
-                    {'html': 'p', 'elem': {'text': ' The test action.'}},
-                    {'html': 'p', 'elem': {'text': ' This is some more information.'}}
+                    {'html': 'p', 'elem': [{'text': 'The test action.'}]},
+                    {'html': 'p', 'elem': [{'text': 'This is some more information.'}]}
                 ],
                 {'html': 'p', 'attr': {'class': 'chisel-note'}, 'elem': [
                     {'html': 'b', 'elem': {'text': 'Note: '}},
@@ -1453,15 +1490,15 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'pa'}},
                                 {'html': 'td', 'elem': {'text': 'bool'}},
                                 null,
-                                {'html': 'td', 'elem': [{'html': 'p', 'elem': {'text': ' The url member "pa".'}}]}
+                                {'html': 'td', 'elem': [{'html': 'p', 'elem': [{'text': 'The url member "pa".'}]}]}
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'pb'}},
                                 {'html': 'td', 'elem': {'text': 'date'}},
                                 null,
                                 {'html': 'td', 'elem': [
-                                    {'html': 'p', 'elem': {'text': ' The url member "pb".'}},
-                                    {'html': 'p', 'elem': {'text': ' More info.'}}
+                                    {'html': 'p', 'elem': [{'text': 'The url member "pb".'}]},
+                                    {'html': 'p', 'elem': [{'text': 'More info.'}]}
                                 ]}
                             ]},
                             {'html': 'tr', 'elem': [
@@ -1810,29 +1847,53 @@ test('DocPage.requestPage', (t) => {
                     [
                         {
                             'html': 'p',
-                            'elem': {'text': 'If an application error occurs, the response is of the form:'}
+                            'elem': [{'text': 'If an application error occurs, the response is of the form:'}]
+                        },
+                        {
+                            'html': 'pre',
+                            'elem': {
+                                'html': 'code',
+                                'elem': [
+                                    {'text': '{\n'},
+                                    {'text': '    "error": "<code>",\n'},
+                                    {'text': '    "message": "<message>"\n'},
+                                    {'text': '}\n'}
+                                ]
+                            }
                         },
                         {
                             'html': 'p',
-                            'elem': {'text': '    {\n        "error": "<code>",\n        "message": "<message>"\n    }'}
-                        },
-                        {
-                            'html': 'p',
-                            'elem': {'text': '"message" is optional. "<code>" is one of the following values:'}
+                            'elem': [{'text': '"message" is optional. "<code>" is one of the following values:'}]
                         }
                     ],
                     {
                         'html': 'table', 'elem': [
-                            {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Value'}}, null]},
+                            {'html': 'tr', 'elem': [
+                                {'html': 'th', 'elem': {'text': 'Value'}},
+                                {'html': 'th', 'elem': {'text': 'Description'}}
+                            ]},
                             [
-                                {'html': 'tr', 'elem': [{'html': 'td', 'elem': {'text': 'Error1'}}, null]},
-                                {'html': 'tr', 'elem': [{'html': 'td', 'elem': {'text': 'Error2'}}, null]}
+                                {'html': 'tr', 'elem': [
+                                    {'html': 'td', 'elem': {'text': 'UnexpectedError'}},
+                                    {'html': 'td', 'elem': [
+                                        {'html': 'p', 'elem': [{'text': 'An unexpected error occurred while processing the request'}]}
+                                    ]}
+                                ]},
+                                {'html': 'tr', 'elem': [
+                                    {'html': 'td', 'elem': {'text': 'Error1'}},
+                                    {'html': 'td', 'elem': null}
+                                ]},
+                                {'html': 'tr', 'elem': [
+                                    {'html': 'td', 'elem': {'text': 'Error2'}},
+                                    {'html': 'td', 'elem': null}
+                                ]}
                             ]
                         ]
                     }
                 ]
             ],
             [
+                {'html': 'hr'},
                 {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
                 [
                     [
@@ -1842,7 +1903,7 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum1'}}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' An enum.'}}
+                            {'html': 'p', 'elem': [{'text': 'An enum.'}]}
                         ],
                         null,
                         {'html': 'table', 'elem': [
@@ -1853,13 +1914,13 @@ test('DocPage.requestPage', (t) => {
                             [
                                 {'html': 'tr', 'elem': [
                                     {'html': 'td', 'elem': {'text': 'e1'}},
-                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': {'text': ' The Enum1 value "e1"'}}]}
+                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': [{'text': 'The Enum1 value "e1"'}]}]}
                                 ]},
                                 {'html': 'tr', 'elem': [
                                     {'html': 'td', 'elem': {'text': 'e2'}},
                                     {'html': 'td', 'elem': [
-                                        {'html': 'p', 'elem': {'text': ' The Enum1 value "e 2"'}},
-                                        {'html': 'p', 'elem': {'text': ' More info.'}}
+                                        {'html': 'p', 'elem': [{'text': 'The Enum1 value "e 2"'}]},
+                                        {'html': 'p', 'elem': [{'text': 'More info.'}]}
                                     ]}
                                 ]}
                             ]
@@ -1872,8 +1933,8 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'enum Enum2'}}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' Another enum.'}},
-                            {'html': 'p', 'elem': {'text': ' More info.'}}
+                            {'html': 'p', 'elem': [{'text': 'Another enum.'}]},
+                            {'html': 'p', 'elem': [{'text': 'More info.'}]}
                         ],
                         null,
                         {'html': 'table', 'elem': [
@@ -1890,8 +1951,8 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'typedef JustAString'}}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' Just a string.'}},
-                            {'html': 'p', 'elem': {'text': ' More info.'}}
+                            {'html': 'p', 'elem': [{'text': 'Just a string.'}]},
+                            {'html': 'p', 'elem': [{'text': 'More info.'}]}
                         ],
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [
@@ -1928,7 +1989,7 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'typedef PositiveInt'}}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' A positive integer.'}}
+                            {'html': 'p', 'elem': [{'text': 'A positive integer.'}]}
                         ],
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [
@@ -1950,7 +2011,7 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'struct Struct1'}}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' A struct.'}}
+                            {'html': 'p', 'elem': [{'text': 'A struct.'}]}
                         ],
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [
@@ -1964,7 +2025,7 @@ test('DocPage.requestPage', (t) => {
                                     {'html': 'td', 'elem': {'text': 'sa'}},
                                     {'html': 'td', 'elem': {'text': 'int'}},
                                     null,
-                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': {'text': ' The struct member "sa"'}}]}
+                                    {'html': 'td', 'elem': [{'html': 'p', 'elem': [{'text': 'The struct member "sa"'}]}]}
                                 ]},
                                 {'html': 'tr', 'elem': [
                                     {'html': 'td', 'elem': {'text': 'sb'}},
@@ -1973,8 +2034,8 @@ test('DocPage.requestPage', (t) => {
                                     }},
                                     null,
                                     {'html': 'td', 'elem': [
-                                        {'html': 'p', 'elem': {'text': ' The struct member "sb"'}},
-                                        {'html': 'p', 'elem': {'text': ' More info.'}}
+                                        {'html': 'p', 'elem': [{'text': 'The struct member "sb"'}]},
+                                        {'html': 'p', 'elem': [{'text': 'More info.'}]}
                                     ]}
                                 ]}
                             ]
@@ -1987,8 +2048,8 @@ test('DocPage.requestPage', (t) => {
                             'elem': {'attr': {'class': 'linktarget'}, 'elem': {'text': 'union Struct2'}, 'html': 'a'}
                         },
                         [
-                            {'html': 'p', 'elem': {'text': ' Another struct, a union.'}},
-                            {'html': 'p', 'elem': {'text': ' More info.'}}
+                            {'html': 'p', 'elem': [{'text': 'Another struct, a union.'}]},
+                            {'html': 'p', 'elem': [{'text': 'More info.'}]}
                         ],
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [

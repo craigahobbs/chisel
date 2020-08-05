@@ -230,7 +230,7 @@ class SpecParser:
             if match_name == 'comment':
                 doc_string = match.group('doc')
                 if doc_string is not None:
-                    doc.append(doc_string)
+                    doc.append(doc_string if not doc_string.startswith(' ') else doc_string[1:])
 
             # Documentation group?
             elif match_name == 'group':

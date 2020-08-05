@@ -2,6 +2,7 @@
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 import * as chisel from './chisel.js';
+import * as markdown from './markdown.js';
 
 
 /**
@@ -306,6 +307,7 @@ export class DocPage {
 
             // Referenced types
             !filteredTypes.length ? null : [
+                {'html': 'hr'},
                 {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
                 filteredTypes.map((refType) => this.userTypeElem(request.types, Object.values(refType)[0].name, null, 'h3'))
             ]
@@ -318,28 +320,11 @@ export class DocPage {
      * @param {string} [text=null] - Markdown text
      * @returns {?Array}
      */
-    static textElem(text = null) {
-        const elems = [];
-
-        // Organize lines into paragraphs
-        if (text !== null) {
-            const lines = text.split('\n');
-            let paragraph = [];
-            for (const line of lines) {
-                if (line.length) {
-                    paragraph.push(line);
-                } else if (paragraph.length) {
-                    elems.push({'html': 'p', 'elem': {'text': paragraph.join('\n')}});
-                    paragraph = [];
-                }
-            }
-            if (paragraph.length) {
-                elems.push({'html': 'p', 'elem': {'text': paragraph.join('\n')}});
-            }
+    static markdownElem(text = null) {
+        if (text === null) {
+            return null;
         }
-
-        // If there are no elements return null
-        return elems.length ? elems : null;
+        return markdown.markdownElements(markdown.parseMarkdown(text));
     }
 
     /**
@@ -441,7 +426,7 @@ export class DocPage {
     static requestElem(request) {
         return [
             {'html': 'h1', 'elem': {'text': request.name}},
-            DocPage.textElem(request.doc),
+            DocPage.markdownElem(request.doc),
             DocPage.urlsNoteElem(request.urls)
         ];
     }
@@ -486,6 +471,23 @@ export class DocPage {
         if ('action' in userType) {
             const {action} = userType;
 
+            // Add "UnexpectedError" to the action's errors
+            const actionErrorTypeName = `${action.name}_errors`;
+            const actionErrorValues = 'errors' in action && 'enum' in types[action.errors] ? types[action.errors].enum.values : [];
+            const actionErrorTypes = {};
+            actionErrorTypes[actionErrorTypeName] = {
+                'enum': {
+                    'name': actionErrorTypeName,
+                    'values': [
+                        {
+                            'name': 'UnexpectedError',
+                            'doc': 'An unexpected error occurred while processing the request'
+                        },
+                        ...actionErrorValues
+                    ]
+                }
+            };
+
             // If no URLs passed use the action's URLs
             let actionUrls = urls;
             if (urls === null && 'urls' in action) {
@@ -502,7 +504,7 @@ export class DocPage {
 
             return [
                 titleElem(`action ${typeName}`),
-                DocPage.textElem(action.doc),
+                DocPage.markdownElem(action.doc),
                 DocPage.urlsNoteElem(actionUrls),
 
                 // Action types
@@ -510,14 +512,13 @@ export class DocPage {
                 'query' in action ? this.userTypeElem(types, action.query, null, 'h2', 'Query Parameters') : null,
                 'input' in action ? this.userTypeElem(types, action.input, null, 'h2', 'Input Parameters') : null,
                 'output' in action ? this.userTypeElem(types, action.output, null, 'h2', 'Output Parameters') : null,
-                'errors' in action
-                    ? this.userTypeElem(
-                        types,
-                        action.errors,
-                        null,
-                        'h2',
-                        'Error Codes',
-                        `\
+                this.userTypeElem(
+                    actionErrorTypes,
+                    actionErrorTypeName,
+                    null,
+                    'h2',
+                    'Error Codes',
+                    `\
 If an application error occurs, the response is of the form:
 
     {
@@ -526,8 +527,7 @@ If an application error occurs, the response is of the form:
     }
 
 "message" is optional. "<code>" is one of the following values:`
-                    )
-                    : null
+                )
             ];
 
         // Struct?
@@ -538,14 +538,14 @@ If an application error occurs, the response is of the form:
                 ? Object.fromEntries(members.map((member) => [member.name, DocPage.attrElem(member)])) : null;
             const hasAttr = members !== null && Object.values(memberAttrElem).some((attrElem) => attrElem !== null);
             const memberDocElem = members !== null
-                ? Object.fromEntries(members.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
+                ? Object.fromEntries(members.map(({name, doc}) => [name, DocPage.markdownElem(doc)])) : null;
             const hasDoc = members !== null && Object.values(memberDocElem).some((docElem) => docElem !== null);
             return [
                 titleElem('union' in struct && struct.union ? `union ${typeName}` : `struct ${typeName}`),
-                DocPage.textElem(struct.doc),
+                DocPage.markdownElem(struct.doc),
 
                 // Struct members
-                !members || !members.length ? DocPage.textElem('The struct is empty.') : {'html': 'table', 'elem': [
+                !members || !members.length ? DocPage.markdownElem('The struct is empty.') : {'html': 'table', 'elem': [
                     {'html': 'tr', 'elem': [
                         {'html': 'th', 'elem': {'text': 'Name'}},
                         {'html': 'th', 'elem': {'text': 'Type'}},
@@ -566,15 +566,15 @@ If an application error occurs, the response is of the form:
             const enum_ = userType.enum;
             const values = 'values' in enum_ ? enum_.values : null;
             const valueDocElem = values !== null
-                ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.textElem(doc)])) : null;
+                ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.markdownElem(doc)])) : null;
             const hasDoc = values !== null && Object.values(valueDocElem).some((docElem) => docElem !== null);
             return [
                 titleElem(`enum ${typeName}`),
-                DocPage.textElem(enum_.doc),
-                introMarkdown !== null ? DocPage.textElem(introMarkdown) : null,
+                DocPage.markdownElem(enum_.doc),
+                introMarkdown !== null ? DocPage.markdownElem(introMarkdown) : null,
 
                 // Enumeration values
-                !values || !values.length ? DocPage.textElem('The enum is empty.') : {'html': 'table', 'elem': [
+                !values || !values.length ? DocPage.markdownElem('The enum is empty.') : {'html': 'table', 'elem': [
                     {'html': 'tr', 'elem': [
                         {'html': 'th', 'elem': {'text': 'Value'}},
                         hasDoc ? {'html': 'th', 'elem': {'text': 'Description'}} : null
@@ -592,7 +592,7 @@ If an application error occurs, the response is of the form:
             const attrElem = 'attr' in typedef ? DocPage.attrElem(typedef) : null;
             return [
                 titleElem(`typedef ${typeName}`),
-                DocPage.textElem(typedef.doc),
+                DocPage.markdownElem(typedef.doc),
 
                 // Typedef type description
                 {'html': 'table', 'elem': [
