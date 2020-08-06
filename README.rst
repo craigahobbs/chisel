@@ -134,4 +134,4 @@ You can add API documentation by adding the Chisel documentation application to 
 >>> application.add_requests(chisel.create_doc_requests())
 
 By default the documentation application is hosted at "/doc/". An example of of Chisel's documentation output is
-available `here <https://craigahobbs.github.io/chisel/doc>`__.
+available `here <https://craigahobbs.github.io/chisel/doc/#name=chisel_doc_request>`__.

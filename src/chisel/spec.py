@@ -180,11 +180,11 @@ class SpecParser:
         # Helper function to get documentation strings
         def get_doc():
             nonlocal doc
-            doc_str = None
+            result = None
             if doc:
-                doc_str = '\n'.join(doc)
+                result = doc
                 doc = []
-            return doc_str
+            return result
 
         # Process each line
         line_continuation = []

@@ -377,7 +377,7 @@ action my_action2
             'types': {
                 'my_action': {
                     'action': {
-                        'doc': 'Action doc.\n\nAnother doc paragraph.',
+                        'doc': ['Action doc.', '', 'Another doc paragraph.'],
                         'name': 'my_action',
                         'input': 'my_action_input',
                         'output': 'my_action_output',
@@ -391,12 +391,12 @@ action my_action2
                         'name': 'my_action_input',
                         'members': [
                             {
-                                'doc': 'Action path member doc.',
+                                'doc': ['Action path member doc.'],
                                 'name': 'm7',
                                 'type': {'user': 'MyEnum2'}
                             },
                             {
-                                'doc': 'Action path member2 doc.',
+                                'doc': ['Action path member2 doc.'],
                                 'name': 'm8',
                                 'type': {'user': 'MyStruct2'}
                             },
@@ -412,12 +412,12 @@ action my_action2
                         'name': 'my_action_output',
                         'members': [
                             {
-                                'doc': 'Action output member doc.',
+                                'doc': ['Action output member doc.'],
                                 'name': 'm1',
                                 'type': {'builtin': 'bool'}
                             },
                             {
-                                'doc': 'Action output member2 doc.',
+                                'doc': ['Action output member2 doc.'],
                                 'name': 'm2',
                                 'type': {'builtin': 'date'}
                             },
@@ -497,12 +497,12 @@ action my_action2
                         'name': 'my_action_path',
                         'members': [
                             {
-                                'doc': 'Action path member doc.',
+                                'doc': ['Action path member doc.'],
                                 'name': 'm1',
                                 'type': {'user': 'MyEnum2'}
                             },
                             {
-                                'doc': 'Action path member2 doc.',
+                                'doc': ['Action path member2 doc.'],
                                 'name': 'm2',
                                 'type': {'user': 'MyStruct2'}
                             },
@@ -518,12 +518,12 @@ action my_action2
                         'name': 'my_action_query',
                         'members': [
                             {
-                                'doc': 'Action path member doc.',
+                                'doc': ['Action path member doc.'],
                                 'name': 'm4',
                                 'type': {'user': 'MyEnum2'}
                             },
                             {
-                                'doc': 'Action path member2 doc.',
+                                'doc': ['Action path member2 doc.'],
                                 'name': 'm5',
                                 'type': {'user': 'MyStruct2'}
                             },
@@ -537,14 +537,14 @@ action my_action2
                 'MyEnum': {
                     'enum': {
                         'name': 'MyEnum',
-                        'doc': 'Enum doc.\n\nAnother enum paragraph.',
+                        'doc': ['Enum doc.', '', 'Another enum paragraph.'],
                         'values': [
                             {
-                                'doc': 'Enum value doc.\n\nAnother enum value paragraph.',
+                                'doc': ['Enum value doc.', '', 'Another enum value paragraph.'],
                                 'name': 'V1'
                             },
                             {
-                                'doc': 'Enum value2 doc.',
+                                'doc': ['Enum value2 doc.'],
                                 'name': 'V2'
                             },
                             {
@@ -561,15 +561,15 @@ action my_action2
                 'MyStruct': {
                     'struct': {
                         'name': 'MyStruct',
-                        'doc': 'Struct doc.\n\nAnother doc paragraph.',
+                        'doc': ['Struct doc.', '', 'Another doc paragraph.'],
                         'members': [
                             {
-                                'doc': 'Struct member doc.',
+                                'doc': ['Struct member doc.'],
                                 'name': 'm1',
                                 'type': {'builtin': 'int'}
                             },
                             {
-                                'doc': 'Struct member2 doc.',
+                                'doc': ['Struct member2 doc.'],
                                 'name': 'm2',
                                 'type': {'builtin': 'int'}
                             },
@@ -588,15 +588,15 @@ action my_action2
                 'MyUnion': {
                     'struct': {
                         'name': 'MyUnion',
-                        'doc': 'Union doc.\n\nAnother doc paragraph.',
+                        'doc': ['Union doc.', '', 'Another doc paragraph.'],
                         'members': [
                             {
-                                'doc': 'Union member doc.',
+                                'doc': ['Union member doc.'],
                                 'name': 'm1',
                                 'type': {'builtin': 'int'}
                             },
                             {
-                                'doc': 'Union member2 doc.',
+                                'doc': ['Union member2 doc.'],
                                 'name': 'm2',
                                 'type': {'builtin': 'float'}
                             },
@@ -611,7 +611,7 @@ action my_action2
                 'MyTypedef': {
                     'typedef': {
                         'name': 'MyTypedef',
-                        'doc': 'Typedef doc.\n\nAnother typedef paragraph.',
+                        'doc': ['Typedef doc.', '', 'Another typedef paragraph.'],
                         'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}}
                     }
                 },
@@ -641,7 +641,7 @@ action my_action2
         status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
-            'doc': 'Request doc.',
+            'doc': ['Request doc.'],
             'name': 'my_request',
             'urls': [{'url': '/my_request'}]
         })

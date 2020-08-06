@@ -70,7 +70,8 @@ class Request:
     :param str name: The request name. The default name is the callback function's name.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
-    :param str doc: The documentation markdown text
+    :param doc: The documentation markdown text lines
+    :type doc: str or list(str)
     :param str doc_group: The documentation group
     """
 
@@ -85,7 +86,7 @@ class Request:
         #: The request name
         self.name = name or wsgi_callback.__name__
 
-        #: The documentation markdown text
+        #: The documentation markdown text lines
         self.doc = doc
 
         #: The documentation group
@@ -157,7 +158,8 @@ class RedirectRequest(Request):
     :param str redirect_url: The redirectd URL
     :param bool permanent: If True, this is a permanent redirect
     :param str name: The request name. By default the name is "redirect_<redirect_url>".
-    :param str doc: The documentation markdown text
+    :param doc: The documentation markdown text lines
+    :type doc: str or list(str)
     :param str doc_group: The documentation group
     """
 
@@ -190,7 +192,8 @@ class StaticRequest(Request):
     :param str name: The request name. By default the name is "static_<redirect_url>".
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
-    :param str doc: The documentation markdown text
+    :param doc: The documentation markdown text lines
+    :type doc: str or list(str)
     :param str doc_group: The documentation group
     """
 

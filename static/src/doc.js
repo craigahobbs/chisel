@@ -12,25 +12,25 @@ const docPageTypes = {
     'DocPageParams': {
         'struct': {
             'name': 'DocPageParams',
-            'doc': 'The Chisel documentation application hash parameters struct',
+            'doc': ['The Chisel documentation application hash parameters struct'],
             'members': [
                 {
                     'name': 'name',
-                    'doc': 'Request name to render documentation. If not provided, the request index is displayed.',
+                    'doc': ['Request name to render documentation. If not provided, the request index is displayed.'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0},
                     'optional': true
                 },
                 {
                     'name': 'types',
-                    'doc': 'JSON user type model resource URL',
+                    'doc': ['JSON user type model resource URL'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0},
                     'optional': true
                 },
                 {
                     'name': 'title',
-                    'doc': 'The index page title',
+                    'doc': ['The index page title'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0},
                     'optional': true
@@ -481,7 +481,7 @@ export class DocPage {
                     'values': [
                         {
                             'name': 'UnexpectedError',
-                            'doc': 'An unexpected error occurred while processing the request'
+                            'doc': ['An unexpected error occurred while processing the request']
                         },
                         ...actionErrorValues
                     ]

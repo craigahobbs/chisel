@@ -131,8 +131,8 @@ struct Enum
     # The enum type name
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
     # The enumeration values
     optional EnumValue[len > 0] values
@@ -144,8 +144,8 @@ struct EnumValue
     # The value string
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
 
 # A struct type
@@ -154,8 +154,8 @@ struct Struct
     # The struct type name
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
     # The struct members
     optional StructMember[len > 0] members
@@ -170,8 +170,8 @@ struct StructMember
     # The member name
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
     # The member type
     Type type
@@ -189,8 +189,8 @@ struct Typedef
     # The typedef type name
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
     # The typedef's type
     Type type
@@ -205,8 +205,8 @@ struct Action
     # The action name
     string name
 
-    # The documentation markdown text
-    optional string doc
+    # The documentation markdown text lines
+    optional string[] doc
 
     # The action's documentation group name
     optional string docGroup

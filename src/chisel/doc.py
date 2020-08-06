@@ -128,8 +128,8 @@ action chisel_doc_request
         # The request name
         string name
 
-        # The documentation markdown text
-        optional string doc
+        # The documentation markdown text lines
+        optional string[] doc
 
         # The array of URL paths where the request is hosted.
         optional RequestURL[] urls
@@ -164,7 +164,7 @@ action chisel_doc_request
         if isinstance(request, Action):
             response['types'] = get_referenced_types(request.types, request.name)
         elif request.doc is not None:
-            response['doc'] = request.doc
+            response['doc'] = [request.doc] if isinstance(request.doc, str) else request.doc
 
         return response
 

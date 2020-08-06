@@ -3,7 +3,9 @@ export const markdownTypes =
 {
     "CharacterStyle": {
         "enum": {
-            "doc": " Character style enum",
+            "doc": [
+                "Character style enum"
+            ],
             "name": "CharacterStyle",
             "values": [
                 {
@@ -17,14 +19,18 @@ export const markdownTypes =
     },
     "CodeBlock": {
         "struct": {
-            "doc": " Code block markdown part struct",
+            "doc": [
+                "Code block markdown part struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 100
                     },
-                    "doc": " The code block's language",
+                    "doc": [
+                        "The code block's language"
+                    ],
                     "name": "language",
                     "optional": true,
                     "type": {
@@ -36,7 +42,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The code block's text lines",
+                    "doc": [
+                        "The code block's text lines"
+                    ],
                     "name": "lines",
                     "type": {
                         "array": {
@@ -52,14 +60,18 @@ export const markdownTypes =
     },
     "ImageSpan": {
         "struct": {
-            "doc": " Image span struct",
+            "doc": [
+                "Image span struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The image URL",
+                    "doc": [
+                        "The image URL"
+                    ],
                     "name": "src",
                     "type": {
                         "builtin": "string"
@@ -70,7 +82,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The image's alternate text",
+                    "doc": [
+                        "The image's alternate text"
+                    ],
                     "name": "alt",
                     "type": {
                         "builtin": "string"
@@ -81,7 +95,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The image's title",
+                    "doc": [
+                        "The image's title"
+                    ],
                     "name": "title",
                     "optional": true,
                     "type": {
@@ -94,14 +110,18 @@ export const markdownTypes =
     },
     "LinkSpan": {
         "struct": {
-            "doc": " Link span struct",
+            "doc": [
+                "Link span struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The link's URL",
+                    "doc": [
+                        "The link's URL"
+                    ],
                     "name": "href",
                     "type": {
                         "builtin": "string"
@@ -112,7 +132,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The image's title",
+                    "doc": [
+                        "The image's title"
+                    ],
                     "name": "title",
                     "optional": true,
                     "type": {
@@ -124,7 +146,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The contained spans",
+                    "doc": [
+                        "The contained spans"
+                    ],
                     "name": "spans",
                     "type": {
                         "array": {
@@ -140,13 +164,17 @@ export const markdownTypes =
     },
     "List": {
         "struct": {
-            "doc": " List markdown part struct",
+            "doc": [
+                "List markdown part struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "gte": 0.0
                     },
-                    "doc": " The list is numbered and this is starting number",
+                    "doc": [
+                        "The list is numbered and this is starting number"
+                    ],
                     "name": "start",
                     "optional": true,
                     "type": {
@@ -158,7 +186,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The list's items",
+                    "doc": [
+                        "The list's items"
+                    ],
                     "name": "items",
                     "type": {
                         "array": {
@@ -174,14 +204,18 @@ export const markdownTypes =
     },
     "ListItem": {
         "struct": {
-            "doc": " List item struct",
+            "doc": [
+                "List item struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The markdown document's parts",
+                    "doc": [
+                        "The markdown document's parts"
+                    ],
                     "name": "parts",
                     "type": {
                         "array": {
@@ -197,14 +231,18 @@ export const markdownTypes =
     },
     "Markdown": {
         "struct": {
-            "doc": " Markdown document struct",
+            "doc": [
+                "Markdown document struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The markdown document's parts",
+                    "doc": [
+                        "The markdown document's parts"
+                    ],
                     "name": "parts",
                     "type": {
                         "array": {
@@ -220,10 +258,14 @@ export const markdownTypes =
     },
     "MarkdownPart": {
         "struct": {
-            "doc": " Markdown document part struct",
+            "doc": [
+                "Markdown document part struct"
+            ],
             "members": [
                 {
-                    "doc": " A paragraph",
+                    "doc": [
+                        "A paragraph"
+                    ],
                     "name": "paragraph",
                     "type": {
                         "user": "Paragraph"
@@ -233,21 +275,27 @@ export const markdownTypes =
                     "attr": {
                         "nullable": true
                     },
-                    "doc": " A horizontal rule (value is ignored)",
+                    "doc": [
+                        "A horizontal rule (value is ignored)"
+                    ],
                     "name": "hr",
                     "type": {
                         "builtin": "object"
                     }
                 },
                 {
-                    "doc": " A list",
+                    "doc": [
+                        "A list"
+                    ],
                     "name": "list",
                     "type": {
                         "user": "List"
                     }
                 },
                 {
-                    "doc": " A code block",
+                    "doc": [
+                        "A code block"
+                    ],
                     "name": "codeBlock",
                     "type": {
                         "user": "CodeBlock"
@@ -260,10 +308,14 @@ export const markdownTypes =
     },
     "Paragraph": {
         "struct": {
-            "doc": " Paragraph markdown part struct",
+            "doc": [
+                "Paragraph markdown part struct"
+            ],
             "members": [
                 {
-                    "doc": " The paragraph style",
+                    "doc": [
+                        "The paragraph style"
+                    ],
                     "name": "style",
                     "optional": true,
                     "type": {
@@ -275,7 +327,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The paragraph span array",
+                    "doc": [
+                        "The paragraph span array"
+                    ],
                     "name": "spans",
                     "type": {
                         "array": {
@@ -291,7 +345,9 @@ export const markdownTypes =
     },
     "ParagraphStyle": {
         "enum": {
-            "doc": " Paragraph style enum",
+            "doc": [
+                "Paragraph style enum"
+            ],
             "name": "ParagraphStyle",
             "values": [
                 {
@@ -317,14 +373,18 @@ export const markdownTypes =
     },
     "Span": {
         "struct": {
-            "doc": " Paragraph span struct",
+            "doc": [
+                "Paragraph span struct"
+            ],
             "members": [
                 {
                     "attr": {
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " Text span",
+                    "doc": [
+                        "Text span"
+                    ],
                     "name": "text",
                     "type": {
                         "builtin": "string"
@@ -334,28 +394,36 @@ export const markdownTypes =
                     "attr": {
                         "nullable": true
                     },
-                    "doc": " Line break (value is ignored)",
+                    "doc": [
+                        "Line break (value is ignored)"
+                    ],
                     "name": "br",
                     "type": {
                         "builtin": "object"
                     }
                 },
                 {
-                    "doc": " Style span",
+                    "doc": [
+                        "Style span"
+                    ],
                     "name": "style",
                     "type": {
                         "user": "StyleSpan"
                     }
                 },
                 {
-                    "doc": " Link span",
+                    "doc": [
+                        "Link span"
+                    ],
                     "name": "link",
                     "type": {
                         "user": "LinkSpan"
                     }
                 },
                 {
-                    "doc": " Image span",
+                    "doc": [
+                        "Image span"
+                    ],
                     "name": "image",
                     "type": {
                         "user": "ImageSpan"
@@ -368,10 +436,14 @@ export const markdownTypes =
     },
     "StyleSpan": {
         "struct": {
-            "doc": " Style span struct",
+            "doc": [
+                "Style span struct"
+            ],
             "members": [
                 {
-                    "doc": " The span's character style",
+                    "doc": [
+                        "The span's character style"
+                    ],
                     "name": "style",
                     "type": {
                         "user": "CharacterStyle"
@@ -382,7 +454,9 @@ export const markdownTypes =
                         "lenGT": 0,
                         "lenLT": 1000
                     },
-                    "doc": " The contained spans",
+                    "doc": [
+                        "The contained spans"
+                    ],
                     "name": "spans",
                     "type": {
                         "array": {

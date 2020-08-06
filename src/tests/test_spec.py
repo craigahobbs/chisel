@@ -146,7 +146,7 @@ action MyAction4 \\
             'MyAction': {
                 'action': {
                     'name': 'MyAction',
-                    'doc': 'The action',
+                    'doc': ['The action'],
                     'errors': 'MyAction_errors',
                     'input': 'MyAction_input',
                     'output': 'MyAction_output'
@@ -182,7 +182,7 @@ action MyAction4 \\
             'MyAction2': {
                 'action': {
                     'name': 'MyAction2',
-                    'doc': 'The second action',
+                    'doc': ['The second action'],
                     'input': 'MyAction2_input',
                     'query': 'MyAction2_query'
                 }
@@ -207,7 +207,7 @@ action MyAction4 \\
             'MyAction3': {
                 'action': {
                     'name': 'MyAction3',
-                    'doc': 'The third action',
+                    'doc': ['The third action'],
                     'output': 'MyAction3_output',
                     'path': 'MyAction3_path',
                     'urls': [
@@ -236,13 +236,13 @@ action MyAction4 \\
             'MyAction4': {
                 'action': {
                     'name': 'MyAction4',
-                    'doc': 'The fourth action'
+                    'doc': ['The fourth action']
                 }
             },
             'MyEnum': {
                 'enum': {
                     'name': 'MyEnum',
-                    'doc': 'This is an enum',
+                    'doc': ['This is an enum'],
                     'values': [
                         {'name': 'Foo'},
                         {'name': 'Bar'},
@@ -253,17 +253,17 @@ action MyAction4 \\
             'MyStruct': {
                 'struct': {
                     'name': 'MyStruct',
-                    'doc': 'This is the struct',
+                    'doc': ['This is the struct'],
                     'members': [
-                        {'doc': "The 'a' member", 'name': 'a', 'type': {'builtin': 'string'}},
-                        {'doc': "The 'b' member", 'name': 'b', 'type': {'builtin': 'int'}}
+                        {'doc': ["The 'a' member"], 'name': 'a', 'type': {'builtin': 'string'}},
+                        {'doc': ["The 'b' member"], 'name': 'b', 'type': {'builtin': 'int'}}
                     ]
                 }
             },
             'MyStruct2': {
                 'struct': {
                     'name': 'MyStruct2',
-                    'doc': 'This is the second struct',
+                    'doc': ['This is the second struct'],
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'optional': True, 'type': {'builtin': 'float'}},
@@ -284,7 +284,7 @@ action MyAction4 \\
             'MyUnion': {
                 'struct': {
                     'name': 'MyUnion',
-                    'doc': 'This is a union',
+                    'doc': ['This is a union'],
                     'members': [
                         {'name': 'a', 'type': {'builtin': 'int'}},
                         {'name': 'b', 'type': {'builtin': 'string'}}
@@ -1512,7 +1512,7 @@ action MyAction
             'MyAction': {
                 'action': {
                     'name': 'MyAction',
-                    'doc': 'My action',
+                    'doc': ['My action'],
                     'input': 'MyAction_input',
                     'output': 'MyAction_output'
                 }
@@ -1521,7 +1521,7 @@ action MyAction
                 'struct': {
                     'name': 'MyAction_input',
                     'members': [
-                        {'doc': 'My input member', 'name': 'a', 'type': {'builtin': 'float'}}
+                        {'doc': ['My input member'], 'name': 'a', 'type': {'builtin': 'float'}}
                     ]
                 }
             },
@@ -1529,17 +1529,17 @@ action MyAction
                 'struct': {
                     'name': 'MyAction_output',
                     'members': [
-                        {'doc': 'My output member', 'name': 'b', 'type': {'builtin': 'datetime'}}
+                        {'doc': ['My output member'], 'name': 'b', 'type': {'builtin': 'datetime'}}
                     ]
                 }
             },
             'MyEnum': {
                 'enum': {
                     'name': 'MyEnum',
-                    'doc': 'My enum',
+                    'doc': ['My enum'],
                     'values': [
-                        {'doc': 'MyEnum value 1', 'name': 'MyEnumValue1'},
-                        {'doc': '\nMyEnum value 2\n\nSecond line\n', 'name': 'MyEnumValue2'}
+                        {'doc': ['MyEnum value 1'], 'name': 'MyEnumValue1'},
+                        {'doc': ['', 'MyEnum value 2', '', 'Second line', ''], 'name': 'MyEnumValue2'}
                     ]
                 }
             },
@@ -1554,10 +1554,10 @@ action MyAction
             'MyStruct': {
                 'struct': {
                     'name': 'MyStruct',
-                    'doc': 'My struct',
+                    'doc': ['My struct'],
                     'members': [
-                        {'doc': 'MyStruct member a', 'name': 'a', 'type': {'builtin': 'int'}},
-                        {'doc': '\nMyStruct member b\n', 'name': 'b', 'type': {'array': {'type': {'builtin': 'string'}}}}
+                        {'doc': ['MyStruct member a'], 'name': 'a', 'type': {'builtin': 'int'}},
+                        {'doc': ['', 'MyStruct member b', ''], 'name': 'b', 'type': {'array': {'type': {'builtin': 'string'}}}}
                     ]
                 }
             },
@@ -1610,7 +1610,7 @@ struct MyStruct
             'MyTypedef': {
                 'typedef': {
                     'name': 'MyTypedef',
-                    'doc': 'My typedef',
+                    'doc': ['My typedef'],
                     'type': {'dict': {'keyType': {'user': 'MyEnum'}, 'type': {'user': 'MyStruct'}}},
                     'attr': {'lenGT': 0}
                 }
