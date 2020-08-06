@@ -3,25 +3,37 @@ export const typeModel =
 {
     "Action": {
         "struct": {
-            "doc": " A JSON web service API",
+            "doc": [
+                "A JSON web service API"
+            ],
             "members": [
                 {
-                    "doc": " The action name",
+                    "doc": [
+                        "The action name"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 },
                 {
-                    "doc": " The action's documentation group name",
+                    "doc": [
+                        "The action's documentation group name"
+                    ],
                     "name": "docGroup",
                     "optional": true,
                     "type": {
@@ -32,7 +44,9 @@ export const typeModel =
                     "attr": {
                         "lenGT": 0
                     },
-                    "doc": " The action's URLs",
+                    "doc": [
+                        "The action's URLs"
+                    ],
                     "name": "urls",
                     "optional": true,
                     "type": {
@@ -44,7 +58,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The path parameters struct type name",
+                    "doc": [
+                        "The path parameters struct type name"
+                    ],
                     "name": "path",
                     "optional": true,
                     "type": {
@@ -52,7 +68,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The query parameters struct type name",
+                    "doc": [
+                        "The query parameters struct type name"
+                    ],
                     "name": "query",
                     "optional": true,
                     "type": {
@@ -60,7 +78,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The content body struct type name",
+                    "doc": [
+                        "The content body struct type name"
+                    ],
                     "name": "input",
                     "optional": true,
                     "type": {
@@ -68,7 +88,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The response body struct type name",
+                    "doc": [
+                        "The response body struct type name"
+                    ],
                     "name": "output",
                     "optional": true,
                     "type": {
@@ -76,7 +98,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The custom error response codes enum type name",
+                    "doc": [
+                        "The custom error response codes enum type name"
+                    ],
                     "name": "errors",
                     "optional": true,
                     "type": {
@@ -89,10 +113,14 @@ export const typeModel =
     },
     "ActionURL": {
         "struct": {
-            "doc": " An action URL model",
+            "doc": [
+                "An action URL model"
+            ],
             "members": [
                 {
-                    "doc": " The HTTP method. If not provided, matches all HTTP methods.",
+                    "doc": [
+                        "The HTTP method. If not provided, matches all HTTP methods."
+                    ],
                     "name": "method",
                     "optional": true,
                     "type": {
@@ -100,7 +128,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The URL path. If not provided, uses the default URL path of \"/<actionName>\".",
+                    "doc": [
+                        "The URL path. If not provided, uses the default URL path of \"/<actionName>\"."
+                    ],
                     "name": "path",
                     "optional": true,
                     "type": {
@@ -113,17 +143,23 @@ export const typeModel =
     },
     "Array": {
         "struct": {
-            "doc": " An array type",
+            "doc": [
+                "An array type"
+            ],
             "members": [
                 {
-                    "doc": " The contained type",
+                    "doc": [
+                        "The contained type"
+                    ],
                     "name": "type",
                     "type": {
                         "user": "Type"
                     }
                 },
                 {
-                    "doc": " The contained type's attributes",
+                    "doc": [
+                        "The contained type's attributes"
+                    ],
                     "name": "attr",
                     "optional": true,
                     "type": {
@@ -136,10 +172,14 @@ export const typeModel =
     },
     "Attributes": {
         "struct": {
-            "doc": " A type or member's attributes",
+            "doc": [
+                "A type or member's attributes"
+            ],
             "members": [
                 {
-                    "doc": " If true, the value may be null",
+                    "doc": [
+                        "If true, the value may be null"
+                    ],
                     "name": "nullable",
                     "optional": true,
                     "type": {
@@ -147,7 +187,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The value is equal",
+                    "doc": [
+                        "The value is equal"
+                    ],
                     "name": "eq",
                     "optional": true,
                     "type": {
@@ -155,7 +197,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The value is less than",
+                    "doc": [
+                        "The value is less than"
+                    ],
                     "name": "lt",
                     "optional": true,
                     "type": {
@@ -163,7 +207,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The value is less than or equal to",
+                    "doc": [
+                        "The value is less than or equal to"
+                    ],
                     "name": "lte",
                     "optional": true,
                     "type": {
@@ -171,7 +217,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The value is greater than",
+                    "doc": [
+                        "The value is greater than"
+                    ],
                     "name": "gt",
                     "optional": true,
                     "type": {
@@ -179,7 +227,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The value is greater than or equal to",
+                    "doc": [
+                        "The value is greater than or equal to"
+                    ],
                     "name": "gte",
                     "optional": true,
                     "type": {
@@ -187,7 +237,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The length is equal to",
+                    "doc": [
+                        "The length is equal to"
+                    ],
                     "name": "lenEq",
                     "optional": true,
                     "type": {
@@ -195,7 +247,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The length is less-than",
+                    "doc": [
+                        "The length is less-than"
+                    ],
                     "name": "lenLT",
                     "optional": true,
                     "type": {
@@ -203,7 +257,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The length is less than or equal to",
+                    "doc": [
+                        "The length is less than or equal to"
+                    ],
                     "name": "lenLTE",
                     "optional": true,
                     "type": {
@@ -211,7 +267,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The length is greater than",
+                    "doc": [
+                        "The length is greater than"
+                    ],
                     "name": "lenGT",
                     "optional": true,
                     "type": {
@@ -219,7 +277,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The length is greater than or equal to",
+                    "doc": [
+                        "The length is greater than or equal to"
+                    ],
                     "name": "lenGTE",
                     "optional": true,
                     "type": {
@@ -232,39 +292,57 @@ export const typeModel =
     },
     "BuiltinType": {
         "enum": {
-            "doc": " The built-in type enumeration",
+            "doc": [
+                "The built-in type enumeration"
+            ],
             "name": "BuiltinType",
             "values": [
                 {
-                    "doc": " The string type",
+                    "doc": [
+                        "The string type"
+                    ],
                     "name": "string"
                 },
                 {
-                    "doc": " The integer type",
+                    "doc": [
+                        "The integer type"
+                    ],
                     "name": "int"
                 },
                 {
-                    "doc": " The float type",
+                    "doc": [
+                        "The float type"
+                    ],
                     "name": "float"
                 },
                 {
-                    "doc": " The boolean type",
+                    "doc": [
+                        "The boolean type"
+                    ],
                     "name": "bool"
                 },
                 {
-                    "doc": " A date formatted as an ISO-8601 date string",
+                    "doc": [
+                        "A date formatted as an ISO-8601 date string"
+                    ],
                     "name": "date"
                 },
                 {
-                    "doc": " A date/time formatted as an ISO-8601 date/time string",
+                    "doc": [
+                        "A date/time formatted as an ISO-8601 date/time string"
+                    ],
                     "name": "datetime"
                 },
                 {
-                    "doc": " A UUID formatted as string",
+                    "doc": [
+                        "A UUID formatted as string"
+                    ],
                     "name": "uuid"
                 },
                 {
-                    "doc": " An object of any type",
+                    "doc": [
+                        "An object of any type"
+                    ],
                     "name": "object"
                 }
             ]
@@ -272,17 +350,23 @@ export const typeModel =
     },
     "Dict": {
         "struct": {
-            "doc": " A dictionary type",
+            "doc": [
+                "A dictionary type"
+            ],
             "members": [
                 {
-                    "doc": " The contained key type",
+                    "doc": [
+                        "The contained key type"
+                    ],
                     "name": "type",
                     "type": {
                         "user": "Type"
                     }
                 },
                 {
-                    "doc": " The contained key type's attributes",
+                    "doc": [
+                        "The contained key type's attributes"
+                    ],
                     "name": "attr",
                     "optional": true,
                     "type": {
@@ -290,7 +374,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The contained value type",
+                    "doc": [
+                        "The contained value type"
+                    ],
                     "name": "keyType",
                     "optional": true,
                     "type": {
@@ -298,7 +384,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " The contained value type's attributes",
+                    "doc": [
+                        "The contained value type's attributes"
+                    ],
                     "name": "keyAttr",
                     "optional": true,
                     "type": {
@@ -311,28 +399,40 @@ export const typeModel =
     },
     "Enum": {
         "struct": {
-            "doc": " An enumeration type",
+            "doc": [
+                "An enumeration type"
+            ],
             "members": [
                 {
-                    "doc": " The enum type name",
+                    "doc": [
+                        "The enum type name"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 },
                 {
                     "attr": {
                         "lenGT": 0
                     },
-                    "doc": " The enumeration values",
+                    "doc": [
+                        "The enumeration values"
+                    ],
                     "name": "values",
                     "optional": true,
                     "type": {
@@ -349,21 +449,31 @@ export const typeModel =
     },
     "EnumValue": {
         "struct": {
-            "doc": " An enumeration type value",
+            "doc": [
+                "An enumeration type value"
+            ],
             "members": [
                 {
-                    "doc": " The value string",
+                    "doc": [
+                        "The value string"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 }
             ],
@@ -372,28 +482,40 @@ export const typeModel =
     },
     "Struct": {
         "struct": {
-            "doc": " A struct type",
+            "doc": [
+                "A struct type"
+            ],
             "members": [
                 {
-                    "doc": " The struct type name",
+                    "doc": [
+                        "The struct type name"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 },
                 {
                     "attr": {
                         "lenGT": 0
                     },
-                    "doc": " The struct members",
+                    "doc": [
+                        "The struct members"
+                    ],
                     "name": "members",
                     "optional": true,
                     "type": {
@@ -405,7 +527,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " If true, the struct is a union and exactly one of the optional members is present",
+                    "doc": [
+                        "If true, the struct is a union and exactly one of the optional members is present"
+                    ],
                     "name": "union",
                     "optional": true,
                     "type": {
@@ -418,32 +542,46 @@ export const typeModel =
     },
     "StructMember": {
         "struct": {
-            "doc": " A struct member",
+            "doc": [
+                "A struct member"
+            ],
             "members": [
                 {
-                    "doc": " The member name",
+                    "doc": [
+                        "The member name"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 },
                 {
-                    "doc": " The member type",
+                    "doc": [
+                        "The member type"
+                    ],
                     "name": "type",
                     "type": {
                         "user": "Type"
                     }
                 },
                 {
-                    "doc": " The member type attributes",
+                    "doc": [
+                        "The member type attributes"
+                    ],
                     "name": "attr",
                     "optional": true,
                     "type": {
@@ -451,7 +589,9 @@ export const typeModel =
                     }
                 },
                 {
-                    "doc": " If true, the member is optional and may not be present",
+                    "doc": [
+                        "If true, the member is optional and may not be present"
+                    ],
                     "name": "optional",
                     "optional": true,
                     "type": {
@@ -464,31 +604,41 @@ export const typeModel =
     },
     "Type": {
         "struct": {
-            "doc": " Union representing a member type",
+            "doc": [
+                "Union representing a member type"
+            ],
             "members": [
                 {
-                    "doc": " A built-in type",
+                    "doc": [
+                        "A built-in type"
+                    ],
                     "name": "builtin",
                     "type": {
                         "user": "BuiltinType"
                     }
                 },
                 {
-                    "doc": " An array type",
+                    "doc": [
+                        "An array type"
+                    ],
                     "name": "array",
                     "type": {
                         "user": "Array"
                     }
                 },
                 {
-                    "doc": " A dictionary type",
+                    "doc": [
+                        "A dictionary type"
+                    ],
                     "name": "dict",
                     "type": {
                         "user": "Dict"
                     }
                 },
                 {
-                    "doc": " A user type name",
+                    "doc": [
+                        "A user type name"
+                    ],
                     "name": "user",
                     "type": {
                         "builtin": "string"
@@ -501,32 +651,46 @@ export const typeModel =
     },
     "Typedef": {
         "struct": {
-            "doc": " A typedef type",
+            "doc": [
+                "A typedef type"
+            ],
             "members": [
                 {
-                    "doc": " The typedef type name",
+                    "doc": [
+                        "The typedef type name"
+                    ],
                     "name": "name",
                     "type": {
                         "builtin": "string"
                     }
                 },
                 {
-                    "doc": " The documentation markdown text",
+                    "doc": [
+                        "The documentation markdown text lines"
+                    ],
                     "name": "doc",
                     "optional": true,
                     "type": {
-                        "builtin": "string"
+                        "array": {
+                            "type": {
+                                "builtin": "string"
+                            }
+                        }
                     }
                 },
                 {
-                    "doc": " The typedef's type",
+                    "doc": [
+                        "The typedef's type"
+                    ],
                     "name": "type",
                     "type": {
                         "user": "Type"
                     }
                 },
                 {
-                    "doc": " The typedef's type attributes",
+                    "doc": [
+                        "The typedef's type attributes"
+                    ],
                     "name": "attr",
                     "optional": true,
                     "type": {
@@ -542,7 +706,9 @@ export const typeModel =
             "attr": {
                 "lenGT": 0
             },
-            "doc": " Map of user type name to user type model",
+            "doc": [
+                "Map of user type name to user type model"
+            ],
             "name": "Types",
             "type": {
                 "dict": {
@@ -555,31 +721,41 @@ export const typeModel =
     },
     "UserType": {
         "struct": {
-            "doc": " A user type",
+            "doc": [
+                "A user type"
+            ],
             "members": [
                 {
-                    "doc": " An enumeration type",
+                    "doc": [
+                        "An enumeration type"
+                    ],
                     "name": "enum",
                     "type": {
                         "user": "Enum"
                     }
                 },
                 {
-                    "doc": " A struct type",
+                    "doc": [
+                        "A struct type"
+                    ],
                     "name": "struct",
                     "type": {
                         "user": "Struct"
                     }
                 },
                 {
-                    "doc": " A type definition",
+                    "doc": [
+                        "A type definition"
+                    ],
                     "name": "typedef",
                     "type": {
                         "user": "Typedef"
                     }
                 },
                 {
-                    "doc": " A JSON web API (not reference-able)",
+                    "doc": [
+                        "A JSON web API (not reference-able)"
+                    ],
                     "name": "action",
                     "type": {
                         "user": "Action"

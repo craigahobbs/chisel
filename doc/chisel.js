@@ -155,41 +155,41 @@ const elementTypes = {
             'members': [
                 {
                     'name': 'html',
-                    'doc': 'HTML element tag',
+                    'doc': ['HTML element tag'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0, 'lenLT': 100},
                     'optional': true
                 },
                 {
                     'name': 'svg',
-                    'doc': 'SVG element tag',
+                    'doc': ['SVG element tag'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0, 'lenLT': 100},
                     'optional': true
                 },
                 {
                     'name': 'text',
-                    'doc': "text element's text",
+                    'doc': ["text element's text"],
                     'type': {'builtin': 'string'},
                     'optional': true
                 },
                 {
                     'name': 'attr',
-                    'doc': "The element's attribute dictionary",
+                    'doc': ["The element's attribute dictionary"],
                     'type': {'dict': {'type': {'builtin': 'object'}, 'attr': {'nullable': true}, 'keyAttr': {'lenGT': 0, 'lenLT': 100}}},
                     'attr': {'nullable': true},
                     'optional': true
                 },
                 {
                     'name': 'elem',
-                    'doc': 'An element model or an array of element models',
+                    'doc': ['An element model or an array of element models'],
                     'type': {'builtin': 'object'},
                     'attr': {'nullable': true},
                     'optional': true
                 },
                 {
                     'name': 'callback',
-                    'doc': 'The element creation callback function',
+                    'doc': ['The element creation callback function'],
                     'type': {'builtin': 'object'},
                     'optional': true
                 }
