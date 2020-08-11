@@ -25,7 +25,7 @@ build/env.build:
 
 define COMPILE_CHSL
 src/$(strip $(1)).json: src/$(strip $(1)).chsl | build/env.build
-	$(PYTHON_DOCKER) build/env/bin/python3 -m chisel compile $$< > $$@
+	$(PYTHON_DOCKER) build/env/bin/python3 -m chisel compile $(2) $$< > $$@
 
 src/$(strip $(1)).js: src/$(strip $(1)).json
 	echo '/* eslint-disable quotes */' > $$@

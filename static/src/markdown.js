@@ -28,7 +28,7 @@ const rEscape = /\\(\\|\*|_|\{|\}|\[|\]|\(|\)|#|\+|-|\.|!)/g;
  * Parse markdown text or text lines into a markdown model
  *
  * @param {string|string[]} markdown - Markdown text or text lines
- * @returns {Object[]} The markdown parts array model
+ * @returns {Object} The markdown model
  */
 export function parseMarkdown(markdown) {
     const markdownParts = [];
