@@ -54,6 +54,18 @@ test('parseMarkdown, lines', (t) => {
 });
 
 
+test('parseMarkdown, empty', (t) => {
+    const markdown = parseMarkdown('');
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': []
+        }
+    );
+});
+
+
 test('parseMarkdown, horizontal rule', (t) => {
     const markdown = parseMarkdown(`
 Some text
@@ -461,7 +473,7 @@ Cool, huh?`);
 });
 
 
-test('parseMarkdown, code block fenced', (t) => {
+test('parseMarkdown, fenced code block', (t) => {
     const markdown = parseMarkdown(`
 This is some code:
 
@@ -477,6 +489,44 @@ bar();
             'parts': [
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}},
                 {'codeBlock': {'language': 'javascript', 'lines': ['foo();', 'bar();']}}
+            ]
+        }
+    );
+});
+
+
+test('parseMarkdown, empty fenced code block', (t) => {
+    const markdown = parseMarkdown(`
+This is some code:
+
+\`\`\` javascript
+\`\`\`
+`);
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {'spans': [{'text': 'This is some code:'}]}},
+                {'codeBlock': {'language': 'javascript', 'lines': []}}
+            ]
+        }
+    );
+});
+
+
+test('parseMarkdown, empty, end-of-file fenced code block', (t) => {
+    const markdown = parseMarkdown(`
+This is some code:
+
+\`\`\` javascript`);
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {'spans': [{'text': 'This is some code:'}]}},
+                {'codeBlock': {'language': 'javascript', 'lines': []}}
             ]
         }
     );

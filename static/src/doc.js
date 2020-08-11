@@ -104,7 +104,7 @@ export class DocPage {
      * Render the documentation application page
      */
     render() {
-        // Update hash parameters
+        // Decode and validate hash parameters
         try {
             const oldParams = this.params;
             this.updateParams();

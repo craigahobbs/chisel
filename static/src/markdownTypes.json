@@ -37,7 +37,6 @@
                 },
                 {
                     "attr": {
-                        "lenGT": 0,
                         "lenLT": 1000
                     },
                     "doc": [
@@ -235,7 +234,6 @@
             "members": [
                 {
                     "attr": {
-                        "lenGT": 0,
                         "lenLT": 1000
                     },
                     "doc": [
