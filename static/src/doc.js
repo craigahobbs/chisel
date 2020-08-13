@@ -115,11 +115,13 @@ export class DocPage {
             }
         } catch ({message}) {
             chisel.render(document.body, DocPage.errorPage(message));
+            window.scrollTo(0, 0);
             return;
         }
 
         // Clear the page
         chisel.render(document.body);
+        window.scrollTo(0, 0);
 
         // Compute the document title
         let title;
