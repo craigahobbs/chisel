@@ -2,7 +2,7 @@
 struct Markdown
 
     # The markdown document's parts
-    MarkdownPart[len > 0, len < 1000] parts
+    MarkdownPart[len < 1000] parts
 
 
 # Markdown document part struct
@@ -126,4 +126,4 @@ struct CodeBlock
     optional string(len > 0, len < 100) language
 
     # The code block's text lines
-    string[len > 0, len < 1000] lines
+    string[len < 1000] lines

@@ -39,7 +39,6 @@ export const markdownTypes =
                 },
                 {
                     "attr": {
-                        "lenGT": 0,
                         "lenLT": 1000
                     },
                     "doc": [
@@ -237,7 +236,6 @@ export const markdownTypes =
             "members": [
                 {
                     "attr": {
-                        "lenGT": 0,
                         "lenLT": 1000
                     },
                     "doc": [
