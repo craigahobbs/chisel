@@ -292,7 +292,7 @@ function paragraphSpans(text) {
  * Generate an element model from a markdown model
  *
  * @param {Object} markdown - The markdown model
- * @param {?Object} [codeBlockLanguages=null] - Optional map of language to code block render function with signature (lines) => elements.
+ * @param {?Object} codeBlockLanguages - Optional map of language to code block render function with signature (lines) => elements.
  * @returns {Object[]}
  */
 export function markdownElements(markdown, codeBlockLanguages = null) {
@@ -344,15 +344,13 @@ function markdownPartElements(parts, codeBlockLanguages) {
             const {codeBlock} = markdownPart;
 
             // Render the code block elements
-            let codeElements;
             if (codeBlockLanguages !== null && 'language' in codeBlock && codeBlock.language in codeBlockLanguages) {
-                codeElements = codeBlockLanguages[codeBlock.language](codeBlock.lines);
+                partElements.push(codeBlockLanguages[codeBlock.language](codeBlock));
             } else {
-                codeElements = codeBlock.lines.map((line) => ({'text': `${line}\n`}));
+                partElements.push(
+                    {'html': 'pre', 'elem': {'html': 'code', 'elem': codeBlock.lines.map((line) => ({'text': `${line}\n`}))}}
+                );
             }
-
-            // Add the code block part
-            partElements.push({'html': 'pre', 'elem': {'html': 'code', 'elem': codeElements}});
         }
     }
 

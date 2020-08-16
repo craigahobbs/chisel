@@ -1201,7 +1201,7 @@ test('markdownElements, code block with language', (t) => {
 
 test('markdownElements, code block with language override', (t) => {
     const codeBlockLanguages = {
-        'fooscript': (lines) => ({'text': lines.join('---')})
+        'fooscript': (codeBlock) => ({'text': codeBlock.lines.join('---')})
     };
     const elements = markdownElements({
         'parts': [
@@ -1220,13 +1220,7 @@ test('markdownElements, code block with language override', (t) => {
     t.deepEqual(
         elements,
         [
-            {
-                'html': 'pre',
-                'elem': {
-                    'html': 'code',
-                    'elem': {'text': 'foo();---bar();'}
-                }
-            }
+            {'text': 'foo();---bar();'}
         ]
     );
 });
