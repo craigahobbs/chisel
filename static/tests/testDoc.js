@@ -571,21 +571,21 @@ test('DocPage.indexPage', (t) => {
             [
                 [
                     {'html': 'h2', 'elem': {'text': 'A Group'}},
-                    {'html': 'ul', 'attr': {'class': 'chisel-request-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
+                    {'html': 'ul', 'attr': {'class': 'chisel-index-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                         {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=name1'}, 'elem': {'text': 'name1'}}},
                         {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=name2'}, 'elem': {'text': 'name2'}}}
                     ]}}}
                 ],
                 [
                     {'html': 'h2', 'elem': {'text': 'B Group'}},
-                    {'html': 'ul', 'attr': {'class': 'chisel-request-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
+                    {'html': 'ul', 'attr': {'class': 'chisel-index-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                         {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=name3'}, 'elem': {'text': 'name3'}}},
                         {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=name4'}, 'elem': {'text': 'name4'}}}
                     ]}}}
                 ],
                 [
                     {'html': 'h2', 'elem': {'text': 'C Group'}},
-                    {'html': 'ul', 'attr': {'class': 'chisel-request-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
+                    {'html': 'ul', 'attr': {'class': 'chisel-index-list'}, 'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                         {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=name5'}, 'elem': {'text': 'name5'}}}
                     ]}}}
                 ]
@@ -849,7 +849,7 @@ test('DocPage.typesPage, index', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Actions'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyAction'}, 'elem': {'text': 'MyAction'}}}
                         ]}}
@@ -859,7 +859,7 @@ test('DocPage.typesPage, index', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Structs'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyStruct'}, 'elem': {'text': 'MyStruct'}}}
                         ]}}
@@ -895,7 +895,7 @@ test('DocPage.typesPage, index hash', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Actions'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyAction&types=other.json'}, 'elem': {'text': 'MyAction'}}}
                         ]}}
@@ -905,7 +905,7 @@ test('DocPage.typesPage, index hash', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Structs'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyStruct&types=other.json'}, 'elem': {'text': 'MyStruct'}}}
                         ]}}
@@ -942,7 +942,7 @@ test('DocPage.typesPage, index with title', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Enumerations'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyEnum'}, 'elem': {'text': 'MyEnum'}}}
                         ]}}
@@ -952,7 +952,7 @@ test('DocPage.typesPage, index with title', (t) => {
                     {'html': 'h2', 'elem': {'text': 'Typedefs'}},
                     {
                         'html': 'ul',
-                        'attr': {'class': 'chisel-request-list'},
+                        'attr': {'class': 'chisel-index-list'},
                         'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
                             {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyTypedef'}, 'elem': {'text': 'MyTypedef'}}}
                         ]}}
