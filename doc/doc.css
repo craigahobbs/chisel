@@ -98,18 +98,18 @@ td:last-child {
 }
 
 /* Index page */
-ul.chisel-request-list {
+ul.chisel-index-list {
     list-style: none;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin-top: 0;
     margin-left: 0;
 }
-ul.chisel-request-list li ul {
+ul.chisel-index-list li ul {
     list-style: none;
     margin-top: 0;
     margin-left: 0;
 }
-ul.chisel-request-list li ul li {
+ul.chisel-index-list li ul li {
     margin-top: 0.4em;
     margin-left: 0.2em;
 }
