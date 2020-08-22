@@ -1,5 +1,5 @@
 // Licensed under the MIT License
-// https://github.com/craigahobbs/cookbook/blob/master/LICENSE
+// https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 import * as chisel from './chisel.js';
 import {markdownTypes} from './markdownTypes.js';
@@ -292,15 +292,16 @@ function paragraphSpans(text) {
  * Generate an element model from a markdown model
  *
  * @param {Object} markdown - The markdown model
- * @param {?Object} codeBlockLanguages - Optional map of language to code block render function with signature (lines) => elements.
+ * @param {?string} [url=null] - The markdown file's URL
+ * @param {?Object} [codeBlockLanguages=null] - Optional map of language to code block render function with signature (lines) => elements.
  * @returns {Object[]}
  */
-export function markdownElements(markdown, codeBlockLanguages = null) {
+export function markdownElements(markdown, url = null, codeBlockLanguages = null) {
     // Parse the markdown
     const validatedMarkdown = chisel.validateType(markdownTypes, 'Markdown', markdown);
 
     // Generate an element model from the markdown model parts
-    return markdownPartElements(validatedMarkdown.parts, codeBlockLanguages);
+    return markdownPartElements(validatedMarkdown.parts, url, codeBlockLanguages);
 }
 
 
@@ -308,10 +309,11 @@ export function markdownElements(markdown, codeBlockLanguages = null) {
  * Helper function to generate an element model from a markdown part model array
  *
  * @param {Object[]} parts - The markdown parts model array
+ * @param {?string} url - The markdown file's URL
  * @param {?Object} codeBlockLanguages - Optional map of language to code block render function with signature (lines) => elements.
  * @returns {Object[]} The parts array element model
  */
-function markdownPartElements(parts, codeBlockLanguages) {
+function markdownPartElements(parts, url, codeBlockLanguages) {
     const partElements = [];
     for (const markdownPart of parts) {
         // Paragraph?
@@ -320,7 +322,7 @@ function markdownPartElements(parts, codeBlockLanguages) {
             const {paragraph} = markdownPart;
             partElements.push({
                 'html': 'style' in paragraph ? paragraph.style : 'p',
-                'elem': paragraphSpanElements(paragraph.spans)
+                'elem': paragraphSpanElements(paragraph.spans, url)
             });
 
         // Horizontal rule?
@@ -335,7 +337,7 @@ function markdownPartElements(parts, codeBlockLanguages) {
                 'attr': 'start' in list && list.start > 1 ? {'start': `${list.start}`} : null,
                 'elem': list.items.map((item) => ({
                     'html': 'li',
-                    'elem': markdownPartElements(item.parts, codeBlockLanguages)
+                    'elem': markdownPartElements(item.parts, url, codeBlockLanguages)
                 }))
             });
 
@@ -362,9 +364,10 @@ function markdownPartElements(parts, codeBlockLanguages) {
  * Helper function to generate an element model from a markdown span model array
  *
  * @param {Object[]} spans - The markdown span model array
+ * @param {?string} url - The markdown file's URL
  * @returns {Object[]} The span array element model
  */
-function paragraphSpanElements(spans) {
+function paragraphSpanElements(spans, url) {
     const spanElements = [];
     for (const span of spans) {
         // Text span?
@@ -381,16 +384,17 @@ function paragraphSpanElements(spans) {
             const {style} = span;
             spanElements.push({
                 'html': style.style === 'italic' ? 'em' : 'strong',
-                'elem': paragraphSpanElements(style.spans)
+                'elem': paragraphSpanElements(style.spans, url)
             });
 
         // Link span?
         } else if ('link' in span) {
             const {link} = span;
+            const href = url !== null && !chisel.isAbsoluteURL(link.href) ? `${chisel.getBaseURL(url)}${link.href}` : link.href;
             const linkElements = {
                 'html': 'a',
-                'attr': {'href': link.href},
-                'elem': paragraphSpanElements(link.spans)
+                'attr': {'href': href},
+                'elem': paragraphSpanElements(link.spans, url)
             };
             if ('title' in link) {
                 linkElements.attr.title = link.title;
@@ -400,9 +404,10 @@ function paragraphSpanElements(spans) {
         // Image span?
         } else if ('image' in span) {
             const {image} = span;
+            const src = url !== null && !chisel.isAbsoluteURL(image.src) ? `${chisel.getBaseURL(url)}${image.src}` : image.src;
             const imageElement = {
                 'html': 'img',
-                'attr': {'src': image.src, 'alt': image.alt}
+                'attr': {'src': src, 'alt': image.alt}
             };
             if ('title' in image) {
                 imageElement.attr.title = image.title;

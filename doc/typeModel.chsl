@@ -1,3 +1,7 @@
+#- Licensed under the MIT License
+#- https://github.com/craigahobbs/chisel/blob/master/LICENSE
+
+
 # Map of user type name to user type model
 typedef UserType{len > 0} Types
 
