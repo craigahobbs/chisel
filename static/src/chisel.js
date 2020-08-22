@@ -9,6 +9,31 @@ export const nbsp = String.fromCharCode(160);
 
 
 /**
+ * Check if a URL is absolute
+ *
+ * @param {string} url - The URL
+ * @returns {bool} true if the URL is absolute, false otherwise
+ */
+export function isAbsoluteURL(url) {
+    return rAbsoluteURL.test(url);
+}
+
+const rAbsoluteURL = /^[a-z]{3,5}:/;
+
+
+/**
+ * Get a URL's base URL
+ *
+ * @param {string} url - The URL
+ * @returns {string} The base URL or the URL
+ */
+export function getBaseURL(url) {
+    const ixBaseSlash = url.lastIndexOf('/');
+    return ixBaseSlash === -1 ? '' : url.slice(0, ixBaseSlash + 1);
+}
+
+
+/**
  * Render an element model
  *
  * @param {Element} parent - The parent element to render within

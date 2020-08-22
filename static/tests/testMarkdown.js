@@ -1215,12 +1215,82 @@ test('markdownElements, code block with language override', (t) => {
                 }
             }
         ]
-    }, codeBlockLanguages);
+    }, null, codeBlockLanguages);
     chisel.validateElements(elements);
     t.deepEqual(
         elements,
         [
             {'text': 'foo();---bar();'}
+        ]
+    );
+});
+
+
+test('markdownElements, relative and absolute URLs', (t) => {
+    const markdown = {
+        'parts': [
+            {
+                'paragraph': {
+                    'spans': [
+                        {'link': {
+                            'href': 'https://craigahobbs.github.io/chisel/doc/',
+                            'spans': [{'text': 'Absolute Link'}]
+                        }},
+                        {'link': {
+                            'href': 'doc/',
+                            'spans': [{'text': 'Relative Link'}]
+                        }}
+                    ]
+                }
+            }
+        ]
+    };
+
+    // Test without file URL
+    const elements = markdownElements(markdown);
+    chisel.validateElements(elements);
+    t.deepEqual(
+        elements,
+        [
+            {
+                'elem': [
+                    {
+                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/'},
+                        'elem': [{'text': 'Absolute Link'}],
+                        'html': 'a'
+                    },
+                    {
+                        'attr': {'href': 'doc/'},
+                        'elem': [{'text': 'Relative Link'}],
+                        'html': 'a'
+                    }
+                ],
+                'html': 'p'
+            }
+        ]
+    );
+
+    // Test with file URL
+    const elementsURL = markdownElements(markdown, 'https://foo.com/index.md');
+    chisel.validateElements(elementsURL);
+    t.deepEqual(
+        elementsURL,
+        [
+            {
+                'elem': [
+                    {
+                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/'},
+                        'elem': [{'text': 'Absolute Link'}],
+                        'html': 'a'
+                    },
+                    {
+                        'attr': {'href': 'https://foo.com/doc/'},
+                        'elem': [{'text': 'Relative Link'}],
+                        'html': 'a'
+                    }
+                ],
+                'html': 'p'
+            }
         ]
     );
 });

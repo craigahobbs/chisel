@@ -19,6 +19,25 @@ test('chisel.nbsp', (t) => {
 
 
 //
+// chisel URL utility tests
+//
+
+test('chisel.isAbsoluteURL', (t) => {
+    t.is(chisel.isAbsoluteURL('http://foo.com'), true);
+    t.is(chisel.isAbsoluteURL('foo/bar.html'), false);
+    t.is(chisel.isAbsoluteURL(''), false);
+});
+
+
+test('chisel.getBaseURL', (t) => {
+    t.is(chisel.getBaseURL('http://foo.com'), 'http://');
+    t.is(chisel.getBaseURL('http://foo.com/'), 'http://foo.com/');
+    t.is(chisel.getBaseURL('http://foo.com/index.html'), 'http://foo.com/');
+    t.is(chisel.getBaseURL(''), '');
+});
+
+
+//
 // chisel.href tests
 //
 
