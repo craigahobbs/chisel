@@ -738,7 +738,7 @@ test('parseMarkdown, spans spaces', (t) => {
 
 
 test('parseMarkdown, link multiline', (t) => {
-    const markdown = parseMarkdown('[text\ntext](href://foo.com)');
+    const markdown = parseMarkdown('[text\ntext](href://foo.com "text\ntext")');
     chisel.validateType(markdownTypes, 'Markdown', markdown);
     t.deepEqual(
         markdown,
@@ -746,7 +746,7 @@ test('parseMarkdown, link multiline', (t) => {
             'parts': [
                 {'paragraph': {
                     'spans': [
-                        {'link': {'href': 'href://foo.com', 'spans': [{'text': 'text\ntext'}]}}
+                        {'link': {'href': 'href://foo.com', 'spans': [{'text': 'text\ntext'}], 'title': 'text\ntext'}}
                     ]
                 }}
             ]
