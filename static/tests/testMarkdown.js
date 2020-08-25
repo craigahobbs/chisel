@@ -737,6 +737,78 @@ test('parseMarkdown, spans spaces', (t) => {
 });
 
 
+test('parseMarkdown, link multiline', (t) => {
+    const markdown = parseMarkdown('[text\ntext](href://foo.com)');
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {
+                    'spans': [
+                        {'link': {'href': 'href://foo.com', 'spans': [{'text': 'text\ntext'}]}}
+                    ]
+                }}
+            ]
+        }
+    );
+});
+
+
+test('parseMarkdown, italic multiline', (t) => {
+    const markdown = parseMarkdown('*text\ntext*');
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {
+                    'spans': [
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}}
+                    ]
+                }}
+            ]
+        }
+    );
+});
+
+
+test('parseMarkdown, bold multiline', (t) => {
+    const markdown = parseMarkdown('**text\ntext**');
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {
+                    'spans': [
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'bold'}}
+                    ]
+                }}
+            ]
+        }
+    );
+});
+
+
+test('parseMarkdown, bold-italic multiline', (t) => {
+    const markdown = parseMarkdown('***text\ntext***');
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {
+                    'spans': [
+                        {'style': {'spans': [{'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}}], 'style': 'bold'}}
+                    ]
+                }}
+            ]
+        }
+    );
+});
+
+
 test('parseMarkdown, line breaks', (t) => {
     const markdown = parseMarkdown(`
 This is a line break  
