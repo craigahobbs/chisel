@@ -288,6 +288,8 @@ export class DocPage {
         }
         const filteredTypes =
               Object.entries(referencedTypes).sort().filter(([name]) => !typesFilter.includes(name)).map(([, type]) => type);
+        const indexParams = {...this.params};
+        delete indexParams.name;
 
         return [
             // Navigation bar
@@ -295,7 +297,7 @@ export class DocPage {
                 'html': 'p',
                 'elem': {
                     'html': 'a',
-                    'attr': {'href': chisel.href({...this.params, 'name': null})},
+                    'attr': {'href': chisel.href(indexParams)},
                     'elem': {'text': 'Back to documentation index'}
                 }
             },

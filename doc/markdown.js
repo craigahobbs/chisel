@@ -14,11 +14,11 @@ const rFenced = /^(?<fence>\s*(?:`{3,}|~{3,}))(?:\s*(?<language>.+?))?\s*$/;
 const rList = /^(?<indent>\s*(?<mark>-|\*|\+|[0-9]\.|[1-9][0-9]+\.)\s+)(?<line>.*?)\s*$/;
 const rSpans = new RegExp(
     '(?<br>\\s{2}$)|' +
-        '(?<link>!?\\[)(?<linkText>.*?)\\]\\((?<linkHref>[^\\s]+?)(?:\\s*"(?<linkTitle>.*?)"\\s*)?\\)|' +
+        '(?<link>!?\\[)(?<linkText>[\\s\\S]*?)\\]\\((?<linkHref>[^\\s]+?)(?:\\s*"(?<linkTitle>[\\s\\S]*?)"\\s*)?\\)|' +
         '(?<linkAlt><)(?<linkAltHref>[[a-z]+:[^\\s]*?)>|' +
-        '(?<boldItalic>\\*{3})(?!\\s)(?<boldItalicText>.*?[^\\s]\\**)\\*{3}|' +
-        '(?<bold>\\*{2})(?!\\s)(?<boldText>.*?[^\\s]\\**)\\*{2}|' +
-        '(?<italic>\\*)(?!\\s)(?<italicText>.*?[^\\s]\\**)\\*',
+        '(?<boldItalic>\\*{3})(?!\\s)(?<boldItalicText>[\\s\\S]*?[^\\s]\\**)\\*{3}|' +
+        '(?<bold>\\*{2})(?!\\s)(?<boldText>[\\s\\S]*?[^\\s]\\**)\\*{2}|' +
+        '(?<italic>\\*)(?!\\s)(?<italicText>[\\s\\S]*?[^\\s]\\**)\\*',
     'mg'
 );
 const rEscape = /\\(\\|\*|_|\{|\}|\[|\]|\(|\)|#|\+|-|\.|!)/g;
@@ -292,8 +292,8 @@ function paragraphSpans(text) {
  * Generate an element model from a markdown model
  *
  * @param {Object} markdown - The markdown model
- * @param {?string} [url=null] - The markdown file's URL
- * @param {?Object} [codeBlockLanguages=null] - Optional map of language to code block render function with signature (lines) => elements.
+ * @param {?string} url - The markdown file's URL
+ * @param {?Object} codeBlockLanguages - Optional map of language to code block render function with signature (lines) => elements.
  * @returns {Object[]}
  */
 export function markdownElements(markdown, url = null, codeBlockLanguages = null) {

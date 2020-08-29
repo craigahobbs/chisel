@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Chisel Specification Language &mdash; chisel 0.9.110 documentation</title>
+  <title>Chisel Specification Language &mdash; chisel 0.9.111 documentation</title>
   
 
   
@@ -557,7 +557,7 @@ transformed during validation.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">chisel</span><span class="o">.</span><span class="n">validate_type</span><span class="p">(</span><span class="n">types</span><span class="p">,</span> <span class="s1">&#39;Struct1&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;abc&#39;</span><span class="p">]}})</span>
 <span class="gp">... </span><span class="k">except</span> <span class="n">chisel</span><span class="o">.</span><span class="n">ValidationError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s1">&#39;</span>
 <span class="go">&quot;Invalid value &#39;abc&#39; (type &#39;str&#39;) for member &#39;a.b.1&#39;, expected type &#39;int&#39;&quot;</span>
 </pre></div>
 </div>
@@ -601,7 +601,7 @@ transformed during validation.</p>
 <span class="gp">... </span>        <span class="p">}</span>
 <span class="gp">... </span>    <span class="p">})</span>
 <span class="gp">... </span><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s1">&#39;</span>
 <span class="go">&quot;Required member &#39;MyStruct.struct.name&#39; missing&quot;</span>
 </pre></div>
 </div>
