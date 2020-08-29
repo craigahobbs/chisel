@@ -33,7 +33,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, Decimal):
             return float(o)
         if isinstance(o, UUID):
-            return str(o)
+            return f'{o}'
         return json.JSONEncoder.default(self, o)
 
 
@@ -50,13 +50,13 @@ def encode_query_string(obj, encoding='utf-8'):
     :returns: The encoded query string
     """
 
-    return '&'.join(f'{k}={v}' for k, v in _encode_query_string_items(obj, None, encoding))
+    return '&'.join(f'{v}' if k is None else f'{k}={v}' for k, v in _encode_query_string_items(obj, None, encoding))
 
 def _encode_query_string_items(obj, parent, encoding):
     if isinstance(obj, dict):
         if obj:
             for member, value in sorted(obj.items()):
-                member_quoted = quote(str(member), encoding=encoding) if encoding else str(member)
+                member_quoted = quote(f'{member}', encoding=encoding)
                 parent_member = f'{parent}.{member_quoted}' if parent else member_quoted
                 yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
@@ -64,7 +64,7 @@ def _encode_query_string_items(obj, parent, encoding):
     elif isinstance(obj, (list, tuple)):
         if obj:
             for idx, value in enumerate(obj):
-                parent_member = f'{parent}.{idx}' if parent else str(idx)
+                parent_member = f'{parent}.{idx}' if parent else f'{idx}'
                 yield from _encode_query_string_items(value, parent_member, encoding)
         elif parent:
             yield parent, ''
@@ -72,17 +72,19 @@ def _encode_query_string_items(obj, parent, encoding):
         if isinstance(obj, bool):
             yield parent, 'true' if obj else 'false' # quote safe
         elif isinstance(obj, int):
-            yield parent, str(obj) # quote safe
+            yield parent, f'{obj}' # quote safe
         elif isinstance(obj, datetime):
             if not obj.tzinfo:
                 obj = obj.replace(tzinfo=timezone.utc)
-            yield parent, quote(obj.isoformat(), encoding=encoding) if encoding else obj.isoformat()
+            yield parent, quote(obj.isoformat(), encoding=encoding)
         elif isinstance(obj, date):
             yield parent, obj.isoformat() # quote safe
         elif isinstance(obj, UUID):
-            yield parent, str(obj) # quote safe
-        elif obj is not None: # str, float
-            yield parent, quote(str(obj), encoding=encoding) if encoding else str(obj)
+            yield parent, f'{obj}' # quote safe
+        elif obj is None:
+            yield parent, 'null'
+        else: # str, float
+            yield parent, quote(f'{obj}', encoding=encoding)
 
 
 def decode_query_string(query_string, encoding='utf-8'):

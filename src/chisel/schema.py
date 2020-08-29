@@ -201,7 +201,7 @@ def validate_type(types, type_name, value, member_fqn=None):
     >>> try:
     ...     chisel.validate_type(types, 'Struct1', {'a': {'b': [5, 'abc']}})
     ... except chisel.ValidationError as exc:
-    ...     str(exc)
+    ...     f'{exc}'
     "Invalid value 'abc' (type 'str') for member 'a.b.1', expected type 'int'"
 
     :param dict types: The map of user type name to user type model
@@ -331,6 +331,7 @@ def _validate_type(types, type_, value, member_fqn=None):
         # Valid value type?
         array = type_['array']
         array_type = array['type']
+        array_attr = array.get('attr')
         if isinstance(value, str) and value == '':
             value_new = []
         elif not isinstance(value, (list, tuple)):
@@ -338,11 +339,14 @@ def _validate_type(types, type_, value, member_fqn=None):
 
         # Validate the list contents
         value_copy = []
+        array_value_nullable = array_attr is not None and 'nullable' in array_attr and array_attr['nullable']
         for ix_array_value, array_value in enumerate(value_new):
             member_fqn_value = f'{ix_array_value}' if member_fqn is None else f'{member_fqn}.{ix_array_value}'
-            if array_value is not None:
+            if array_value is None or (array_value_nullable and array_value == 'null'):
+                array_value = None
+            else:
                 array_value = _validate_type(types, array_type, array_value, member_fqn_value)
-            _validate_attr(array_type, array.get('attr'), array_value, member_fqn_value)
+            _validate_attr(array_type, array_attr, array_value, member_fqn_value)
             value_copy.append(array_value)
 
         # Return the validated, transformed copy
@@ -353,6 +357,10 @@ def _validate_type(types, type_, value, member_fqn=None):
 
         # Valid value type?
         dict_ = type_['dict']
+        dict_type = dict_['type']
+        dict_attr = dict_.get('attr')
+        dict_key_type = dict_['keyType'] if 'keyType' in dict_ else {'builtin': 'string'}
+        dict_key_attr = dict_.get('keyAttr')
         if isinstance(value, str) and value == '':
             value_new = {}
         elif not isinstance(value, dict):
@@ -360,19 +368,24 @@ def _validate_type(types, type_, value, member_fqn=None):
 
         # Validate the dict key/value pairs
         value_copy = {}
-        dict_key_type = dict_['keyType'] if 'keyType' in dict_ else {'builtin': 'string'}
+        dict_key_nullable = dict_key_attr is not None and 'nullable' in dict_key_attr and dict_key_attr['nullable']
+        dict_value_nullable = dict_attr is not None and 'nullable' in dict_attr and dict_attr['nullable']
         for dict_key, dict_value in value_new.items():
             member_fqn_key = dict_key if member_fqn is None else f'{member_fqn}.{dict_key}'
 
             # Validate the key
-            if dict_key is not None:
+            if dict_key is None or (dict_key_nullable and dict_key == 'null'):
+                dict_key = None
+            else:
                 dict_key = _validate_type(types, dict_key_type, dict_key, member_fqn)
-            _validate_attr(dict_key_type, dict_.get('keyAttr'), dict_key, member_fqn)
+            _validate_attr(dict_key_type, dict_key_attr, dict_key, member_fqn)
 
             # Validate the value
-            if dict_value is not None:
-                dict_value = _validate_type(types, dict_['type'], dict_value, member_fqn_key)
-            _validate_attr(dict_['type'], dict_.get('attr'), dict_value, member_fqn_key)
+            if dict_value is None or (dict_value_nullable and dict_value == 'null'):
+                dict_value = None
+            else:
+                dict_value = _validate_type(types, dict_type, dict_value, member_fqn_key)
+            _validate_attr(dict_type, dict_attr, dict_value, member_fqn_key)
 
             # Copy the key/value
             value_copy[dict_key] = dict_value
@@ -391,11 +404,15 @@ def _validate_type(types, type_, value, member_fqn=None):
         # typedef?
         if 'typedef' in user_type:
             typedef = user_type['typedef']
+            typedef_attr = typedef.get('attr')
 
             # Validate the value
-            if value is not None:
+            value_nullable = typedef_attr is not None and 'nullable' in typedef_attr and typedef_attr['nullable']
+            if value is None or (value_nullable and value == 'null'):
+                value_new = None
+            else:
                 value_new = _validate_type(types, typedef['type'], value, member_fqn)
-            _validate_attr(type_, typedef.get('attr'), value_new, member_fqn)
+            _validate_attr(type_, typedef_attr, value_new, member_fqn)
 
         # enum?
         elif 'enum' in user_type:
@@ -470,7 +487,8 @@ def _member_error(type_, value, member_fqn, attr=None):
 
 def _validate_attr(type_, attr, value, member_fqn):
     if value is None:
-        if attr is None or ('nullable' in attr and not attr['nullable']):
+        value_nullable = attr is not None and 'nullable' in attr and attr['nullable']
+        if not value_nullable:
             raise _member_error(type_, value, member_fqn)
     elif attr is not None:
         if 'eq' in attr and not value == attr['eq']:
@@ -517,7 +535,7 @@ def validate_types(types):
     ...         }
     ...     })
     ... except Exception as exc:
-    ...     str(exc)
+    ...     f'{exc}'
     "Required member 'MyStruct.struct.name' missing"
 
     :param dict types: The map of user type name to user type model

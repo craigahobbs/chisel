@@ -18,13 +18,13 @@ test('chisel.encodeParams', (t) => {
                 {'b': 7}
             ]
         }),
-        '%20th%26ud%20=%20ou%26ch%20&bar=19.33&blue=2020-06-24T00%3A00%3A00.000Z&bonk=abc&foo=17&zap.0.a=5&zap.1.b=7'
+        '%20th%26ud%20=%20ou%26ch%20&bar=19.33&blue=2020-06-24T00%3A00%3A00.000Z&bonk=abc&fever=null&foo=17&zap.0.a=5&zap.1.b=7'
     );
 });
 
 test('chisel.encodeParams, null', (t) => {
-    t.is(chisel.encodeParams(null), '');
-    t.is(chisel.encodeParams({'a': null, 'b': 'abc'}), 'b=abc');
+    t.is(chisel.encodeParams(null), 'null');
+    t.is(chisel.encodeParams({'a': null, 'b': 'abc'}), 'a=null&b=abc');
 });
 
 test('chisel.encodeParams, bool', (t) => {

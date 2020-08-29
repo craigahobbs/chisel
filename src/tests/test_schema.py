@@ -412,6 +412,17 @@ class TestValidateType(TestCase):
             self._validate_type({'array': {'type': {'builtin': 'int'}}}, obj)
         self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType') for member '1', expected type 'int'")
 
+    def test_array_nullable_as_string(self):
+        obj = ['1', 'null', '3']
+        self.assertListEqual(
+            self._validate_type({'array': {'type': {'builtin': 'int'}, 'attr': {'nullable': True}}}, obj),
+            [1, None, 3]
+        )
+
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'array': {'type': {'builtin': 'int'}}}, obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'null' (type 'str') for member '1', expected type 'int'")
+
     def test_array_empty_string(self):
         obj = []
         self.assertListEqual(self._validate_type({'array': {'type': {'builtin': 'int'}}}, ''), obj)
@@ -450,6 +461,17 @@ class TestValidateType(TestCase):
             self._validate_type({'dict': {'type': {'builtin': 'int'}}}, obj)
         self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType') for member 'b', expected type 'int'")
 
+    def test_dict_nullable_as_string(self):
+        obj = {'a': '1', 'b': 'null', 'c': '3'}
+        self.assertDictEqual(
+            self._validate_type({'dict': {'type': {'builtin': 'int'}, 'attr': {'nullable': True}}}, obj),
+            {'a': 1, 'b': None, 'c': 3}
+        )
+
+        with self.assertRaises(ValidationError) as cm_exc:
+            self._validate_type({'dict': {'type': {'builtin': 'int'}}}, obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'null' (type 'str') for member 'b', expected type 'int'")
+
     def test_dict_key_nullable(self):
         obj = {'a': 1, None: 2, 'c': 3}
         self.assertDictEqual(self._validate_type({'dict': {'type': {'builtin': 'int'}, 'keyAttr': {'nullable': True}}}, obj), obj)
@@ -457,6 +479,14 @@ class TestValidateType(TestCase):
         with self.assertRaises(ValidationError) as cm_exc:
             self._validate_type({'dict': {'type': {'builtin': 'int'}}}, obj)
         self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType'), expected type 'string'")
+
+    def test_dict_key_nullable_as_string(self):
+        obj = {'a': 1, 'null': 2, 'c': 3}
+        self.assertDictEqual(
+            self._validate_type({'dict': {'type': {'builtin': 'int'}, 'keyAttr': {'nullable': True}}}, obj),
+            {None: 2, 'a': 1, 'c': 3}
+        )
+        self.assertDictEqual(self._validate_type({'dict': {'type': {'builtin': 'int'}}}, obj), obj)
 
     def test_dict_empty_string(self):
         obj = {}
@@ -984,6 +1014,16 @@ class TestValidateType(TestCase):
             validate_type(types, 'typedef', obj)
         self.assertEqual(str(cm_exc.exception), "Invalid value 4 (type 'int'), expected type 'typedef' [>= 5]")
 
+        obj = None
+        with self.assertRaises(ValidationError) as cm_exc:
+            validate_type(types, 'typedef', obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value None (type 'NoneType'), expected type 'typedef'")
+
+        obj = 'null'
+        with self.assertRaises(ValidationError) as cm_exc:
+            validate_type(types, 'typedef', obj)
+        self.assertEqual(str(cm_exc.exception), "Invalid value 'null' (type 'str'), expected type 'int'")
+
     def test_typedef_no_attr(self):
         types = {
             'typedef': {
@@ -1036,8 +1076,9 @@ class TestValidateType(TestCase):
                 }
             }
         }
-        validate_type(types, 'MyTypedef', 5)
-        validate_type(types, 'MyTypedef', None)
+        self.assertEqual(validate_type(types, 'MyTypedef', 5), 5)
+        self.assertEqual(validate_type(types, 'MyTypedef', None), None)
+        self.assertEqual(validate_type(types, 'MyTypedef', 'null'), None)
         with self.assertRaises(ValidationError) as cm_exc:
             validate_type(types, 'MyTypedef', 'abc')
         self.assertEqual(str(cm_exc.exception), "Invalid value 'abc' (type 'str'), expected type 'int'")

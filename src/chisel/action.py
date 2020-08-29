@@ -256,7 +256,7 @@ class Action(Request):
             try:
                 request = validate_type(input_types, input_type, request)
             except ValidationError as exc:
-                ctx.log.warning("Invalid content for action '%s': %s", self.name, str(exc))
+                ctx.log.warning("Invalid content for action '%s': %s", self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
@@ -270,11 +270,11 @@ class Action(Request):
                 request_query = decode_query_string(query_string)
             except Exception as exc:
                 ctx.log.warning("Error decoding query string for action '%s': %.1000r", self.name, query_string)
-                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=str(exc))
+                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'{exc}')
 
             # JSONP?
             if is_get and self.jsonp and self.jsonp in request_query:
-                jsonp = str(request_query[self.jsonp])
+                jsonp = f'{request_query[self.jsonp]}'
                 del request_query[self.jsonp]
 
             # Validate the query string
@@ -282,7 +282,7 @@ class Action(Request):
             try:
                 request_query = validate_type(query_types, query_type, request_query)
             except ValidationError as exc:
-                ctx.log.warning("Invalid query string for action '%s': %s", self.name, str(exc))
+                ctx.log.warning("Invalid query string for action '%s': %s", self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
@@ -296,7 +296,7 @@ class Action(Request):
             try:
                 request_path = validate_type(path_types, path_type, request_path)
             except ValidationError as exc:
-                ctx.log.warning("Invalid path for action '%s': %s", self.name, str(exc))
+                ctx.log.warning("Invalid path for action '%s': %s", self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
@@ -338,8 +338,8 @@ class Action(Request):
                 try:
                     validate_type(output_types, output_type, response)
                 except ValidationError as exc:
-                    ctx.log.error("Invalid output returned from action '%s': %s", self.name, str(exc))
-                    raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=str(exc), member=exc.member)
+                    ctx.log.error("Invalid output returned from action '%s': %s", self.name, f'{exc}')
+                    raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=f'{exc}', member=exc.member)
 
         except _ActionErrorInternal as exc:
             status = exc.status

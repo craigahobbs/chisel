@@ -374,6 +374,22 @@ test('chisel.validateType, array nullable', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object') for member '1', expected type 'int'");
 });
 
+test('chisel.validateType, array nullable as string', (t) => {
+    const obj = ['1', 'null', '3'];
+    t.deepEqual(
+        validateType({'array': {'type': {'builtin': 'int'}, 'attr': {'nullable': true}}}, obj),
+        [1, null, 3]
+    );
+
+    let errorMessage = null;
+    try {
+        validateType({'array': {'type': {'builtin': 'int'}}}, obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value \"null\" (type 'string') for member '1', expected type 'int'");
+});
+
 test('chisel.validateType, array empty string', (t) => {
     const obj = '';
     t.deepEqual(validateType({'array': {'type': {'builtin': 'int'}}}, obj), []);
@@ -446,7 +462,43 @@ test('chisel.validateType, dict nullable', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object') for member 'b', expected type 'int'");
 });
 
+test('chisel.validateType, dict nullable as string', (t) => {
+    const obj = {'a': '1', 'b': 'null', 'c': '3'};
+    t.deepEqual(
+        validateType({'dict': {'type': {'builtin': 'int'}, 'attr': {'nullable': true}}}, obj),
+        {'a': 1, 'b': null, 'c': 3}
+    );
+
+    let errorMessage = null;
+    try {
+        validateType({'dict': {'type': {'builtin': 'int'}}}, obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value \"null\" (type 'string') for member 'b', expected type 'int'");
+});
+
 test('chisel.validateType, dict key nullable', (t) => {
+    const obj = new Map();
+    obj.set('a', 1);
+    obj.set(null, 2);
+    obj.set('c', 3);
+    const obj2 = validateType({'dict': {'type': {'builtin': 'int'}, 'keyAttr': {'nullable': true}}}, obj);
+    t.is(Array.from(obj2.keys()).length, 3);
+    t.is(obj2.get('a'), 1);
+    t.is(obj2.get(null), 2);
+    t.is(obj2.get('c'), 3);
+
+    let errorMessage = null;
+    try {
+        validateType({'dict': {'type': {'builtin': 'int'}}}, obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value null (type 'object'), expected type 'string'");
+});
+
+test('chisel.validateType, dict key nullable as string', (t) => {
     const obj = new Map();
     obj.set('a', 1);
     obj.set(null, 2);
@@ -623,6 +675,22 @@ test('chisel.validateType, typedef', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid value 4 (type 'number'), expected type 'MyTypedef' [>= 5]");
+
+    obj = null;
+    try {
+        chisel.validateType(types, 'MyTypedef', obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value null (type 'object'), expected type 'MyTypedef'");
+
+    obj = 'null';
+    try {
+        chisel.validateType(types, 'MyTypedef', obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value \"null\" (type 'string'), expected type 'int'");
 });
 
 test('chisel.validateType, typedef no attr', (t) => {
@@ -689,8 +757,9 @@ test('chisel.validateType, typedef attr nullable', (t) => {
         }
     };
     let errorMessage = null;
-    chisel.validateType(types, 'MyTypedef', 5);
-    chisel.validateType(types, 'MyTypedef', null);
+    t.is(chisel.validateType(types, 'MyTypedef', 5), 5);
+    t.is(chisel.validateType(types, 'MyTypedef', null), null);
+    t.is(chisel.validateType(types, 'MyTypedef', 'null'), null);
     try {
         chisel.validateType(types, 'MyTypedef', 'abc');
     } catch ({message}) {

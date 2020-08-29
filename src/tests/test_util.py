@@ -311,8 +311,18 @@ class TestEncodeQueryString(TestCase):
         )
 
     def test_null(self):
-        self.assertEqual(encode_query_string(None), '')
-        self.assertEqual(encode_query_string({'a': None, 'b': 'abc'}), 'b=abc')
+        self.assertEqual(encode_query_string(None), 'null')
+        self.assertEqual(encode_query_string({'a': None, 'b': 'abc'}), 'a=null&b=abc')
+
+    def test_non_container(self):
+        self.assertEqual(encode_query_string(7), '7')
+        self.assertEqual(encode_query_string('abc'), 'abc')
+
+    def test_float(self):
+        self.assertEqual(
+            encode_query_string({'a': 3.14}),
+            'a=3.14'
+        )
 
     def test_bool(self):
         self.assertEqual(
