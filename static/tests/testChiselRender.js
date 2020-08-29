@@ -40,6 +40,16 @@ test('chisel.render, basic', (t) => {
     );
 });
 
+test('chisel.render, non-string attribute value', (t) => {
+    const elements = {'html': 'span', 'attr': {'style': 0}};
+    chisel.validateElements(elements);
+    chisel.render(document.body, elements);
+    t.is(
+        document.body.innerHTML,
+        '<span style="0"></span>'
+    );
+});
+
 test('chisel.render, svg', (t) => {
     chisel.render(document.body, [
         {'svg': 'svg', 'attr': {'width': '600', 'height': '400'}, 'elem': [
@@ -137,28 +147,6 @@ test('chisel.validateElements, error missing element key', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, "Missing element key {} (type 'object')");
-});
-
-test('chisel.validateElements, invalid attribute value', (t) => {
-    const elements = {'html': 'span', 'attr': {'style': 0}};
-    let errorMessage = null;
-    try {
-        chisel.validateElements(elements);
-    } catch ({message}) {
-        errorMessage = message;
-    }
-    t.is(errorMessage, "Invalid element attribute value 0 (type 'number')");
-});
-
-test('chisel.validateElements, undefined attribute value', (t) => {
-    const elements = {'html': 'span', 'attr': {'style': undefined}};
-    let errorMessage = null;
-    try {
-        chisel.validateElements(elements);
-    } catch ({message}) {
-        errorMessage = message;
-    }
-    t.is(errorMessage, "Invalid element attribute value undefined (type 'undefined')");
 });
 
 test('chisel.validateElements, null callback value', (t) => {

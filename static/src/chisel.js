@@ -82,7 +82,7 @@ function renderElements(parent, elements) {
             for (const [attr, value] of Object.entries(element.attr)) {
                 // Skip null values
                 if (value !== null) {
-                    browserElement.setAttribute(attr, value);
+                    browserElement.setAttribute(attr, `${value}`);
                 }
             }
         }
@@ -151,16 +151,6 @@ export function validateElements(elements) {
 
         // HTML or SVG?
         } else if ('html' in elements || 'svg' in elements) {
-            // Validate attribute values
-            if ('attr' in elements && elements.attr !== null) {
-                for (const attrValue of Object.values(elements.attr)) {
-                    // Validate attribute value
-                    if (attrValue !== null && typeof attrValue !== 'string') {
-                        throwValueError('Invalid element attribute value', attrValue);
-                    }
-                }
-            }
-
             // Validate the sub-elements
             if ('elem' in elements) {
                 validateElements(elements.elem);
