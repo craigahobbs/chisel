@@ -114,8 +114,24 @@ export function parseMarkdown(markdown) {
             const [topIndent] = parts[parts.length - 1];
             const codeBlockIndent = topIndent + 4;
 
+            // Empty line?
+            if (emptyLine) {
+                // Close any open paragraph
+                if (paragraph !== null) {
+                    addLine(line, lineIndent, topIndent);
+                } else {
+                    closeParagraph();
+                }
+
+            // Code block start?
+            } else if (!lines.length && lineIndent >= codeBlockIndent) {
+                // Add the code block part
+                paragraph = {'codeBlock': {}};
+                addPart(paragraph);
+                lines.push(line.slice(codeBlockIndent));
+
             // Fenced code start?
-            if (paragraphFenced === null && matchFenced !== null) {
+            } else if (paragraphFenced === null && matchFenced !== null && lineIndent < codeBlockIndent) {
                 // Close any open paragraph
                 closeParagraph();
 
@@ -137,22 +153,6 @@ export function parseMarkdown(markdown) {
             } else if (paragraphFenced !== null && matchFenced === null) {
                 // Add the code line
                 addLine(line, lineIndent, topIndent);
-
-            // Empty line?
-            } else if (emptyLine) {
-                // Close any open paragraph
-                if (paragraph !== null) {
-                    addLine(line, lineIndent, topIndent);
-                } else {
-                    closeParagraph();
-                }
-
-            // Code block start?
-            } else if (!lines.length && lineIndent >= codeBlockIndent) {
-                // Add the code block part
-                paragraph = {'codeBlock': {}};
-                addPart(paragraph);
-                lines.push(line.slice(codeBlockIndent));
 
             // Heading?
             } else if (matchHeading !== null && lineIndent < codeBlockIndent) {

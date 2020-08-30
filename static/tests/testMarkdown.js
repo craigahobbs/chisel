@@ -474,6 +474,39 @@ Cool, huh?`);
 });
 
 
+test('parseMarkdown, code block with fenced code block text', (t) => {
+    const markdown = parseMarkdown(`
+This is a fenced code block:
+
+    ~~~ javascript
+    code 1
+    code 2
+
+    code 3
+    ~~~
+
+Cool, huh?`);
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {'spans': [{'text': 'This is a fenced code block:'}]}},
+                {'codeBlock': {'lines': [
+                    '~~~ javascript',
+                    'code 1',
+                    'code 2',
+                    '',
+                    'code 3',
+                    '~~~'
+                ]}},
+                {'paragraph': {'spans': [{'text': 'Cool, huh?'}]}}
+            ]
+        }
+    );
+});
+
+
 test('parseMarkdown, fenced code block', (t) => {
     const markdown = parseMarkdown(`
 This is some code:
