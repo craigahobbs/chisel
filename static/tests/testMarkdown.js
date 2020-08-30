@@ -456,6 +456,7 @@ This is some code:
 
     code 1
     code 2
+
     code 3
 
 Cool, huh?`);
@@ -465,7 +466,7 @@ Cool, huh?`);
         {
             'parts': [
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}},
-                {'codeBlock': {'lines': ['code 1', 'code 2', 'code 3']}},
+                {'codeBlock': {'lines': ['code 1', 'code 2', '', 'code 3']}},
                 {'paragraph': {'spans': [{'text': 'Cool, huh?'}]}}
             ]
         }

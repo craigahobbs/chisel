@@ -52,7 +52,14 @@ export function parseMarkdown(markdown) {
     const closeParagraph = (paragraphStyle = null) => {
         // Code block?
         if (paragraph !== null) {
-            paragraph.codeBlock.lines = lines;
+            // Strip trailing blank lines
+            let ixLine;
+            for (ixLine = lines.length - 1; ixLine >= 0; ixLine--) {
+                if (lines[ixLine] !== '') {
+                    break;
+                }
+            }
+            paragraph.codeBlock.lines = lines.splice(0, ixLine + 1);
             paragraph = null;
             paragraphFenced = null;
         } else if (lines.length) {
@@ -134,7 +141,11 @@ export function parseMarkdown(markdown) {
             // Empty line?
             } else if (emptyLine) {
                 // Close any open paragraph
-                closeParagraph();
+                if (paragraph !== null) {
+                    addLine(line, lineIndent, topIndent);
+                } else {
+                    closeParagraph();
+                }
 
             // Code block start?
             } else if (!lines.length && lineIndent >= codeBlockIndent) {
@@ -194,6 +205,11 @@ export function parseMarkdown(markdown) {
 
             // Text line
             } else {
+                // End code block first?
+                if (paragraph !== null && lineIndent < codeBlockIndent) {
+                    closeParagraph();
+                }
+
                 // Add the paragraph line
                 addLine(line, lineIndent, codeBlockIndent);
             }
