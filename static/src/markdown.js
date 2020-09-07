@@ -165,7 +165,8 @@ export function parseMarkdown(markdown) {
                 closeParagraph(`h${matchHeading.groups.heading.length}`);
 
             // Heading (alternate syntax)?
-            } else if (matchHeadingAlt !== null && lineIndent < codeBlockIndent && parts.length === 1 && lines.length) {
+            } else if (matchHeadingAlt !== null && lineIndent < codeBlockIndent && parts.length === 1 &&
+                       lines.length && paragraph === null) {
                 // Add the heading paragraph markdown part
                 closeParagraph(matchHeadingAlt.groups.heading.startsWith('=') ? 'h1' : 'h2');
 

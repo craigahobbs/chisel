@@ -164,6 +164,28 @@ test('parseMarkdown, horizontal rule beyond code block', (t) => {
 });
 
 
+test('parseMarkdown, horizontal rule following code block', (t) => {
+    const markdown = parseMarkdown(`
+This is a horizontal fule immediately following a code block:
+
+    code
+
+---
+`);
+    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    t.deepEqual(
+        markdown,
+        {
+            'parts': [
+                {'paragraph': {'spans': [{'text': 'This is a horizontal fule immediately following a code block:'}]}},
+                {'codeBlock': {'lines': ['code']}},
+                {'hr': null}
+            ]
+        }
+    );
+});
+
+
 test('parseMarkdown, heading alternate syntax', (t) => {
     const markdown = parseMarkdown(`
 Title
