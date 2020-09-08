@@ -2,7 +2,7 @@
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 import * as chisel from './chisel.js';
-import {markdownTypes} from './markdownTypes.js';
+import {markdownModel} from './markdownModel.js';
 
 
 // Markdown regex
@@ -315,7 +315,7 @@ function paragraphSpans(text) {
  */
 export function markdownElements(markdown, url = null, codeBlockLanguages = null) {
     // Parse the markdown
-    const validatedMarkdown = chisel.validateType(markdownTypes, 'Markdown', markdown);
+    const validatedMarkdown = chisel.validateType(markdownModel.types, 'Markdown', markdown);
 
     // Generate an element model from the markdown model parts
     return markdownPartElements(validatedMarkdown.parts, url, codeBlockLanguages);

@@ -30,8 +30,8 @@ from .schema import \
     ValidationError, \
     get_referenced_types, \
     get_type_model, \
-    validate_types, \
-    validate_type
+    validate_type, \
+    validate_type_model
 
 from .spec import \
     SpecParser, \

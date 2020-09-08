@@ -120,6 +120,7 @@ test('chisel.getReferencedTypes, empty action', (t) => {
     t.deepEqual(chisel.getReferencedTypes(types, 'MyAction'), referencedTypes);
 });
 
+
 test('chisel.getReferencedTypes, circular', (t) => {
     const types = {
         'MyStruct': {

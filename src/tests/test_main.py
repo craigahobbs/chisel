@@ -25,24 +25,27 @@ struct MyStruct
 
     TEST_MODEL = '''\
 {
-    "MyStruct": {
-        "struct": {
-            "members": [
-                {
-                    "name": "a",
-                    "type": {
-                        "builtin": "int"
+    "title": "Type Model",
+    "types": {
+        "MyStruct": {
+            "struct": {
+                "members": [
+                    {
+                        "name": "a",
+                        "type": {
+                            "builtin": "int"
+                        }
+                    },
+                    {
+                        "name": "b",
+                        "optional": true,
+                        "type": {
+                            "builtin": "bool"
+                        }
                     }
-                },
-                {
-                    "name": "b",
-                    "optional": true,
-                    "type": {
-                        "builtin": "bool"
-                    }
-                }
-            ],
-            "name": "MyStruct"
+                ],
+                "name": "MyStruct"
+            }
         }
     }
 }'''
@@ -94,44 +97,47 @@ struct MyStruct
             with open(output_path, 'r', encoding='utf-8') as output_file:
                 self.assertEqual(output_file.read(), '''\
 {
-    "MyStruct": {
-        "struct": {
-            "members": [
-                {
-                    "name": "a",
-                    "type": {
-                        "builtin": "int"
+    "title": "Type Model",
+    "types": {
+        "MyStruct": {
+            "struct": {
+                "members": [
+                    {
+                        "name": "a",
+                        "type": {
+                            "builtin": "int"
+                        }
+                    },
+                    {
+                        "name": "b",
+                        "optional": true,
+                        "type": {
+                            "builtin": "bool"
+                        }
                     }
-                },
-                {
-                    "name": "b",
-                    "optional": true,
-                    "type": {
-                        "builtin": "bool"
+                ],
+                "name": "MyStruct"
+            }
+        },
+        "MyStruct2": {
+            "struct": {
+                "members": [
+                    {
+                        "name": "a",
+                        "type": {
+                            "builtin": "int"
+                        }
+                    },
+                    {
+                        "name": "b",
+                        "optional": true,
+                        "type": {
+                            "builtin": "bool"
+                        }
                     }
-                }
-            ],
-            "name": "MyStruct"
-        }
-    },
-    "MyStruct2": {
-        "struct": {
-            "members": [
-                {
-                    "name": "a",
-                    "type": {
-                        "builtin": "int"
-                    }
-                },
-                {
-                    "name": "b",
-                    "optional": true,
-                    "type": {
-                        "builtin": "bool"
-                    }
-                }
-            ],
-            "name": "MyStruct2"
+                ],
+                "name": "MyStruct2"
+            }
         }
     }
 }''')

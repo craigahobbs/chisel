@@ -11,6 +11,7 @@ test('chisel.validateType', (t) => {
     );
 });
 
+
 function validateType(type, obj) {
     const types = {
         'MyTypedef': {
@@ -22,6 +23,7 @@ function validateType(type, obj) {
     return chisel.validateType(types, 'MyTypedef', obj);
 }
 
+
 test('chisel.validateType, unknown', (t) => {
     let errorMessage = null;
     try {
@@ -32,10 +34,12 @@ test('chisel.validateType, unknown', (t) => {
     t.is(errorMessage, "Unknown type 'Unknown'");
 });
 
+
 test('chisel.validateType, string', (t) => {
     const obj = 'abc';
     t.is(validateType({'builtin': 'string'}, obj), obj);
 });
+
 
 test('chisel.validateType, string error', (t) => {
     let errorMessage = null;
@@ -48,6 +52,7 @@ test('chisel.validateType, string error', (t) => {
     t.is(errorMessage, "Invalid value 7 (type 'number'), expected type 'string'");
 });
 
+
 test('chisel.validateType, string error undefined', (t) => {
     let errorMessage = null;
     const obj = undefined;
@@ -59,10 +64,12 @@ test('chisel.validateType, string error undefined', (t) => {
     t.is(errorMessage, "Invalid value undefined (type 'undefined'), expected type 'string'");
 });
 
+
 test('chisel.validateType, int', (t) => {
     const obj = 7;
     t.is(validateType({'builtin': 'int'}, obj), obj);
 });
+
 
 test('chisel.validateType, int float', (t) => {
     let errorMessage = null;
@@ -75,10 +82,12 @@ test('chisel.validateType, int float', (t) => {
     t.is(errorMessage, "Invalid value 7.1 (type 'number'), expected type 'int'");
 });
 
+
 test('chisel.validateType, int string', (t) => {
     const obj = '7';
     t.is(validateType({'builtin': 'int'}, obj), 7);
 });
+
 
 test('chisel.validateType, int error', (t) => {
     let errorMessage = null;
@@ -91,6 +100,7 @@ test('chisel.validateType, int error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'int'");
 });
 
+
 test('chisel.validateType, int error bool', (t) => {
     let errorMessage = null;
     const obj = true;
@@ -102,20 +112,24 @@ test('chisel.validateType, int error bool', (t) => {
     t.is(errorMessage, "Invalid value true (type 'boolean'), expected type 'int'");
 });
 
+
 test('chisel.validateType, float', (t) => {
     const obj = 7.5;
     t.is(validateType({'builtin': 'float'}, obj), obj);
 });
+
 
 test('chisel.validateType, float int', (t) => {
     const obj = 7;
     t.is(validateType({'builtin': 'float'}, obj), 7.0);
 });
 
+
 test('chisel.validateType, float string', (t) => {
     const obj = '7.5';
     t.is(validateType({'builtin': 'float'}, obj), 7.5);
 });
+
 
 test('chisel.validateType, float error', (t) => {
     let errorMessage = null;
@@ -128,6 +142,7 @@ test('chisel.validateType, float error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'float'");
 });
 
+
 test('chisel.validateType, float error nan', (t) => {
     let errorMessage = null;
     const obj = 'nan';
@@ -138,6 +153,7 @@ test('chisel.validateType, float error nan', (t) => {
     }
     t.is(errorMessage, "Invalid value \"nan\" (type 'string'), expected type 'float'");
 });
+
 
 test('chisel.validateType, float error inf', (t) => {
     let errorMessage = null;
@@ -150,6 +166,7 @@ test('chisel.validateType, float error inf', (t) => {
     t.is(errorMessage, "Invalid value \"inf\" (type 'string'), expected type 'float'");
 });
 
+
 test('chisel.validateType, float error bool', (t) => {
     let errorMessage = null;
     const obj = true;
@@ -161,20 +178,24 @@ test('chisel.validateType, float error bool', (t) => {
     t.is(errorMessage, "Invalid value true (type 'boolean'), expected type 'float'");
 });
 
+
 test('chisel.validateType, bool', (t) => {
     const obj = false;
     t.is(validateType({'builtin': 'bool'}, obj), obj);
 });
+
 
 test('chisel.validateType, bool true', (t) => {
     const obj = 'true';
     t.is(validateType({'builtin': 'bool'}, obj), true);
 });
 
+
 test('chisel.validateType, bool false', (t) => {
     const obj = 'false';
     t.is(validateType({'builtin': 'bool'}, obj), false);
 });
+
 
 test('chisel.validateType, bool error', (t) => {
     let errorMessage = null;
@@ -187,6 +208,7 @@ test('chisel.validateType, bool error', (t) => {
     t.is(errorMessage, "Invalid value 0 (type 'number'), expected type 'bool'");
 });
 
+
 test('chisel.validateType, bool error string', (t) => {
     let errorMessage = null;
     const obj = 'abc';
@@ -198,25 +220,30 @@ test('chisel.validateType, bool error string', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'bool'");
 });
 
+
 test('chisel.validateType, date', (t) => {
     const obj = new Date(2020, 5, 26);
     t.deepEqual(validateType({'builtin': 'date'}, obj), obj);
 });
+
 
 test('chisel.validateType, date datetime', (t) => {
     const obj = new Date(2020, 5, 26, 18, 8);
     t.deepEqual(validateType({'builtin': 'date'}, obj), new Date(2020, 5, 26));
 });
 
+
 test('chisel.validateType, date string', (t) => {
     const obj = '2020-06-26';
     t.deepEqual(validateType({'builtin': 'date'}, obj), new Date(2020, 5, 26));
 });
 
+
 test('chisel.validateType, date string datetime', (t) => {
     const obj = '2020-06-26T13:11:00-07:00';
     t.deepEqual(validateType({'builtin': 'date'}, obj), new Date(2020, 5, 26));
 });
+
 
 test('chisel.validateType, date string error', (t) => {
     let errorMessage = null;
@@ -229,6 +256,7 @@ test('chisel.validateType, date string error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'date'");
 });
 
+
 test('chisel.validateType, date error', (t) => {
     let errorMessage = null;
     const obj = 0;
@@ -239,6 +267,7 @@ test('chisel.validateType, date error', (t) => {
     }
     t.is(errorMessage, "Invalid value 0 (type 'number'), expected type 'date'");
 });
+
 
 test('chisel.validateType, date error excluded', (t) => {
     let errorMessage = null;
@@ -251,25 +280,30 @@ test('chisel.validateType, date error excluded', (t) => {
     t.is(errorMessage, "Invalid value \"December 17, 1995 03:24:00\" (type 'string'), expected type 'date'");
 });
 
+
 test('chisel.validateType, datetime', (t) => {
     const obj = new Date(2020, 5, 26, 18, 8);
     t.deepEqual(validateType({'builtin': 'datetime'}, obj), obj);
 });
+
 
 test('chisel.validateType, datetime date', (t) => {
     const obj = new Date(2020, 5, 26);
     t.deepEqual(validateType({'builtin': 'datetime'}, obj), obj);
 });
 
+
 test('chisel.validateType, datetime string', (t) => {
     const obj = '2020-06-26T13:11:00-07:00';
     t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(2020, 5, 26, 20, 11));
 });
 
+
 test('chisel.validateType, datetime string date', (t) => {
     const obj = '2020-06-26';
     t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(2020, 5, 26));
 });
+
 
 test('chisel.validateType, datetime string error', (t) => {
     let errorMessage = null;
@@ -282,6 +316,7 @@ test('chisel.validateType, datetime string error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'datetime'");
 });
 
+
 test('chisel.validateType, datetime error', (t) => {
     let errorMessage = null;
     const obj = 0;
@@ -292,6 +327,7 @@ test('chisel.validateType, datetime error', (t) => {
     }
     t.is(errorMessage, "Invalid value 0 (type 'number'), expected type 'datetime'");
 });
+
 
 test('chisel.validateType, datetime error excluded', (t) => {
     let errorMessage = null;
@@ -304,15 +340,18 @@ test('chisel.validateType, datetime error excluded', (t) => {
     t.is(errorMessage, "Invalid value \"December 17, 1995 03:24:00\" (type 'string'), expected type 'datetime'");
 });
 
+
 test('chisel.validateType, uuid', (t) => {
     const obj = 'AED91C7B-DCFD-49B3-A483-DBC9EA2031A3';
     t.deepEqual(validateType({'builtin': 'uuid'}, obj), obj);
 });
 
+
 test('chisel.validateType, uuid lowercase', (t) => {
     const obj = 'aed91c7b-dcfd-49b3-a483-dbc9ea2031a3';
     t.deepEqual(validateType({'builtin': 'uuid'}, obj), obj);
 });
+
 
 test('chisel.validateType, uuid error', (t) => {
     let errorMessage = null;
@@ -325,6 +364,7 @@ test('chisel.validateType, uuid error', (t) => {
     t.is(errorMessage, "Invalid value 0 (type 'number'), expected type 'uuid'");
 });
 
+
 test('chisel.validateType, uuid error string', (t) => {
     let errorMessage = null;
     const obj = 'abc';
@@ -336,30 +376,36 @@ test('chisel.validateType, uuid error string', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'uuid'");
 });
 
+
 test('chisel.validateType, object', (t) => {
     const obj = {};
     t.deepEqual(validateType({'builtin': 'object'}, obj), obj);
 });
+
 
 test('chisel.validateType, object string', (t) => {
     const obj = 'abc';
     t.deepEqual(validateType({'builtin': 'object'}, obj), obj);
 });
 
+
 test('chisel.validateType, object int', (t) => {
     const obj = 7;
     t.deepEqual(validateType({'builtin': 'object'}, obj), obj);
 });
+
 
 test('chisel.validateType, object bool', (t) => {
     const obj = true;
     t.deepEqual(validateType({'builtin': 'object'}, obj), obj);
 });
 
+
 test('chisel.validateType, array', (t) => {
     const obj = [1, 2, 3];
     t.deepEqual(validateType({'array': {'type': {'builtin': 'int'}}}, obj), obj);
 });
+
 
 test('chisel.validateType, array nullable', (t) => {
     const obj = [1, null, 3];
@@ -373,6 +419,7 @@ test('chisel.validateType, array nullable', (t) => {
     }
     t.is(errorMessage, "Invalid value null (type 'object') for member '1', expected type 'int'");
 });
+
 
 test('chisel.validateType, array nullable as string', (t) => {
     const obj = ['1', 'null', '3'];
@@ -390,15 +437,18 @@ test('chisel.validateType, array nullable as string', (t) => {
     t.is(errorMessage, "Invalid value \"null\" (type 'string') for member '1', expected type 'int'");
 });
 
+
 test('chisel.validateType, array empty string', (t) => {
     const obj = '';
     t.deepEqual(validateType({'array': {'type': {'builtin': 'int'}}}, obj), []);
 });
 
+
 test('chisel.validateType, array attributes', (t) => {
     const obj = [1, 2, 3];
     t.deepEqual(validateType({'array': {'type': {'builtin': 'int'}, 'attr': {'lt': 5}}}, obj), obj);
 });
+
 
 test('chisel.validateType, array error', (t) => {
     let errorMessage = null;
@@ -411,6 +461,7 @@ test('chisel.validateType, array error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'array'");
 });
 
+
 test('chisel.validateType, array error value', (t) => {
     let errorMessage = null;
     const obj = [1, 'abc', 3];
@@ -421,6 +472,7 @@ test('chisel.validateType, array error value', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member '1', expected type 'int'");
 });
+
 
 test('chisel.validateType, array error value nested', (t) => {
     let errorMessage = null;
@@ -433,6 +485,7 @@ test('chisel.validateType, array error value nested', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member '1.1', expected type 'int'");
 });
 
+
 test('chisel.validateType, array attribute error', (t) => {
     let errorMessage = null;
     const obj = [1, 2, 5];
@@ -444,10 +497,12 @@ test('chisel.validateType, array attribute error', (t) => {
     t.is(errorMessage, "Invalid value 5 (type 'number') for member '2', expected type 'int' [< 5]");
 });
 
+
 test('chisel.validateType, dict', (t) => {
     const obj = {'a': 1, 'b': 2, 'c': 3};
     t.deepEqual(validateType({'dict': {'type': {'builtin': 'int'}}}, obj), obj);
 });
+
 
 test('chisel.validateType, dict nullable', (t) => {
     const obj = {'a': 1, 'b': null, 'c': 3};
@@ -461,6 +516,7 @@ test('chisel.validateType, dict nullable', (t) => {
     }
     t.is(errorMessage, "Invalid value null (type 'object') for member 'b', expected type 'int'");
 });
+
 
 test('chisel.validateType, dict nullable as string', (t) => {
     const obj = {'a': '1', 'b': 'null', 'c': '3'};
@@ -477,6 +533,7 @@ test('chisel.validateType, dict nullable as string', (t) => {
     }
     t.is(errorMessage, "Invalid value \"null\" (type 'string') for member 'b', expected type 'int'");
 });
+
 
 test('chisel.validateType, dict key nullable', (t) => {
     const obj = new Map();
@@ -498,6 +555,7 @@ test('chisel.validateType, dict key nullable', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object'), expected type 'string'");
 });
 
+
 test('chisel.validateType, dict key nullable as string', (t) => {
     const obj = new Map();
     obj.set('a', 1);
@@ -518,15 +576,18 @@ test('chisel.validateType, dict key nullable as string', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object'), expected type 'string'");
 });
 
+
 test('chisel.validateType, dict empty string', (t) => {
     const obj = '';
     t.deepEqual(validateType({'dict': {'type': {'builtin': 'int'}}}, obj), {});
 });
 
+
 test('chisel.validateType, dict attributes', (t) => {
     const obj = {'a': 1, 'b': 2, 'c': 3};
     t.deepEqual(validateType({'dict': {'type': {'builtin': 'int'}, 'attr': {'lt': 5}}}, obj), obj);
 });
+
 
 test('chisel.validateType, dict error', (t) => {
     let errorMessage = null;
@@ -539,6 +600,7 @@ test('chisel.validateType, dict error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'dict'");
 });
 
+
 test('chisel.validateType, dict error value', (t) => {
     let errorMessage = null;
     const obj = {'a': 1, 'b': 'abc', 'c': 3};
@@ -549,6 +611,7 @@ test('chisel.validateType, dict error value', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member 'b', expected type 'int'");
 });
+
 
 test('chisel.validateType, dict error value nested', (t) => {
     let errorMessage = null;
@@ -561,6 +624,7 @@ test('chisel.validateType, dict error value nested', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member '1.b', expected type 'int'");
 });
 
+
 test('chisel.validateType, dict attribute error', (t) => {
     let errorMessage = null;
     const obj = {'a': 1, 'b': 2, 'c': 5};
@@ -571,6 +635,7 @@ test('chisel.validateType, dict attribute error', (t) => {
     }
     t.is(errorMessage, "Invalid value 5 (type 'number') for member 'c', expected type 'int' [< 5]");
 });
+
 
 test('chisel.validateType, dict key type', (t) => {
     const types = {
@@ -604,6 +669,7 @@ test('chisel.validateType, dict key type', (t) => {
     t.is(errorMessage, "Invalid value \"C\" (type 'string'), expected type 'MyEnum'");
 });
 
+
 test('chisel.validateType, dict key attr', (t) => {
     const types = {
         'MyTypedef': {
@@ -626,6 +692,7 @@ test('chisel.validateType, dict key attr', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abcdefghij\" (type 'string'), expected type 'string' [len < 10]");
 });
+
 
 test('chisel.validateType, enum', (t) => {
     const types = {
@@ -652,6 +719,7 @@ test('chisel.validateType, enum', (t) => {
     }
     t.is(errorMessage, "Invalid value \"c\" (type 'string'), expected type 'MyEnum'");
 });
+
 
 test('chisel.validateType, typedef', (t) => {
     const types = {
@@ -693,6 +761,7 @@ test('chisel.validateType, typedef', (t) => {
     t.is(errorMessage, "Invalid value \"null\" (type 'string'), expected type 'int'");
 });
 
+
 test('chisel.validateType, typedef no attr', (t) => {
     const types = {
         'MyTypedef': {
@@ -705,6 +774,7 @@ test('chisel.validateType, typedef no attr', (t) => {
     const obj = 5;
     t.is(chisel.validateType(types, 'MyTypedef', obj), obj);
 });
+
 
 test('chisel.validateType, typedef type error', (t) => {
     const types = {
@@ -726,6 +796,7 @@ test('chisel.validateType, typedef type error', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'int'");
 });
 
+
 test('chisel.validateType, typedef attr eq', (t) => {
     const types = {
         'MyTypedef': {
@@ -745,6 +816,7 @@ test('chisel.validateType, typedef attr eq', (t) => {
     }
     t.is(errorMessage, "Invalid value 7 (type 'number'), expected type 'MyTypedef' [== 5]");
 });
+
 
 test('chisel.validateType, typedef attr nullable', (t) => {
     const types = {
@@ -767,6 +839,7 @@ test('chisel.validateType, typedef attr nullable', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'int'");
 });
+
 
 test('chisel.validateType, typedef attr lt', (t) => {
     const types = {
@@ -794,6 +867,7 @@ test('chisel.validateType, typedef attr lt', (t) => {
     t.is(errorMessage, "Invalid value 7 (type 'number'), expected type 'MyTypedef' [< 5]");
 });
 
+
 test('chisel.validateType, typedef attr lte', (t) => {
     const types = {
         'MyTypedef': {
@@ -813,6 +887,7 @@ test('chisel.validateType, typedef attr lte', (t) => {
     }
     t.is(errorMessage, "Invalid value 7 (type 'number'), expected type 'MyTypedef' [<= 5]");
 });
+
 
 test('chisel.validateType, typedef attr gt', (t) => {
     const types = {
@@ -840,6 +915,7 @@ test('chisel.validateType, typedef attr gt', (t) => {
     t.is(errorMessage, "Invalid value 5 (type 'number'), expected type 'MyTypedef' [> 5]");
 });
 
+
 test('chisel.validateType, typedef attr gte', (t) => {
     const types = {
         'MyTypedef': {
@@ -859,6 +935,7 @@ test('chisel.validateType, typedef attr gte', (t) => {
     }
     t.is(errorMessage, "Invalid value 3 (type 'number'), expected type 'MyTypedef' [>= 5]");
 });
+
 
 test('chisel.validateType, typedef attr lenEq', (t) => {
     const types = {
@@ -880,6 +957,7 @@ test('chisel.validateType, typedef attr lenEq', (t) => {
     t.is(errorMessage, "Invalid value [1,2,3] (type 'object'), expected type 'MyTypedef' [len == 5]");
 });
 
+
 test('chisel.validateType, typedef attr lenEq object', (t) => {
     const types = {
         'MyTypedef': {
@@ -899,6 +977,7 @@ test('chisel.validateType, typedef attr lenEq object', (t) => {
     }
     t.is(errorMessage, "Invalid value {\"a\":1,\"b\":2,\"c\":3} (type 'object'), expected type 'MyTypedef' [len == 5]");
 });
+
 
 test('chisel.validateType, typedef attr lenLT', (t) => {
     const types = {
@@ -920,6 +999,7 @@ test('chisel.validateType, typedef attr lenLT', (t) => {
     t.is(errorMessage, "Invalid value [1,2,3,4,5] (type 'object'), expected type 'MyTypedef' [len < 5]");
 });
 
+
 test('chisel.validateType, typedef attr lenLTE', (t) => {
     const types = {
         'MyTypedef': {
@@ -939,6 +1019,7 @@ test('chisel.validateType, typedef attr lenLTE', (t) => {
     }
     t.is(errorMessage, "Invalid value [1,2,3,4,5,6,7] (type 'object'), expected type 'MyTypedef' [len <= 5]");
 });
+
 
 test('chisel.validateType, typedef attr lenGT', (t) => {
     const types = {
@@ -960,6 +1041,7 @@ test('chisel.validateType, typedef attr lenGT', (t) => {
     t.is(errorMessage, "Invalid value [1,2,3,4,5] (type 'object'), expected type 'MyTypedef' [len > 5]");
 });
 
+
 test('chisel.validateType, typedef attr lenGTE', (t) => {
     const types = {
         'MyTypedef': {
@@ -979,6 +1061,7 @@ test('chisel.validateType, typedef attr lenGTE', (t) => {
     }
     t.is(errorMessage, "Invalid value [1,2,3] (type 'object'), expected type 'MyTypedef' [len >= 5]");
 });
+
 
 test('chisel.validateType, struct', (t) => {
     const types = {
@@ -1065,6 +1148,7 @@ test('chisel.validateType, struct', (t) => {
     t.deepEqual(chisel.validateType(types, 'MyStruct', obj), objTransform);
 });
 
+
 test('chisel.validateType, struct map', (t) => {
     const types = {
         'MyStruct': {
@@ -1099,6 +1183,7 @@ test('chisel.validateType, struct map', (t) => {
     t.is(obj2.get('b').get('c'), 'abc');
 });
 
+
 test('chisel.validateType, struct empty string', (t) => {
     const types = {
         'Empty': {
@@ -1110,6 +1195,7 @@ test('chisel.validateType, struct empty string', (t) => {
     const obj = '';
     t.deepEqual(chisel.validateType(types, 'Empty', obj), {});
 });
+
 
 test('chisel.validateType, struct string error', (t) => {
     const types = {
@@ -1128,6 +1214,7 @@ test('chisel.validateType, struct string error', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'Empty'");
 });
+
 
 test('chisel.validateType, struct union', (t) => {
     const types = {
@@ -1167,6 +1254,7 @@ test('chisel.validateType, struct union', (t) => {
     t.is(errorMessage, "Unknown member 'c'");
 });
 
+
 test('chisel.validateType, struct optional', (t) => {
     const types = {
         'MyStruct': {
@@ -1196,6 +1284,7 @@ test('chisel.validateType, struct optional', (t) => {
     }
     t.is(errorMessage, "Required member 'c' missing");
 });
+
 
 test('chisel.validateType, struct nullable', (t) => {
     const types = {
@@ -1255,6 +1344,7 @@ test('chisel.validateType, struct nullable', (t) => {
     t.is(errorMessage, "Required member 'b' missing");
 });
 
+
 test('chisel.validateType, struct nullable attr', (t) => {
     const types = {
         'MyStruct': {
@@ -1284,6 +1374,7 @@ test('chisel.validateType, struct nullable attr', (t) => {
     t.deepEqual(chisel.validateType(types, 'MyStruct', obj), obj);
 });
 
+
 test('chisel.validateType, struct member attr', (t) => {
     const types = {
         'MyStruct': {
@@ -1298,6 +1389,7 @@ test('chisel.validateType, struct member attr', (t) => {
     const obj = {'a': 4};
     t.deepEqual(chisel.validateType(types, 'MyStruct', obj), obj);
 });
+
 
 test('chisel.validateType, struct member attr invalid', (t) => {
     const types = {
@@ -1320,6 +1412,7 @@ test('chisel.validateType, struct member attr invalid', (t) => {
     t.is(errorMessage, "Invalid value 7 (type 'number') for member 'a', expected type 'int' [< 5]");
 });
 
+
 test('chisel.validateType, struct error invalid value', (t) => {
     const types = {
         'MyStruct': {
@@ -1340,6 +1433,7 @@ test('chisel.validateType, struct error invalid value', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'MyStruct'");
 });
+
 
 test('chisel.validateType, struct error optional null value', (t) => {
     const types = {
@@ -1362,6 +1456,7 @@ test('chisel.validateType, struct error optional null value', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object') for member 'a', expected type 'int'");
 });
 
+
 test('chisel.validateType, struct error member validation', (t) => {
     const types = {
         'MyStruct': {
@@ -1382,6 +1477,7 @@ test('chisel.validateType, struct error member validation', (t) => {
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member 'a', expected type 'int'");
 });
+
 
 test('chisel.validateType, struct error nested member validation', (t) => {
     const types = {
@@ -1412,6 +1508,7 @@ test('chisel.validateType, struct error nested member validation', (t) => {
     t.is(errorMessage, "Invalid value \"abc\" (type 'string') for member 'a.b', expected type 'int'");
 });
 
+
 test('chisel.validateType, struct error unknown member', (t) => {
     const types = {
         'MyStruct': {
@@ -1432,6 +1529,7 @@ test('chisel.validateType, struct error unknown member', (t) => {
     }
     t.is(errorMessage, "Unknown member 'b'");
 });
+
 
 test('chisel.validateType, struct error unknown member nested', (t) => {
     const types = {
@@ -1460,6 +1558,7 @@ test('chisel.validateType, struct error unknown member nested', (t) => {
     t.is(errorMessage, "Unknown member '1.b'");
 });
 
+
 test('chisel.validateType, struct error unknown member empty', (t) => {
     const types = {
         'MyStruct': {
@@ -1477,6 +1576,7 @@ test('chisel.validateType, struct error unknown member empty', (t) => {
     }
     t.is(errorMessage, "Unknown member 'b'");
 });
+
 
 test('chisel.validateType, struct error unknown member long', (t) => {
     const types = {
@@ -1500,6 +1600,7 @@ test('chisel.validateType, struct error unknown member long', (t) => {
     t.is(errorMessage, `Unknown member '${'b'.repeat(100)}'`);
 });
 
+
 test('chisel.validateType, struct error missing member', (t) => {
     const types = {
         'MyStruct': {
@@ -1521,6 +1622,7 @@ test('chisel.validateType, struct error missing member', (t) => {
     t.is(errorMessage, "Required member 'a' missing");
 });
 
+
 test('chisel.validateType, action', (t) => {
     const types = {
         'MyAction': {
@@ -1538,6 +1640,7 @@ test('chisel.validateType, action', (t) => {
     }
     t.is(errorMessage, "Invalid value {} (type 'object'), expected type 'MyAction'");
 });
+
 
 test('chisel.validateType, invalid model', (t) => {
     const types = {

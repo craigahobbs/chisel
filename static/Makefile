@@ -3,5 +3,5 @@
 
 include Makefile.base
 
-$(eval $(call COMPILE_CHSL, markdownTypes))
+$(eval $(call COMPILE_CHSL, markdownModel))
 $(eval $(call COMPILE_CHSL, typeModel))

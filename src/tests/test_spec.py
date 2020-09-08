@@ -5,7 +5,7 @@
 
 import os
 
-from chisel import SpecParser, SpecParserError, validate_types
+from chisel import SpecParser, SpecParserError, validate_type_model
 
 from . import TestCase
 
@@ -367,23 +367,41 @@ action MyAction
         parser = SpecParser('''\
 action MyAction
 
+enum MyEnum
+
+struct MyStruct
+
+typedef int MyTypedef
+
 group "Stuff"
 
 action MyAction2
+
+enum MyEnum2
 
 group "Other Stuff"
 
 action MyAction3
 
+struct MyStruct2
+
 group
 
 action MyAction4
+
+typedef int MyTypedef3
 ''')
         self.assertDictEqual(parser.types, {
             'MyAction': {'action': {'name': 'MyAction'}},
             'MyAction2': {'action': {'docGroup': 'Stuff', 'name': 'MyAction2'}},
             'MyAction3': {'action': {'docGroup': 'Other Stuff', 'name': 'MyAction3'}},
-            'MyAction4': {'action': {'name': 'MyAction4'}}
+            'MyAction4': {'action': {'name': 'MyAction4'}},
+            'MyEnum': {'enum': {'name': 'MyEnum'}},
+            'MyEnum2': {'enum': {'docGroup': 'Stuff', 'name': 'MyEnum2'}},
+            'MyStruct': {'struct': {'name': 'MyStruct'}},
+            'MyStruct2': {'struct': {'docGroup': 'Other Stuff', 'name': 'MyStruct2'}},
+            'MyTypedef': {'typedef': {'name': 'MyTypedef', 'type': {'builtin': 'int'}}},
+            'MyTypedef3': {'typedef': {'name': 'MyTypedef3', 'type': {'builtin': 'int'}}}
         })
         self.assertListEqual(parser.errors, [])
 
@@ -406,7 +424,7 @@ typedef MyStruct4 MyTypedef
 struct MyStruct5 (MyStruct2, MyTypedef)
     datetime e
 ''')
-        validate_types(parser.types)
+        validate_type_model({'title': 'Title', 'types': parser.types})
         self.assertDictEqual(parser.types, {
             'MyStruct': {
                 'struct': {

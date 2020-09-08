@@ -22,42 +22,52 @@ test('chisel.encodeParams', (t) => {
     );
 });
 
+
 test('chisel.encodeParams, null', (t) => {
     t.is(chisel.encodeParams(null), 'null');
     t.is(chisel.encodeParams({'a': null, 'b': 'abc'}), 'a=null&b=abc');
 });
 
+
 test('chisel.encodeParams, bool', (t) => {
     t.is(chisel.encodeParams(true), 'true');
 });
+
 
 test('chisel.encodeParams, number', (t) => {
     t.is(chisel.encodeParams(5.1), '5.1');
 });
 
+
 test('chisel.encodeParams, date', (t) => {
     t.is(chisel.encodeParams(new Date('2020-06-24')), '2020-06-24T00%3A00%3A00.000Z');
 });
+
 
 test('chisel.encodeParams, array', (t) => {
     t.is(chisel.encodeParams([1, 2, []]), '0=1&1=2&2=');
 });
 
+
 test('chisel.encodeParams, empty array', (t) => {
     t.is(chisel.encodeParams([]), '');
 });
+
 
 test('chisel.encodeParams, empty array/array', (t) => {
     t.is(chisel.encodeParams([[]]), '0=');
 });
 
+
 test('chisel.encodeParams, object', (t) => {
     t.is(chisel.encodeParams({'a': 5, 'b': 'a&b', 'c': {}}), 'a=5&b=a%26b&c=');
 });
 
+
 test('chisel.encodeParams, empty object', (t) => {
     t.is(chisel.encodeParams({}), '');
 });
+
 
 test('chisel.encodeParams, empty object/object', (t) => {
     t.is(chisel.encodeParams({'a': {}}), 'a=');

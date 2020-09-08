@@ -17,12 +17,14 @@ test('chisel.decodeParams, default', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, complex dict', (t) => {
     t.deepEqual(
         chisel.decodeParams('_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'),
         {'a': '7', '_a': '7', 'b': {'c': '+x y + z', 'd': ['2', '-4', '6']}}
     );
 });
+
 
 test('chisel.decodeParams, array of dicts', (t) => {
     t.deepEqual(
@@ -31,12 +33,14 @@ test('chisel.decodeParams, array of dicts', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, top-level array', (t) => {
     t.deepEqual(
         chisel.decodeParams('0=1&1=2&2=3'),
         ['1', '2', '3']
     );
 });
+
 
 test('chisel.decodeParams, empty query string', (t) => {
     t.deepEqual(
@@ -45,12 +49,14 @@ test('chisel.decodeParams, empty query string', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, empty string value', (t) => {
     t.deepEqual(
         chisel.decodeParams('b='),
         {'b': ''}
     );
 });
+
 
 test('chisel.decodeParams, empty string value at end', (t) => {
     t.deepEqual(
@@ -59,12 +65,14 @@ test('chisel.decodeParams, empty string value at end', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, empty string value at start', (t) => {
     t.deepEqual(
         chisel.decodeParams('b=&a=7'),
         {'a': '7', 'b': ''}
     );
 });
+
 
 test('chisel.decodeParams, empty string value in middle', (t) => {
     t.deepEqual(
@@ -73,12 +81,14 @@ test('chisel.decodeParams, empty string value in middle', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, decode keys and values', (t) => {
     t.deepEqual(
         chisel.decodeParams('a%2eb.c=7%20+%207%20%3d%2014'),
         {'a.b': {'c': '7 + 7 = 14'}}
     );
 });
+
 
 test('chisel.decodeParams, decode unicode string', (t) => {
     t.deepEqual(
@@ -87,12 +97,14 @@ test('chisel.decodeParams, decode unicode string', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, keys and values with special characters', (t) => {
     t.deepEqual(
         chisel.decodeParams('a%26b%3Dc%2ed=a%26b%3Dc.d'),
         {'a&b=c.d': 'a&b=c.d'}
     );
 });
+
 
 test('chisel.decodeParams, non-initial-zero array-looking index', (t) => {
     t.deepEqual(
@@ -101,12 +113,14 @@ test('chisel.decodeParams, non-initial-zero array-looking index', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, dictionary first, then array-looking zero index', (t) => {
     t.deepEqual(
         chisel.decodeParams('a.b=0&a.0=0'),
         {'a': {'b': '0', '0': '0'}}
     );
 });
+
 
 test('chisel.decodeParams, empty string key', (t) => {
     t.deepEqual(
@@ -115,12 +129,14 @@ test('chisel.decodeParams, empty string key', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, empty string key and value', (t) => {
     t.deepEqual(
         chisel.decodeParams('a=7&='),
         {'a': '7', '': ''}
     );
 });
+
 
 test('chisel.decodeParams, empty string key and value with space', (t) => {
     t.deepEqual(
@@ -129,12 +145,14 @@ test('chisel.decodeParams, empty string key and value with space', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, empty string key with no equal', (t) => {
     t.deepEqual(
         chisel.decodeParams('a=7&'),
         {'a': '7'}
     );
 });
+
 
 test('chisel.decodeParams, two empty string key/values', (t) => {
     t.deepEqual(
@@ -143,12 +161,14 @@ test('chisel.decodeParams, two empty string key/values', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, multiple empty string key/values', (t) => {
     t.deepEqual(
         chisel.decodeParams('&&'),
         {}
     );
 });
+
 
 test('chisel.decodeParams, empty string sub-key', (t) => {
     t.deepEqual(
@@ -157,12 +177,14 @@ test('chisel.decodeParams, empty string sub-key', (t) => {
     );
 });
 
+
 test('chisel.decodeParams, anchor tag', (t) => {
     t.deepEqual(
         chisel.decodeParams('a=7&b'),
         {'a': '7'}
     );
 });
+
 
 test('chisel.decodeParams, key with no equal', (t) => {
     let errorMessage = null;
@@ -174,6 +196,7 @@ test('chisel.decodeParams, key with no equal', (t) => {
     t.is(errorMessage, "Invalid key/value pair 'b'");
 });
 
+
 test('chisel.decodeParams, key with no equal - long key/value', (t) => {
     let errorMessage = null;
     try {
@@ -183,6 +206,7 @@ test('chisel.decodeParams, key with no equal - long key/value', (t) => {
     }
     t.is(errorMessage, `Invalid key/value pair '${'b'.repeat(100)}'`);
 });
+
 
 test('chisel.decodeParams, two empty string keys with no equal', (t) => {
     let errorMessage = null;
@@ -194,6 +218,7 @@ test('chisel.decodeParams, two empty string keys with no equal', (t) => {
     t.is(errorMessage, "Invalid key/value pair 'a'");
 });
 
+
 test('chisel.decodeParams, multiple empty string keys with no equal', (t) => {
     let errorMessage = null;
     try {
@@ -203,6 +228,7 @@ test('chisel.decodeParams, multiple empty string keys with no equal', (t) => {
     }
     t.is(errorMessage, "Invalid key/value pair 'a'");
 });
+
 
 test('chisel.decodeParams, duplicate keys', (t) => {
     let errorMessage = null;
@@ -214,6 +240,7 @@ test('chisel.decodeParams, duplicate keys', (t) => {
     t.is(errorMessage, "Duplicate key 'abc'");
 });
 
+
 test('chisel.decodeParams, duplicate keys - long key/value', (t) => {
     let errorMessage = null;
     try {
@@ -223,6 +250,7 @@ test('chisel.decodeParams, duplicate keys - long key/value', (t) => {
     }
     t.is(errorMessage, `Duplicate key '${'a'.repeat(100)}'`);
 });
+
 
 test('chisel.decodeParams, duplicate index', (t) => {
     let errorMessage = null;
@@ -234,6 +262,7 @@ test('chisel.decodeParams, duplicate index', (t) => {
     t.is(errorMessage, "Duplicate key 'a.0'");
 });
 
+
 test('chisel.decodeParams, index too large', (t) => {
     let errorMessage = null;
     try {
@@ -243,6 +272,7 @@ test('chisel.decodeParams, index too large', (t) => {
     }
     t.is(errorMessage, "Invalid array index '3' in key 'a.3'");
 });
+
 
 test('chisel.decodeParams, index too large - long key/value', (t) => {
     let errorMessage = null;
@@ -254,6 +284,7 @@ test('chisel.decodeParams, index too large - long key/value', (t) => {
     t.is(errorMessage, `Invalid array index '3' in key '${'a'.repeat(100)}'`);
 });
 
+
 test('chisel.decodeParams, negative index', (t) => {
     let errorMessage = null;
     try {
@@ -263,6 +294,7 @@ test('chisel.decodeParams, negative index', (t) => {
     }
     t.is(errorMessage, "Invalid array index '-3' in key 'a.-3'");
 });
+
 
 test('chisel.decodeParams, invalid index', (t) => {
     let errorMessage = null;
@@ -274,6 +306,7 @@ test('chisel.decodeParams, invalid index', (t) => {
     t.is(errorMessage, "Invalid array index '1asdf' in key 'a.1asdf'");
 });
 
+
 test('chisel.decodeParams, first list, then dict', (t) => {
     let errorMessage = null;
     try {
@@ -283,6 +316,7 @@ test('chisel.decodeParams, first list, then dict', (t) => {
     }
     t.is(errorMessage, "Invalid array index 'b' in key 'a.b'");
 });
+
 
 test('chisel.decodeParams, first list, then dict - long key/value', (t) => {
     let errorMessage = null;

@@ -23,6 +23,7 @@ test('chisel.render', (t) => {
     t.is(document.body.innerHTML, '');
 });
 
+
 test('chisel.render, basic', (t) => {
     chisel.render(document.body, [
         {'html': 'h1', 'elem': {'text': 'Hello, World!'}},
@@ -40,6 +41,7 @@ test('chisel.render, basic', (t) => {
     );
 });
 
+
 test('chisel.render, non-string attribute value', (t) => {
     const elements = {'html': 'span', 'attr': {'style': 0}};
     chisel.validateElements(elements);
@@ -49,6 +51,7 @@ test('chisel.render, non-string attribute value', (t) => {
         '<span style="0"></span>'
     );
 });
+
 
 test('chisel.render, svg', (t) => {
     chisel.render(document.body, [
@@ -72,6 +75,7 @@ test('chisel.render, svg', (t) => {
     );
 });
 
+
 test('chisel.render, element callback', (t) => {
     let callbackCount = 0;
     const callback = (element) => {
@@ -87,6 +91,7 @@ test('chisel.render, element callback', (t) => {
     );
     t.is(callbackCount, 1);
 });
+
 
 test('chisel.validateElements', (t) => {
     const elements = {
@@ -110,6 +115,7 @@ test('chisel.validateElements', (t) => {
     t.pass();
 });
 
+
 test('chisel.validateElements, error element type', (t) => {
     const elements = {
         'html': 'html',
@@ -123,6 +129,7 @@ test('chisel.validateElements, error element type', (t) => {
     }
     t.is(errorMessage, "Invalid element 0 (type 'number')");
 });
+
 
 test('chisel.validateElements, error element model validation', (t) => {
     const elements = {
@@ -138,6 +145,7 @@ test('chisel.validateElements, error element model validation', (t) => {
     t.is(errorMessage, "Unknown member 'unknown'");
 });
 
+
 test('chisel.validateElements, error missing element key', (t) => {
     const elements = {};
     let errorMessage = null;
@@ -148,6 +156,7 @@ test('chisel.validateElements, error missing element key', (t) => {
     }
     t.is(errorMessage, "Missing element key {} (type 'object')");
 });
+
 
 test('chisel.validateElements, null callback value', (t) => {
     const elements = {'html': 'span', 'attr': {'style': null}, 'callback': null};
@@ -160,6 +169,7 @@ test('chisel.validateElements, null callback value', (t) => {
     t.is(errorMessage, "Invalid value null (type 'object') for member 'callback', expected type 'object'");
 });
 
+
 test('chisel.validateElements, invalid callback value', (t) => {
     const elements = {'html': 'span', 'attr': {'style': null}, 'callback': 0};
     let errorMessage = null;
@@ -171,6 +181,7 @@ test('chisel.validateElements, invalid callback value', (t) => {
     t.is(errorMessage, "Invalid element callback function 0 (type 'number')");
 });
 
+
 test('chisel.validateElements, error text element with attr', (t) => {
     const elements = {'text': 'abc', 'attr': null};
     let errorMessage = null;
@@ -181,6 +192,7 @@ test('chisel.validateElements, error text element with attr', (t) => {
     }
     t.is(errorMessage, 'Invalid text element member "attr" "abc" (type \'string\')');
 });
+
 
 test('chisel.validateElements, error text element with elem', (t) => {
     const elements = {'text': 'abc', 'elem': null};

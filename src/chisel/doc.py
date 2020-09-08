@@ -41,7 +41,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
         yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/markdown.js', urls=(('GET', root_path + '/markdown.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/markdownTypes.js', urls=(('GET', root_path + '/markdownTypes.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/markdownModel.js', urls=(('GET', root_path + '/markdownModel.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/typeModel.js', urls=(('GET', root_path + '/typeModel.js'),), cache=cache)
 
 
@@ -143,7 +143,8 @@ action chisel_doc_request
 '''
 
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
-        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=get_type_model(), spec=self.SPEC)
+        types = dict(get_type_model()['types'])
+        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=types, spec=self.SPEC)
         if requests is not None:
             #: Optional list of requests to document or None. If None, the applications request collection is used.
             self.requests = {request.name: request for request in requests}

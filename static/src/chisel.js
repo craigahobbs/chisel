@@ -1,7 +1,7 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-import {typeModel} from './typeModel.js';
+import {typeModel as chiselTypeModel} from './typeModel.js';
 
 
 /** The non-breaking space character. */
@@ -399,7 +399,7 @@ export function decodeParams(paramStr = null) {
  * @returns {object}
  */
 export function getTypeModel() {
-    return {...typeModel};
+    return chiselTypeModel;
 }
 
 
@@ -865,22 +865,22 @@ function validateAttr(type, attr, value, memberFqn) {
 
 
 /**
- * Validate a user type model
+ * Validate a type model
  *
- * @param {Object} types - The map of user type name to user type model
+ * @param {Object} typeModel - The type model
  * @returns {Object} The validated, transformed type model
  */
-export function validateTypes(types) {
+export function validateTypeModel(typeModel) {
     // Validate with the type model
-    const validatedTypes = validateType(typeModel, 'Types', types);
+    const validatedTypeModel = validateType(chiselTypeModel.types, 'TypeModel', typeModel);
 
     // Do additional type model validation
-    const errors = validateTypesErrors(validatedTypes);
+    const errors = validateTypesErrors(validatedTypeModel.types);
     if (errors.length) {
         throw new Error(errors.map(([,, message]) => message).join('\n'));
     }
 
-    return validatedTypes;
+    return validatedTypeModel;
 }
 
 
@@ -924,7 +924,7 @@ function countStrings(strings, stringCounts = {}) {
 
 
 /**
- * Validate a user type model
+ * Helper function to validate user type dictionary
  *
  * @param {Object} types - The map of user type name to user type model
  * @returns {Array<Array>} The list of type name, member name, and error message tuples

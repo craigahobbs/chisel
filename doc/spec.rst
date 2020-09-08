@@ -293,7 +293,7 @@ Utilities
 
 .. autofunction:: chisel.validate_type
 
-.. autofunction:: chisel.validate_types
+.. autofunction:: chisel.validate_type_model
 
 .. autofunction:: chisel.get_referenced_types
 

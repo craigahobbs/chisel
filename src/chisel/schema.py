@@ -23,11 +23,11 @@ with importlib.resources.path('chisel', 'schema.py') as schema_py_path:
 
 def get_type_model():
     """
-    Get a copy of the Chisel type model
+    Return the Chisel type model
 
     >>> import chisel
     >>> from pprint import pprint
-    >>> pprint(sorted(chisel.get_type_model().keys()))
+    >>> pprint(sorted(chisel.get_type_model()['types'].keys()))
     ['Action',
      'ActionURL',
      'Array',
@@ -39,14 +39,16 @@ def get_type_model():
      'Struct',
      'StructMember',
      'Type',
+     'TypeModel',
      'Typedef',
      'Types',
+     'UserBase',
      'UserType']
 
     :returns: The map of referenced user type name to user type model
     """
 
-    return dict(_TYPE_MODEL)
+    return _TYPE_MODEL
 
 
 def get_referenced_types(types, type_name, referenced_types=None):
@@ -79,7 +81,6 @@ def get_referenced_types(types, type_name, referenced_types=None):
     ...         }
     ...     }
     ... }
-    >>> chisel.validate_types(types) # doctest: +SKIP
     >>> from pprint import pprint
     >>> pprint(chisel.get_referenced_types(types, 'Struct1'))
     {'Struct1': {'struct': {'members': [{'name': 'a', 'type': {'user': 'Struct2'}}],
@@ -194,7 +195,6 @@ def validate_type(types, type_name, value, member_fqn=None):
     ...         }
     ...     }
     ... }
-    >>> chisel.validate_types(types) # doctest: +SKIP
     >>> chisel.validate_type(types, 'Struct1', {'a': {'b': [5, '7']}})
     {'a': {'b': [5, 7]}}
 
@@ -513,44 +513,50 @@ def _validate_attr(type_, attr, value, member_fqn):
             raise _member_error(type_, value, member_fqn, f'len >= {attr["lenGTE"]}')
 
 
-def validate_types(types):
+def validate_type_model(type_model):
     """
     Validate a user type model
 
     >>> import chisel
-    >>> chisel.validate_types({
-    ...     'Struct1': {
-    ...         'struct': {
-    ...             'name': 'Struct1',
-    ...             'members': [
-    ...                 {'name': 'a', 'type': {'user': 'Struct2'}}
-    ...             ]
+    >>> chisel.validate_type_model({
+    ...     'title': 'My Type Model',
+    ...     'types': {
+    ...         'Struct1': {
+    ...             'struct': {
+    ...                 'name': 'Struct1',
+    ...                 'members': [
+    ...                     {'name': 'a', 'type': {'user': 'Struct2'}}
+    ...                 ]
+    ...             }
     ...         }
     ...     }
     ... }) # doctest: +SKIP
     >>> try:
-    ...     chisel.validate_types({
-    ...         'MyStruct': {
-    ...             'struct': {}
+    ...     chisel.validate_type_model({
+    ...         'title': 'My Type Model',
+    ...         'types': {
+    ...             'MyStruct': {
+    ...                 'struct': {}
+    ...             }
     ...         }
     ...     })
     ... except Exception as exc:
     ...     f'{exc}'
-    "Required member 'MyStruct.struct.name' missing"
+    "Required member 'types.MyStruct.struct.name' missing"
 
-    :param dict types: The map of user type name to user type model
+    :param dict type_model: The type model
     :raises ValidationError: A validation error occurred
     """
 
-    # Validate with the type model
-    validated_types = validate_type(_TYPE_MODEL, 'Types', types)
+    # Validate with the type model schema
+    validated_type_model = validate_type(_TYPE_MODEL['types'], 'TypeModel', type_model)
 
     # Do additional type model validation
-    errors = validate_types_errors(validated_types)
+    errors = validate_types_errors(validated_type_model['types'])
     if errors:
         raise ValidationError('\n'.join(message for _, _, message in sorted(errors)))
 
-    return validated_types
+    return validated_type_model
 
 
 def get_effective_type(types, type_):
