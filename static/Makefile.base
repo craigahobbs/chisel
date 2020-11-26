@@ -4,20 +4,29 @@
 
 .DEFAULT_GOAL := help
 
-NODE_IMAGE ?= node:14-slim
-NODE_DOCKER := docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE)
+# Docker available?
+NO_DOCKER := $(if $(shell which docker),,1)
 
-PYTHON_IMAGE ?= python:3.8
-PYTHON_DOCKER := docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(PYTHON_IMAGE)
+# Node
+NODE_IMAGE ?= node:14-slim
+NODE_DOCKER := $(if $(NO_DOCKER),,docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE))
+
+# Python
+PYTHON_IMAGE ?= python:3.9
+PYTHON_DOCKER := $(if $(NO_DOCKER),,docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(PYTHON_IMAGE))
 
 build/npm.build:
+ifeq '$(NO_DOCKER)' ''
 	docker pull -q $(NODE_IMAGE)
+endif
 	$(NODE_DOCKER) npm install
 	mkdir -p $(dir $@)
 	touch $@
 
 build/env.build:
+ifeq '$(NO_DOCKER)' ''
 	docker pull -q $(PYTHON_IMAGE)
+endif
 	$(PYTHON_DOCKER) python3 -m venv build/env
 	$(PYTHON_DOCKER) build/env/bin/pip install -U pip setuptools wheel
 	$(PYTHON_DOCKER) build/env/bin/pip install chisel
@@ -87,4 +96,6 @@ superclean: clean _superclean
 
 .PHONY: _superclean
 _superclean:
-	docker rmi -f $(NODE_IMAGE) $(PYTHON_IMAGE)
+ifeq '$(NO_DOCKER)' ''
+	-docker rmi -f $(NODE_IMAGE) $(PYTHON_IMAGE)
+endif

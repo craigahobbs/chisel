@@ -3,7 +3,7 @@
 
 # pylint: disable=missing-docstring
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from http import HTTPStatus
 from io import StringIO
 import unittest.mock
@@ -318,7 +318,7 @@ class TestContext(TestCase):
         })
         ctx.environ[Context.ENVIRON_CTX] = ctx
 
-        ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32))
+        ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32, tzinfo=timezone.utc))
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 

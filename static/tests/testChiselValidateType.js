@@ -199,12 +199,12 @@ test('chisel.validateType, bool error string', (t) => {
 });
 
 test('chisel.validateType, date', (t) => {
-    const obj = new Date(2020, 5, 26);
-    t.deepEqual(validateType({'builtin': 'date'}, obj), obj);
+    const obj = new Date(Date.UTC(2020, 5, 26));
+    t.deepEqual(validateType({'builtin': 'date'}, obj), new Date(2020, 5, 26));
 });
 
 test('chisel.validateType, date datetime', (t) => {
-    const obj = new Date(2020, 5, 26, 18, 8);
+    const obj = new Date(Date.UTC(2020, 5, 26, 18, 8));
     t.deepEqual(validateType({'builtin': 'date'}, obj), new Date(2020, 5, 26));
 });
 
@@ -263,12 +263,12 @@ test('chisel.validateType, datetime date', (t) => {
 
 test('chisel.validateType, datetime string', (t) => {
     const obj = '2020-06-26T13:11:00-07:00';
-    t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(2020, 5, 26, 20, 11));
+    t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(Date.UTC(2020, 5, 26, 20, 11)));
 });
 
 test('chisel.validateType, datetime string date', (t) => {
     const obj = '2020-06-26';
-    t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(2020, 5, 26));
+    t.deepEqual(validateType({'builtin': 'datetime'}, obj), new Date(Date.UTC(2020, 5, 26)));
 });
 
 test('chisel.validateType, datetime string error', (t) => {
@@ -1043,9 +1043,12 @@ test('chisel.validateType, struct', (t) => {
         'j': 'A',
         'k': 1
     };
-    t.deepEqual(chisel.validateType(types, 'MyStruct', obj), obj);
+    const objValidated = {
+        ...obj,
+        'e': new Date(2020, 5, 13)
+    };
+    t.deepEqual(chisel.validateType(types, 'MyStruct', obj), objValidated);
 
-    const objTransform = obj;
     obj = {
         'a': 'abc',
         'b': '7',
@@ -1062,7 +1065,7 @@ test('chisel.validateType, struct', (t) => {
         'j': 'A',
         'k': '1'
     };
-    t.deepEqual(chisel.validateType(types, 'MyStruct', obj), objTransform);
+    t.deepEqual(chisel.validateType(types, 'MyStruct', obj), objValidated);
 });
 
 test('chisel.validateType, struct map', (t) => {

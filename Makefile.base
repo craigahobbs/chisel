@@ -6,6 +6,9 @@ ifeq '$(PYTHON_VERSIONS)' ''
     $(error PYTHON_VERSIONS is not defined!)
 endif
 
+# Docker available?
+NO_DOCKER := $(if $(shell which docker),,1)
+
 # Python pip option
 PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
@@ -67,17 +70,21 @@ superclean: clean _superclean
 
 .PHONY: _superclean
 _superclean:
-	docker rmi -f $(foreach V, $(PYTHON_VERSIONS),$(call PYTHON_IMAGE_FN, $(V)))
+ifeq '$(NO_DOCKER)' ''
+	-docker rmi -f $(foreach V, $(PYTHON_VERSIONS),$(call PYTHON_IMAGE_FN, $(V)))
+endif
 
 # Function to generate venv rules - venv_name, pip_args, commands, *python_version, *docker_run_args
 define VENV_RULE_FN
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR := build/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4))
-$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN := docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(5) $(call PYTHON_IMAGE_FN,$(4))
+$(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN := $(if $(NO_DOCKER),,docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(5) $(call PYTHON_IMAGE_FN,$(4)))
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD := $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)/bin
 $(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD := $$(BUILD)/venv/$(strip $(1))-python-$(call PYTHON_VERSION_FN,$(4)).build
 
 $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_BUILD):
+ifeq '$(NO_DOCKER)' ''
 	docker pull -q $(call PYTHON_IMAGE_FN,$(4))
+endif
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_RUN) python3 -m venv $$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_DIR)
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip -q $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) --upgrade pip setuptools wheel
 	$$($(call UPPER_FN, $(1))_$(call PYTHON_NAME_FN, $(4))_VENV_CMD)/pip $$(PIP_ARGS) install $(PIP_INSTALL_ARGS) $(2)
