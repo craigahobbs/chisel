@@ -2,8 +2,8 @@
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 PYTHON_VERSIONS := \
+    3.9 \
     3.8 \
-    3.9-rc \
     3.7
 
 SPHINX_DOC := doc
@@ -59,4 +59,4 @@ export DUMP_DOC_APIS
 doc:
 	rsync -rv --delete static/src/ build/doc/html/doc/
 	mv build/doc/html/doc/doc.html build/doc/html/doc/index.html
-	$(DOC_PYTHON_3_8_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc/doc_index build/doc/html/doc/doc_request
+	$(DOC_PYTHON_3_9_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS" build/doc/html/doc/doc_index build/doc/html/doc/doc_request
