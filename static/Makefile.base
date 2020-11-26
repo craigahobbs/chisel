@@ -11,6 +11,9 @@ NO_DOCKER := $(if $(shell which docker),,1)
 NODE_IMAGE ?= node:14-slim
 NODE_DOCKER := $(if $(NO_DOCKER),,docker run --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE))
 
+# Ava
+AVA_ARGS ?= -v
+
 # Python
 PYTHON_IMAGE ?= python:3.9
 PYTHON_DOCKER := $(if $(NO_DOCKER),,docker run --rm -u `id -g`:`id -g` -v `pwd`:`pwd` -w `pwd` $(PYTHON_IMAGE))
