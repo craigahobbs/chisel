@@ -3,6 +3,7 @@
 
 PYTHON_VERSIONS := \
     3.9 \
+    3.10-rc \
     3.8 \
     3.7
 

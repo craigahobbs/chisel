@@ -14,7 +14,7 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 5.3
+COVERAGE_VERSION ?= 5.3.1
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
@@ -22,8 +22,8 @@ PYLINT_VERSION ?= 2.6.0
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 3.3.0
-SPHINX_RTD_THEME_VERSION ?= 0.5.0
+SPHINX_VERSION ?= 3.4.3
+SPHINX_RTD_THEME_VERSION ?= 0.5.1
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
 
@@ -47,7 +47,7 @@ help: _help
 
 .PHONY: _help
 _help:
-	@echo 'usage: make [clean|commit|cover|doc|lint|test|twine]'
+	@echo 'usage: make [clean|commit|cover|doc|gh-pages|lint|test|twine]'
 
 .PHONY: commit
 commit: test lint doc cover
