@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Chisel Specification Language &mdash; chisel 0.9.112 documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -51,7 +53,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> chisel
+            <a href="index.html" class="icon icon-home"> chisel
           
 
           
@@ -142,6 +144,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -153,7 +157,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
         
       </li>
     
@@ -245,13 +249,13 @@ corresponding member in the “path” section.</p></li>
 <p>Chisel contains the following built-in types:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code> - a boolean</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">datetime</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">date</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">datetime</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">float</span></code> - a floating point number</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">int</span></code> - an integer number</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">object</span></code> - a generic, unvalidated object (use sparingly)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">string</span></code> - a string</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/uuid.html#uuid.UUID" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UUID</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code> - a <a class="reference external" href="https://docs.python.org/3/library/uuid.html#uuid.UUID" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UUID</span></code></a></p></li>
 </ul>
 </div>
 <div class="section" id="structure-types">
@@ -428,8 +432,8 @@ enumeration value set.  For example:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – An optional specification string to parse</p></li>
-<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – An optional map of user type name to user type model</p></li>
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An optional specification string to parse</p></li>
+<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – An optional map of user type name to user type model</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -467,9 +471,9 @@ enumeration value set.  For example:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Directory or file path from which to load and parse specification files</p></li>
-<li><p><strong>spec_ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The specification file extension.  The default specification file extension is “.chsl”.</p></li>
-<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Directory or file path from which to load and parse specification files</p></li>
+<li><p><strong>spec_ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The specification file extension.  The default specification file extension is “.chsl”.</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
 specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
 </ul>
 </dd>
@@ -486,9 +490,9 @@ specification files. Be sure to call <a class="reference internal" href="#chisel
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.8)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – An iterator of specification line strings</p></li>
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
-<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.9)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – An iterator of specification line strings</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
 specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
 </ul>
 </dd>
@@ -505,9 +509,9 @@ specification files. Be sure to call <a class="reference internal" href="#chisel
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The specification string</p></li>
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
-<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The specification string</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of file being parsed (for error messages)</p></li>
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, resolve names after parsing. Set this argument to False when bulk-parsing related
 specification files. Be sure to call <a class="reference internal" href="#chisel.SpecParser.finalize" title="chisel.SpecParser.finalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code></a> when finished.</p></li>
 </ul>
 </dd>
@@ -564,10 +568,10 @@ transformed during validation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The map of user type name to user type model</p></li>
-<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The type name</p></li>
-<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – The value object to validate</p></li>
-<li><p><strong>member_fqn</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The fully-qualified member name</p></li>
+<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The map of user type name to user type model</p></li>
+<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The type name</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – The value object to validate</p></li>
+<li><p><strong>member_fqn</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The fully-qualified member name</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -607,7 +611,7 @@ transformed during validation.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The map of user type name to user type model</p>
+<dd class="field-odd"><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The map of user type name to user type model</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="#chisel.ValidationError" title="chisel.ValidationError"><strong>ValidationError</strong></a> – A validation error occurred</p>
@@ -657,9 +661,9 @@ transformed during validation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – The map of user type name to user type model</p></li>
-<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The type name</p></li>
-<li><p><strong>referenced_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – An optional map of referenced user type name to user type</p></li>
+<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The map of user type name to user type model</p></li>
+<li><p><strong>type_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The type name</p></li>
+<li><p><strong>referenced_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – An optional map of referenced user type name to user type</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -704,7 +708,7 @@ transformed during validation.</p>
 <dd><p>Chisel specification language parser exception</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – The list of error strings</p>
+<dd class="field-odd"><p><strong>errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – The list of error strings</p>
 </dd>
 </dl>
 <dl class="py attribute">
@@ -722,8 +726,8 @@ transformed during validation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The error message</p></li>
-<li><p><strong>member_fqn</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – The fully qualified member name or None</p></li>
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The error message</p></li>
+<li><p><strong>member_fqn</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – The fully qualified member name or None</p></li>
 </ul>
 </dd>
 </dl>
@@ -743,37 +747,29 @@ transformed during validation.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="request.html" class="btn btn-neutral float-right" title="Built-in Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="action.html" class="btn btn-neutral float-left" title="Schema-Validated JSON Requests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="request.html" class="btn btn-neutral float-right" title="Built-in Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="action.html" class="btn btn-neutral float-left" title="Schema-Validated JSON Requests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2012, Craig Hobbs
+        &#169; Copyright 2012, Craig Hobbs.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
