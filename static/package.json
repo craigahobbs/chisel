@@ -2,7 +2,7 @@
     "devDependencies": {
         "ava": "~3.15.0",
         "browser-env": "~3.3.0",
-        "eslint": "~7.18.0",
+        "eslint": "~7.20.0",
         "esm": "~3.2.0",
         "jsdoc": "~3.6.0",
         "nyc": "~15.1.0"

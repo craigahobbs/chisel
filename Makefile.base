@@ -14,7 +14,7 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 5.3.1
+COVERAGE_VERSION ?= 5.4
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
@@ -22,7 +22,7 @@ PYLINT_VERSION ?= 2.6.0
 PYLINT_ARGS ?= -j 0
 
 # sphinx
-SPHINX_VERSION ?= 3.4.3
+SPHINX_VERSION ?= 3.5
 SPHINX_RTD_THEME_VERSION ?= 0.5.1
 SPHINX_ARGS ?= -W -a
 SPHINX_DOC ?=
