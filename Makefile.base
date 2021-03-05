@@ -14,11 +14,11 @@ PIP_ARGS ?= --no-cache-dir --disable-pip-version-check
 PIP_INSTALL_ARGS ?= --progress-bar off
 
 # coverage
-COVERAGE_VERSION ?= 5.4
+COVERAGE_VERSION ?= 5.5
 COVERAGE_REPORT_ARGS ?= --fail-under 100
 
 # pylint
-PYLINT_VERSION ?= 2.7.1
+PYLINT_VERSION ?= 2.7.2
 PYLINT_ARGS ?= -j 0
 
 # sphinx
