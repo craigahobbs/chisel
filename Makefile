@@ -1,46 +1,39 @@
-# Licensed under the MIT License
-# https://github.com/craigahobbs/chisel/blob/master/LICENSE
-
 PYTHON_VERSIONS := \
     3.9 \
     3.10-rc \
     3.8 \
     3.7
 
+# Sphinx documentation directory
 SPHINX_DOC := doc
 
+# Download Python Build base makefile
+ifeq '$(wildcard Makefile.base)' ''
+    $(info Downloading Makefile.base)
+    $(shell curl -s -o Makefile.base 'https://raw.githubusercontent.com/craigahobbs/python-build/master/Makefile.base')
+endif
+
+# Download Python Build's pylintrc
+ifeq '$(wildcard pylintrc)' ''
+    $(info Downloading pylintrc)
+    $(shell curl -s -o pylintrc 'https://raw.githubusercontent.com/craigahobbs/python-build/master/pylintrc')
+endif
+
+# Include Python Build
 include Makefile.base
 
-help:
-	@echo '            [cover-test]'
-
-
-# Delegate commit, clean, and superclean to the static sub-project
-.PHONY: commit-static
-commit-static:
-	$(MAKE) -C static commit
-
-commit: commit-static
-
 clean:
+	rm -rf Makefile.base pylintrc
 	$(MAKE) -C static clean
 
 superclean:
 	$(MAKE) -C static superclean
 
+.PHONY: commit-static
+commit-static:
+	$(MAKE) -C static commit
 
-# Test each sub-module's test coverage with its own test sub-module
-define COVER_TEST_COMMANDS
-.PHONY: cover-test-$(1)
-cover-test-$(1): $$(COVER_PYTHON_3_8_VENV_BUILD)
-	$$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage run --branch --source src -m unittest -v src.tests.test_$(1)
-	$$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage html -d $(BUILD)/coverage
-	$$(COVER_PYTHON_3_8_VENV_CMD)/python3 -m coverage report | grep '/$(1).py.*100%'
-
-.PHONY: cover-test
-cover-test: cover-test-$(1)
-endef
-$(foreach TEST, $(sort $(subst src/tests/test_,,$(subst .py,,$(wildcard src/tests/test_*.py)))), $(eval $(call COVER_TEST_COMMANDS,$(TEST))))
+commit: commit-static
 
 define DUMP_DOC_APIS
 import sys

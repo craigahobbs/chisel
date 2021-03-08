@@ -1,9 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-"""
-The package build script
-"""
+# pylint: disable=missing-docstring
 
 import re
 import os
@@ -12,13 +10,8 @@ from setuptools import setup
 
 MODULE_NAME = 'chisel'
 PACKAGE_NAME = MODULE_NAME
-TESTS_REQUIRE = []
 
 def main():
-    """
-    The package build script's main entry point
-    """
-
     # Read the package version
     with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src', MODULE_NAME, '__init__.py'), encoding='utf-8') as init_file:
         version = re.search(r"__version__ = '(.+?)'", init_file.read()).group(1)
@@ -47,24 +40,14 @@ def main():
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
             'Topic :: Internet :: WWW/HTTP :: WSGI',
             'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
             'Topic :: Software Development :: Libraries :: Application Frameworks'
         ],
-        package_dir={
-            '': 'src'
-        },
+        package_dir={'': 'src'},
         packages=[MODULE_NAME],
-        package_data={
-            '': [
-                'static/*'
-            ]
-        },
-        test_suite='tests',
-        tests_require=TESTS_REQUIRE,
-        extras_require={
-            'tests': TESTS_REQUIRE
-        }
+        package_data={'': ['static/*']}
     )
 
 if __name__ == '__main__':
