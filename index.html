@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>chisel &mdash; chisel 0.9.112 documentation</title>
+  <title>chisel &mdash; chisel 0.9.113 documentation</title>
   
 
   
@@ -158,11 +158,9 @@
             
   <div class="section" id="chisel">
 <h1>chisel<a class="headerlink" href="#chisel" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://pypi.python.org/pypi/chisel/"><img alt="PyPI - Status" src="https://img.shields.io/pypi/status/chisel?style=for-the-badge" /></a> <a class="reference external" href="https://pypi.python.org/pypi/chisel/"><img alt="PyPI" src="https://img.shields.io/pypi/v/chisel?style=for-the-badge" /></a></p>
-<p><a class="reference external" href="https://travis-ci.org/craigahobbs/chisel"><img alt="Travis (.org)" src="https://img.shields.io/travis/craigahobbs/chisel?style=for-the-badge" /></a> <a class="reference external" href="https://codecov.io/gh/craigahobbs/chisel"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/craigahobbs/chisel?style=for-the-badge" /></a></p>
-<p><a class="reference external" href="https://github.com/craigahobbs/chisel/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/craigahobbs/chisel?style=for-the-badge" /></a> <a class="reference external" href="https://www.python.org/downloads/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/chisel?style=for-the-badge" /></a></p>
-<p>Chisel is a light-weight Python WSGI application framework with tools for building well-documented, schema-validated
-JSON web APIs.  Here are Chisel’s features at a glance:</p>
+<p><a class="reference external" href="https://pypi.python.org/pypi/chisel/"><img alt="PyPI - Status" src="https://img.shields.io/pypi/status/chisel" /></a> <a class="reference external" href="https://pypi.python.org/pypi/chisel/"><img alt="PyPI" src="https://img.shields.io/pypi/v/chisel" /></a> <a class="reference external" href="https://github.com/craigahobbs/chisel/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/craigahobbs/chisel" /></a> <a class="reference external" href="https://www.python.org/downloads/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/chisel" /></a></p>
+<p>Chisel is a light-weight Python WSGI application framework with tools for building well-documented,
+schema-validated JSON web APIs. Here are Chisel’s features at a glance:</p>
 <ul class="simple">
 <li><p>Light-weight <a class="reference external" href="https://www.python.org/dev/peps/pep-3333/">WSGI</a> application framework</p></li>
 <li><p>Schema-validated <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">JSON</a> web APIs</p></li>
@@ -177,16 +175,17 @@ JSON web APIs.  Here are Chisel’s features at a glance:</p>
 <li><p><a class="reference external" href="https://craigahobbs.github.io/chisel/">Documentation on GitHub Pages</a></p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/chisel/">Package on pypi</a></p></li>
 <li><p><a class="reference external" href="https://github.com/craigahobbs/chisel">Source code on GitHub</a></p></li>
-<li><p><a class="reference external" href="https://travis-ci.org/craigahobbs/chisel">Build on Travis CI</a></p></li>
-<li><p><a class="reference external" href="https://codecov.io/gh/craigahobbs/chisel">Coverage on Codecov</a></p></li>
 </ul>
 </div>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>To create a Chisel application, first create an <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application">Application</a> object. Add functionality to your application by
-adding <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.request">request</a> objects to using the application’s
-<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_request">add_request</a> method. A <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Request">Request</a> object is itself a WSGI application with metadata such
-as the HTTP request method and URL path at which to serve the request.</p>
+<p>To create a Chisel application, first create an
+<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application">Application</a>
+object. Add functionality to your application by adding
+<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.request">request</a>
+objects using the application’s
+<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_request">add_request</a>
+method.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span>
@@ -200,11 +199,11 @@ as the HTTP request method and URL path at which to serve the request.</p>
 <span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;text/plain&#39;)], b&#39;Hello, World!&#39;)</span>
 </pre></div>
 </div>
+</div>
 <div class="section" id="schema-validated-json-apis">
-<h3>Schema-Validated JSON APIs<a class="headerlink" href="#schema-validated-json-apis" title="Permalink to this headline">¶</a></h3>
-<p>Chisel provides a built-in Request sub-class for easily implementing schema-validated JSON APIs called “actions”. To
-define an, action use the <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a> decorator to wrap
-an action callback function. For example:</p>
+<h2>Schema-Validated JSON APIs<a class="headerlink" href="#schema-validated-json-apis" title="Permalink to this headline">¶</a></h2>
+<p>Chisel provides the <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a>
+decorator for easily implementing schema-validated JSON APIs.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1"># Sum a list of numbers</span>
 <span class="gp">... </span><span class="s1">action sum_numbers</span>
@@ -228,13 +227,14 @@ an action callback function. For example:</p>
 <span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;sum&quot;:7.0}&#39;)</span>
 </pre></div>
 </div>
-<p>Each action must define an action specification using the <a class="reference external" href="https://craigahobbs.github.io/chisel/spec.html">Chisel Specification Language</a>. The easiest way to define the action specification is to provide
-the “spec” argument to the action decorator as above. The action callback is passed two arguments, a request <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Context">Context</a> and the schema-validated request input object. The
-input request object is created by combining the request’s URL path parameters, query string parameters, and input JSON
-content parameters.</p>
-<p>In the example above, notice that the code does not check the input request object before using it. This is OK in a
-chisel action callback because the input request object is validated prior to calling the callback.  If there is a
-schema validation error the appropriate error code is automatically returned.</p>
+<p>Each action defines an action specification using the
+<a class="reference external" href="https://craigahobbs.github.io/chisel/spec.html">Chisel Specification Language</a>.
+The action callback is passed two arguments, a request
+<a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Context">Context</a>
+and the schema-validated request input dictionary. The input request dictionary is created by
+combining the request’s URL path parameters, query string parameters, and input JSON content
+parameters.</p>
+<p>If there is a schema validation error the appropriate error code is automatically returned.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span>
 <span class="go">&#39;400 Bad Request&#39;</span>
@@ -246,15 +246,22 @@ schema validation error the appropriate error code is automatically returned.</p
 </div>
 </div>
 <div class="section" id="api-documentation">
-<h3>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h3>
-<p>You can add API documentation by adding the Chisel documentation application to your application using
-<a class="reference external" href="https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests">create_doc_requests</a> and <a class="reference external" href="https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_requests">add_requests</a>.</p>
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<p>You can add API documentation to your application by adding the Chisel documentation application
+requests from
+<a class="reference external" href="https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests">create_doc_requests</a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_requests</span><span class="p">(</span><span class="n">chisel</span><span class="o">.</span><span class="n">create_doc_requests</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>By default the documentation application is hosted at “/doc/”. An example of of Chisel’s documentation output is
 available <a class="reference external" href="https://craigahobbs.github.io/chisel/doc/#name=chisel_doc_request">here</a>.</p>
+</div>
+<div class="section" id="development">
+<h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
+<p>This project is developed using <a class="reference external" href="https://github.com/craigahobbs/python-build#readme">Python Build</a>.
+Refer to the Python Build <a class="reference external" href="https://github.com/craigahobbs/python-build#make-targets">documentation</a>
+for development instructions.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -265,7 +272,6 @@ available <a class="reference external" href="https://craigahobbs.github.io/chis
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
-</div>
 </div>
 </div>
 <div class="section" id="index">
