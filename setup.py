@@ -23,7 +23,7 @@ def main():
     # Do the setup
     setup(
         name=PACKAGE_NAME,
-        description=('Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.'),
+        description='Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.',
         long_description=long_description,
         long_description_content_type='text/x-rst',
         version=version,
