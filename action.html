@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Schema-Validated JSON Requests &mdash; chisel 0.9.113 documentation</title>
+  <title>Schema-Validated JSON Requests &mdash; chisel 0.9.114 documentation</title>
   
 
   
@@ -38,7 +38,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Chisel Specification Language" href="spec.html" />
+    <link rel="next" title="Built-in Requests" href="request.html" />
     <link rel="prev" title="WSGI Applications" href="app.html" /> 
 </head>
 
@@ -88,7 +88,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Schema-Validated JSON Requests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="spec.html">Chisel Specification Language</a></li>
 <li class="toctree-l1"><a class="reference internal" href="request.html">Built-in Requests</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encode.html">Encoding / Decoding Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
@@ -228,8 +227,8 @@ parameters.</p>
 <li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
 or None to match any. The second value is the URL path or None to use the default path.</p></li>
 <li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Optional dictionary of user type models</p></li>
-<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional action specification (see <a class="reference internal" href="spec.html#spec"><span class="std std-ref">Chisel Specification Language</span></a>). If a specification isn’t provided it can be
-provided through the “types” argument.</p></li>
+<li><p><strong>spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional action <a class="reference external" href="https://craigahobbs.github.io/schema-markdown/schema-markdown.html#schema-markdown" title="(in schema-markdown)"><span>Schema Markdown</span></a> specification.
+If a specification isn’t provided it can be provided through the “types” argument.</p></li>
 <li><p><strong>wsgi_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, the callback function’s response is a WSGI application function
 response. Default is False.</p></li>
 <li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional JSONP key</p></li>
@@ -325,7 +324,7 @@ response. Default is False.</p></li>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="spec.html" class="btn btn-neutral float-right" title="Chisel Specification Language" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="request.html" class="btn btn-neutral float-right" title="Built-in Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="app.html" class="btn btn-neutral float-left" title="WSGI Applications" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

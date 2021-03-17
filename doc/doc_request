@@ -9,7 +9,7 @@
         "members": [
           {
             "doc": [
-              "The action name"
+              "The user type name"
             ],
             "name": "name",
             "type": {
@@ -32,7 +32,7 @@
           },
           {
             "doc": [
-              "The action's documentation group name"
+              "The documentation group name"
             ],
             "name": "docGroup",
             "optional": true,
@@ -405,7 +405,7 @@
         "members": [
           {
             "doc": [
-              "The enum type name"
+              "The user type name"
             ],
             "name": "name",
             "type": {
@@ -424,6 +424,16 @@
                   "builtin": "string"
                 }
               }
+            }
+          },
+          {
+            "doc": [
+              "The documentation group name"
+            ],
+            "name": "docGroup",
+            "optional": true,
+            "type": {
+              "builtin": "string"
             }
           },
           {
@@ -485,6 +495,7 @@
         "doc": [
           "Struct representing a request's URL information"
         ],
+        "docGroup": "Documentation",
         "members": [
           {
             "doc": [
@@ -517,7 +528,7 @@
         "members": [
           {
             "doc": [
-              "The struct type name"
+              "The user type name"
             ],
             "name": "name",
             "type": {
@@ -536,6 +547,16 @@
                   "builtin": "string"
                 }
               }
+            }
+          },
+          {
+            "doc": [
+              "The documentation group name"
+            ],
+            "name": "docGroup",
+            "optional": true,
+            "type": {
+              "builtin": "string"
             }
           },
           {
@@ -686,7 +707,7 @@
         "members": [
           {
             "doc": [
-              "The typedef type name"
+              "The user type name"
             ],
             "name": "name",
             "type": {
@@ -705,6 +726,16 @@
                   "builtin": "string"
                 }
               }
+            }
+          },
+          {
+            "doc": [
+              "The documentation group name"
+            ],
+            "name": "docGroup",
+            "optional": true,
+            "type": {
+              "builtin": "string"
             }
           },
           {

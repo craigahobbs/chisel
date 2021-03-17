@@ -22,15 +22,8 @@ const docPageTypes = {
                     'optional': true
                 },
                 {
-                    'name': 'types',
-                    'doc': ['JSON user type model resource URL'],
-                    'type': {'builtin': 'string'},
-                    'attr': {'lenGT': 0},
-                    'optional': true
-                },
-                {
-                    'name': 'title',
-                    'doc': ['The index page title'],
+                    'name': 'url',
+                    'doc': ['The JSON type model with title resource URL'],
                     'type': {'builtin': 'string'},
                     'attr': {'lenGT': 0},
                     'optional': true
@@ -44,67 +37,89 @@ const docPageTypes = {
 /**
  * The Chisel documentation application
  *
- * @property {?string} types - The type model object, JSON type model resource URL, or null
- * @property {?string} indexTitle - The index page title or null
- * @property {?Object} params - The parsed and validated hash parameters object
+ * @property {?string} defaultTypeModel - The default type model object
+ * @property {?string} defaultTypeModelURL - The default JSON type model with title resource URL
+ * @property {Array} windowHashChangeArgs - The arguments for the window.addEventListener for "hashchange"
+ * @property {Object} params - The validated hash parameters object
+ * @property {Object} config - The validated hash parameters with defaults
  */
 export class DocPage {
     /**
      * Create a documentation application instance
      *
-     * @param {?string|Object} [types=null] - Optional type model object or JSON type model resource URL
-     * @param {?string} [indexTitle=null] - Optional index page title
+     * @param {?string|Object} [typeModel=null] - Optional type model with title (object or resource URL)
      */
-    constructor(types = null, indexTitle = null) {
-        this.types = types;
-        this.indexTitle = indexTitle;
+    constructor(typeModel = null) {
+        this.defaultTypeModel = typeof typeModel !== 'string' ? typeModel : null;
+        this.defaultTypeModelURL = typeof typeModel === 'string' ? typeModel : null;
+        this.windowHashChangeArgs = null;
         this.params = null;
+        this.config = null;
     }
+
 
     /**
      * Run the application
      *
-     * @param {?string|Object} [types=null] - Optional type model object or JSON type model resource URL
-     * @param {?string} [indexTitle=null] - Optional index page title
-     * @returns {Object} Object meant to be passed to "runCleanup" for application shutdown
+     * @param {?string|Object} [typeModel=null] - Optional type model object or JSON type model resource URL
+     * @returns {DocPage}
      */
-    static run(types = null, indexTitle = null) {
-        // Create the applicaton object and render
-        const docPage = new DocPage(types, indexTitle);
+    static run(typeModel = null) {
+        const docPage = new DocPage(typeModel);
+        docPage.init();
         docPage.render();
+        return docPage;
+    }
 
-        // Add the hash parameters listener
-        const addEventListenerArgs = ['hashchange', () => docPage.render(), false];
-        window.addEventListener(...addEventListenerArgs);
 
-        // Return the cleanup object
-        return {
-            'windowRemoveEventListener': addEventListenerArgs
+    /**
+     * Initialize the global application state
+     */
+    init() {
+        this.windowHashChangeArgs = ['hashchange', () => this.render(), false];
+        window.addEventListener(...this.windowHashChangeArgs);
+    }
+
+
+    /**
+     * Uninitialize the global application state
+     */
+    uninit() {
+        if (this.windowHashChangeArgs !== null) {
+            window.removeEventListener(...this.windowHashChangeArgs);
+            this.windowHashChangeArgs = null;
+        }
+    }
+
+
+    /**
+     * Helper function to parse and validate the hash parameters
+     *
+     *
+     * @param {?string} params - The (hash) params string
+     */
+    updateParams(params = null) {
+        // Clear params and config
+        this.params = null;
+        this.config = null;
+
+        // Validate the hash parameters (may throw)
+        this.params = chisel.validateType(docPageTypes, 'DocPageParams', chisel.decodeParams(params));
+
+        // Set the default hash parameters
+        this.config = {
+            'name': null,
+            'url': null,
+            ...this.params
         };
     }
 
-    /*
-     * Cleanup global state created by "run"
-     *
-     * @param {Object} runResult - The return value of "run"
-     */
-    static runCleanup(runResult) {
-        window.removeEventListener(...runResult.windowRemoveEventListener);
-    }
-
-    /**
-     * Parse the hash parameters and update this.params
-     */
-    updateParams() {
-        this.params = null;
-        this.params = chisel.validateType(docPageTypes, 'DocPageParams', chisel.decodeParams());
-    }
 
     /**
      * Render the documentation application page
      */
     render() {
-        // Decode and validate hash parameters
+        // Validate hash parameters
         try {
             const oldParams = this.params;
             this.updateParams();
@@ -114,122 +129,148 @@ export class DocPage {
                 return;
             }
         } catch ({message}) {
-            chisel.render(document.body, DocPage.errorPage(message));
+            DocPage.renderErrorPage(message);
             return;
         }
 
         // Clear the page
         chisel.render(document.body);
 
-        // Compute the document title
-        let title;
-        if ('name' in this.params) {
-            title = this.params.name;
-        } else if ('types' in this.params) {
-            title = 'title' in this.params ? this.params.title : 'Index';
-        } else {
-            title = this.indexTitle !== null ? this.indexTitle : 'Index';
-        }
-
-        // Types resource URL?
-        const types = 'types' in this.params ? this.params.types : (this.types !== null ? this.types : null);
-        if (types !== null) {
-            // Types object?
-            if (typeof types === 'string') {
-                // Fetch the JSON type model
-                window.fetch(types).
-                    then((response) => response.json()).
-                    then((response) => {
-                        chisel.render(document.body, this.typesPage(response, title, this.params.name));
-                    }).catch(() => {
-                        chisel.render(document.body, DocPage.errorPage());
-                    });
-            } else {
-                chisel.render(document.body, this.typesPage(types, title, this.params.name));
-            }
-        } else if ('name' in this.params) {
-            // Call the request API
-            window.fetch(`doc_request?name=${this.params.name}`).
-                then((response) => response.json()).
+        // Type model URL provided?
+        const typeModelURL = this.config.url !== null ? this.config.url : this.defaultTypeModelURL;
+        if (typeModelURL !== null) {
+            // Load the type model URL
+            window.fetch(typeModelURL).
                 then((response) => {
-                    chisel.render(document.body, this.requestPage(response));
-                }).catch(() => {
-                    chisel.render(document.body, DocPage.errorPage());
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch type mode '${typeModelURL}': ${response.statusText}`);
+                    }
+                    return response.json();
+                }).
+                then((typeModel) => {
+                    this.renderTypeModelPage(chisel.validateTypeModel(typeModel));
+                }).catch(({message}) => {
+                    DocPage.renderErrorPage(message);
+                });
+        } else if (this.defaultTypeModel !== null) {
+            this.renderTypeModelPage(this.defaultTypeModel);
+        } else if (this.config.name !== null) {
+            // Call the request API
+            window.fetch(`doc_request?name=${this.config.name}`).
+                then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch request '${this.config.name}': ${response.statusText}`);
+                    }
+                    return response.json();
+                }).
+                then((request) => {
+                    this.renderRequestPage(request);
+                }).catch(({message}) => {
+                    DocPage.renderErrorPage(message);
                 });
         } else {
             // Call the index API
             window.fetch('doc_index').
-                then((response) => response.json()).
                 then((response) => {
-                    if ('title' in response) {
-                        ({title} = response);
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch index: ${response.statusText}`);
                     }
-                    chisel.render(document.body, this.indexPage(response));
-                }).catch(() => {
-                    chisel.render(document.body, DocPage.errorPage());
+                    return response.json();
+                }).
+                then((index) => {
+                    this.renderIndexPage(index);
+                }).catch(({message}) => {
+                    DocPage.renderErrorPage(message);
                 });
         }
-
-        // Set the document title
-        document.title = title;
     }
+
+
+    /**
+     * Helper function to render a type model experience
+     */
+    renderTypeModelPage(typeModel) {
+        // Type page?
+        if (this.config.name !== null) {
+            // Unknown type?
+            if (!(this.config.name in typeModel.types)) {
+                DocPage.renderErrorPage(`Unknown type name '${this.config.name}'`);
+            } else {
+                this.renderRequestPage({'name': this.config.name, 'types': typeModel.types});
+            }
+            return;
+        }
+
+        // Render the index page
+        const index = {
+            'title': typeModel.title,
+            'groups': {}
+        };
+        const userTypesSorted = Object.entries(typeModel.types).sort();
+        for (const [userTypeName, userType] of userTypesSorted) {
+            let docGroup;
+            if ('enum' in userType) {
+                docGroup = 'docGroup' in userType.enum ? userType.enum.docGroup : 'Enumerations';
+            } else if ('struct' in userType) {
+                docGroup = 'docGroup' in userType.struct ? userType.struct.docGroup : 'Structs';
+            } else if ('typedef' in userType) {
+                docGroup = 'docGroup' in userType.typedef ? userType.typedef.docGroup : 'Typedefs';
+            } else {
+                docGroup = 'docGroup' in userType.action ? userType.action.docGroup : 'Uncategorized';
+            }
+            if (!(docGroup in index.groups)) {
+                index.groups[docGroup] = [];
+            }
+            index.groups[docGroup].push(userTypeName);
+        }
+        this.renderIndexPage(index);
+    }
+
+
+    /**
+     * Helper function to render an index page
+     *
+     * @param {Object} index - The index API response
+    */
+    renderIndexPage(index) {
+        document.title = index.title;
+        chisel.render(document.body, this.indexPage(index));
+    }
+
+
+    /**
+     * Helper function to render a request page
+     *
+     * @param {Object} request - The request API response
+     */
+    renderRequestPage(request) {
+        document.title = request.name;
+        chisel.render(document.body, this.requestPage(request));
+    }
+
+
+    /**
+     * Helper function to render an error page
+     */
+    static renderErrorPage(message) {
+        document.title = 'Error';
+        chisel.render(document.body, DocPage.errorPage(message));
+    }
+
 
     /**
      * Helper function to generate the error page's element hierarchy model
      *
-     * @param {string} [error=null] - The error code. If null, an unexpected error is reported.
+     * @param {string} message - The error message
      * @return {Object}
      */
-    static errorPage(error = null) {
+    static errorPage(message) {
         return {
             'html': 'p',
-            'elem': {'text': error !== null ? `Error: ${error}` : 'An unexpected error occurred.'}
+            'elem': {'text': `Error: ${message}`}
         };
     }
 
-    /**
-     * Helper function to generate the user type's element hierarchy model
-     *
-     * @param {Object} types - The type model
-     * @param {string} title - The types page title
-     * @param {?string} [typeName=null] - The type name
-     * @returns {Array}
-     */
-    typesPage(types, title, typeName = null) {
-        // Validate the type model
-        try {
-            chisel.validateTypes(types);
-        } catch (error) {
-            return DocPage.errorPage(error.message);
-        }
-
-        // Type page?
-        if (typeName !== null) {
-            // Unknown type?
-            if (!(typeName in types)) {
-                return DocPage.errorPage(`Unknown type name '${typeName}'`);
-            }
-
-            return this.requestPage({'name': typeName, 'types': types});
-        }
-
-        // Create the index response
-        const index = {
-            'title': title,
-            'groups': {}
-        };
-
-        // Group by user type
-        const typesSorted = Object.entries(types).sort().map(([, userType]) => userType);
-        [['action', 'Actions'], ['enum', 'Enumerations'], ['struct', 'Structs'], ['typedef', 'Typedefs']].forEach(([key, groupName]) => {
-            const objects = typesSorted.filter((userType) => key in userType).map((userType) => userType[key].name);
-            if (objects.length) {
-                index.groups[groupName] = objects;
-            }
-        });
-
-        return this.indexPage(index);
-    }
 
     /**
      * Helper function to generate the index page's element hierarchy model
@@ -238,11 +279,6 @@ export class DocPage {
      * @returns {Array}
      */
     indexPage(index) {
-        // Error?
-        if ('error' in index) {
-            return DocPage.errorPage(index.error);
-        }
-
         return [
             // Title
             {'html': 'h1', 'elem': {'text': index.title}},
@@ -264,6 +300,7 @@ export class DocPage {
         ];
     }
 
+
     /**
      * Helper function to generate the request page's element hierarchy model
      *
@@ -271,11 +308,6 @@ export class DocPage {
      * @returns {Array}
      */
     requestPage(request) {
-        // Error?
-        if ('error' in request) {
-            return DocPage.errorPage(request.error);
-        }
-
         // Compute the referenced types
         const userType = 'types' in request ? request.types[request.name] : null;
         const action = userType !== null && 'action' in userType ? userType.action : null;
@@ -316,6 +348,7 @@ export class DocPage {
         ];
     }
 
+
     /**
      * Helper function to generate a text block's element hierarchy model
      *
@@ -329,6 +362,7 @@ export class DocPage {
         return markdown.markdownElements(markdown.parseMarkdown(text));
     }
 
+
     /**
      * Helper method to get a type href (target)
      *
@@ -338,6 +372,7 @@ export class DocPage {
     typeHref(typeName) {
         return `${chisel.encodeParams(this.params)}&type_${typeName}`;
     }
+
 
     /**
      * Helper method to generate a member/typedef type's element hierarchy model
@@ -360,6 +395,7 @@ export class DocPage {
         }
         return {'text': type.builtin};
     }
+
 
     /**
      * Helper method to generate a member/typedef's attributes element hierarchy model
@@ -419,6 +455,7 @@ export class DocPage {
         )};
     }
 
+
     /**
      * Helper method to generate a non-action request's element model
      *
@@ -432,6 +469,7 @@ export class DocPage {
             DocPage.urlsNoteElem(request.urls)
         ];
     }
+
 
     /**
      * Helper method to generate a request's URL note element model
@@ -448,6 +486,7 @@ export class DocPage {
             ]}))}
         ]};
     }
+
 
     /**
      * Helper method to generate a user type's element hierarchy model
