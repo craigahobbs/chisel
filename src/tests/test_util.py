@@ -5,11 +5,10 @@
 
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from unittest import TestCase
 from uuid import UUID
 
 from chisel import JSONEncoder, decode_query_string, encode_query_string
-
-from . import TestCase
 
 
 class TestJSONEncoder(TestCase):

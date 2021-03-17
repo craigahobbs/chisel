@@ -19,15 +19,14 @@ chisel
 
 |badge-status| |badge-version| |badge-license| |badge-python|
 
-Chisel is a light-weight Python WSGI application framework with tools for building well-documented,
-schema-validated JSON web APIs. Here are Chisel's features at a glance:
+**Chisel** is a light-weight Python WSGI application framework built for creating
+well-documented, schema-validated JSON web APIs. Here are its features at a glance:
 
-- Light-weight `WSGI <https://www.python.org/dev/peps/pep-3333/>`__ application framework
-- Schema-validated `JSON <https://en.wikipedia.org/wiki/JSON>`__ web APIs
-- Schema-accurate API documentation
-- Written in pure `Python <https://python.org>`__
+- Light-weight WSGI application framework
+- Schema-validated JSON APIs
+- API documentation with Markdown support
+- Written in pure Python
 - Zero dependencies
-- Python 3.7+
 
 
 Links
@@ -36,30 +35,6 @@ Links
 - `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`__
 - `Package on pypi <https://pypi.org/project/chisel/>`__
 - `Source code on GitHub <https://github.com/craigahobbs/chisel>`__
-
-
-Overview
---------
-
-To create a Chisel application, first create an
-`Application <https://craigahobbs.github.io/chisel/app.html#chisel.Application>`__
-object. Add functionality to your application by adding
-`request <https://craigahobbs.github.io/chisel/app.html#chisel.request>`__
-objects using the application's
-`add_request <https://craigahobbs.github.io/chisel/app.html#chisel.Application.add_request>`__
-method.
-
->>> from http import HTTPStatus
-...
->>> @chisel.request(urls=[('GET', None)])
-... def hello_world(environ, start_response):
-...     ctx = environ[chisel.Context.ENVIRON_CTX]
-...     return ctx.response_text(HTTPStatus.OK, 'Hello, World!')
-...
->>> application = chisel.Application()
->>> application.add_request(hello_world)
->>> application.request('GET', '/hello_world')
-('200 OK', [('Content-Type', 'text/plain')], b'Hello, World!')
 
 
 Schema-Validated JSON APIs
@@ -90,8 +65,8 @@ decorator for easily implementing schema-validated JSON APIs.
 >>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=4')
 ('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
 
-Each action defines an action specification using the
-`Chisel Specification Language <https://craigahobbs.github.io/chisel/spec.html>`__.
+Each action defines an ``action`` definition using
+`Schema Markdown <https://craigahobbs.github.io/schema-markdown/schema-markdown.html>`__.
 The action callback is passed two arguments, a request
 `Context <https://craigahobbs.github.io/chisel/app.html#chisel.Context>`__
 and the schema-validated request input dictionary. The input request dictionary is created by

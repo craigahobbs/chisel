@@ -40,8 +40,7 @@ class Application:
 
     def __init__(self):
 
-        #: The application's `logging level <https://docs.python.org/3/library/logging.html#logging-levels>`__.
-        #: The default is :py:data:`logging.WARNING`.
+        #: The application's :ref:`logging level <levels>`. The default is :py:data:`logging.WARNING`.
         self.log_level = logging.WARNING
 
         #: The application's log format string. The default is ``'%(levelname)s [%(process)s / %(thread)s] %(message)s'``.

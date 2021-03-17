@@ -1,22 +1,17 @@
 import * as chisel from '../src/chisel.js';
 import test from 'ava';
+import {typeModel} from '../src/typeModel.js';
 
 /* eslint-disable id-length */
 
 
-test('chisel.getTypeModel', (t) => {
-    const types = chisel.getTypeModel();
-    const types2 = chisel.getTypeModel();
-    t.deepEqual(types, types2);
-    t.not(types, types2);
+test('chisel.validateTypeModelTypes', (t) => {
+    const validatedTypeModel = chisel.validateTypeModelTypes(typeModel.types);
+    t.deepEqual(typeModel.types, validatedTypeModel);
+    t.not(typeModel.types, validatedTypeModel);
 });
 
-test('chisel.validateTypes', (t) => {
-    const types = chisel.getTypeModel();
-    t.deepEqual(types, chisel.validateTypes(types));
-});
-
-test('chisel.validateTypes, type validation error', (t) => {
+test('chisel.validateTypeModelTypes, type validation error', (t) => {
     const types = {
         'MyStruct': {
             'struct': {}
@@ -24,14 +19,14 @@ test('chisel.validateTypes, type validation error', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Required member 'MyStruct.struct.name' missing");
 });
 
-test('chisel.validateTypes, inconsistent struct type name', (t) => {
+test('chisel.validateTypeModelTypes, inconsistent struct type name', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -41,14 +36,14 @@ test('chisel.validateTypes, inconsistent struct type name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Inconsistent type name 'MyStruct2' for 'MyStruct'");
 });
 
-test('chisel.validateTypes, unknown struct member type', (t) => {
+test('chisel.validateTypeModelTypes, unknown struct member type', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -61,14 +56,14 @@ test('chisel.validateTypes, unknown struct member type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Unknown type 'UnknownType' from 'MyStruct' member 'a'");
 });
 
-test('chisel.validateTypes, duplicate struct member name', (t) => {
+test('chisel.validateTypeModelTypes, duplicate struct member name', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -83,14 +78,14 @@ test('chisel.validateTypes, duplicate struct member name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Redefinition of 'MyStruct' member 'a'");
 });
 
-test('chisel.validateTypes, empty enum', (t) => {
+test('chisel.validateTypeModelTypes, empty enum', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -98,10 +93,10 @@ test('chisel.validateTypes, empty enum', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, inconsistent enum type name', (t) => {
+test('chisel.validateTypeModelTypes, inconsistent enum type name', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -111,14 +106,14 @@ test('chisel.validateTypes, inconsistent enum type name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Inconsistent type name 'MyEnum2' for 'MyEnum'");
 });
 
-test('chisel.validateTypes, duplicate enum value name', (t) => {
+test('chisel.validateTypeModelTypes, duplicate enum value name', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -133,14 +128,14 @@ test('chisel.validateTypes, duplicate enum value name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Redefinition of 'MyEnum' value 'A'");
 });
 
-test('chisel.validateTypes, array', (t) => {
+test('chisel.validateTypeModelTypes, array', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -149,10 +144,10 @@ test('chisel.validateTypes, array', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, array attributes', (t) => {
+test('chisel.validateTypeModelTypes, array attributes', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -161,10 +156,10 @@ test('chisel.validateTypes, array attributes', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, array attributes error', (t) => {
+test('chisel.validateTypeModelTypes, array attributes error', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -175,14 +170,14 @@ test('chisel.validateTypes, array attributes error', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid attribute 'len > 0' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, unknown array type', (t) => {
+test('chisel.validateTypeModelTypes, unknown array type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -193,14 +188,14 @@ test('chisel.validateTypes, unknown array type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Unknown type 'Unknown' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, dict', (t) => {
+test('chisel.validateTypeModelTypes, dict', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -209,10 +204,10 @@ test('chisel.validateTypes, dict', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, dict key type', (t) => {
+test('chisel.validateTypeModelTypes, dict key type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -230,10 +225,10 @@ test('chisel.validateTypes, dict key type', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, dict attributes', (t) => {
+test('chisel.validateTypeModelTypes, dict attributes', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -242,10 +237,10 @@ test('chisel.validateTypes, dict attributes', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, dict key attributes', (t) => {
+test('chisel.validateTypeModelTypes, dict key attributes', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -254,10 +249,10 @@ test('chisel.validateTypes, dict key attributes', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, dict invalid attribute', (t) => {
+test('chisel.validateTypeModelTypes, dict invalid attribute', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -268,14 +263,14 @@ test('chisel.validateTypes, dict invalid attribute', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid attribute 'len > 0' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, dict invalid key attribute', (t) => {
+test('chisel.validateTypeModelTypes, dict invalid key attribute', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -286,14 +281,14 @@ test('chisel.validateTypes, dict invalid key attribute', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid attribute '> 0' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, unknown dict type', (t) => {
+test('chisel.validateTypeModelTypes, unknown dict type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -304,14 +299,14 @@ test('chisel.validateTypes, unknown dict type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Unknown type 'Unknown' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, unknown dict key type', (t) => {
+test('chisel.validateTypeModelTypes, unknown dict key type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -322,7 +317,7 @@ test('chisel.validateTypes, unknown dict key type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
@@ -331,7 +326,7 @@ Unknown type 'Unknown' from 'MyTypedef'
 Invalid dictionary key type from 'MyTypedef'`);
 });
 
-test('chisel.validateTypes, invalid user type attribute', (t) => {
+test('chisel.validateTypeModelTypes, invalid user type attribute', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -348,14 +343,14 @@ test('chisel.validateTypes, invalid user type attribute', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid attribute '< 0' from 'MyTypedef'");
 });
 
-test('chisel.validateTypes, nullable user type', (t) => {
+test('chisel.validateTypeModelTypes, nullable user type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -370,10 +365,10 @@ test('chisel.validateTypes, nullable user type', (t) => {
             }
         }
     };
-    t.deepEqual(chisel.validateTypes(types), types);
+    t.deepEqual(chisel.validateTypeModelTypes(types), types);
 });
 
-test('chisel.validateTypes, typedef attributes', (t) => {
+test('chisel.validateTypeModelTypes, typedef attributes', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -389,10 +384,10 @@ test('chisel.validateTypes, typedef attributes', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, inconsistent typedef type name', (t) => {
+test('chisel.validateTypeModelTypes, inconsistent typedef type name', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -403,14 +398,14 @@ test('chisel.validateTypes, inconsistent typedef type name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Inconsistent type name 'MyTypedef2' for 'MyTypedef'");
 });
 
-test('chisel.validateTypes, unknown typedef type', (t) => {
+test('chisel.validateTypeModelTypes, unknown typedef type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -427,14 +422,14 @@ test('chisel.validateTypes, unknown typedef type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Unknown type 'MyTypedef3' from 'MyTypedef2'");
 });
 
-test('chisel.validateTypes, action empty struct', (t) => {
+test('chisel.validateTypeModelTypes, action empty struct', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -448,10 +443,10 @@ test('chisel.validateTypes, action empty struct', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, inconsistent action type name', (t) => {
+test('chisel.validateTypeModelTypes, inconsistent action type name', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -461,14 +456,14 @@ test('chisel.validateTypes, inconsistent action type name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Inconsistent type name 'MyAction2' for 'MyAction'");
 });
 
-test('chisel.validateTypes, action unknown type', (t) => {
+test('chisel.validateTypeModelTypes, action unknown type', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -479,14 +474,14 @@ test('chisel.validateTypes, action unknown type', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Unknown type 'Unknown' from 'MyAction'");
 });
 
-test('chisel.validateTypes, action action', (t) => {
+test('chisel.validateTypeModelTypes, action action', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -502,14 +497,14 @@ test('chisel.validateTypes, action action', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid reference to action 'MyAction2' from 'MyAction'");
 });
 
-test('chisel.validateTypes, duplicate action member name', (t) => {
+test('chisel.validateTypeModelTypes, duplicate action member name', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -539,7 +534,7 @@ test('chisel.validateTypes, duplicate action member name', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
@@ -548,7 +543,7 @@ Redefinition of 'MyAction_query' member 'c'
 Redefinition of 'MyAction_input' member 'c'`);
 });
 
-test('chisel.validateTypes, member attributes', (t) => {
+test('chisel.validateTypeModelTypes, member attributes', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -559,10 +554,10 @@ test('chisel.validateTypes, member attributes', (t) => {
             }
         }
     };
-    t.deepEqual(types, chisel.validateTypes(types));
+    t.deepEqual(types, chisel.validateTypeModelTypes(types));
 });
 
-test('chisel.validateTypes, invalid member attributes', (t) => {
+test('chisel.validateTypeModelTypes, invalid member attributes', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -575,11 +570,51 @@ test('chisel.validateTypes, invalid member attributes', (t) => {
     };
     let errorMessage = null;
     try {
-        chisel.validateTypes(types);
+        chisel.validateTypeModelTypes(types);
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, `\
 Invalid attribute 'len <= 10' from 'MyStruct' member 'a'
 Invalid attribute 'len > 0' from 'MyStruct' member 'a'`);
+});
+
+test('chisel.validateTypeModel', (t) => {
+    const testTypeModel = {
+        'title': 'My Type Model',
+        'types': {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct'
+                }
+            }
+        }
+    };
+    const typeModelValidated = chisel.validateTypeModel(testTypeModel);
+    t.deepEqual(typeModelValidated, testTypeModel);
+    t.not(typeModelValidated, testTypeModel);
+});
+
+test('chisel.validateTypeModel, types error', (t) => {
+    const testTypeModel = {
+        'title': 'My Type Model',
+        'types': {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct',
+                    'members': [
+                        {'name': 'a', 'type': {'user': 'Unknown'}}
+                    ]
+                }
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        chisel.validateTypeModel(testTypeModel);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Unknown type 'Unknown' from 'MyStruct' member 'a'`);
 });

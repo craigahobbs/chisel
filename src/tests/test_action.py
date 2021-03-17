@@ -5,10 +5,11 @@
 
 from http import HTTPStatus
 from io import StringIO
+from unittest import TestCase
 
-from chisel import action, Action, ActionError, Application, Request, SpecParser, SpecParserError
+from schema_markdown import SchemaMarkdownParser, SchemaMarkdownParserError
 
-from . import TestCase
+from chisel import action, Action, ActionError, Application, Request
 
 
 class TestAction(TestCase):
@@ -65,7 +66,7 @@ action my_action
     # Action decorator with spec parser
     def test_decorator_types(self):
 
-        spec_parser = SpecParser('''\
+        spec_parser = SchemaMarkdownParser('''\
 action my_action
 ''')
         @action(types=spec_parser.types)
@@ -86,7 +87,7 @@ action my_action
     # Action decorator with spec parser and a spec
     def test_decorator_types_and_spec(self):
 
-        spec_parser = SpecParser('''\
+        spec_parser = SchemaMarkdownParser('''\
 typedef int(> 0) PositiveInteger
 ''')
         @action(types=spec_parser.types, spec='''\
@@ -141,7 +142,7 @@ action my_action
 
     # Action decorator with spec with syntax errors
     def test_decorator_spec_error(self):
-        with self.assertRaises(SpecParserError) as cm_exc:
+        with self.assertRaises(SchemaMarkdownParserError) as cm_exc:
             @action(spec='''\
 asdfasdf
 ''')

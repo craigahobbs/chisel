@@ -7,8 +7,10 @@ Chisel documentation application
 
 from collections import defaultdict
 
+from schema_markdown import get_referenced_types
+from schema_markdown.type_model import TYPE_MODEL
+
 from .action import Action, ActionError
-from .schema import get_referenced_types, get_type_model
 from .request import RedirectRequest, StaticRequest
 
 
@@ -21,7 +23,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
     :type requests: list(~chisel.Request)
     :param str root_path: The documentation application URL root path. The default is "/doc".
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
-        "/doc/doc_index" and "`/doc/doc_request <doc/doc.html#name=chisel_doc_request>`__".
+        "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation client application.
     :param bool css: If True, and "app" is True, include "/doc/doc.css" and "/doc/doc.svg". If you exclude CSS,
         you can add your own versions of these requests to customize the documentation styling.
@@ -41,7 +43,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
         yield StaticRequest('chisel', 'static/chisel.js', urls=(('GET', root_path + '/chisel.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/markdown.js', urls=(('GET', root_path + '/markdown.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/markdownTypes.js', urls=(('GET', root_path + '/markdownTypes.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/markdownModel.js', urls=(('GET', root_path + '/markdownModel.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/typeModel.js', urls=(('GET', root_path + '/typeModel.js'),), cache=cache)
 
 
@@ -96,7 +98,7 @@ class DocRequest(Action):
     """
     The documentation request API. This API provides all the information the documentation applicaton needs to render
     the request documentation page. The documentation request API's documentation is `here
-    <doc/doc.html#name=chisel_doc_request>`__.
+    <doc/#name=chisel_doc_request>`__.
 
     :param requests: A list of requests or None to use the application's requests
     :type requests: list(~chisel.Request)
@@ -143,7 +145,7 @@ action chisel_doc_request
 '''
 
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
-        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=get_type_model(), spec=self.SPEC)
+        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(TYPE_MODEL['types']), spec=self.SPEC)
         if requests is not None:
             #: Optional list of requests to document or None. If None, the applications request collection is used.
             self.requests = {request.name: request for request in requests}

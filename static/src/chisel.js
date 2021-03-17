@@ -394,16 +394,6 @@ export function decodeParams(paramStr = null) {
 
 
 /**
- * Get a copy of the Chisel type model
- *
- * @returns {object}
- */
-export function getTypeModel() {
-    return {...typeModel};
-}
-
-
-/**
  * Get a user type's referenced type model
  *
  * @param {Object} types - The map of user type name to user type model
@@ -865,14 +855,14 @@ function validateAttr(type, attr, value, memberFqn) {
 
 
 /**
- * Validate a user type model
+ * Validate a type model's types object
  *
  * @param {Object} types - The map of user type name to user type model
- * @returns {Object} The validated, transformed type model
+ * @returns {Object} The validated, transformed types object
  */
-export function validateTypes(types) {
+export function validateTypeModelTypes(types) {
     // Validate with the type model
-    const validatedTypes = validateType(typeModel, 'Types', types);
+    const validatedTypes = validateType(typeModel.types, 'Types', types);
 
     // Do additional type model validation
     const errors = validateTypesErrors(validatedTypes);
@@ -881,6 +871,26 @@ export function validateTypes(types) {
     }
 
     return validatedTypes;
+}
+
+
+/**
+ * Validate a user type model
+ *
+ * @param {Object} userTypeModel - The user type model
+ * @returns {Object} The validated, transformed type model
+ */
+export function validateTypeModel(userTypeModel) {
+    // Validate with the type model
+    const validatedUserTypeModel = validateType(typeModel.types, 'TypeModel', userTypeModel);
+
+    // Do additional type model validation
+    const errors = validateTypesErrors(validatedUserTypeModel.types);
+    if (errors.length) {
+        throw new Error(errors.map(([,, message]) => message).join('\n'));
+    }
+
+    return validatedUserTypeModel;
 }
 
 
@@ -924,7 +934,7 @@ function countStrings(strings, stringCounts = {}) {
 
 
 /**
- * Validate a user type model
+ * Helper function to validate user type dictionary
  *
  * @param {Object} types - The map of user type name to user type model
  * @returns {Array<Array>} The list of type name, member name, and error message tuples

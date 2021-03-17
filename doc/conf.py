@@ -33,6 +33,7 @@ release = chisel.__version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosectionlabel',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.githubpages'
@@ -65,6 +66,12 @@ html_show_sourcelink = False
 
 # -- Extension configuration -------------------------------------------------
 
+autosectionlabel_prefix_document = True
+autosectionlabel_maxdepth = 2
+
 doctest_global_setup = 'import chisel'
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'schema-markdown': ('https://craigahobbs.github.io/schema-markdown/', None)
+}

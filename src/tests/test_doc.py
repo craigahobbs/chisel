@@ -4,10 +4,9 @@
 # pylint: disable=missing-docstring
 
 import json
+from unittest import TestCase
 
 from chisel import Action, Application, Request, create_doc_requests
-
-from . import TestCase
 
 
 class TestGetDocRequests(TestCase):
@@ -59,8 +58,8 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/markdown.js'),)
                 },
                 {
-                    'name': 'static_markdownTypes_js',
-                    'urls': (('GET', '/doc/markdownTypes.js'),)
+                    'name': 'static_markdownModel_js',
+                    'urls': (('GET', '/doc/markdownModel.js'),)
                 },
                 {
                     'name': 'static_typeModel_js',
@@ -108,8 +107,8 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/markdown.js'),)
                 },
                 {
-                    'name': 'static_markdownTypes_js',
-                    'urls': (('GET', '/doc/markdownTypes.js'),)
+                    'name': 'static_markdownModel_js',
+                    'urls': (('GET', '/doc/markdownModel.js'),)
                 },
                 {
                     'name': 'static_typeModel_js',
@@ -179,8 +178,8 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/markdown.js'),)
                 },
                 {
-                    'name': 'static_markdownTypes_js',
-                    'urls': (('GET', '/doc/markdownTypes.js'),)
+                    'name': 'static_markdownModel_js',
+                    'urls': (('GET', '/doc/markdownModel.js'),)
                 },
                 {
                     'name': 'static_typeModel_js',
@@ -228,7 +227,7 @@ class TestIndex(TestCase):
                     'static_doc_html',
                     'static_doc_js',
                     'static_doc_svg',
-                    'static_markdownTypes_js',
+                    'static_markdownModel_js',
                     'static_markdown_js',
                     'static_typeModel_js'
                 ]

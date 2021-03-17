@@ -204,9 +204,10 @@ class StaticRequest(Request):
         '.html': 'text/html',
         '.jpg': 'image/jpeg',
         '.js': 'application/javascript',
+        '.json': 'application/json',
         '.png': 'image/png',
         '.svg': 'image/svg+xml',
-        '.txt': 'text/plain',
+        '.txt': 'text/plain'
     }
 
     def __init__(

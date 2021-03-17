@@ -1,6 +1,6 @@
 import * as chisel from '../src/chisel.js';
 import {markdownElements, parseMarkdown} from '../src/markdown.js';
-import {markdownTypes} from '../src/markdownTypes.js';
+import {markdownModel} from '../src/markdownModel.js';
 import test from 'ava';
 
 /* eslint-disable id-length */
@@ -15,7 +15,7 @@ This is another sentence.
 
 
 This is another paragraph.`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -39,7 +39,7 @@ test('parseMarkdown, lines', (t) => {
         '',
         'This is another paragraph.\n\nAnd another.'
     ]);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -56,7 +56,7 @@ test('parseMarkdown, lines', (t) => {
 
 test('parseMarkdown, empty', (t) => {
     const markdown = parseMarkdown('');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -73,7 +73,7 @@ Some text
 ******
 More text
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -95,7 +95,7 @@ Some text
 ---
 ------
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -116,7 +116,7 @@ Some text
 ___
 ______
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -135,7 +135,7 @@ test('parseMarkdown, horizontal rule spaces', (t) => {
 Some text
  *  *    ** 
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -152,7 +152,7 @@ test('parseMarkdown, horizontal rule beyond code block', (t) => {
     const markdown = parseMarkdown(`
     *****
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -172,7 +172,7 @@ This is a horizontal fule immediately following a code block:
 
 ---
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -198,7 +198,7 @@ Subtitle
 
 Some words.
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -219,7 +219,7 @@ Title
 and More
   ===
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -237,7 +237,7 @@ test('parseMarkdown, heading alternate syntax following list', (t) => {
 and more
 =====
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {'parts': [
@@ -260,7 +260,7 @@ test('parseMarkdown, heading alternate syntax beyond code block', (t) => {
 Title
     =====
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {'parts': [
@@ -281,7 +281,7 @@ test('parseMarkdown, list', (t) => {
 * item 2
 another
 + item 3`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -324,7 +324,7 @@ test('parseMarkdown, ordered list', (t) => {
 * item 2
 another
 + item 3`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -374,7 +374,7 @@ test('parseMarkdown, list nested', (t) => {
 
 asdf
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -482,7 +482,7 @@ This is some code:
     code 3
 
 Cool, huh?`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -508,7 +508,7 @@ This is a fenced code block:
     ~~~
 
 Cool, huh?`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -538,7 +538,7 @@ foo();
 bar();
 \`\`\`
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -558,7 +558,7 @@ This is some code:
 \`\`\` javascript
 \`\`\`
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -576,7 +576,7 @@ test('parseMarkdown, empty, end-of-file fenced code block', (t) => {
 This is some code:
 
 \`\`\` javascript`);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -598,7 +598,7 @@ foo();
 bar();
 \`\`\`
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -620,7 +620,7 @@ test('parseMarkdown, code block nested', (t) => {
   bar();
   \`\`\`
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -653,7 +653,7 @@ This is another link: <https://foo.com>
 
 This is an ![image](https://foo.com/foo.jpg) and so is ![this](https://bar.com/bar.jpg "Bar").
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -711,7 +711,7 @@ test('parseMarkdown, nested spans', (t) => {
     const markdown = parseMarkdown(`
 This is a [link **with *formatting***](https://foo.com)
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -748,7 +748,7 @@ test('parseMarkdown, spans spaces', (t) => {
     const markdown = parseMarkdown(`
 ***no *** *** no*** **no ** ** no** *no * * no*
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -795,7 +795,7 @@ test('parseMarkdown, spans spaces', (t) => {
 
 test('parseMarkdown, link multiline', (t) => {
     const markdown = parseMarkdown('[text\ntext](href://foo.com "text\ntext")');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -813,7 +813,7 @@ test('parseMarkdown, link multiline', (t) => {
 
 test('parseMarkdown, italic multiline', (t) => {
     const markdown = parseMarkdown('*text\ntext*');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -831,7 +831,7 @@ test('parseMarkdown, italic multiline', (t) => {
 
 test('parseMarkdown, bold multiline', (t) => {
     const markdown = parseMarkdown('**text\ntext**');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -849,7 +849,7 @@ test('parseMarkdown, bold multiline', (t) => {
 
 test('parseMarkdown, bold-italic multiline', (t) => {
     const markdown = parseMarkdown('***text\ntext***');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -873,7 +873,7 @@ and this is
 
 This is another paragraph.
 `);
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -904,7 +904,7 @@ This is another paragraph.
 test('parseMarkdown, escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
     const markdown = parseMarkdown('\\ \\* \\_ \\{ \\} \\[ \\] **bol\\.d** \\( \\) \\# \\+ \\- \\. \\! \\a');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -925,7 +925,7 @@ test('parseMarkdown, escapes', (t) => {
 test('parseMarkdown, link escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
     const markdown = parseMarkdown('[tex\]t](hre\.f "titl\.e")');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -943,7 +943,7 @@ test('parseMarkdown, link escapes', (t) => {
 
 test('parseMarkdown, link href space', (t) => {
     const markdown = parseMarkdown('[text](hre f)');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -961,21 +961,21 @@ test('parseMarkdown, link href space', (t) => {
 
 test('parseMarkdown, link href alternate space', (t) => {
     const markdown = parseMarkdown('<hre f>');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '<hre f>'}]}}]});
 });
 
 
 test('parseMarkdown, link href alternate space begin', (t) => {
     const markdown = parseMarkdown('< href>');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '< href>'}]}}]});
 });
 
 
 test('parseMarkdown, link href alternate space end', (t) => {
     const markdown = parseMarkdown('<href >');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '<href >'}]}}]});
 });
 
@@ -983,7 +983,7 @@ test('parseMarkdown, link href alternate space end', (t) => {
 test('parseMarkdown, image escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
     const markdown = parseMarkdown('![al\]t](sr\.c "titl\.e")');
-    chisel.validateType(markdownTypes, 'Markdown', markdown);
+    chisel.validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {

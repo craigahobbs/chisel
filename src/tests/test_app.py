@@ -6,12 +6,11 @@
 from datetime import date, datetime, timezone
 from http import HTTPStatus
 from io import StringIO
+from unittest import TestCase
 import unittest.mock
 
 from chisel import Application, Context, Request
 from chisel.app import StartResponse
-
-from . import TestCase
 
 
 class TestApplication(TestCase):

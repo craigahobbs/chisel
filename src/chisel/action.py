@@ -10,10 +10,10 @@ from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
+from schema_markdown import SchemaMarkdownParser, ValidationError, validate_type
+
 from .app import Context
-from .schema import ValidationError, validate_type
 from .request import Request
-from .spec import SpecParser
 from .util import decode_query_string
 
 
@@ -134,8 +134,8 @@ class Action(Request):
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
     :param dict types: Optional dictionary of user type models
-    :param str spec: Optional action specification (see :ref:`spec`). If a specification isn't provided it can be
-        provided through the "types" argument.
+    :param str spec: Optional action :ref:`schema-markdown:Schema Markdown` specification.
+        If a specification isn't provided it can be provided through the "types" argument.
     :param bool wsgi_response: If True, the callback function's response is a WSGI application function
         response. Default is False.
     :param str jsonp: Optional JSONP key
@@ -153,7 +153,7 @@ class Action(Request):
         if types is None:
             types = {}
         if spec is not None:
-            SpecParser(types=types, spec=spec)
+            SchemaMarkdownParser(spec, types=types)
 
         # Assert that the action model exists
         model_type = types.get(name)

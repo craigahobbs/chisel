@@ -32,12 +32,12 @@ ifeq '$(NO_DOCKER)' ''
 endif
 	$(PYTHON_DOCKER) python3 -m venv build/env
 	$(PYTHON_DOCKER) build/env/bin/pip install -U pip setuptools wheel
-	$(PYTHON_DOCKER) build/env/bin/pip install chisel
+	$(PYTHON_DOCKER) build/env/bin/pip install schema-markdown
 	touch $@
 
-define COMPILE_CHSL
-src/$(strip $(1)).json: src/$(strip $(1)).chsl | build/env.build
-	$(PYTHON_DOCKER) build/env/bin/python3 -m chisel compile $(2) $$< > $$@
+define COMPILE_SMD
+src/$(strip $(1)).json: $(if $(2),src/$(strip $(1)).smd,Makefile.base) | build/env.build
+	$(PYTHON_DOCKER) build/env/bin/python3 -m schema_markdown $(if $(2),compile --title '$(strip $(2))' $$<,model) > $$@
 
 src/$(strip $(1)).js: src/$(strip $(1)).json
 	echo '/* eslint-disable quotes */' > $$@
@@ -69,7 +69,7 @@ commit: test lint doc
 test: _test
 
 .PHONY: _test
-_test: build/npm.build $(CHISEL_TARGETS)
+_test: build/npm.build
 	$(NODE_DOCKER) npx nyc $(NYC_ARGS) --check-coverage --reporter html --reporter text --report-dir build/coverage --temp-dir build/tmp \
 		ava $(if $(TEST),--match '$(TEST)') $(AVA_ARGS) tests/test*.js
 

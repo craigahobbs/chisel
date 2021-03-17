@@ -4,12 +4,25 @@
 # pylint: disable=missing-docstring
 
 from http import HTTPStatus
+import os
 import sys
+from tempfile import TemporaryDirectory
+from unittest import TestCase
 import unittest.mock
 
 from chisel import request, Application, Request, RedirectRequest, StaticRequest
 
-from . import TestCase
+
+def create_test_files(file_defs):
+    tempdir = TemporaryDirectory()
+    for path_parts, content in file_defs:
+        if isinstance(path_parts, str):
+            path_parts = [path_parts]
+        path = os.path.join(tempdir.name, *path_parts)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w', encoding='utf-8') as file_:
+            file_.write(content)
+    return tempdir
 
 
 class TestRequest(TestCase):
@@ -182,7 +195,7 @@ class TestRequest(TestCase):
 
         test_files = (
             (
-                ('__init__.py',),
+                '__init__.py',
                 ''
             ),
             (
@@ -226,7 +239,7 @@ def request3(environ, start_response):
 '''
             )
         )
-        with self.create_test_files(test_files) as requests_dir:
+        with create_test_files(test_files) as requests_dir:
             with unittest.mock.patch('sys.path', [requests_dir] + sys.path):
                 self.assertListEqual(
                     sorted(request.name for request in Request.import_requests('test_package')),

@@ -28,27 +28,39 @@ class WindowFetchMock {
                     return {
                         'then': () => ({
                             'catch': (reject) => {
-                                reject();
+                                reject(new Error('Unexpected error'));
                             }
                         })
                     };
                 }
-                resolve({
-                    'json': () => {
-                        WindowFetchMock.calls.push('resource response.json');
-                    }
-                });
-                return {
-                    'then': (resolve2) => {
-                        resolve2(response.json);
-                        return {
-                            // eslint-disable-next-line func-names
-                            'catch': function() {
-                                // Do nothing
+                try {
+                    resolve({
+                        'ok': 'ok' in response ? response.ok : true,
+                        'statusText': 'statusText' in response ? response.statusText : 'OK',
+                        'json': () => {
+                            WindowFetchMock.calls.push('resource response.json');
+                        }
+                    });
+                    return {
+                        'then': (resolve2) => {
+                            resolve2(response.json);
+                            return {
+                                // eslint-disable-next-line func-names
+                                'catch': function() {
+                                    // Do nothing
+                                }
+                            };
+                        }
+                    };
+                } catch (error) {
+                    return {
+                        'then': () => ({
+                            'catch': (reject) => {
+                                reject(error);
                             }
-                        };
-                    }
-                };
+                        })
+                    };
+                }
             }
         };
     }
@@ -86,14 +98,14 @@ test('DocPage.run', (t) => {
     ]);
 
     // Run the application
-    const runCleanup = DocPage.run();
+    const docPage = DocPage.run();
     t.is(document.title, 'MyAction');
     t.not(document.body.innerHTML.search('<a class="linktarget">MyAction</a>'), -1);
     t.is(document.body.innerHTML.search('<a class="linktarget">MyAction2</a>'), -1);
 
     // Step
     window.location.hash = '#name=MyAction2';
-    runCleanup.windowRemoveEventListener[1]();
+    docPage.windowHashChangeArgs[1]();
     t.is(document.title, 'MyAction2');
     t.is(document.body.innerHTML.search('<a class="linktarget">MyAction</a>'), -1);
     t.not(document.body.innerHTML.search('<a class="linktarget">MyAction2</a>'), -1);
@@ -105,18 +117,26 @@ test('DocPage.run', (t) => {
         'resource response.json'
     ]);
 
-    DocPage.runCleanup(runCleanup);
+    // Uninit
+    docPage.uninit();
+
+    // Uninit, again
+    docPage.uninit();
 });
 
-test('DocPage.run, types URL and title', (t) => {
+
+test('DocPage.run, type model URL', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
             'json': {
-                'MyStruct': {
-                    'struct': {
-                        'name': 'MyStruct'
+                'title': 'All the Types',
+                'types': {
+                    'MyStruct': {
+                        'struct': {
+                            'name': 'MyStruct'
+                        }
                     }
                 }
             }
@@ -124,15 +144,38 @@ test('DocPage.run, types URL and title', (t) => {
     ]);
 
     // Run the application
-    const runCleanup = DocPage.run('types.json', 'All the Types');
+    const docPage = new DocPage('types.json');
+    docPage.render();
     t.is(document.title, 'All the Types');
     t.true(document.body.innerHTML.startsWith('<h1>All the Types</h1>'));
     t.deepEqual(WindowFetchMock.calls, [
         ['types.json', undefined],
         'resource response.json'
     ]);
-    DocPage.runCleanup(runCleanup);
 });
+
+
+test('DocPage.run, type model URL error', (t) => {
+    window.location.hash = '#';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([
+        {
+            'ok': false,
+            'statusText': 'Not Found',
+            'json': {}
+        }
+    ]);
+
+    // Run the application
+    const docPage = new DocPage('types.json');
+    docPage.render();
+    t.is(document.title, 'Error');
+    t.true(document.body.innerHTML.startsWith("<p>Error: Could not fetch type mode 'types.json': Not Found</p>"));
+    t.deepEqual(WindowFetchMock.calls, [
+        ['types.json', undefined]
+    ]);
+});
+
 
 test('DocPage.render, index', (t) => {
     window.location.hash = '#';
@@ -160,6 +203,7 @@ test('DocPage.render, index', (t) => {
         'resource response.json'
     ]);
 });
+
 
 test('DocPage.render, validation error', (t) => {
     const docPage = new DocPage();
@@ -192,27 +236,28 @@ test('DocPage.render, validation error', (t) => {
     t.deepEqual(WindowFetchMock.calls, []);
 });
 
+
 test('DocPage.render, index error', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
-            'json': {
-                'error': 'UnexpectedError'
-            }
+            'ok': false,
+            'statusText': 'Internal Server Error',
+            'json': {}
         }
     ]);
 
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.is(document.title, 'Index');
-    t.is(document.body.innerHTML, '<p>Error: UnexpectedError</p>');
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, '<p>Error: Could not fetch index: Internal Server Error</p>');
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_index', undefined],
-        'resource response.json'
+        ['doc_index', undefined]
     ]);
 });
+
 
 test('DocPage.render, index unexpected error', (t) => {
     window.location.hash = '#';
@@ -222,15 +267,16 @@ test('DocPage.render, index unexpected error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.is(document.title, 'Index');
-    t.is(document.body.innerHTML, '<p>An unexpected error occurred.</p>');
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, '<p>Error: Unexpected error</p>');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_index', undefined]
     ]);
 });
 
+
 test('DocPage.render, request', (t) => {
-    window.location.hash = '#name=test';
+    window.location.hash = '#name=simple';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
@@ -260,36 +306,40 @@ test('DocPage.render, request', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.is(document.title, 'test');
+    t.is(document.title, 'simple');
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined],
+        ['doc_request?name=simple', undefined],
         'resource response.json'
     ]);
 });
 
-test('DocPage.render, request with types', (t) => {
-    window.location.hash = '#name=MyAction&types=types.json';
+
+test('DocPage.render, request with url', (t) => {
+    window.location.hash = '#name=MyAction&url=types.json';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
             'json': {
-                'MyAction': {
-                    'action': {
-                        'name': 'MyAction',
-                        'query': 'MyAction_query',
-                        'urls': [
-                            {'method': 'GET', 'url': '/simple'}
-                        ]
-                    }
-                },
-                'MyAction_query': {
-                    'struct': {
-                        'name': 'MyAction_query',
-                        'members': [
-                            {'name': 'a', 'type': {'builtin': 'int'}},
-                            {'name': 'b', 'type': {'builtin': 'int'}}
-                        ]
+                'title': 'My Type Model',
+                'types': {
+                    'MyAction': {
+                        'action': {
+                            'name': 'MyAction',
+                            'query': 'MyAction_query',
+                            'urls': [
+                                {'method': 'GET', 'path': '/simple'}
+                            ]
+                        }
+                    },
+                    'MyAction_query': {
+                        'struct': {
+                            'name': 'MyAction_query',
+                            'members': [
+                                {'name': 'a', 'type': {'builtin': 'int'}},
+                                {'name': 'b', 'type': {'builtin': 'int'}}
+                            ]
+                        }
                     }
                 }
             }
@@ -307,18 +357,20 @@ test('DocPage.render, request with types', (t) => {
     ]);
 });
 
-test('DocPage.render, request with types object', (t) => {
+
+test('DocPage.render, request with type model', (t) => {
     window.location.hash = '#name=MyAction';
     document.body.innerHTML = '';
     WindowFetchMock.reset([]);
-    const types = {
-        'json': {
+    const typeModel = {
+        'title': 'My Type Model',
+        'types': {
             'MyAction': {
                 'action': {
                     'name': 'MyAction',
                     'query': 'MyAction_query',
                     'urls': [
-                        {'method': 'GET', 'url': '/simple'}
+                        {'method': 'GET', 'path': '/simple'}
                     ]
                 }
             },
@@ -335,18 +387,21 @@ test('DocPage.render, request with types object', (t) => {
     };
 
     // Do the render
-    const docPage = new DocPage(types);
+    const docPage = new DocPage(typeModel);
     docPage.render();
     t.is(document.title, 'MyAction');
     t.true(document.body.innerHTML.startsWith('<p>'));
     t.deepEqual(WindowFetchMock.calls, []);
 });
 
+
 test('DocPage.render, request error', (t) => {
     window.location.hash = '#name=test';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
+            'ok': false,
+            'statusText': 'Bad Request',
             'json': {
                 'error': 'UnknownName'
             }
@@ -356,11 +411,10 @@ test('DocPage.render, request error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.is(document.title, 'test');
-    t.is(document.body.innerHTML, '<p>Error: UnknownName</p>');
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, "<p>Error: Could not fetch request 'test': Bad Request</p>");
     t.deepEqual(WindowFetchMock.calls, [
-        ['doc_request?name=test', undefined],
-        'resource response.json'
+        ['doc_request?name=test', undefined]
     ]);
 });
 
@@ -372,12 +426,13 @@ test('DocPage.render, request unexpected error', (t) => {
     // Do the render
     const docPage = new DocPage();
     docPage.render();
-    t.is(document.title, 'test');
-    t.is(document.body.innerHTML, '<p>An unexpected error occurred.</p>');
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, '<p>Error: Unexpected error</p>');
     t.deepEqual(WindowFetchMock.calls, [
         ['doc_request?name=test', undefined]
     ]);
 });
+
 
 test('DocPage.render, request avoid re-render', (t) => {
     window.location.hash = '#name=test';
@@ -440,20 +495,60 @@ test('DocPage.render, request avoid re-render', (t) => {
     t.true(document.body.innerHTML.startsWith('<p>'));
 });
 
-test('DocPage.render, types index', (t) => {
+
+test('DocPage.render, type model URL index', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';
     WindowFetchMock.reset([
         {
             'json': {
-                'MyAction': {
-                    'action': {
-                        'name': 'MyAction'
-                    }
-                },
-                'MyStruct': {
-                    'struct': {
-                        'name': 'MyStruct'
+                'title': 'All the Types',
+                'types': {
+                    'MyAction': {
+                        'action': {
+                            'name': 'MyAction'
+                        }
+                    },
+                    'MyAction2': {
+                        'action': {
+                            'name': 'MyAction2',
+                            'docGroup': 'Stuff'
+                        }
+                    },
+                    'MyStruct': {
+                        'struct': {
+                            'name': 'MyStruct'
+                        }
+                    },
+                    'MyStruct2': {
+                        'struct': {
+                            'name': 'MyStruct2',
+                            'docGroup': 'Stuff'
+                        }
+                    },
+                    'MyEnum': {
+                        'enum': {
+                            'name': 'MyEnum'
+                        }
+                    },
+                    'MyEnum2': {
+                        'enum': {
+                            'name': 'MyEnum2',
+                            'docGroup': 'Stuff'
+                        }
+                    },
+                    'MyTypedef': {
+                        'typedef': {
+                            'name': 'MyTypedef',
+                            'type': {'builtin': 'int'}
+                        }
+                    },
+                    'MyTypedef2': {
+                        'typedef': {
+                            'name': 'MyTypedef2',
+                            'docGroup': 'Stuff',
+                            'type': {'builtin': 'int'}
+                        }
                     }
                 }
             }
@@ -461,101 +556,89 @@ test('DocPage.render, types index', (t) => {
     ]);
 
     // Do the render
-    const docPage = new DocPage('types.json', 'All the Types');
+    const docPage = new DocPage('types.json');
     docPage.render();
     t.is(document.title, 'All the Types');
-    t.true(document.body.innerHTML.startsWith('<h1>All the Types</h1>'));
+    t.deepEqual(
+        document.body.innerHTML,
+        '<h1>All the Types</h1>' +
+            '<h2>Enumerations</h2><ul class="chisel-index-list"><li><ul>' +
+            '<li><a href="blank#name=MyEnum">MyEnum</a></li>' +
+            '</ul></li></ul>' +
+            '<h2>Structs</h2><ul class="chisel-index-list"><li><ul>' +
+            '<li><a href="blank#name=MyStruct">MyStruct</a></li>' +
+            '</ul></li></ul>' +
+            '<h2>Stuff</h2><ul class="chisel-index-list"><li><ul>' +
+            '<li><a href="blank#name=MyAction2">MyAction2</a></li>' +
+            '<li><a href="blank#name=MyEnum2">MyEnum2</a></li>' +
+            '<li><a href="blank#name=MyStruct2">MyStruct2</a></li>' +
+            '<li><a href="blank#name=MyTypedef2">MyTypedef2</a></li>' +
+            '</ul></li></ul>' +
+            '<h2>Typedefs</h2><ul class="chisel-index-list"><li><ul>' +
+            '<li><a href="blank#name=MyTypedef">MyTypedef</a></li>' +
+            '</ul></li></ul>' +
+            '<h2>Uncategorized</h2><ul class="chisel-index-list"><li><ul>' +
+            '<li><a href="blank#name=MyAction">MyAction</a></li></ul></li>' +
+            '</ul>'
+    );
     t.deepEqual(WindowFetchMock.calls, [
         ['types.json', undefined],
         'resource response.json'
     ]);
 });
 
-test('DocPage.render, types index override', (t) => {
-    window.location.hash = '#types=other.json';
+
+test('DocPage.render, type model unknown type', (t) => {
+    window.location.hash = '#name=Unknown';
     document.body.innerHTML = '';
-    WindowFetchMock.reset([
-        {
-            'json': {
-                'MyStruct': {
-                    'struct': {
-                        'name': 'MyStruct'
-                    }
+    WindowFetchMock.reset([]);
+    const typeModel = {
+        'title': 'All the Types',
+        'types': {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct'
                 }
             }
         }
-    ]);
+    };
 
     // Do the render
-    const docPage = new DocPage('types.json', 'All the Types');
+    const docPage = new DocPage(typeModel);
     docPage.render();
-    t.is(document.title, 'Index');
-    t.true(document.body.innerHTML.startsWith('<h1>Index</h1>'));
-    t.deepEqual(WindowFetchMock.calls, [
-        ['other.json', undefined],
-        'resource response.json'
-    ]);
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, "<p>Error: Unknown type name 'Unknown'</p>");
+    t.deepEqual(WindowFetchMock.calls, []);
 });
 
-test('DocPage.render, types index override title', (t) => {
-    window.location.hash = '#types=other.json&title=The%20Other%20Title';
-    document.body.innerHTML = '';
-    WindowFetchMock.reset([
-        {
-            'json': {
-                'MyStruct': {
-                    'struct': {
-                        'name': 'MyStruct'
-                    }
-                }
-            }
-        }
-    ]);
 
-    // Do the render
-    const docPage = new DocPage('types.json', 'All the Types');
-    docPage.render();
-    t.is(document.title, 'The Other Title');
-    t.true(document.body.innerHTML.startsWith('<h1>The Other Title</h1>'));
-    t.deepEqual(WindowFetchMock.calls, [
-        ['other.json', undefined],
-        'resource response.json'
-    ]);
-});
-
-test('DocPage.render, types index error', (t) => {
+test('DocPage.render, type model URL index error', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';
     WindowFetchMock.reset([{'error': true}]);
 
     // Do the render
-    const docPage = new DocPage('types.json', 'All the Types');
+    const docPage = new DocPage('types.json');
     docPage.render();
-    t.is(document.title, 'All the Types');
-    t.is(document.body.innerHTML, '<p>An unexpected error occurred.</p>');
+    t.is(document.title, 'Error');
+    t.is(document.body.innerHTML, '<p>Error: Unexpected error</p>');
     t.deepEqual(WindowFetchMock.calls, [
         ['types.json', undefined]
     ]);
 });
 
-test('DocPage.errorPage', (t) => {
-    t.deepEqual(
-        DocPage.errorPage(),
-        {'html': 'p', 'elem': {'text': 'An unexpected error occurred.'}}
-    );
-});
 
-test('DocPage.errorPage, error', (t) => {
+test('DocPage.errorPage', (t) => {
     t.deepEqual(
         DocPage.errorPage('Ouch!'),
         {'html': 'p', 'elem': {'text': 'Error: Ouch!'}}
     );
 });
 
+
 test('DocPage.indexPage', (t) => {
-    window.location.hash = '#';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('#');
     const index = {
         'title': 'The Title',
         'groups': {
@@ -594,10 +677,10 @@ test('DocPage.indexPage', (t) => {
     );
 });
 
+
 test('DocPage.userTypeElem, empty struct', (t) => {
-    window.location.hash = '#name=test';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=test');
     const types = {
         'MyStruct': {
             'struct': {
@@ -621,10 +704,10 @@ test('DocPage.userTypeElem, empty struct', (t) => {
     );
 });
 
+
 test('DocPage.userTypeElem, empty enum', (t) => {
-    window.location.hash = '#name=test';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=test');
     const types = {
         'MyEnum': {
             'enum': {
@@ -649,10 +732,10 @@ test('DocPage.userTypeElem, empty enum', (t) => {
     );
 });
 
+
 test('DocPage.userTypeElem, empty typedef', (t) => {
-    window.location.hash = '#name=test';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=test');
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -693,6 +776,7 @@ test('DocPage.userTypeElem, empty typedef', (t) => {
     );
 });
 
+
 const emptyActionErrorElements = [
     {
         'html': 'h2',
@@ -729,10 +813,10 @@ const emptyActionErrorElements = [
     }
 ];
 
+
 test('DocPage.userTypeElem, empty action with URLs', (t) => {
-    window.location.hash = '#name=MyAction';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=MyAction');
     const types = {
         'MyAction': {
             'action': {
@@ -811,10 +895,10 @@ test('DocPage.userTypeElem, empty action with URLs', (t) => {
     );
 });
 
+
 test('DocPage.userTypeElem, unknown', (t) => {
-    window.location.hash = '#name=test';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=test');
     const types = {
         'MyTypedef': {}
     };
@@ -824,402 +908,10 @@ test('DocPage.userTypeElem, unknown', (t) => {
     );
 });
 
-test('DocPage.typesPage, index', (t) => {
-    window.location.hash = '#';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyAction': {
-            'action': {
-                'name': 'MyAction'
-            }
-        },
-        'MyStruct': {
-            'struct': {
-                'name': 'MyStruct'
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, 'Index'),
-        [
-            {'html': 'h1', 'elem': {'text': 'Index'}},
-            [
-                [
-                    {'html': 'h2', 'elem': {'text': 'Actions'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyAction'}, 'elem': {'text': 'MyAction'}}}
-                        ]}}
-                    }
-                ],
-                [
-                    {'html': 'h2', 'elem': {'text': 'Structs'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyStruct'}, 'elem': {'text': 'MyStruct'}}}
-                        ]}}
-                    }
-                ]
-            ]
-        ]
-    );
-});
-
-test('DocPage.typesPage, index hash', (t) => {
-    window.location.hash = '#types=other.json';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyAction': {
-            'action': {
-                'name': 'MyAction'
-            }
-        },
-        'MyStruct': {
-            'struct': {
-                'name': 'MyStruct'
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, 'Index'),
-        [
-            {'html': 'h1', 'elem': {'text': 'Index'}},
-            [
-                [
-                    {'html': 'h2', 'elem': {'text': 'Actions'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyAction&types=other.json'}, 'elem': {'text': 'MyAction'}}}
-                        ]}}
-                    }
-                ],
-                [
-                    {'html': 'h2', 'elem': {'text': 'Structs'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyStruct&types=other.json'}, 'elem': {'text': 'MyStruct'}}}
-                        ]}}
-                    }
-                ]
-            ]
-        ]
-    );
-});
-
-test('DocPage.typesPage, index with title', (t) => {
-    window.location.hash = '#';
-    const types = {
-        'MyEnum': {
-            'enum': {
-                'name': 'MyEnum'
-            }
-        },
-        'MyTypedef': {
-            'typedef': {
-                'name': 'MyTypedef',
-                'type': {'builtin': 'int'}
-            }
-        }
-    };
-    const docPage = new DocPage(types, 'The Title');
-    docPage.updateParams();
-    t.deepEqual(
-        docPage.typesPage(types, 'The Title'),
-        [
-            {'elem': {'text': 'The Title'}, 'html': 'h1'},
-            [
-                [
-                    {'html': 'h2', 'elem': {'text': 'Enumerations'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyEnum'}, 'elem': {'text': 'MyEnum'}}}
-                        ]}}
-                    }
-                ],
-                [
-                    {'html': 'h2', 'elem': {'text': 'Typedefs'}},
-                    {
-                        'html': 'ul',
-                        'attr': {'class': 'chisel-index-list'},
-                        'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': [
-                            {'html': 'li', 'elem': {'html': 'a', 'attr': {'href': 'blank#name=MyTypedef'}, 'elem': {'text': 'MyTypedef'}}}
-                        ]}}
-                    }
-                ]
-            ]
-        ]
-    );
-});
-
-test('DocPage.typesPage, empty action', (t) => {
-    window.location.hash = '#name=MyAction';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyAction': {
-            'action': {
-                'name': 'MyAction'
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, null, 'MyAction'),
-        [
-            {
-                'html': 'p',
-                'elem': {'html': 'a', 'attr': {'href': 'blank#'}, 'elem': {'text': 'Back to documentation index'}}
-            },
-            [
-                {
-                    'html': 'h1',
-                    'attr': {'id': 'name=MyAction&type_MyAction'},
-                    'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyAction'}}
-                },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                emptyActionErrorElements
-            ],
-            null
-        ]
-    );
-});
-
-test('DocPage.typesPage, empty struct', (t) => {
-    window.location.hash = '#name=MyAction&types=other.json';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyStruct': {
-            'struct': {
-                'name': 'MyStruct'
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, null, 'MyStruct'),
-        [
-            {
-                'html': 'p',
-                'elem': {'html': 'a', 'attr': {'href': 'blank#types=other.json'}, 'elem': {'text': 'Back to documentation index'}}
-            },
-            [
-                {
-                    'html': 'h1',
-                    'attr': {'id': 'name=MyAction&types=other.json&type_MyStruct'},
-                    'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyStruct'}}
-                },
-                null,
-                [
-                    {'html': 'p', 'elem': [{'text': 'The struct is empty.'}]}
-                ]
-            ],
-            null
-        ]
-    );
-});
-
-test('DocPage.typesPage, unknown type', (t) => {
-    window.location.hash = '#name=MyStruct';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyEnum': {
-            'enum': {
-                'name': 'MyEnum'
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, null, 'MyStruct'),
-        {
-            'html': 'p',
-            'elem': {'text': "Error: Unknown type name 'MyStruct'"}
-        }
-    );
-});
-
-test('DocPage.typesPage, unknown', (t) => {
-    window.location.hash = '#name=Unknown';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    t.deepEqual(
-        docPage.typesPage({}, null, 'Unknown'),
-        {'html': 'p', 'elem': {'text': "Error: Invalid value {} (type 'object'), expected type 'Types' [len > 0]"}}
-    );
-});
-
-test('DocPage.typesPage, referenced types', (t) => {
-    window.location.hash = '#name=test';
-    const docPage = new DocPage();
-    docPage.updateParams();
-    const types = {
-        'MyStruct': {
-            'struct': {
-                'name': 'MyStruct',
-                'members': [
-                    {'name': 'a', 'type': {'user': 'MyStructRef'}},
-                    {'name': 'b', 'type': {'user': 'MyEnumRef'}},
-                    {'name': 'c', 'type': {'user': 'MyTypedefRef'}}
-                ]
-            }
-        },
-        'MyStructRef': {
-            'struct': {
-                'name': 'MyStructRef'
-            }
-        },
-        'MyStructNoRef': {
-            'struct': {
-                'name': 'MyStructNoRef'
-            }
-        },
-        'MyEnumRef': {
-            'enum': {
-                'name': 'MyEnumRef'
-            }
-        },
-        'MyEnumNoRef': {
-            'enum': {
-                'name': 'MyEnumNoRef'
-            }
-        },
-        'MyTypedefRef': {
-            'typedef': {
-                'name': 'MyTypedefRef',
-                'type': {'builtin': 'int'}
-            }
-        },
-        'MyTypedefNoRef': {
-            'typedef': {
-                'name': 'MyTypedefNoRef',
-                'type': {'builtin': 'int'}
-            }
-        }
-    };
-    t.deepEqual(
-        docPage.typesPage(types, null, 'MyStruct'),
-        [
-            {
-                'html': 'p',
-                'elem': {'html': 'a', 'attr': {'href': 'blank#'}, 'elem': {'text': 'Back to documentation index'}}
-            },
-            [
-                {
-                    'html': 'h1',
-                    'attr': {'id': 'name=test&type_MyStruct'},
-                    'elem': {'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'MyStruct'}}
-                },
-                null,
-                {'html': 'table', 'elem': [
-                    {'html': 'tr', 'elem': [
-                        {'html': 'th', 'elem': {'text': 'Name'}},
-                        {'html': 'th', 'elem': {'text': 'Type'}},
-                        null,
-                        null
-                    ]},
-                    [
-                        {'html': 'tr', 'elem': [
-                            {'html': 'td', 'elem': {'text': 'a'}},
-                            {'html': 'td', 'elem': {
-                                'html': 'a',
-                                'attr': {'href': '#name=test&type_MyStructRef'},
-                                'elem': {'text': 'MyStructRef'}
-                            }},
-                            null,
-                            null
-                        ]},
-                        {'html': 'tr', 'elem': [
-                            {'html': 'td', 'elem': {'text': 'b'}},
-                            {'html': 'td', 'elem': {
-                                'html': 'a',
-                                'attr': {'href': '#name=test&type_MyEnumRef'},
-                                'elem': {'text': 'MyEnumRef'}
-                            }},
-                            null,
-                            null
-                        ]},
-                        {'html': 'tr', 'elem': [
-                            {'html': 'td', 'elem': {'text': 'c'}},
-                            {'html': 'td', 'elem': {
-                                'html': 'a',
-                                'attr': {'href': '#name=test&type_MyTypedefRef'},
-                                'elem': {'text': 'MyTypedefRef'}
-                            }},
-                            null,
-                            null
-                        ]}
-                    ]
-                ]}
-            ],
-            [
-                {'html': 'hr'},
-                {'html': 'h2', 'elem': {'text': 'Referenced Types'}},
-                [
-                    [
-                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyEnumRef'}, 'elem': {
-                            'html': 'a',
-                            'attr': {'class': 'linktarget'},
-                            'elem': {'text': 'enum MyEnumRef'}
-                        }},
-                        null,
-                        null,
-                        [
-                            {'html': 'p', 'elem': [{'text': 'The enum is empty.'}]}
-                        ]
-                    ],
-                    [
-                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyStructRef'}, 'elem': {
-                            'html': 'a', 'attr': {'class': 'linktarget'}, 'elem': {'text': 'struct MyStructRef'}}
-                        },
-                        null,
-                        [
-                            {'html': 'p', 'elem': [{'text': 'The struct is empty.'}]}
-                        ]
-                    ],
-                    [
-                        {'html': 'h3', 'attr': {'id': 'name=test&type_MyTypedefRef'}, 'elem': {
-                            'html': 'a',
-                            'attr': {'class': 'linktarget'},
-                            'elem': {'text': 'typedef MyTypedefRef'}
-                        }},
-                        null,
-                        {'html': 'table', 'elem': [
-                            {'html': 'tr', 'elem': [
-                                {'html': 'th', 'elem': {'text': 'Type'}},
-                                null
-                            ]},
-                            {'html': 'tr', 'elem': [
-                                {'html': 'td', 'elem': {'text': 'int'}},
-                                null
-                            ]}
-                        ]}
-                    ]
-                ]
-            ]
-        ]
-    );
-});
 
 test('DocPage.requestPage, request', (t) => {
-    window.location.hash = '#name=request';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=request');
     t.deepEqual(
         docPage.requestPage({'name': 'request', 'doc': 'This is my request', 'urls': [{'url': '/request'}]}),
         [
@@ -1245,10 +937,10 @@ test('DocPage.requestPage, request', (t) => {
     );
 });
 
+
 test('DocPage.requestPage, request with no doc or urls', (t) => {
-    window.location.hash = '#name=request';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=request');
     t.deepEqual(
         docPage.requestPage({'name': 'request'}),
         [
@@ -1266,10 +958,10 @@ test('DocPage.requestPage, request with no doc or urls', (t) => {
     );
 });
 
+
 test('DocPage.requestPage', (t) => {
-    window.location.hash = '#name=MyAction';
     const docPage = new DocPage();
-    docPage.updateParams();
+    docPage.updateParams('name=MyAction');
     const request = {
         'name': 'MyAction',
         'urls': [
