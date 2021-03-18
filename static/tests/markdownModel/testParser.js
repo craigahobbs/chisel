@@ -1,13 +1,16 @@
-import * as chisel from '../src/chisel.js';
-import {markdownElements, parseMarkdown} from '../src/markdown.js';
-import {markdownModel} from '../src/markdownModel.js';
-import test from 'ava';
+// Licensed under the MIT License
+// https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 /* eslint-disable id-length */
 
+import {markdownModel} from '../../src/markdownModel/markdownModel.js';
+import {markdownParse} from '../../src/markdownModel/parser.js';
+import test from 'ava';
+import {validateType} from '../../src/schemaMarkdown/schema.js';
 
-test('parseMarkdown', (t) => {
-    const markdown = parseMarkdown(`
+
+test('markdownParse', (t) => {
+    const markdown = markdownParse(`
 # Title
 
 This is a sentence.
@@ -15,7 +18,7 @@ This is another sentence.
 
 
 This is another paragraph.`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -29,8 +32,8 @@ This is another paragraph.`);
 });
 
 
-test('parseMarkdown, lines', (t) => {
-    const markdown = parseMarkdown([
+test('markdownParse, lines', (t) => {
+    const markdown = markdownParse([
         '# Title',
         '',
         'This is a sentence.',
@@ -39,7 +42,7 @@ test('parseMarkdown, lines', (t) => {
         '',
         'This is another paragraph.\n\nAnd another.'
     ]);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -54,9 +57,9 @@ test('parseMarkdown, lines', (t) => {
 });
 
 
-test('parseMarkdown, empty', (t) => {
-    const markdown = parseMarkdown('');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, empty', (t) => {
+    const markdown = markdownParse('');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -66,14 +69,14 @@ test('parseMarkdown, empty', (t) => {
 });
 
 
-test('parseMarkdown, horizontal rule', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule', (t) => {
+    const markdown = markdownParse(`
 Some text
 ***
 ******
 More text
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -88,14 +91,14 @@ More text
 });
 
 
-test('parseMarkdown, horizontal rule hyphens', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule hyphens', (t) => {
+    const markdown = markdownParse(`
 Some text
 
 ---
 ------
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -109,14 +112,14 @@ Some text
 });
 
 
-test('parseMarkdown, horizontal rule underscores', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule underscores', (t) => {
+    const markdown = markdownParse(`
 Some text
 
 ___
 ______
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -130,12 +133,12 @@ ______
 });
 
 
-test('parseMarkdown, horizontal rule spaces', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule spaces', (t) => {
+    const markdown = markdownParse(`
 Some text
  *  *    ** 
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -148,11 +151,11 @@ Some text
 });
 
 
-test('parseMarkdown, horizontal rule beyond code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule beyond code block', (t) => {
+    const markdown = markdownParse(`
     *****
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -164,15 +167,15 @@ test('parseMarkdown, horizontal rule beyond code block', (t) => {
 });
 
 
-test('parseMarkdown, horizontal rule following code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, horizontal rule following code block', (t) => {
+    const markdown = markdownParse(`
 This is a horizontal fule immediately following a code block:
 
     code
 
 ---
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -186,8 +189,8 @@ This is a horizontal fule immediately following a code block:
 });
 
 
-test('parseMarkdown, heading alternate syntax', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, heading alternate syntax', (t) => {
+    const markdown = markdownParse(`
 Title
 =====
 
@@ -198,7 +201,7 @@ Subtitle
 
 Some words.
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -213,13 +216,13 @@ Some words.
 });
 
 
-test('parseMarkdown, heading alternate syntax multi-line', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, heading alternate syntax multi-line', (t) => {
+    const markdown = markdownParse(`
 Title
 and More
   ===
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -231,13 +234,13 @@ and More
 });
 
 
-test('parseMarkdown, heading alternate syntax following list', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, heading alternate syntax following list', (t) => {
+    const markdown = markdownParse(`
 - Title
 and more
 =====
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {'parts': [
@@ -255,12 +258,12 @@ and more
 });
 
 
-test('parseMarkdown, heading alternate syntax beyond code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, heading alternate syntax beyond code block', (t) => {
+    const markdown = markdownParse(`
 Title
     =====
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {'parts': [
@@ -272,8 +275,8 @@ Title
 });
 
 
-test('parseMarkdown, list', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, list', (t) => {
+    const markdown = markdownParse(`
 - item 1
 
   item 1.2
@@ -281,7 +284,7 @@ test('parseMarkdown, list', (t) => {
 * item 2
 another
 + item 3`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -315,8 +318,8 @@ another
 });
 
 
-test('parseMarkdown, ordered list', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, ordered list', (t) => {
+    const markdown = markdownParse(`
 1. item 1
 
    item 1.2
@@ -324,7 +327,7 @@ test('parseMarkdown, ordered list', (t) => {
 * item 2
 another
 + item 3`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -359,8 +362,8 @@ another
 });
 
 
-test('parseMarkdown, list nested', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, list nested', (t) => {
+    const markdown = markdownParse(`
 - 1
  - 2
   - 3
@@ -374,7 +377,7 @@ test('parseMarkdown, list nested', (t) => {
 
 asdf
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -472,8 +475,8 @@ asdf
 });
 
 
-test('parseMarkdown, code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, code block', (t) => {
+    const markdown = markdownParse(`
 This is some code:
 
     code 1
@@ -482,7 +485,7 @@ This is some code:
     code 3
 
 Cool, huh?`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -496,8 +499,8 @@ Cool, huh?`);
 });
 
 
-test('parseMarkdown, code block with fenced code block text', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, code block with fenced code block text', (t) => {
+    const markdown = markdownParse(`
 This is a fenced code block:
 
     ~~~ javascript
@@ -508,7 +511,7 @@ This is a fenced code block:
     ~~~
 
 Cool, huh?`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -529,8 +532,8 @@ Cool, huh?`);
 });
 
 
-test('parseMarkdown, fenced code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, fenced code block', (t) => {
+    const markdown = markdownParse(`
 This is some code:
 
 \`\`\` javascript
@@ -538,7 +541,7 @@ foo();
 bar();
 \`\`\`
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -551,14 +554,14 @@ bar();
 });
 
 
-test('parseMarkdown, empty fenced code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, empty fenced code block', (t) => {
+    const markdown = markdownParse(`
 This is some code:
 
 \`\`\` javascript
 \`\`\`
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -571,12 +574,12 @@ This is some code:
 });
 
 
-test('parseMarkdown, empty, end-of-file fenced code block', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, empty, end-of-file fenced code block', (t) => {
+    const markdown = markdownParse(`
 This is some code:
 
 \`\`\` javascript`);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -589,8 +592,8 @@ This is some code:
 });
 
 
-test('parseMarkdown, code block fenced no language', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, code block fenced no language', (t) => {
+    const markdown = markdownParse(`
 This is some code:
 
 \`\`\`
@@ -598,7 +601,7 @@ foo();
 bar();
 \`\`\`
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -611,8 +614,8 @@ bar();
 });
 
 
-test('parseMarkdown, code block nested', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, code block nested', (t) => {
+    const markdown = markdownParse(`
 - This is some code:
 
   \`\`\`
@@ -620,7 +623,7 @@ test('parseMarkdown, code block nested', (t) => {
   bar();
   \`\`\`
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -643,8 +646,8 @@ test('parseMarkdown, code block nested', (t) => {
 });
 
 
-test('parseMarkdown, spans', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, spans', (t) => {
+    const markdown = markdownParse(`
 These are some basic styles: **bold**, *italic*, ***bold-italic***.
 
 This is a [link](https://foo.com) and so is [this](https://bar.com "Bar").
@@ -653,7 +656,7 @@ This is another link: <https://foo.com>
 
 This is an ![image](https://foo.com/foo.jpg) and so is ![this](https://bar.com/bar.jpg "Bar").
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -707,11 +710,11 @@ This is an ![image](https://foo.com/foo.jpg) and so is ![this](https://bar.com/b
 });
 
 
-test('parseMarkdown, nested spans', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, nested spans', (t) => {
+    const markdown = markdownParse(`
 This is a [link **with *formatting***](https://foo.com)
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -744,11 +747,11 @@ This is a [link **with *formatting***](https://foo.com)
 });
 
 
-test('parseMarkdown, spans spaces', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, spans spaces', (t) => {
+    const markdown = markdownParse(`
 ***no *** *** no*** **no ** ** no** *no * * no*
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -793,9 +796,9 @@ test('parseMarkdown, spans spaces', (t) => {
 });
 
 
-test('parseMarkdown, link multiline', (t) => {
-    const markdown = parseMarkdown('[text\ntext](href://foo.com "text\ntext")');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, link multiline', (t) => {
+    const markdown = markdownParse('[text\ntext](href://foo.com "text\ntext")');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -811,9 +814,9 @@ test('parseMarkdown, link multiline', (t) => {
 });
 
 
-test('parseMarkdown, italic multiline', (t) => {
-    const markdown = parseMarkdown('*text\ntext*');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, italic multiline', (t) => {
+    const markdown = markdownParse('*text\ntext*');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -829,9 +832,9 @@ test('parseMarkdown, italic multiline', (t) => {
 });
 
 
-test('parseMarkdown, bold multiline', (t) => {
-    const markdown = parseMarkdown('**text\ntext**');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, bold multiline', (t) => {
+    const markdown = markdownParse('**text\ntext**');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -847,9 +850,9 @@ test('parseMarkdown, bold multiline', (t) => {
 });
 
 
-test('parseMarkdown, bold-italic multiline', (t) => {
-    const markdown = parseMarkdown('***text\ntext***');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, bold-italic multiline', (t) => {
+    const markdown = markdownParse('***text\ntext***');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -865,15 +868,15 @@ test('parseMarkdown, bold-italic multiline', (t) => {
 });
 
 
-test('parseMarkdown, line breaks', (t) => {
-    const markdown = parseMarkdown(`
+test('markdownParse, line breaks', (t) => {
+    const markdown = markdownParse(`
 This is a line break  
   this is not
 and this is  
 
 This is another paragraph.
 `);
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -901,10 +904,10 @@ This is another paragraph.
 });
 
 
-test('parseMarkdown, escapes', (t) => {
+test('markdownParse, escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
-    const markdown = parseMarkdown('\\ \\* \\_ \\{ \\} \\[ \\] **bol\\.d** \\( \\) \\# \\+ \\- \\. \\! \\a');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    const markdown = markdownParse('\\ \\* \\_ \\{ \\} \\[ \\] **bol\\.d** \\( \\) \\# \\+ \\- \\. \\! \\a');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -922,10 +925,10 @@ test('parseMarkdown, escapes', (t) => {
 });
 
 
-test('parseMarkdown, link escapes', (t) => {
+test('markdownParse, link escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
-    const markdown = parseMarkdown('[tex\]t](hre\.f "titl\.e")');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    const markdown = markdownParse('[tex\]t](hre\.f "titl\.e")');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -941,9 +944,9 @@ test('parseMarkdown, link escapes', (t) => {
 });
 
 
-test('parseMarkdown, link href space', (t) => {
-    const markdown = parseMarkdown('[text](hre f)');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, link href space', (t) => {
+    const markdown = markdownParse('[text](hre f)');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -959,31 +962,31 @@ test('parseMarkdown, link href space', (t) => {
 });
 
 
-test('parseMarkdown, link href alternate space', (t) => {
-    const markdown = parseMarkdown('<hre f>');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, link href alternate space', (t) => {
+    const markdown = markdownParse('<hre f>');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '<hre f>'}]}}]});
 });
 
 
-test('parseMarkdown, link href alternate space begin', (t) => {
-    const markdown = parseMarkdown('< href>');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, link href alternate space begin', (t) => {
+    const markdown = markdownParse('< href>');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '< href>'}]}}]});
 });
 
 
-test('parseMarkdown, link href alternate space end', (t) => {
-    const markdown = parseMarkdown('<href >');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+test('markdownParse, link href alternate space end', (t) => {
+    const markdown = markdownParse('<href >');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(markdown, {'parts': [{'paragraph': {'spans': [{'text': '<href >'}]}}]});
 });
 
 
-test('parseMarkdown, image escapes', (t) => {
+test('markdownParse, image escapes', (t) => {
     /* eslint-disable-next-line no-useless-escape */
-    const markdown = parseMarkdown('![al\]t](sr\.c "titl\.e")');
-    chisel.validateType(markdownModel.types, 'Markdown', markdown);
+    const markdown = markdownParse('![al\]t](sr\.c "titl\.e")');
+    validateType(markdownModel.types, 'Markdown', markdown);
     t.deepEqual(
         markdown,
         {
@@ -995,430 +998,5 @@ test('parseMarkdown, image escapes', (t) => {
                 }}
             ]
         }
-    );
-});
-
-
-test('markdownElements', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {'paragraph': {'style': 'h1', 'spans': [{'text': 'Title'}]}},
-            {
-                'paragraph': {
-                    'spans': [
-                        {'text': 'This is a sentence. This is '},
-                        {
-                            'style': {
-                                'style': 'bold',
-                                'spans': [
-                                    {'text': 'bold and '},
-                                    {'style': {'style': 'italic', 'spans': [{'text': 'bold-italic'}]}},
-                                    {'text': '.'}
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                'paragraph': {
-                    'spans': [
-                        {'text': 'This is a link to the '},
-                        {'link': {
-                            'href': 'https://craigahobbs.github.io/chisel/doc/',
-                            'title': 'The Chisel Type Model',
-                            'spans': [
-                                {'style': {'style': 'bold', 'spans': [{'text': 'Chisel'}]}},
-                                {'text': ' Type Model'}
-                            ]
-                        }}
-                    ]
-                }
-            },
-            {
-                'paragraph': {
-                    'spans': [
-                        {'text': 'This is an image: '},
-                        {'image': {
-                            'src': 'https://craigahobbs.github.io/chisel/doc/doc.svg',
-                            'alt': 'Chisel Documentation Icon',
-                            'title': 'Chisel'
-                        }}
-                    ]
-                }
-            },
-            {
-                'list': {
-                    'items': [
-                        {
-                            'parts': [
-                                {'paragraph': {'spans': [{'text': 'This is a paragraph.'}]}},
-                                {'paragraph': {'spans': [{'text': 'This is a another paragraph.'}]}}
-                            ]
-                        },
-                        {
-                            'parts': [
-                                {'paragraph': {'spans': [{'text': 'This is the second list item.'}]}}
-                            ]
-                        }
-                    ]
-                }
-            },
-            {
-                'list': {
-                    'start': 10,
-                    'items': [
-                        {
-                            'parts': [
-                                {'paragraph': {'spans': [{'text': 'This is a paragraph.'}]}}
-                            ]
-                        }
-                    ]
-                }
-            },
-            {
-                'codeBlock': {
-                    'lines': [
-                        'Line 1',
-                        'Line 2'
-                    ]
-                }
-            }
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {'html': 'h1', 'elem': [{'text': 'Title'}]},
-            {
-                'html': 'p',
-                'elem': [
-                    {'text': 'This is a sentence. This is '},
-                    {'html': 'strong', 'elem': [
-                        {'text': 'bold and '},
-                        {'html': 'em', 'elem': [{'text': 'bold-italic'}]},
-                        {'text': '.'}
-                    ]}
-                ]
-            },
-            {
-                'html': 'p',
-                'elem': [
-                    {'text': 'This is a link to the '},
-                    {
-                        'html': 'a',
-                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/', 'title': 'The Chisel Type Model'},
-                        'elem': [{'html': 'strong', 'elem': [{'text': 'Chisel'}]}, {'text': ' Type Model'}]
-                    }
-                ]
-            },
-            {
-                'html': 'p',
-                'elem': [
-                    {'text': 'This is an image: '},
-                    {
-                        'html': 'img',
-                        'attr': {
-                            'src': 'https://craigahobbs.github.io/chisel/doc/doc.svg',
-                            'title': 'Chisel',
-                            'alt': 'Chisel Documentation Icon'
-                        }
-                    }
-                ]
-            },
-            {
-                'html': 'ul',
-                'attr': null,
-                'elem': [
-                    {
-                        'html': 'li',
-                        'elem': [
-                            {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]},
-                            {'html': 'p', 'elem': [{'text': 'This is a another paragraph.'}]}
-                        ]
-                    },
-                    {
-                        'html': 'li',
-                        'elem': [
-                            {'html': 'p', 'elem': [{'text': 'This is the second list item.'}]}
-                        ]
-                    }
-                ]
-            },
-            {
-                'html': 'ol',
-                'attr': {'start': '10'},
-                'elem': [
-                    {
-                        'html': 'li',
-                        'elem': [
-                            {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]}
-                        ]
-                    }
-                ]
-            },
-            {
-                'html': 'pre',
-                'elem': {
-                    'html': 'code',
-                    'elem': [
-                        {'text': 'Line 1\n'},
-                        {'text': 'Line 2\n'}
-                    ]
-                }
-            }
-        ]
-    );
-});
-
-
-test('markdownElements, line break', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {
-                'paragraph': {
-                    'spans': [
-                        {'text': 'This is a line break'},
-                        {'br': null},
-                        {'text': 'some more text'}
-                    ]
-                }
-            }
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {
-                'html': 'p',
-                'elem': [
-                    {'text': 'This is a line break'},
-                    {'html': 'br'},
-                    {'text': 'some more text'}
-                ]
-            }
-        ]
-    );
-});
-
-
-test('markdownElements, horizontal rule', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {'paragraph': {'spans': [{'text': 'Some text'}]}},
-            {'hr': null},
-            {'paragraph': {'spans': [{'text': 'More text'}]}}
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {'html': 'p', 'elem': [{'text': 'Some text'}]},
-            {'html': 'hr'},
-            {'html': 'p', 'elem': [{'text': 'More text'}]}
-        ]
-    );
-});
-
-
-test('markdownElements, link span with no title', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {
-                'paragraph': {
-                    'spans': [
-                        {'link': {
-                            'href': 'https://craigahobbs.github.io/chisel/doc/',
-                            'spans': [{'text': 'Type Model'}]
-                        }}
-                    ]
-                }
-            }
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {
-                'html': 'p',
-                'elem': [
-                    {
-                        'html': 'a',
-                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/'},
-                        'elem': [{'text': 'Type Model'}]
-                    }
-                ]
-            }
-        ]
-    );
-});
-
-
-test('markdownElements, image span with no title', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {
-                'paragraph': {
-                    'spans': [
-                        {'image': {
-                            'src': 'https://craigahobbs.github.io/chisel/doc/doc.svg',
-                            'alt': 'Chisel Documentation Icon'
-                        }}
-                    ]
-                }
-            }
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {
-                'html': 'p',
-                'elem': [
-                    {
-                        'html': 'img',
-                        'attr': {
-                            'src': 'https://craigahobbs.github.io/chisel/doc/doc.svg',
-                            'alt': 'Chisel Documentation Icon'
-                        }
-                    }
-                ]
-            }
-        ]
-    );
-});
-
-
-test('markdownElements, code block with language', (t) => {
-    const elements = markdownElements({
-        'parts': [
-            {
-                'codeBlock': {
-                    'language': 'javascript',
-                    'lines': [
-                        'foo();',
-                        'bar();'
-                    ]
-                }
-            }
-        ]
-    });
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {
-                'html': 'pre',
-                'elem': {
-                    'html': 'code',
-                    'elem': [
-                        {'text': 'foo();\n'},
-                        {'text': 'bar();\n'}
-                    ]
-                }
-            }
-        ]
-    );
-});
-
-
-test('markdownElements, code block with language override', (t) => {
-    const codeBlockLanguages = {
-        'fooscript': (codeBlock) => ({'text': codeBlock.lines.join('---')})
-    };
-    const elements = markdownElements({
-        'parts': [
-            {
-                'codeBlock': {
-                    'language': 'fooscript',
-                    'lines': [
-                        'foo();',
-                        'bar();'
-                    ]
-                }
-            }
-        ]
-    }, null, codeBlockLanguages);
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {'text': 'foo();---bar();'}
-        ]
-    );
-});
-
-
-test('markdownElements, relative and absolute URLs', (t) => {
-    const markdown = {
-        'parts': [
-            {
-                'paragraph': {
-                    'spans': [
-                        {'link': {
-                            'href': 'https://craigahobbs.github.io/chisel/doc/',
-                            'spans': [{'text': 'Absolute Link'}]
-                        }},
-                        {'link': {
-                            'href': 'doc/',
-                            'spans': [{'text': 'Relative Link'}]
-                        }}
-                    ]
-                }
-            }
-        ]
-    };
-
-    // Test without file URL
-    const elements = markdownElements(markdown);
-    chisel.validateElements(elements);
-    t.deepEqual(
-        elements,
-        [
-            {
-                'elem': [
-                    {
-                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/'},
-                        'elem': [{'text': 'Absolute Link'}],
-                        'html': 'a'
-                    },
-                    {
-                        'attr': {'href': 'doc/'},
-                        'elem': [{'text': 'Relative Link'}],
-                        'html': 'a'
-                    }
-                ],
-                'html': 'p'
-            }
-        ]
-    );
-
-    // Test with file URL
-    const elementsURL = markdownElements(markdown, 'https://foo.com/index.md');
-    chisel.validateElements(elementsURL);
-    t.deepEqual(
-        elementsURL,
-        [
-            {
-                'elem': [
-                    {
-                        'attr': {'href': 'https://craigahobbs.github.io/chisel/doc/'},
-                        'elem': [{'text': 'Absolute Link'}],
-                        'html': 'a'
-                    },
-                    {
-                        'attr': {'href': 'https://foo.com/doc/'},
-                        'elem': [{'text': 'Relative Link'}],
-                        'html': 'a'
-                    }
-                ],
-                'html': 'p'
-            }
-        ]
     );
 });

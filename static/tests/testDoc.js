@@ -1,10 +1,13 @@
-import * as chisel from '../src/chisel.js';
-import {DocPage} from '../src/doc.js';
-import browserEnv from 'browser-env';
-import test from 'ava';
+// Licensed under the MIT License
+// https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 /* eslint-disable id-length */
 /* eslint-disable max-len */
+
+import {DocPage} from '../src/doc.js';
+import browserEnv from 'browser-env';
+import {nbsp} from '../src/elementModel/util.js';
+import test from 'ava';
 
 
 // Add browser globals
@@ -1251,8 +1254,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qa'}},
                                 {'html': 'td', 'elem': {'text': 'int'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}>${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}<${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}>${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}<${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
@@ -1260,8 +1263,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qb'}},
                                 {'html': 'td', 'elem': {'text': 'int'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}>=${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}<=${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}>=${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}<=${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
@@ -1269,7 +1272,7 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qc'}},
                                 {'html': 'td', 'elem': {'text': 'int'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}==${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}==${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
@@ -1277,8 +1280,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qd'}},
                                 {'html': 'td', 'elem': {'text': 'float'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}>${chisel.nbsp}0.5`}},
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}<${chisel.nbsp}9.5`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}>${nbsp}0.5`}},
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}<${nbsp}9.5`}}
                                 ]}},
                                 null
                             ]},
@@ -1286,8 +1289,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qe'}},
                                 {'html': 'td', 'elem': {'text': 'float'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}>=${chisel.nbsp}0.5`}},
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}<=${chisel.nbsp}9.5`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}>=${nbsp}0.5`}},
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}<=${nbsp}9.5`}}
                                 ]}},
                                 null
                             ]},
@@ -1295,7 +1298,7 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qf'}},
                                 {'html': 'td', 'elem': {'text': 'float'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}==${chisel.nbsp}9.5`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}==${nbsp}9.5`}}
                                 ]}},
                                 null
                             ]},
@@ -1303,8 +1306,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qg'}},
                                 {'html': 'td', 'elem': {'text': 'string'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(value)${chisel.nbsp}>${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(value)${chisel.nbsp}<${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(value)${nbsp}>${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(value)${nbsp}<${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
@@ -1312,8 +1315,8 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qh'}},
                                 {'html': 'td', 'elem': {'text': 'string'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(value)${chisel.nbsp}>=${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(value)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(value)${nbsp}>=${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(value)${nbsp}<=${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
@@ -1321,60 +1324,60 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': {'text': 'qi'}},
                                 {'html': 'td', 'elem': {'text': 'string'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(value)${chisel.nbsp}==${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(value)${nbsp}==${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'qj'}},
-                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${nbsp}[]`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}<${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}>${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}<${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'qk'}},
-                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${nbsp}[]`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}>=${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}>=${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}<=${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'ql'}},
-                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${chisel.nbsp}[]`}]},
+                                {'html': 'td', 'elem': [{'text': 'int'}, {'text': `${nbsp}[]`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}>=${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}>=${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}<=${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'qm'}},
-                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${nbsp}{}`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}>${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}<${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}>${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}<${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'qn'}},
-                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${nbsp}{}`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}>=${chisel.nbsp}0`}},
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}<=${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}>=${nbsp}0`}},
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}<=${nbsp}10`}}
                                 ]}},
                                 null
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'qo'}},
-                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${chisel.nbsp}{}`}]},
+                                {'html': 'td', 'elem': [null, {'text': 'string'}, {'text': `${nbsp}{}`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}==${chisel.nbsp}10`}}
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}==${nbsp}10`}}
                                 ]}},
                                 null
                             ]}
@@ -1423,11 +1426,11 @@ test('DocPage.requestPage', (t) => {
                             ]},
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'id'}},
-                                {'html': 'td', 'elem': [{'text': 'string'}, {'text': `${chisel.nbsp}[]`}]},
+                                {'html': 'td', 'elem': [{'text': 'string'}, {'text': `${nbsp}[]`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
                                     {'html': 'li', 'elem': {'text': 'optional'}},
                                     {'html': 'li', 'elem': {'text': 'nullable'}},
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}>${nbsp}0`}}
                                 ]}},
                                 null
                             ]}
@@ -1504,9 +1507,9 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': [
                                     [
                                         {'html': 'a', 'attr': {'href': '#name=MyAction&type_Enum1'}, 'elem': {'text': 'Enum1'}},
-                                        {'text': `${chisel.nbsp}:${chisel.nbsp}`}
+                                        {'text': `${nbsp}:${nbsp}`}
                                     ],
-                                    {'text': 'string'}, {'text': `${chisel.nbsp}{}`}
+                                    {'text': 'string'}, {'text': `${nbsp}{}`}
                                 ]},
                                 {'html': 'td', 'elem': null},
                                 null
@@ -1516,13 +1519,13 @@ test('DocPage.requestPage', (t) => {
                                 {'html': 'td', 'elem': [
                                     [
                                         {'html': 'a', 'attr': {'href': '#name=MyAction&type_JustAString'}, 'elem': {'text': 'JustAString'}},
-                                        {'text': `${chisel.nbsp}:${chisel.nbsp}`}
+                                        {'text': `${nbsp}:${nbsp}`}
                                     ],
                                     {'html': 'a', 'attr': {'href': '#name=MyAction&type_NonEmptyFloatArray'}, 'elem': {'text': 'NonEmptyFloatArray'}},
-                                    {'text': `${chisel.nbsp}{}`}
+                                    {'text': `${nbsp}{}`}
                                 ]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(dict)${chisel.nbsp}>${chisel.nbsp}0`}}
+                                    {'html': 'li', 'elem': {'text': `len(dict)${nbsp}>${nbsp}0`}}
                                 ]}},
                                 null
                             ]}
@@ -1667,9 +1670,9 @@ test('DocPage.requestPage', (t) => {
                         {'html': 'table', 'elem': [
                             {'html': 'tr', 'elem': [{'html': 'th', 'elem': {'text': 'Type'}}, {'html': 'th', 'elem': {'text': 'Attributes'}}]},
                             {'html': 'tr', 'elem': [
-                                {'html': 'td', 'elem': [{'text': 'float'}, {'text': `${chisel.nbsp}[]`}]},
+                                {'html': 'td', 'elem': [{'text': 'float'}, {'text': `${nbsp}[]`}]},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `len(array)${chisel.nbsp}>${chisel.nbsp}0`}}
+                                    {'html': 'li', 'elem': {'text': `len(array)${nbsp}>${nbsp}0`}}
                                 ]}}
                             ]}
                         ]}
@@ -1691,7 +1694,7 @@ test('DocPage.requestPage', (t) => {
                             {'html': 'tr', 'elem': [
                                 {'html': 'td', 'elem': {'text': 'int'}},
                                 {'html': 'td', 'elem': {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': [
-                                    {'html': 'li', 'elem': {'text': `value${chisel.nbsp}>${chisel.nbsp}0`}}
+                                    {'html': 'li', 'elem': {'text': `value${nbsp}>${nbsp}0`}}
                                 ]}}
                             ]}
                         ]}

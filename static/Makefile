@@ -3,5 +3,5 @@
 
 include Makefile.base
 
-$(eval $(call COMPILE_SMD, typeModel))
-$(eval $(call COMPILE_SMD, markdownModel, Markdown Model))
+$(eval $(call COMPILE_SMD, schemaMarkdown/typeModel))
+$(eval $(call COMPILE_SMD, markdownModel/markdownModel, Markdown Model))
