@@ -11,7 +11,7 @@ SPHINX_DOC := doc
 define WGET
 ifeq '$$(wildcard $(notdir $(1)))' ''
     $$(info Downloading $(notdir $(1)))
-    $$(shell if which wget; then wget -q '$(strip $(1))'; else curl -Os '$(strip $(1))'; fi)
+    $$(shell if which wget > /dev/null; then wget -q '$(strip $(1))'; else curl -Os '$(strip $(1))'; fi)
 endif
 endef
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/python-build/master/Makefile.base))
