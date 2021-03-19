@@ -168,14 +168,6 @@ function validateTypeHelper(type, obj) {
 }
 
 
-test('chisel.validateType', (t) => {
-    t.deepEqual(
-        validateType({'MyType': {'struct': {'name': 'MyType'}}}, 'MyType', {}),
-        {}
-    );
-});
-
-
 test('validateType, unknown', (t) => {
     let errorMessage = null;
     try {
@@ -223,6 +215,12 @@ test('validateType, int', (t) => {
 });
 
 
+test('validateType, int string', (t) => {
+    const obj = '7';
+    t.is(validateTypeHelper({'builtin': 'int'}, obj), 7);
+});
+
+
 test('validateType, int float', (t) => {
     let errorMessage = null;
     const obj = 7.1;
@@ -235,12 +233,6 @@ test('validateType, int float', (t) => {
 });
 
 
-test('validateType, int string', (t) => {
-    const obj = '7';
-    t.is(validateTypeHelper({'builtin': 'int'}, obj), 7);
-});
-
-
 test('validateType, int error', (t) => {
     let errorMessage = null;
     const obj = 'abc';
@@ -250,6 +242,18 @@ test('validateType, int error', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, "Invalid value \"abc\" (type 'string'), expected type 'int'");
+});
+
+
+test('validateType, int error float', (t) => {
+    let errorMessage = null;
+    const obj = 7.5;
+    try {
+        validateTypeHelper({'builtin': 'int'}, obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value 7.5 (type 'number'), expected type 'int'");
 });
 
 
