@@ -2,7 +2,7 @@
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
 import {decodeParams, encodeParams, href, nbsp} from './elementModel/util.js';
-import {getReferencedTypes, validateType, validateTypeModel} from './schemaMarkdown/schema.js';
+import {getEnumValues, getReferencedTypes, getStructMembers, validateType, validateTypeModel} from './schemaMarkdown/schema.js';
 import {markdownElements} from './markdownModel/elements.js';
 import {markdownParse} from './markdownModel/parser.js';
 import {renderElements} from './elementModel/render.js';
@@ -577,7 +577,7 @@ If an application error occurs, the response is of the form:
         // Struct?
         } else if ('struct' in userType) {
             const {struct} = userType;
-            const members = 'members' in struct ? struct.members : null;
+            const members = 'members' in struct ? getStructMembers(types, struct) : null;
             const memberAttrElem = members !== null
                 ? Object.fromEntries(members.map((member) => [member.name, DocPage.attrElem(member)])) : null;
             const hasAttr = members !== null && Object.values(memberAttrElem).some((attrElem) => attrElem !== null);
@@ -608,7 +608,7 @@ If an application error occurs, the response is of the form:
         // Enumeration?
         } else if ('enum' in userType) {
             const enum_ = userType.enum;
-            const values = 'values' in enum_ ? enum_.values : null;
+            const values = 'values' in enum_ ? getEnumValues(types, enum_) : null;
             const valueDocElem = values !== null
                 ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.markdownElem(doc)])) : null;
             const hasDoc = values !== null && Object.values(valueDocElem).some((docElem) => docElem !== null);

@@ -5,43 +5,13 @@ export const typeModel =
     "types": {
         "Action": {
             "struct": {
+                "bases": [
+                    "UserBase"
+                ],
                 "doc": [
                     "A JSON web service API"
                 ],
                 "members": [
-                    {
-                        "doc": [
-                            "The user type name"
-                        ],
-                        "name": "name",
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation markdown text lines"
-                        ],
-                        "name": "doc",
-                        "optional": true,
-                        "type": {
-                            "array": {
-                                "type": {
-                                    "builtin": "string"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation group name"
-                        ],
-                        "name": "docGroup",
-                        "optional": true,
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
                     {
                         "attr": {
                             "lenGT": 0
@@ -401,24 +371,21 @@ export const typeModel =
         },
         "Enum": {
             "struct": {
+                "bases": [
+                    "UserBase"
+                ],
                 "doc": [
                     "An enumeration type"
                 ],
                 "members": [
                     {
+                        "attr": {
+                            "lenGT": 0
+                        },
                         "doc": [
-                            "The user type name"
+                            "The enum's base enumerations"
                         ],
-                        "name": "name",
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation markdown text lines"
-                        ],
-                        "name": "doc",
+                        "name": "bases",
                         "optional": true,
                         "type": {
                             "array": {
@@ -426,16 +393,6 @@ export const typeModel =
                                     "builtin": "string"
                                 }
                             }
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation group name"
-                        ],
-                        "name": "docGroup",
-                        "optional": true,
-                        "type": {
-                            "builtin": "string"
                         }
                     },
                     {
@@ -494,24 +451,21 @@ export const typeModel =
         },
         "Struct": {
             "struct": {
+                "bases": [
+                    "UserBase"
+                ],
                 "doc": [
                     "A struct type"
                 ],
                 "members": [
                     {
+                        "attr": {
+                            "lenGT": 0
+                        },
                         "doc": [
-                            "The user type name"
+                            "The struct's base classes"
                         ],
-                        "name": "name",
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation markdown text lines"
-                        ],
-                        "name": "doc",
+                        "name": "bases",
                         "optional": true,
                         "type": {
                             "array": {
@@ -523,12 +477,12 @@ export const typeModel =
                     },
                     {
                         "doc": [
-                            "The documentation group name"
+                            "If true, the struct is a union and exactly one of the optional members is present"
                         ],
-                        "name": "docGroup",
+                        "name": "union",
                         "optional": true,
                         "type": {
-                            "builtin": "string"
+                            "builtin": "bool"
                         }
                     },
                     {
@@ -546,16 +500,6 @@ export const typeModel =
                                     "user": "StructMember"
                                 }
                             }
-                        }
-                    },
-                    {
-                        "doc": [
-                            "If true, the struct is a union and exactly one of the optional members is present"
-                        ],
-                        "name": "union",
-                        "optional": true,
-                        "type": {
-                            "builtin": "bool"
                         }
                     }
                 ],
@@ -702,43 +646,13 @@ export const typeModel =
         },
         "Typedef": {
             "struct": {
+                "bases": [
+                    "UserBase"
+                ],
                 "doc": [
                     "A typedef type"
                 ],
                 "members": [
-                    {
-                        "doc": [
-                            "The user type name"
-                        ],
-                        "name": "name",
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation markdown text lines"
-                        ],
-                        "name": "doc",
-                        "optional": true,
-                        "type": {
-                            "array": {
-                                "type": {
-                                    "builtin": "string"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "doc": [
-                            "The documentation group name"
-                        ],
-                        "name": "docGroup",
-                        "optional": true,
-                        "type": {
-                            "builtin": "string"
-                        }
-                    },
                     {
                         "doc": [
                             "The typedef's type"

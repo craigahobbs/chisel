@@ -3,25 +3,6 @@
 
 
 /**
- * Get a type model's effective type (e.g. typedef int is an int)
- *
- * @param {Object} types: The map of user type name to user type model
- * @param {Object} type: The type model
- *
- * @ignore
- */
-function getEffectiveType(types, type) {
-    if ('user' in type && type.user in types) {
-        const userType = types[type.user];
-        if ('typedef' in userType) {
-            return getEffectiveType(types, userType.typedef.type);
-        }
-    }
-    return type;
-}
-
-
-/**
  * Helper function to validate user type dictionary
  *
  * @param {Object} types - The map of user type name to user type model
@@ -44,20 +25,41 @@ export function validateTypeModelTypesErrors(types) {
                 errors.push([typeName, null, `Inconsistent type name '${struct.name}' for '${typeName}'`]);
             }
 
-            // Has members?
-            if ('members' in struct) {
-                // Check member types and their attributes
-                for (const member of struct.members) {
-                    validateTypeModelType(errors, types, member.type, 'attr' in member ? member.attr : null, struct.name, member.name);
-                }
-
-                // Check for duplicate members
-                const memberCounts = countStrings(struct.members.map((member) => member.name));
-                for (const [memberName, memberCount] of Object.entries(memberCounts)) {
-                    if (memberCount > 1) {
-                        errors.push([typeName, memberName, `Redefinition of '${typeName}' member '${memberName}'`]);
+            // Check base types
+            if ('bases' in struct) {
+                const isUnion = 'union' in struct ? struct.union : false;
+                for (const baseName of struct.bases) {
+                    let invalidBase = true;
+                    const baseUserType = getEffectiveUserType(types, baseName);
+                    if (baseUserType !== null && 'struct' in baseUserType) {
+                        if (isUnion === ('union' in baseUserType.struct ? baseUserType.struct.union : false)) {
+                            invalidBase = false;
+                        }
+                    }
+                    if (invalidBase) {
+                        errors.push([typeName, null, `Invalid struct base type '${baseName}'`]);
                     }
                 }
+            }
+
+            // Iterate the members
+            try {
+                const members = {};
+                for (const member of getStructMembers(types, struct)) {
+                    const memberName = member.name;
+
+                    // Duplicate member?
+                    if (!(memberName in members)) {
+                        members[memberName] = true;
+                    } else {
+                        errors.push([typeName, memberName, `Redefinition of '${typeName}' member '${memberName}'`]);
+                    }
+
+                    // Check member type and attributes
+                    validateTypeModelType(errors, types, member.type, 'attr' in member ? member.attr : null, struct.name, member.name);
+                }
+            } catch (TypeError) {
+                errors.push([typeName, null, `Circular base type detected for type '${typeName}'`]);
             }
 
         // Enum?
@@ -69,14 +71,31 @@ export function validateTypeModelTypesErrors(types) {
                 errors.push([typeName, null, `Inconsistent type name '${enum_.name}' for '${typeName}'`]);
             }
 
-            // Check for duplicate enumeration values
-            if ('values' in enum_) {
-                const valueCounts = countStrings(enum_.values.map((value) => value.name));
-                for (const [valueName, valueCount] of Object.entries(valueCounts)) {
-                    if (valueCount > 1) {
+            // Check base types
+            if ('bases' in enum_) {
+                for (const baseName of enum_.bases) {
+                    const baseUserType = getEffectiveUserType(types, baseName);
+                    if (baseUserType === null || !('enum' in baseUserType)) {
+                        errors.push([typeName, null, `Invalid enum base type '${baseName}'`]);
+                    }
+                }
+            }
+
+            // Get the enumeration values
+            try {
+                const values = {};
+                for (const value of getEnumValues(types, enum_)) {
+                    const valueName = value.name;
+
+                    // Duplicate value?
+                    if (!(valueName in values)) {
+                        values[valueName] = true;
+                    } else {
                         errors.push([typeName, valueName, `Redefinition of '${typeName}' value '${valueName}'`]);
                     }
                 }
+            } catch (TypeError) {
+                errors.push([typeName, null, `Circular base type detected for type '${typeName}'`]);
             }
 
         // Typedef?
@@ -111,23 +130,26 @@ export function validateTypeModelTypesErrors(types) {
             }
 
             // Compute effective input member counts
-            const memberCounts = {};
             const memberSections = {};
             for (const section of ['path', 'query', 'input']) {
                 if (section in action) {
                     const sectionTypeName = action[section];
                     if (sectionTypeName in types) {
-                        const sectionType = getEffectiveType(types, {'user': sectionTypeName});
-                        if ('user' in sectionType && 'struct' in types[sectionType.user]) {
-                            const sectionStruct = types[sectionType.user].struct;
-                            if ('members' in sectionStruct) {
-                                countStrings(sectionStruct.members.map((member) => member.name), memberCounts);
-                                for (const member of sectionStruct.members) {
-                                    if (!(member.name in memberSections)) {
-                                        memberSections[member.name] = [];
+                        const sectionUserType = getEffectiveUserType(types, sectionTypeName);
+                        if (sectionUserType !== null && 'struct' in sectionUserType) {
+                            const sectionStruct = sectionUserType.struct;
+
+                            // Get the section struct's members and count member occurrences
+                            try {
+                                for (const member of getStructMembers(types, sectionStruct)) {
+                                    const memberName = member.name;
+                                    if (!(memberName in memberSections)) {
+                                        memberSections[memberName] = [];
                                     }
-                                    memberSections[member.name].push(sectionStruct.name);
+                                    memberSections[memberName].push(sectionStruct.name);
                                 }
+                            } catch (TypeError) {
+                                // Do nothing
                             }
                         }
                     }
@@ -135,9 +157,9 @@ export function validateTypeModelTypesErrors(types) {
             }
 
             // Check for duplicate input members
-            for (const [memberName, memberCount] of Object.entries(memberCounts)) {
-                if (memberCount > 1) {
-                    for (const sectionType of memberSections[memberName]) {
+            for (const [memberName, memberSectionNames] of Object.entries(memberSections)) {
+                if (memberSectionNames.length > 1) {
+                    for (const sectionType of memberSectionNames.sort()) {
                         errors.push([sectionType, memberName, `Redefinition of '${sectionType}' member '${memberName}'`]);
                     }
                 }
@@ -149,23 +171,60 @@ export function validateTypeModelTypesErrors(types) {
 }
 
 
-/**
- * Count string occurrences in an array of strings
- *
- * @param {string[]} strings - The array of strings
- * @returns {Object} The map of string to number of occurrences
- *
- * @ignore
- */
-function countStrings(strings, stringCounts = {}) {
-    for (const string of strings) {
-        if (string in stringCounts) {
-            stringCounts[string] += 1;
-        } else {
-            stringCounts[string] = 1;
+function getEffectiveType(types, type) {
+    if ('user' in type && type.user in types) {
+        const userType = types[type.user];
+        if ('typedef' in userType) {
+            return getEffectiveType(types, userType.typedef.type);
         }
     }
-    return stringCounts;
+    return type;
+}
+
+
+function getEffectiveUserType(types, userTypeName) {
+    const userType = userTypeName in types ? types[userTypeName] : null;
+    if (userType !== null && 'typedef' in userType) {
+        const typeEffective = getEffectiveType(types, userType.typedef.type);
+        if (!('user' in typeEffective)) {
+            return null;
+        }
+        return typeEffective.user in types ? types[typeEffective.user] : null;
+    }
+    return userType;
+}
+
+
+function getStructMembers(types, struct, visited = {}) {
+    return getTypeItems(types, struct, visited, 'struct', 'members');
+}
+
+
+function getEnumValues(types, enum_, visited = {}) {
+    return getTypeItems(types, enum_, visited, 'enum', 'values');
+}
+
+
+function getTypeItems(types, type, visited, defName, memberName) {
+    const items = [];
+    if ('bases' in type) {
+        for (const base of type.bases) {
+            const userType = getEffectiveUserType(types, base);
+            if (userType !== null && defName in userType) {
+                const userTypeName = userType[defName].name;
+                if (!(userTypeName in visited)) {
+                    visited[userTypeName] = true;
+                    items.push(...getTypeItems(types, userType[defName], visited, defName, memberName));
+                } else {
+                    throw new TypeError();
+                }
+            }
+        }
+    }
+    if (memberName in type) {
+        items.push(...type[memberName]);
+    }
+    return items;
 }
 
 
@@ -194,19 +253,6 @@ const typeToAllowedAttr = {
 };
 
 
-/**
- * Helper function for validateTypeModelTypes to validate a type model
- *
- * @param {Array<Array>} The list of type name, member name, and error message tuples
- * @param {Object} types - The map of user type name to user type model
- * @param {Object} type - The type model
- * @param {Object} attr - The type attribute model
- * @param {string} typeName - The containing type's name
- * @param {string} memberName - The contianing struct's member name
- * @returns {Array<Array>} The list of type name, member name, and error message tuples
- *
- * @ignore
- */
 function validateTypeModelType(errors, types, type, attr, typeName, memberName) {
     // Helper function to push an error tuple
     const error = (message) => {

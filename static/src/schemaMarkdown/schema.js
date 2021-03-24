@@ -18,16 +18,6 @@ export function getReferencedTypes(types, typeName, referencedTypes = {}) {
 }
 
 
-/**
- * Get a type's referenced type model
- *
- * @param {Object} types - The map of user type name to user type model
- * @param {string} type - The type model
- * @param {Object} [referencedTypes=null] - Optional map of referenced user type name to user type model
- * @returns {Object}
- *
- * @ignore
- */
 // eslint-disable-next-line no-unused-vars
 function getReferencedTypesHelper(types, type, referencedTypes) {
     // Array?
@@ -53,11 +43,24 @@ function getReferencedTypesHelper(types, type, referencedTypes) {
             referencedTypes[typeName] = userType;
 
             // Struct?
+            /* istanbul ignore else */
             if ('struct' in userType) {
                 const {struct} = userType;
-                if ('members' in struct) {
-                    for (const member of struct.members) {
-                        getReferencedTypesHelper(types, member.type, referencedTypes);
+                if ('bases' in struct) {
+                    for (const base of struct.bases) {
+                        getReferencedTypesHelper(types, {'user': base}, referencedTypes);
+                    }
+                }
+                for (const member of getStructMembers(types, struct)) {
+                    getReferencedTypesHelper(types, member.type, referencedTypes);
+                }
+
+            // Enum?
+            } else if ('enum' in userType) {
+                const enum_ = userType.enum;
+                if ('bases' in enum_) {
+                    for (const base of enum_.bases) {
+                        getReferencedTypesHelper(types, {'user': base}, referencedTypes);
                     }
                 }
 
@@ -116,18 +119,6 @@ const rDate = /^\d{4}-\d{2}-\d{2}$/;
 const rDatetime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 
-/**
- * Type-validate a value using a type model
- *
- * @param {Object} types - The map of user type name to user type model
- * @param {Object} type - The type object model
- * @param {Object} value - The value object to validate
- * @param {string} memberFqn - The fully-qualified member name
- * @returns {Object} The validated, transformed value object
- * @throws {Error} Validation error string
- *
- * @ignore
- */
 function validateTypeHelper(types, type, value, memberFqn) {
     let valueNew = value;
 
@@ -313,7 +304,7 @@ function validateTypeHelper(types, type, value, memberFqn) {
             const enum_ = userType.enum;
 
             // Not a valid enum value?
-            if (!('values' in enum_) || !enum_.values.some((enumValue) => value === enumValue.name)) {
+            if (!('values' in enum_) || !getEnumValues(types, enum_).some((enumValue) => value === enumValue.name)) {
                 throwMemberError(type, value, memberFqn);
             }
 
@@ -338,31 +329,29 @@ function validateTypeHelper(types, type, value, memberFqn) {
 
             // Validate the struct members
             const valueCopy = valueNew instanceof Map ? new Map() : {};
-            if ('members' in struct) {
-                for (const member of struct.members) {
-                    const memberName = member.name;
-                    const memberFqnMember = memberFqn !== null ? `${memberFqn}.${memberName}` : `${memberName}`;
-                    const memberOptional = 'optional' in member ? member.optional : false;
+            for (const member of getStructMembers(types, struct)) {
+                const memberName = member.name;
+                const memberFqnMember = memberFqn !== null ? `${memberFqn}.${memberName}` : `${memberName}`;
+                const memberOptional = 'optional' in member ? member.optional : false;
 
-                    // Missing non-optional member?
-                    if (!(valueNew instanceof Map ? valueNew.has(memberName) : memberName in valueNew)) {
-                        if (!memberOptional && !isUnion) {
-                            throw new Error(`Required member '${memberFqnMember}' missing`);
-                        }
+                // Missing non-optional member?
+                if (!(valueNew instanceof Map ? valueNew.has(memberName) : memberName in valueNew)) {
+                    if (!memberOptional && !isUnion) {
+                        throw new Error(`Required member '${memberFqnMember}' missing`);
+                    }
+                } else {
+                    // Validate the member value
+                    let memberValue = valueNew instanceof Map ? valueNew.get(memberName) : valueNew[memberName];
+                    if (memberValue !== null) {
+                        memberValue = validateTypeHelper(types, member.type, memberValue, memberFqnMember);
+                    }
+                    validateAttr(member.type, 'attr' in member ? member.attr : null, memberValue, memberFqnMember);
+
+                    // Copy the validated member
+                    if (valueCopy instanceof Map) {
+                        valueCopy.set(memberName, memberValue);
                     } else {
-                        // Validate the member value
-                        let memberValue = valueNew instanceof Map ? valueNew.get(memberName) : valueNew[memberName];
-                        if (memberValue !== null) {
-                            memberValue = validateTypeHelper(types, member.type, memberValue, memberFqnMember);
-                        }
-                        validateAttr(member.type, 'attr' in member ? member.attr : null, memberValue, memberFqnMember);
-
-                        // Copy the validated member
-                        if (valueCopy instanceof Map) {
-                            valueCopy.set(memberName, memberValue);
-                        } else {
-                            valueCopy[memberName] = memberValue;
-                        }
+                        valueCopy[memberName] = memberValue;
                     }
                 }
             }
@@ -371,13 +360,8 @@ function validateTypeHelper(types, type, value, memberFqn) {
             const valueCopyKeys = valueCopy instanceof Map ? Array.from(valueCopy.keys()) : Object.keys(valueCopy);
             const valueNewKeys = valueNew instanceof Map ? Array.from(valueNew.keys()) : Object.keys(valueNew);
             if (valueCopyKeys.length !== valueNewKeys.length) {
-                let unknownKey;
-                if ('members' in struct) {
-                    const memberSet = new Set(struct.members.map((member) => member.name));
-                    [unknownKey] = valueNewKeys.filter((key) => !memberSet.has(key));
-                } else {
-                    [unknownKey] = valueNewKeys;
-                }
+                const memberSet = new Set(getStructMembers(types, struct).map((member) => member.name));
+                const [unknownKey] = valueNewKeys.filter((key) => !memberSet.has(key));
                 const unknownFqn = memberFqn !== null ? `${memberFqn}.${unknownKey}` : `${unknownKey}`;
                 throw new Error(`Unknown member '${unknownFqn.slice(0, 100)}'`);
             }
@@ -391,17 +375,6 @@ function validateTypeHelper(types, type, value, memberFqn) {
 }
 
 
-/**
- * Throw a member validation error
- *
- * @param {Object} type - The type object model
- * @param {Object} value - The invalid value
- * @param {string} memberFqn - The fully-qualified member name
- * @param {string} [attr = null] - Optional attribute string
- * @throws {Error} Validation error string
- *
- * @ignore
- */
 function throwMemberError(type, value, memberFqn, attr = null) {
     const memberPart = memberFqn !== null ? ` for member '${memberFqn}'` : '';
     const typeName = 'builtin' in type ? type.builtin : ('array' in type ? 'array' : ('dict' in type ? 'dict' : type.user));
@@ -412,17 +385,6 @@ function throwMemberError(type, value, memberFqn, attr = null) {
 }
 
 
-/**
- * Attribute-validate a value using an attribute model
- *
- * @param {Object} type - The type object model
- * @param {?Object} attr - The attribute model
- * @param {Object} value - The value object to validate
- * @param {string} memberFqn - The fully-qualified member name
- * @throws {Error} Validation error string
- *
- * @ignore
- */
 function validateAttr(type, attr, value, memberFqn) {
     if (value === null) {
         const valueNullable = attr !== null && 'nullable' in attr && attr.nullable;
@@ -464,6 +426,56 @@ function validateAttr(type, attr, value, memberFqn) {
             throwMemberError(type, value, memberFqn, `len >= ${attr.lenGTE}`);
         }
     }
+}
+
+
+/**
+ * Get the struct's members (inherited members first)
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @param {Object} struct - The struct model
+ * @returns {Array<Object>} The array of struct member models
+ */
+export function getStructMembers(types, struct) {
+    const members = [];
+    if ('bases' in struct) {
+        for (const base of struct.bases) {
+            let baseUserType = types[base];
+            while ('typedef' in baseUserType) {
+                baseUserType = types[baseUserType.typedef.type.user];
+            }
+            members.push(...getStructMembers(types, baseUserType.struct));
+        }
+    }
+    if ('members' in struct) {
+        members.push(...struct.members);
+    }
+    return members;
+}
+
+
+/**
+ * Get the enum's values (inherited values first)
+ *
+ * @param {Object} types - The map of user type name to user type model
+ * @param {Object} enum_ - The enum model
+ * @returns {Array<Object>} The array of enum value models
+ */
+export function getEnumValues(types, enum_) {
+    const values = [];
+    if ('bases' in enum_) {
+        for (const base of enum_.bases) {
+            let baseUserType = types[base];
+            while ('typedef' in baseUserType) {
+                baseUserType = types[baseUserType.typedef.type.user];
+            }
+            values.push(...getEnumValues(types, baseUserType.enum));
+        }
+    }
+    if ('values' in enum_) {
+        values.push(...enum_.values);
+    }
+    return values;
 }
 
 

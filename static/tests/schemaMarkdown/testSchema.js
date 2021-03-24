@@ -98,12 +98,14 @@ test('getReferencedTypes', (t) => {
         }
     };
 
-    const referencedTypes = {...types};
-    delete referencedTypes.MyEnumNoref;
-    delete referencedTypes.MyStructNoref;
-    delete referencedTypes.MyTypedefNoref;
+    const expectedTypes = validateTypeModelTypes(types);
+    delete expectedTypes.MyEnumNoref;
+    delete expectedTypes.MyStructNoref;
+    delete expectedTypes.MyTypedefNoref;
 
-    t.deepEqual(getReferencedTypes(types, 'MyAction'), referencedTypes);
+    const referencedTypes = getReferencedTypes(types, 'MyAction');
+    validateTypeModelTypes(referencedTypes);
+    t.deepEqual(referencedTypes, expectedTypes);
 });
 
 
@@ -116,16 +118,18 @@ test('getReferencedTypes, empty action', (t) => {
         },
         'MyTypedefNoref': {
             'typedef': {
-                'name': 'MyTypedef',
+                'name': 'MyTypedefNoref',
                 'type': {'builtin': 'int'}
             }
         }
     };
 
-    const referencedTypes = {...types};
-    delete referencedTypes.MyTypedefNoref;
+    const expectedTypes = validateTypeModelTypes(types);
+    delete expectedTypes.MyTypedefNoref;
 
-    t.deepEqual(getReferencedTypes(types, 'MyAction'), referencedTypes);
+    const referencedTypes = getReferencedTypes(types, 'MyAction');
+    validateTypeModelTypes(referencedTypes);
+    t.deepEqual(referencedTypes, expectedTypes);
 });
 
 
@@ -146,9 +150,99 @@ test('getReferencedTypes, circular', (t) => {
                     {'name': 'a', 'type': {'user': 'MyStruct'}}
                 ]
             }
+        },
+        'MyTypedefNoref': {
+            'typedef': {
+                'name': 'MyTypedefNoref',
+                'type': {'builtin': 'int'}
+            }
         }
     };
-    t.deepEqual(getReferencedTypes(types, 'MyStruct'), types);
+
+    const expectedTypes = validateTypeModelTypes(types);
+    delete expectedTypes.MyTypedefNoref;
+
+    const referencedTypes = getReferencedTypes(types, 'MyStruct');
+    validateTypeModelTypes(referencedTypes);
+    t.deepEqual(referencedTypes, expectedTypes);
+});
+
+
+test('getReferencedTypes, struct base', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyStruct2'],
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyStruct2': {
+            'struct': {
+                'name': 'MyStruct2',
+                'members': [
+                    {'name': 'b', 'type': {'user': 'MyTypedef'}}
+                ]
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'builtin': 'int'}
+            }
+        },
+        'MyTypedefNoref': {
+            'typedef': {
+                'name': 'MyTypedefNoref',
+                'type': {'builtin': 'int'}
+            }
+        }
+    };
+
+    const expectedTypes = validateTypeModelTypes(types);
+    delete expectedTypes.MyTypedefNoref;
+
+    const referencedTypes = getReferencedTypes(types, 'MyStruct');
+    validateTypeModelTypes(referencedTypes);
+    t.deepEqual(referencedTypes, expectedTypes);
+});
+
+
+test('getReferencedTypes, enum base', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyEnum2'],
+                'values': [
+                    {'name': 'a'}
+                ]
+            }
+        },
+        'MyEnum2': {
+            'enum': {
+                'name': 'MyEnum2',
+                'values': [
+                    {'name': 'b'}
+                ]
+            }
+        },
+        'MyTypedefNoref': {
+            'typedef': {
+                'name': 'MyTypedefNoref',
+                'type': {'builtin': 'int'}
+            }
+        }
+    };
+
+    const expectedTypes = validateTypeModelTypes(types);
+    delete expectedTypes.MyTypedefNoref;
+
+    const referencedTypes = getReferencedTypes(types, 'MyEnum');
+    validateTypeModelTypes(referencedTypes);
+    t.deepEqual(referencedTypes, expectedTypes);
 });
 
 
@@ -877,6 +971,56 @@ test('validateType, enum', (t) => {
 });
 
 
+test('validateType, enum base', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyEnum2'],
+                'values': [
+                    {'name': 'a'}
+                ]
+            }
+        },
+        'MyEnum2': {
+            'enum': {
+                'name': 'MyEnum2',
+                'bases': ['MyTypedef']
+            }
+        },
+        'MyEnum3': {
+            'enum': {
+                'name': 'MyEnum3',
+                'values': [
+                    {'name': 'b'}
+                ]
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'MyEnum3'}
+            }
+        }
+    };
+    let errorMessage = null;
+
+    let obj = 'a';
+    t.is(validateType(types, 'MyEnum', obj), obj);
+
+    obj = 'b';
+    t.is(validateType(types, 'MyEnum', obj), obj);
+
+    obj = 'c';
+    try {
+        validateType(types, 'MyEnum', obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value \"c\" (type 'string'), expected type 'MyEnum'");
+});
+
+
 test('validateType, typedef', (t) => {
     const types = {
         'MyTypedef': {
@@ -1414,6 +1558,53 @@ test('validateType, struct union', (t) => {
 });
 
 
+test('validateType, struct base', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyStruct2'],
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyStruct2': {
+            'struct': {
+                'name': 'MyStruct2',
+                'bases': ['MyTypedef']
+            }
+        },
+        'MyStruct3': {
+            'struct': {
+                'name': 'MyStruct3',
+                'members': [
+                    {'name': 'b', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'MyStruct3'}
+            }
+        }
+    };
+    let errorMessage = null;
+
+    let obj = {'a': 7, 'b': 11};
+    t.deepEqual(validateType(types, 'MyStruct', obj), obj);
+
+    obj = {'a': 7};
+    try {
+        validateType(types, 'MyStruct', obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Required member 'b' missing");
+});
+
+
 test('validateType, struct optional', (t) => {
     const types = {
         'MyStruct': {
@@ -1858,7 +2049,19 @@ test('validateTypeModelTypes, type validation error', (t) => {
 });
 
 
-test('validateTypeModelTypes, inconsistent struct type name', (t) => {
+test('validateTypeModelTypes, struct empty', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct'
+            }
+        }
+    };
+    t.deepEqual(types, validateTypeModelTypes(types));
+});
+
+
+test('validateTypeModelTypes, struct inconsistent type name', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -1876,7 +2079,7 @@ test('validateTypeModelTypes, inconsistent struct type name', (t) => {
 });
 
 
-test('validateTypeModelTypes, unknown struct member type', (t) => {
+test('validateTypeModelTypes, struct unknown member type', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -1897,7 +2100,7 @@ test('validateTypeModelTypes, unknown struct member type', (t) => {
 });
 
 
-test('validateTypeModelTypes, duplicate struct member name', (t) => {
+test('validateTypeModelTypes, struct duplicate member name', (t) => {
     const types = {
         'MyStruct': {
             'struct': {
@@ -1920,7 +2123,265 @@ test('validateTypeModelTypes, duplicate struct member name', (t) => {
 });
 
 
-test('validateTypeModelTypes, empty enum', (t) => {
+test('validateTypeModelTypes, struct member attributes', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0, 'lte': 10}}
+                ]
+            }
+        }
+    };
+    t.deepEqual(types, validateTypeModelTypes(types));
+});
+
+
+test('validateTypeModelTypes, struct member attributes invalid', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0, 'lte': 10, 'lenGT': 0, 'lenLTE': 10}}
+                ]
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid attribute 'len <= 10' from 'MyStruct' member 'a'
+Invalid attribute 'len > 0' from 'MyStruct' member 'a'`);
+});
+
+
+test('validateTypeModelTypes, struct base', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyStruct2']
+            }
+        },
+        'MyStruct2': {
+            'struct': {
+                'name': 'MyStruct2',
+                'bases': ['MyTypedef']
+            }
+        },
+        'MyStruct3': {
+            'struct': {
+                'name': 'MyStruct3'
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'MyStruct3'}
+            }
+        }
+    };
+    t.deepEqual(validateTypeModelTypes(types), types);
+});
+
+
+test('validateTypeModelTypes, struct base unknown', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyStruct2']
+            }
+        },
+        'MyStruct2': {
+            'struct': {
+                'name': 'MyStruct2',
+                'bases': ['Unknown']
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'Unknown'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base typedef unknown', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyTypedef']
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'Unknown'}
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'MyTypedef'
+Unknown type 'Unknown' from 'MyTypedef'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base non-user', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyInt']
+            }
+        },
+        'MyInt': {
+            'typedef': {
+                'name': 'MyInt',
+                'type': {'builtin': 'int'}
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'MyInt'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base enum', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyEnum']
+            }
+        },
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum'
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'MyEnum'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base circular', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyStruct2']
+            }
+        },
+        'MyStruct2': {
+            'struct': {
+                'name': 'MyStruct2',
+                'bases': ['MyStruct']
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Circular base type detected for type 'MyStruct'
+Circular base type detected for type 'MyStruct2'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base union', (t) => {
+    const types = {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'bases': ['MyUnion']
+            }
+        },
+        'MyUnion': {
+            'struct': {
+                'name': 'MyUnion',
+                'union': true
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'MyUnion'\
+`);
+});
+
+
+test('validateTypeModelTypes, struct base union struct', (t) => {
+    const types = {
+        'MyUnion': {
+            'struct': {
+                'name': 'MyUnion',
+                'bases': ['MyStruct'],
+                'union': true
+            }
+        },
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct'
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid struct base type 'MyStruct'\
+`);
+});
+
+
+test('validateTypeModelTypes, enum empty', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -1932,7 +2393,7 @@ test('validateTypeModelTypes, empty enum', (t) => {
 });
 
 
-test('validateTypeModelTypes, inconsistent enum type name', (t) => {
+test('validateTypeModelTypes, enum inconsistent type name', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -1950,7 +2411,7 @@ test('validateTypeModelTypes, inconsistent enum type name', (t) => {
 });
 
 
-test('validateTypeModelTypes, duplicate enum value name', (t) => {
+test('validateTypeModelTypes,  enum duplicate value', (t) => {
     const types = {
         'MyEnum': {
             'enum': {
@@ -1970,6 +2431,144 @@ test('validateTypeModelTypes, duplicate enum value name', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, "Redefinition of 'MyEnum' value 'A'");
+});
+
+
+test('validateTypeModelTypes, enum base', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyEnum2']
+            }
+        },
+        'MyEnum2': {
+            'enum': {
+                'name': 'MyEnum2',
+                'bases': ['MyTypedef']
+            }
+        },
+        'MyEnum3': {
+            'enum': {
+                'name': 'MyEnum3'
+            }
+        },
+        'MyTypedef': {
+            'typedef': {
+                'name': 'MyTypedef',
+                'type': {'user': 'MyEnum3'}
+            }
+        }
+    };
+    t.deepEqual(validateTypeModelTypes(types), types);
+});
+
+
+test('validateTypeModelTypes, enum base unknown', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyEnum2']
+            }
+        },
+        'MyEnum2': {
+            'enum': {
+                'name': 'MyEnum2',
+                'bases': ['Unknown']
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid enum base type 'Unknown'\
+`);
+});
+
+
+test('validateTypeModelTypes, enum base non-user', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyInt']
+            }
+        },
+        'MyInt': {
+            'typedef': {
+                'name': 'MyInt',
+                'type': {'builtin': 'int'}
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid enum base type 'MyInt'\
+`);
+});
+
+
+test('validateTypeModelTypes, enum base struct', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyStruct']
+            }
+        },
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct'
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Invalid enum base type 'MyStruct'\
+`);
+});
+
+
+test('validateTypeModelTypes, enum base circular', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum',
+                'bases': ['MyEnum2']
+            }
+        },
+        'MyEnum2': {
+            'enum': {
+                'name': 'MyEnum2',
+                'bases': ['MyEnum']
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Circular base type detected for type 'MyEnum'
+Circular base type detected for type 'MyEnum2'\
+`);
 });
 
 
@@ -1999,7 +2598,7 @@ test('validateTypeModelTypes, array attributes', (t) => {
 });
 
 
-test('validateTypeModelTypes, array attributes error', (t) => {
+test('validateTypeModelTypes, array invalid attribute', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2018,7 +2617,7 @@ test('validateTypeModelTypes, array attributes error', (t) => {
 });
 
 
-test('validateTypeModelTypes, unknown array type', (t) => {
+test('validateTypeModelTypes, array unknown type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2136,7 +2735,7 @@ test('validateTypeModelTypes, dict invalid key attribute', (t) => {
 });
 
 
-test('validateTypeModelTypes, unknown dict type', (t) => {
+test('validateTypeModelTypes, dict unknown type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2155,7 +2754,7 @@ test('validateTypeModelTypes, unknown dict type', (t) => {
 });
 
 
-test('validateTypeModelTypes, unknown dict key type', (t) => {
+test('validateTypeModelTypes, dict unknown key type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2176,7 +2775,7 @@ Invalid dictionary key type from 'MyTypedef'`);
 });
 
 
-test('validateTypeModelTypes, invalid user type attribute', (t) => {
+test('validateTypeModelTypes, typedef invalid attribute', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2201,7 +2800,7 @@ test('validateTypeModelTypes, invalid user type attribute', (t) => {
 });
 
 
-test('validateTypeModelTypes, nullable user type', (t) => {
+test('validateTypeModelTypes, typedef nullable', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2240,7 +2839,7 @@ test('validateTypeModelTypes, typedef attributes', (t) => {
 });
 
 
-test('validateTypeModelTypes, inconsistent typedef type name', (t) => {
+test('validateTypeModelTypes, typedef inconsistent type name', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2259,7 +2858,7 @@ test('validateTypeModelTypes, inconsistent typedef type name', (t) => {
 });
 
 
-test('validateTypeModelTypes, unknown typedef type', (t) => {
+test('validateTypeModelTypes, typedef unknown type', (t) => {
     const types = {
         'MyTypedef': {
             'typedef': {
@@ -2302,7 +2901,7 @@ test('validateTypeModelTypes, action empty struct', (t) => {
 });
 
 
-test('validateTypeModelTypes, inconsistent action type name', (t) => {
+test('validateTypeModelTypes, action inconsistent type name', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -2363,7 +2962,7 @@ test('validateTypeModelTypes, action action', (t) => {
 });
 
 
-test('validateTypeModelTypes, duplicate action member name', (t) => {
+test('validateTypeModelTypes, action duplicate member', (t) => {
     const types = {
         'MyAction': {
             'action': {
@@ -2398,33 +2997,44 @@ test('validateTypeModelTypes, duplicate action member name', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, `\
-Redefinition of 'MyAction_query' member 'c'
-Redefinition of 'MyAction_input' member 'c'`);
+Redefinition of 'MyAction_input' member 'c'
+Redefinition of 'MyAction_query' member 'c'\
+`);
 });
 
 
-test('validateTypeModelTypes, member attributes', (t) => {
+test('validateTypeModelTypes, action duplicate member inherited', (t) => {
     const types = {
-        'MyStruct': {
+        'MyAction': {
+            'action': {
+                'name': 'MyAction',
+                'query': 'MyAction_query',
+                'input': 'MyAction_input'
+            }
+        },
+        'MyAction_query': {
             'struct': {
-                'name': 'MyStruct',
+                'name': 'MyAction_query',
                 'members': [
-                    {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0, 'lte': 10}}
+                    {'name': 'a', 'type': {'builtin': 'int'}},
+                    {'name': 'c', 'type': {'builtin': 'int'}}
                 ]
             }
-        }
-    };
-    t.deepEqual(types, validateTypeModelTypes(types));
-});
-
-
-test('validateTypeModelTypes, invalid member attributes', (t) => {
-    const types = {
-        'MyStruct': {
+        },
+        'MyAction_input': {
             'struct': {
-                'name': 'MyStruct',
+                'name': 'MyAction_input',
+                'bases': ['MyBase'],
                 'members': [
-                    {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0, 'lte': 10, 'lenGT': 0, 'lenLTE': 10}}
+                    {'name': 'b', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyBase': {
+            'struct': {
+                'name': 'MyBase',
+                'members': [
+                    {'name': 'c', 'type': {'builtin': 'int'}}
                 ]
             }
         }
@@ -2436,8 +3046,59 @@ test('validateTypeModelTypes, invalid member attributes', (t) => {
         errorMessage = message;
     }
     t.is(errorMessage, `\
-Invalid attribute 'len <= 10' from 'MyStruct' member 'a'
-Invalid attribute 'len > 0' from 'MyStruct' member 'a'`);
+Redefinition of 'MyAction_input' member 'c'
+Redefinition of 'MyAction_query' member 'c'\
+`);
+});
+
+
+test('validateTypeModelTypes, action duplicate member circular', (t) => {
+    const types = {
+        'MyAction': {
+            'action': {
+                'name': 'MyAction',
+                'query': 'MyAction_query',
+                'input': 'MyAction_input'
+            }
+        },
+        'MyAction_query': {
+            'struct': {
+                'name': 'MyAction_query',
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}},
+                    {'name': 'c', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyAction_input': {
+            'struct': {
+                'name': 'MyAction_input',
+                'bases': ['MyBase'],
+                'members': [
+                    {'name': 'b', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'MyBase': {
+            'struct': {
+                'name': 'MyBase',
+                'bases': ['MyAction_input'],
+                'members': [
+                    {'name': 'c', 'type': {'builtin': 'int'}}
+                ]
+            }
+        }
+    };
+    let errorMessage = null;
+    try {
+        validateTypeModelTypes(types);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, `\
+Circular base type detected for type 'MyAction_input'
+Circular base type detected for type 'MyBase'\
+`);
 });
 
 
