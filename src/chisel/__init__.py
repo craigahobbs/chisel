@@ -6,7 +6,7 @@ Chisel is a light-weight Python WSGI application framework with tools for buildi
 well-tested, schema-validated JSON web APIs.
 """
 
-__version__ = '0.9.114'
+__version__ = '0.9.115'
 
 from .action import \
     Action, \
