@@ -1,8 +1,11 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-import * as chisel from './chisel.js';
-import * as markdown from './markdown.js';
+import {decodeParams, encodeParams, href, nbsp} from './elementModel/util.js';
+import {getEnumValues, getReferencedTypes, getStructMembers, validateType, validateTypeModel} from './schemaMarkdown/schema.js';
+import {markdownElements} from './markdownModel/elements.js';
+import {markdownParse} from './markdownModel/parser.js';
+import {renderElements} from './elementModel/render.js';
 
 
 /**
@@ -104,7 +107,7 @@ export class DocPage {
         this.config = null;
 
         // Validate the hash parameters (may throw)
-        this.params = chisel.validateType(docPageTypes, 'DocPageParams', chisel.decodeParams(params));
+        this.params = validateType(docPageTypes, 'DocPageParams', decodeParams(params));
 
         // Set the default hash parameters
         this.config = {
@@ -134,7 +137,7 @@ export class DocPage {
         }
 
         // Clear the page
-        chisel.render(document.body);
+        renderElements(document.body);
 
         // Type model URL provided?
         const typeModelURL = this.config.url !== null ? this.config.url : this.defaultTypeModelURL;
@@ -148,7 +151,7 @@ export class DocPage {
                     return response.json();
                 }).
                 then((typeModel) => {
-                    this.renderTypeModelPage(chisel.validateTypeModel(typeModel));
+                    this.renderTypeModelPage(validateTypeModel(typeModel));
                 }).catch(({message}) => {
                     DocPage.renderErrorPage(message);
                 });
@@ -234,7 +237,7 @@ export class DocPage {
     */
     renderIndexPage(index) {
         document.title = index.title;
-        chisel.render(document.body, this.indexPage(index));
+        renderElements(document.body, this.indexPage(index));
     }
 
 
@@ -245,7 +248,7 @@ export class DocPage {
      */
     renderRequestPage(request) {
         document.title = request.name;
-        chisel.render(document.body, this.requestPage(request));
+        renderElements(document.body, this.requestPage(request));
     }
 
 
@@ -254,7 +257,7 @@ export class DocPage {
      */
     static renderErrorPage(message) {
         document.title = 'Error';
-        chisel.render(document.body, DocPage.errorPage(message));
+        renderElements(document.body, DocPage.errorPage(message));
     }
 
 
@@ -292,7 +295,7 @@ export class DocPage {
                     'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': index.groups[group].sort().map(
                         (name) => ({
                             'html': 'li',
-                            'elem': {'html': 'a', 'attr': {'href': chisel.href({...this.params, 'name': name})}, 'elem': {'text': name}}
+                            'elem': {'html': 'a', 'attr': {'href': href({...this.params, 'name': name})}, 'elem': {'text': name}}
                         })
                     )}}
                 }
@@ -311,7 +314,7 @@ export class DocPage {
         // Compute the referenced types
         const userType = 'types' in request ? request.types[request.name] : null;
         const action = userType !== null && 'action' in userType ? userType.action : null;
-        const referencedTypes = userType !== null ? chisel.getReferencedTypes(request.types, request.name) : [];
+        const referencedTypes = userType !== null ? getReferencedTypes(request.types, request.name) : [];
         let typesFilter;
         if (action !== null) {
             typesFilter = [request.name, action.path, action.query, action.input, action.output, action.errors];
@@ -329,7 +332,7 @@ export class DocPage {
                 'html': 'p',
                 'elem': {
                     'html': 'a',
-                    'attr': {'href': chisel.href(indexParams)},
+                    'attr': {'href': href(indexParams)},
                     'elem': {'text': 'Back to documentation index'}
                 }
             },
@@ -359,7 +362,7 @@ export class DocPage {
         if (text === null) {
             return null;
         }
-        return markdown.markdownElements(markdown.parseMarkdown(text));
+        return markdownElements(markdownParse(text));
     }
 
 
@@ -370,7 +373,7 @@ export class DocPage {
      * @return {string}
      */
     typeHref(typeName) {
-        return `${chisel.encodeParams(this.params)}&type_${typeName}`;
+        return `${encodeParams(this.params)}&type_${typeName}`;
     }
 
 
@@ -382,13 +385,13 @@ export class DocPage {
      */
     typeElem(type) {
         if ('array' in type) {
-            return [this.typeElem(type.array.type), {'text': `${chisel.nbsp}[]`}];
+            return [this.typeElem(type.array.type), {'text': `${nbsp}[]`}];
         } else if ('dict' in type) {
             return [
                 !('keyType' in type.dict) || 'builtin' in type.dict ? null
-                    : [this.typeElem(type.dict.keyType), {'text': `${chisel.nbsp}:${chisel.nbsp}`}],
+                    : [this.typeElem(type.dict.keyType), {'text': `${nbsp}:${nbsp}`}],
                 this.typeElem(type.dict.type),
-                {'text': `${chisel.nbsp}{}`}
+                {'text': `${nbsp}{}`}
             ];
         } else if ('user' in type) {
             return {'html': 'a', 'attr': {'href': `#${this.typeHref(type.user)}`}, 'elem': {'text': type.user}};
@@ -450,7 +453,7 @@ export class DocPage {
         return !parts.length ? null : {'html': 'ul', 'attr': {'class': 'chisel-attr-list'}, 'elem': parts.map(
             (part) => ({
                 'html': 'li',
-                'elem': {'text': part.op ? `${part.lhs}${chisel.nbsp}${part.op}${chisel.nbsp}${part.rhs}` : part.lhs}
+                'elem': {'text': part.op ? `${part.lhs}${nbsp}${part.op}${nbsp}${part.rhs}` : part.lhs}
             })
         )};
     }
@@ -574,7 +577,7 @@ If an application error occurs, the response is of the form:
         // Struct?
         } else if ('struct' in userType) {
             const {struct} = userType;
-            const members = 'members' in struct ? struct.members : null;
+            const members = 'members' in struct ? getStructMembers(types, struct) : null;
             const memberAttrElem = members !== null
                 ? Object.fromEntries(members.map((member) => [member.name, DocPage.attrElem(member)])) : null;
             const hasAttr = members !== null && Object.values(memberAttrElem).some((attrElem) => attrElem !== null);
@@ -605,7 +608,7 @@ If an application error occurs, the response is of the form:
         // Enumeration?
         } else if ('enum' in userType) {
             const enum_ = userType.enum;
-            const values = 'values' in enum_ ? enum_.values : null;
+            const values = 'values' in enum_ ? getEnumValues(types, enum_) : null;
             const valueDocElem = values !== null
                 ? Object.fromEntries(values.map(({name, doc}) => [name, DocPage.markdownElem(doc)])) : null;
             const hasDoc = values !== null && Object.values(valueDocElem).some((docElem) => docElem !== null);

@@ -8,14 +8,19 @@
       "redirect_doc"
     ],
     "Statics": [
-      "static_chisel_js",
       "static_doc_css",
       "static_doc_html",
       "static_doc_js",
       "static_doc_svg",
-      "static_markdownModel_js",
-      "static_markdown_js",
-      "static_typeModel_js"
+      "static_elementModel_model_js",
+      "static_elementModel_render_js",
+      "static_elementModel_util_js",
+      "static_markdownModel_elements_js",
+      "static_markdownModel_markdownModel_js",
+      "static_markdownModel_parser_js",
+      "static_schemaMarkdown_schemaUtil_js",
+      "static_schemaMarkdown_schema_js",
+      "static_schemaMarkdown_typeModel_js"
     ]
   },
   "title": "localhost:80"
