@@ -5,7 +5,7 @@ import {SchemaMarkdownParser} from './parser.js';
 
 
 // The Schema Markdown type model defined as Schema Markdown
-export const typeModelSmd = `\
+const typeModelSmd = `\
 # A type model with a title
 struct TypeModel
 

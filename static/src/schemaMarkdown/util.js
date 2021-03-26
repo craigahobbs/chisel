@@ -79,16 +79,7 @@ export function encodeParams(obj) {
 }
 
 
-/**
- * Helper function for encodeParams
- *
- * @param {Object} obj - The parameters object
- * @param {string} memberFqn - The fully qualified member name. If null, this is a top-level object.
- * @param {string} keyValues - The list of encoded key/value strings
- * @returns {string[]}
- *
- * @ignore
- */
+// Helper function for encodeParams
 function encodeParamsHelper(obj, memberFqn = null, keyValues = []) {
     const objType = typeof obj;
     if (Array.isArray(obj)) {
