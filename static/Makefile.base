@@ -85,7 +85,7 @@ doc: _doc
 
 .PHONY: _doc
 _doc: build/npm.build
-	$(NODE_DOCKER) npx jsdoc $(JSDOC_ARGS) --pedantic -d build/doc src
+	$(NODE_DOCKER) npx jsdoc --recurse --pedantic $(JSDOC_ARGS) -d build/doc src
 
 .PHONY: clean
 clean: _clean

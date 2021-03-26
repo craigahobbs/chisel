@@ -971,6 +971,26 @@ test('validateType, enum', (t) => {
 });
 
 
+test('validateType, enum empty', (t) => {
+    const types = {
+        'MyEnum': {
+            'enum': {
+                'name': 'MyEnum'
+            }
+        }
+    };
+    let errorMessage = null;
+
+    const obj = 'a';
+    try {
+        validateType(types, 'MyEnum', obj);
+    } catch ({message}) {
+        errorMessage = message;
+    }
+    t.is(errorMessage, "Invalid value \"a\" (type 'string'), expected type 'MyEnum'");
+});
+
+
 test('validateType, enum base', (t) => {
     const types = {
         'MyEnum': {
