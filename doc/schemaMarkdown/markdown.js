@@ -1,6 +1,269 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
+import {getBaseURL, isAbsoluteURL} from './util.js';
+import {SchemaMarkdownParser} from './parser.js';
+import {validateType} from './schema.js';
+
+
+// The Mardown model defined as Schema Markdown
+const markdownModelSmd = `\
+# Markdown document struct
+struct Markdown
+
+    # The markdown document's parts
+    MarkdownPart[len < 1000] parts
+
+
+# Markdown document part struct
+union MarkdownPart
+
+    # A paragraph
+    Paragraph paragraph
+
+    # A horizontal rule (value is ignored)
+    object(nullable) hr
+
+    # A list
+    List list
+
+    # A code block
+    CodeBlock codeBlock
+
+
+# Paragraph markdown part struct
+struct Paragraph
+
+    # The paragraph style
+    optional ParagraphStyle style
+
+    # The paragraph span array
+    Span[len > 0, len < 1000] spans
+
+
+# Paragraph style enum
+enum ParagraphStyle
+    h1
+    h2
+    h3
+    h4
+    h5
+    h6
+
+
+# Paragraph span struct
+union Span
+
+    # Text span
+    string(len > 0, len < 1000) text
+
+    # Line break (value is ignored)
+    object(nullable) br
+
+    # Style span
+    StyleSpan style
+
+    # Link span
+    LinkSpan link
+
+    # Image span
+    ImageSpan image
+
+
+# Style span struct
+struct StyleSpan
+
+    # The span's character style
+    CharacterStyle style
+
+    # The contained spans
+    Span[len > 0, len < 1000] spans
+
+
+# Character style enum
+enum CharacterStyle
+    bold
+    italic
+
+
+# Link span struct
+struct LinkSpan
+
+    # The link's URL
+    string(len > 0, len < 1000) href
+
+    # The image's title
+    optional string(len > 0, len < 1000) title
+
+    # The contained spans
+    Span[len > 0, len < 1000] spans
+
+
+# Image span struct
+struct ImageSpan
+
+    # The image URL
+    string(len > 0, len < 1000) src
+
+    # The image's alternate text
+    string(len > 0, len < 1000) alt
+
+    # The image's title
+    optional string(len > 0, len < 1000) title
+
+
+# List markdown part struct
+struct List
+
+    # The list is numbered and this is starting number
+    optional int(>= 0) start
+
+    # The list's items
+    ListItem[len > 0, len < 1000] items
+
+
+# List item struct
+struct ListItem
+
+    # The markdown document's parts
+    MarkdownPart[len > 0, len < 1000] parts
+
+
+# Code block markdown part struct
+struct CodeBlock
+
+    # The code block's language
+    optional string(len > 0, len < 100) language
+
+    # The code block's text lines
+    string[len < 1000] lines
+`;
+
+
+// The Markdown model
+export const markdownModel = {
+    'title': 'The Markdown Model',
+    'types': (new SchemaMarkdownParser(markdownModelSmd)).types
+};
+
+
+/**
+ * Generate an element model from a markdown model
+ *
+ * @param {Object} markdown - The markdown model
+ * @param {?string} url - The markdown file's URL
+ * @param {?Object} codeBlockLanguages - Optional map of language to code block render function with signature (lines) => elements.
+ * @returns {Object[]}
+ */
+export function markdownElements(markdown, url = null, codeBlockLanguages = null) {
+    // Parse the markdown
+    const validatedMarkdown = validateType(markdownModel.types, 'Markdown', markdown);
+
+    // Generate an element model from the markdown model parts
+    return markdownPartElements(validatedMarkdown.parts, url, codeBlockLanguages);
+}
+
+
+// Helper function to generate an element model from a markdown part model array
+function markdownPartElements(parts, url, codeBlockLanguages) {
+    const partElements = [];
+    for (const markdownPart of parts) {
+        // Paragraph?
+        /* istanbul ignore else */
+        if ('paragraph' in markdownPart) {
+            const {paragraph} = markdownPart;
+            partElements.push({
+                'html': 'style' in paragraph ? paragraph.style : 'p',
+                'elem': paragraphSpanElements(paragraph.spans, url)
+            });
+
+        // Horizontal rule?
+        } else if ('hr' in markdownPart) {
+            partElements.push({'html': 'hr'});
+
+        // List?
+        } else if ('list' in markdownPart) {
+            const {list} = markdownPart;
+            partElements.push({
+                'html': 'start' in list ? 'ol' : 'ul',
+                'attr': 'start' in list && list.start > 1 ? {'start': `${list.start}`} : null,
+                'elem': list.items.map((item) => ({
+                    'html': 'li',
+                    'elem': markdownPartElements(item.parts, url, codeBlockLanguages)
+                }))
+            });
+
+        // Code block?
+        } else if ('codeBlock' in markdownPart) {
+            const {codeBlock} = markdownPart;
+
+            // Render the code block elements
+            if (codeBlockLanguages !== null && 'language' in codeBlock && codeBlock.language in codeBlockLanguages) {
+                partElements.push(codeBlockLanguages[codeBlock.language](codeBlock));
+            } else {
+                partElements.push(
+                    {'html': 'pre', 'elem': {'html': 'code', 'elem': codeBlock.lines.map((line) => ({'text': `${line}\n`}))}}
+                );
+            }
+        }
+    }
+
+    return partElements;
+}
+
+
+// Helper function to generate an element model from a markdown span model array
+function paragraphSpanElements(spans, url) {
+    const spanElements = [];
+    for (const span of spans) {
+        // Text span?
+        /* istanbul ignore else */
+        if ('text' in span) {
+            spanElements.push({'text': span.text});
+
+        // Line break?
+        } else if ('br' in span) {
+            spanElements.push({'html': 'br'});
+
+        // Style span?
+        } else if ('style' in span) {
+            const {style} = span;
+            spanElements.push({
+                'html': style.style === 'italic' ? 'em' : 'strong',
+                'elem': paragraphSpanElements(style.spans, url)
+            });
+
+        // Link span?
+        } else if ('link' in span) {
+            const {link} = span;
+            const href = url !== null && !isAbsoluteURL(link.href) ? `${getBaseURL(url)}${link.href}` : link.href;
+            const linkElements = {
+                'html': 'a',
+                'attr': {'href': href},
+                'elem': paragraphSpanElements(link.spans, url)
+            };
+            if ('title' in link) {
+                linkElements.attr.title = link.title;
+            }
+            spanElements.push(linkElements);
+
+        // Image span?
+        } else if ('image' in span) {
+            const {image} = span;
+            const src = url !== null && !isAbsoluteURL(image.src) ? `${getBaseURL(url)}${image.src}` : image.src;
+            const imageElement = {
+                'html': 'img',
+                'attr': {'src': src, 'alt': image.alt}
+            };
+            if ('title' in image) {
+                imageElement.attr.title = image.title;
+            }
+            spanElements.push(imageElement);
+        }
+    }
+    return spanElements;
+}
+
 
 // Markdown regex
 const rIndent = /^(?<indent>\s*)(?<notIndent>.*)$/;
@@ -221,23 +484,13 @@ export function markdownParse(markdown) {
 }
 
 
-/**
- * Helper function to remove escapes from a string
- *
- * @param {string} text - The text to remove escapes from
- * @returns {string}
- */
+// Helper function to remove escapes from a string
 function removeEscapes(text) {
     return text.replace(rEscape, '$1');
 }
 
 
-/**
- * Helper function to translate markdown paragraph text to a markdown paragraph span model array
- *
- * @param {string} text - The markdown text
- * @returns {Object[]} The markdown paragraph span array model
- */
+// Helper function to translate markdown paragraph text to a markdown paragraph span model array
 function paragraphSpans(text) {
     const spans = [];
 
