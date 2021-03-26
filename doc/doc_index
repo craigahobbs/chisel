@@ -18,6 +18,7 @@
       "static_markdownModel_elements_js",
       "static_markdownModel_markdownModel_js",
       "static_markdownModel_parser_js",
+      "static_schemaMarkdown_parser_js",
       "static_schemaMarkdown_schemaUtil_js",
       "static_schemaMarkdown_schema_js",
       "static_schemaMarkdown_typeModel_js"

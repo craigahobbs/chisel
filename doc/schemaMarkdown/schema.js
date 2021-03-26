@@ -304,7 +304,7 @@ function validateTypeHelper(types, type, value, memberFqn) {
             const enum_ = userType.enum;
 
             // Not a valid enum value?
-            if (!('values' in enum_) || !getEnumValues(types, enum_).some((enumValue) => value === enumValue.name)) {
+            if (!getEnumValues(types, enum_).some((enumValue) => value === enumValue.name)) {
                 throwMemberError(type, value, memberFqn);
             }
 
@@ -437,19 +437,26 @@ function validateAttr(type, attr, value, memberFqn) {
  * @returns {Array<Object>} The array of struct member models
  */
 export function getStructMembers(types, struct) {
-    const members = [];
-    if ('bases' in struct) {
-        for (const base of struct.bases) {
-            let baseUserType = types[base];
-            while ('typedef' in baseUserType) {
-                baseUserType = types[baseUserType.typedef.type.user];
-            }
-            members.push(...getStructMembers(types, baseUserType.struct));
-        }
+    // No base structs?
+    if (!('bases' in struct)) {
+        return 'members' in struct ? struct.members : [];
     }
+
+    // Get base struct members
+    const members = [];
+    for (const base of struct.bases) {
+        let baseUserType = types[base];
+        while ('typedef' in baseUserType) {
+            baseUserType = types[baseUserType.typedef.type.user];
+        }
+        members.push(...getStructMembers(types, baseUserType.struct));
+    }
+
+    // Add struct members
     if ('members' in struct) {
         members.push(...struct.members);
     }
+
     return members;
 }
 
@@ -462,19 +469,26 @@ export function getStructMembers(types, struct) {
  * @returns {Array<Object>} The array of enum value models
  */
 export function getEnumValues(types, enum_) {
-    const values = [];
-    if ('bases' in enum_) {
-        for (const base of enum_.bases) {
-            let baseUserType = types[base];
-            while ('typedef' in baseUserType) {
-                baseUserType = types[baseUserType.typedef.type.user];
-            }
-            values.push(...getEnumValues(types, baseUserType.enum));
-        }
+    // No base enums?
+    if (!('bases' in enum_)) {
+        return 'values' in enum_ ? enum_.values : [];
     }
+
+    // Get base enum values
+    const values = [];
+    for (const base of enum_.bases) {
+        let baseUserType = types[base];
+        while ('typedef' in baseUserType) {
+            baseUserType = types[baseUserType.typedef.type.user];
+        }
+        values.push(...getEnumValues(types, baseUserType.enum));
+    }
+
+    // Add enum values
     if ('values' in enum_) {
         values.push(...enum_.values);
     }
+
     return values;
 }
 
