@@ -1,10 +1,10 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-import {decodeParams, encodeParams, href, nbsp} from './schemaMarkdown/util.js';
-import {getEnumValues, getReferencedTypes, getStructMembers, validateType, validateTypeModel} from './schemaMarkdown/schema.js';
-import {markdownElements, markdownParse} from './schemaMarkdown/markdown.js';
-import {renderElements} from './schemaMarkdown/elements.js';
+import {decodeParams, encodeParams, href, nbsp} from './schema-markdown/util.js';
+import {getEnumValues, getReferencedTypes, getStructMembers, validateType, validateTypeModel} from './schema-markdown/schema.js';
+import {markdownElements, markdownParse} from './schema-markdown/markdown.js';
+import {renderElements} from './schema-markdown/elements.js';
 
 
 /**

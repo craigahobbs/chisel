@@ -3,10 +3,10 @@
 
 /* eslint-disable id-length */
 
-import {markdownElements, markdownModel, markdownParse} from '../../src/schemaMarkdown/markdown.js';
+import {markdownElements, markdownModel, markdownParse} from '../../src/schema-markdown/markdown.js';
 import test from 'ava';
-import {validateElements} from '../../src/schemaMarkdown/elements.js';
-import {validateType} from '../../src/schemaMarkdown/schema.js';
+import {validateElements} from '../../src/schema-markdown/elements.js';
+import {validateType} from '../../src/schema-markdown/schema.js';
 
 
 test('markdownElements', (t) => {

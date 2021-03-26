@@ -41,20 +41,20 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
             yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
             yield StaticRequest('chisel', 'static/doc.svg', urls=(('GET', root_path + '/doc.svg'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/elements.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/elements.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/markdown.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/markdown.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/parser.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/parser.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/schema.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/schema.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/schemaUtil.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/schemaUtil.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/typeModel.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/typeModel.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schemaMarkdown/util.js',
-                            urls=(('GET', root_path + '/schemaMarkdown/util.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/elements.js',
+                            urls=(('GET', root_path + '/schema-markdown/elements.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/markdown.js',
+                            urls=(('GET', root_path + '/schema-markdown/markdown.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/parser.js',
+                            urls=(('GET', root_path + '/schema-markdown/parser.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/schema.js',
+                            urls=(('GET', root_path + '/schema-markdown/schema.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/schemaUtil.js',
+                            urls=(('GET', root_path + '/schema-markdown/schemaUtil.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/typeModel.js',
+                            urls=(('GET', root_path + '/schema-markdown/typeModel.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/util.js',
+                            urls=(('GET', root_path + '/schema-markdown/util.js'),), cache=cache)
 
 
 class DocIndex(Action):

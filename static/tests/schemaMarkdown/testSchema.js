@@ -3,9 +3,9 @@
 
 /* eslint-disable id-length */
 
-import {getReferencedTypes, validateType, validateTypeModel, validateTypeModelTypes} from '../../src/schemaMarkdown/schema.js';
+import {getReferencedTypes, validateType, validateTypeModel, validateTypeModelTypes} from '../../src/schema-markdown/schema.js';
 import test from 'ava';
-import {typeModel} from '../../src/schemaMarkdown/typeModel.js';
+import {typeModel} from '../../src/schema-markdown/typeModel.js';
 
 
 //

@@ -50,32 +50,32 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_elements_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/elements.js'),)
+                    'name': 'static_schema_markdown_elements_js',
+                    'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_markdown_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/markdown.js'),)
+                    'name': 'static_schema_markdown_markdown_js',
+                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_parser_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/parser.js'),)
+                    'name': 'static_schema_markdown_parser_js',
+                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schema_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schema.js'),)
+                    'name': 'static_schema_markdown_schema_js',
+                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schemaUtil.js'),)
+                    'name': 'static_schema_markdown_schemaUtil_js',
+                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_typeModel_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/typeModel.js'),)
+                    'name': 'static_schema_markdown_typeModel_js',
+                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_util_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/util.js'),)
+                    'name': 'static_schema_markdown_util_js',
+                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -111,32 +111,32 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_elements_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/elements.js'),)
+                    'name': 'static_schema_markdown_elements_js',
+                    'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_markdown_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/markdown.js'),)
+                    'name': 'static_schema_markdown_markdown_js',
+                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_parser_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/parser.js'),)
+                    'name': 'static_schema_markdown_parser_js',
+                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schema_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schema.js'),)
+                    'name': 'static_schema_markdown_schema_js',
+                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schemaUtil.js'),)
+                    'name': 'static_schema_markdown_schemaUtil_js',
+                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_typeModel_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/typeModel.js'),)
+                    'name': 'static_schema_markdown_typeModel_js',
+                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_util_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/util.js'),)
+                    'name': 'static_schema_markdown_util_js',
+                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -193,32 +193,32 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/doc.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_elements_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/elements.js'),)
+                    'name': 'static_schema_markdown_elements_js',
+                    'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_markdown_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/markdown.js'),)
+                    'name': 'static_schema_markdown_markdown_js',
+                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_parser_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/parser.js'),)
+                    'name': 'static_schema_markdown_parser_js',
+                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schema_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schema.js'),)
+                    'name': 'static_schema_markdown_schema_js',
+                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/schemaUtil.js'),)
+                    'name': 'static_schema_markdown_schemaUtil_js',
+                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_typeModel_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/typeModel.js'),)
+                    'name': 'static_schema_markdown_typeModel_js',
+                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 },
                 {
-                    'name': 'static_schemaMarkdown_util_js',
-                    'urls': (('GET', '/doc/schemaMarkdown/util.js'),)
+                    'name': 'static_schema_markdown_util_js',
+                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -259,13 +259,13 @@ class TestIndex(TestCase):
                     'static_doc_html',
                     'static_doc_js',
                     'static_doc_svg',
-                    'static_schemaMarkdown_elements_js',
-                    'static_schemaMarkdown_markdown_js',
-                    'static_schemaMarkdown_parser_js',
-                    'static_schemaMarkdown_schemaUtil_js',
-                    'static_schemaMarkdown_schema_js',
-                    'static_schemaMarkdown_typeModel_js',
-                    'static_schemaMarkdown_util_js'
+                    'static_schema_markdown_elements_js',
+                    'static_schema_markdown_markdown_js',
+                    'static_schema_markdown_parser_js',
+                    'static_schema_markdown_schemaUtil_js',
+                    'static_schema_markdown_schema_js',
+                    'static_schema_markdown_typeModel_js',
+                    'static_schema_markdown_util_js'
                 ]
             }
         })

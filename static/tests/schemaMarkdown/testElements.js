@@ -3,7 +3,7 @@
 
 /* eslint-disable id-length */
 
-import {renderElements, validateElements} from '../../src/schemaMarkdown/elements.js';
+import {renderElements, validateElements} from '../../src/schema-markdown/elements.js';
 import browserEnv from 'browser-env';
 import test from 'ava';
 

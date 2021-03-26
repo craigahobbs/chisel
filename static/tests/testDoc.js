@@ -6,7 +6,7 @@
 
 import {DocPage} from '../src/doc.js';
 import browserEnv from 'browser-env';
-import {nbsp} from '../src/schemaMarkdown/util.js';
+import {nbsp} from '../src/schema-markdown/util.js';
 import test from 'ava';
 
 
