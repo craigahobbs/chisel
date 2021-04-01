@@ -10,7 +10,7 @@ const typeModelSmd = `\
 struct TypeModel
 
     # The type model's title
-    optional string title
+    string title
 
     # The type model
     Types types
@@ -253,6 +253,6 @@ struct ActionURL
 
 // The Schema Markdown type model
 export const typeModel = {
-    'title': 'Schema Markdown Type Model',
+    'title': 'The Schema Markdown Type Model',
     'types': (new SchemaMarkdownParser(typeModelSmd)).types
 };

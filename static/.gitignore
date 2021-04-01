@@ -1,3 +1,7 @@
-build/
-node_modules/
-package-lock.json
+/build/
+/node_modules/
+/Makefile.base
+/.eslintrc.js
+/.npmrc
+/package-lock.json
+/package.json

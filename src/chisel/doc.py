@@ -41,6 +41,8 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
             yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
             yield StaticRequest('chisel', 'static/doc.svg', urls=(('GET', root_path + '/doc.svg'),), cache=cache)
         yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/doc.js',
+                            urls=(('GET', root_path + '/schema-markdown/doc.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/elements.js',
                             urls=(('GET', root_path + '/schema-markdown/elements.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/markdown.js',
