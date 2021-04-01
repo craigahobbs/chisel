@@ -8,10 +8,10 @@ $$(info Downloading $(notdir $(1)))
 _WGET := $$(shell if which wget; then wget -q $(1); else curl -Os $(1); fi)
 endif
 endef
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/chisel/master/static/Makefile.base))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/chisel/master/static/package.json))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/chisel/master/static/.eslintrc.js))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/chisel/master/static/.npmrc))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/Makefile.base))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/package.json))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/.eslintrc.js))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/.npmrc))
 
 include Makefile.base
 
