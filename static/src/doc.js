@@ -155,7 +155,7 @@ export class DocPage {
                 {'html': 'h2', 'elem': {'text': group}},
                 {
                     'html': 'ul',
-                    'attr': {'class': 'chisel-index-list'},
+                    'attr': {'class': 'smd-index-list'},
                     'elem': {'html': 'li', 'elem': {'html': 'ul', 'elem': index.groups[group].sort().map(
                         (name) => ({
                             'html': 'li',
