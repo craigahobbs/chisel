@@ -45,6 +45,8 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
                             urls=(('GET', root_path + '/schema-markdown/doc.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/elements.js',
                             urls=(('GET', root_path + '/schema-markdown/elements.js'),), cache=cache)
+        yield StaticRequest('chisel', 'static/schema-markdown/encode.js',
+                            urls=(('GET', root_path + '/schema-markdown/encode.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/markdown.js',
                             urls=(('GET', root_path + '/schema-markdown/markdown.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/parser.js',
@@ -55,8 +57,6 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
                             urls=(('GET', root_path + '/schema-markdown/schemaUtil.js'),), cache=cache)
         yield StaticRequest('chisel', 'static/schema-markdown/typeModel.js',
                             urls=(('GET', root_path + '/schema-markdown/typeModel.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/util.js',
-                            urls=(('GET', root_path + '/schema-markdown/util.js'),), cache=cache)
 
 
 class DocIndex(Action):

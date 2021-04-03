@@ -10,11 +10,10 @@ from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
-from schema_markdown import SchemaMarkdownParser, ValidationError, validate_type
+from schema_markdown import SchemaMarkdownParser, ValidationError, decode_query_string, validate_type
 
 from .app import Context
 from .request import Request
-from .util import decode_query_string
 
 
 def action(action_callback=None, **kwargs):

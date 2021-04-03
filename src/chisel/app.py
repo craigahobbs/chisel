@@ -12,7 +12,7 @@ import logging
 import re
 from urllib.parse import quote, unquote
 
-from .util import encode_query_string, JSONEncoder
+from schema_markdown import encode_query_string, JSONEncoder
 
 
 # Regular expression for matching URL arguments
@@ -478,7 +478,6 @@ class Context:
             url = ''
         else:
             url = environ['wsgi.url_scheme'] + '://'
-
             if environ.get('HTTP_HOST'):
                 url += environ['HTTP_HOST']
             else:

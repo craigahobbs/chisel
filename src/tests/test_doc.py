@@ -58,6 +58,10 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
+                    'name': 'static_schema_markdown_encode_js',
+                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
+                },
+                {
                     'name': 'static_schema_markdown_markdown_js',
                     'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
@@ -76,10 +80,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'static_schema_markdown_typeModel_js',
                     'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_util_js',
-                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -123,6 +123,10 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
+                    'name': 'static_schema_markdown_encode_js',
+                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
+                },
+                {
                     'name': 'static_schema_markdown_markdown_js',
                     'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
@@ -141,10 +145,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'static_schema_markdown_typeModel_js',
                     'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_util_js',
-                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -209,6 +209,10 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/schema-markdown/elements.js'),)
                 },
                 {
+                    'name': 'static_schema_markdown_encode_js',
+                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
+                },
+                {
                     'name': 'static_schema_markdown_markdown_js',
                     'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
                 },
@@ -227,10 +231,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'static_schema_markdown_typeModel_js',
                     'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_util_js',
-                    'urls': (('GET', '/doc/schema-markdown/util.js'),)
                 }
             ]
         )
@@ -273,12 +273,12 @@ class TestIndex(TestCase):
                     'static_doc_svg',
                     'static_schema_markdown_doc_js',
                     'static_schema_markdown_elements_js',
+                    'static_schema_markdown_encode_js',
                     'static_schema_markdown_markdown_js',
                     'static_schema_markdown_parser_js',
                     'static_schema_markdown_schemaUtil_js',
                     'static_schema_markdown_schema_js',
-                    'static_schema_markdown_typeModel_js',
-                    'static_schema_markdown_util_js'
+                    'static_schema_markdown_typeModel_js'
                 ]
             }
         })
