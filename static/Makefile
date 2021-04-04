@@ -25,4 +25,5 @@ clean:
 .PHONY: update-dependencies
 update-dependencies:
 	cp ../../schema-markdown/static/src/doc.css src/doc.css
+	cp ../../schema-markdown/static/src/doc.svg src/doc.svg
 	rsync --delete -r ../../schema-markdown/static/src/schema-markdown/ src/schema-markdown/

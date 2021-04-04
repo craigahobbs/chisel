@@ -127,6 +127,20 @@ test('DocPage.run', (t) => {
 });
 
 
+test('DocPage.render, command help', (t) => {
+    window.location.hash = '#cmd.help=1';
+    document.body.innerHTML = '';
+    WindowFetchMock.reset([]);
+
+    // Do the render
+    const docPage = new DocPage();
+    docPage.render();
+    t.is(document.title, 'Documentation');
+    t.true(document.body.innerHTML.startsWith('<h1 id="cmd.help=1&amp;type_Documentation"><a class="linktarget">Documentation</a></h1>'));
+    t.deepEqual(WindowFetchMock.calls, []);
+});
+
+
 test('DocPage.render, index', (t) => {
     window.location.hash = '#';
     document.body.innerHTML = '';

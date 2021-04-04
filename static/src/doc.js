@@ -10,10 +10,19 @@ import {validateType} from './schema-markdown/schema.js';
 
 const docPageTypes = (new SchemaMarkdownParser(`\
 # The Chisel documentation application hash parameters type model
-struct DocPageParams
+struct Documentation
 
-    # The Chisel documentation application hash parameters struct
+    # The request name. If not provided, the index is displayed.
     optional string(len > 0) name
+
+    # Optional command
+    optional DocumentationCommand cmd
+
+# The Chisel documentation application command union
+union DocumentationCommand
+
+    # Render the application's hash parameter model documentation
+    int(==1) help
 `)).types;
 
 
@@ -64,7 +73,7 @@ export class DocPage {
         this.params = null;
 
         // Validate the hash parameters (may throw)
-        this.params = validateType(docPageTypes, 'DocPageParams', decodeQueryString(params));
+        this.params = validateType(docPageTypes, 'Documentation', decodeQueryString(params));
     }
 
     // Helper function to render the documentation application page
@@ -86,8 +95,12 @@ export class DocPage {
         // Clear the page
         renderElements(document.body);
 
-        // Type model URL provided?
-        if ('name' in this.params) {
+        // Command provided?
+        if ('cmd' in this.params) {
+            // 'help' in this.params.cmd
+            document.title = 'Documentation';
+            renderElements(document.body, (new UserTypeElements(this.params)).getElements(docPageTypes, 'Documentation'));
+        } else if ('name' in this.params) {
             // Call the request API
             window.fetch(`doc_request?name=${this.params.name}`).
                 then((response) => {
@@ -97,7 +110,8 @@ export class DocPage {
                     return response.json();
                 }).
                 then((request) => {
-                    this.renderRequestPage(request);
+                    document.title = request.name;
+                    renderElements(document.body, this.requestPage(request));
                 }).catch(({message}) => {
                     DocPage.renderErrorPage(message);
                 });
@@ -111,23 +125,12 @@ export class DocPage {
                     return response.json();
                 }).
                 then((index) => {
-                    this.renderIndexPage(index);
+                    document.title = index.title;
+                    renderElements(document.body, this.indexPage(index));
                 }).catch(({message}) => {
                     DocPage.renderErrorPage(message);
                 });
         }
-    }
-
-    // Helper function to render an index page
-    renderIndexPage(index) {
-        document.title = index.title;
-        renderElements(document.body, this.indexPage(index));
-    }
-
-    // Helper function to render a request page
-    renderRequestPage(request) {
-        document.title = request.name;
-        renderElements(document.body, this.requestPage(request));
     }
 
     // Helper function to render an error page
