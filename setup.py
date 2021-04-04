@@ -49,7 +49,7 @@ def main():
         packages=[MODULE_NAME],
         package_data={'': ['static/*', 'static/*/*']},
         install_requires=[
-            'schema-markdown >= 0.9.12'
+            'schema-markdown >= 0.9.13'
         ]
     )
 
