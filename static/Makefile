@@ -11,7 +11,6 @@ endef
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/Makefile.base))
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/package.json))
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/.eslintrc.js))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/.npmrc))
 
 include Makefile.base
 
