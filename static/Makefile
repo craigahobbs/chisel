@@ -16,8 +16,6 @@ include Makefile.base
 
 NYC_ARGS := $(NYC_ARGS) --exclude src/schema-markdown
 
-JSDOC_ARGS := -c jsdoc.json
-
 clean:
 	rm -rf Makefile.base package.json .eslintrc.js .npmrc
 

@@ -1,7 +1,0 @@
-{
-    "source": {
-        "exclude": [
-            "src/schema-markdown"
-        ]
-    }
-}
