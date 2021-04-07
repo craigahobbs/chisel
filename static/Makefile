@@ -8,16 +8,18 @@ $$(info Downloading $(notdir $(1)))
 _WGET := $$(shell if which wget; then wget -q $(1); else curl -Os $(1); fi)
 endif
 endef
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/Makefile.base))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/package.json))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/schema-markdown/master/static/.eslintrc.js))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/Makefile.base))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/package.json))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/.eslintrc.js))
 
+# Include Javascript Build
 include Makefile.base
 
-NYC_ARGS := $(NYC_ARGS) --exclude src/schema-markdown
+# Exclude external code from coverage
+NYC_ARGS := --exclude src/schema-markdown
 
 clean:
-	rm -rf Makefile.base package.json .eslintrc.js .npmrc
+	rm -rf Makefile.base package.json .eslintrc.js
 
 .PHONY: update-dependencies
 update-dependencies:
