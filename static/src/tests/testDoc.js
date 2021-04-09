@@ -4,7 +4,7 @@
 /* eslint-disable id-length */
 /* eslint-disable max-len */
 
-import {DocPage} from '../src/doc.js';
+import {DocPage} from '../doc/doc.js';
 import browserEnv from 'browser-env';
 import test from 'ava';
 

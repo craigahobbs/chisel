@@ -1,6 +1,6 @@
 /build/
 /node_modules/
-/.eslintrc.js
+/.eslintrc.cjs
 /Makefile.base
 /jsdoc.json
 /package-lock.json
