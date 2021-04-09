@@ -16,7 +16,6 @@ export function validateTypeModelTypesErrors(types) {
     // Check each user type
     for (const [typeName, userType] of Object.entries(types)) {
         // Struct?
-        /* istanbul ignore else */
         if ('struct' in userType) {
             const {struct} = userType;
 

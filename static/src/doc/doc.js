@@ -1,11 +1,9 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/chisel/blob/master/LICENSE
 
-import {decodeQueryString, encodeHref} from './schema-markdown/encode.js';
-import {SchemaMarkdownParser} from './schema-markdown/parser.js';
-import {UserTypeElements} from './schema-markdown/doc.js';
-import {renderElements} from './schema-markdown/elements.js';
-import {validateType} from './schema-markdown/schema.js';
+import {
+    SchemaMarkdownParser, UserTypeElements, decodeQueryString, encodeHref, renderElements, validateType
+} from './schema-markdown/index.js';
 
 
 const docPageTypes = (new SchemaMarkdownParser(`\
