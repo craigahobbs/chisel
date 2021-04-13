@@ -1,5 +1,5 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/chisel/blob/master/LICENSE
+# https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
 """
 Chisel is a light-weight Python WSGI application framework with tools for building well-documented,

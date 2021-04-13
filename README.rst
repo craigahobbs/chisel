@@ -11,7 +11,7 @@ chisel
 
 .. |badge-license| image:: https://img.shields.io/github/license/craigahobbs/chisel
    :alt: GitHub
-   :target: https://github.com/craigahobbs/chisel/blob/master/LICENSE
+   :target: https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
 .. |badge-python| image:: https://img.shields.io/pypi/pyversions/chisel
    :alt: PyPI - Python Version
