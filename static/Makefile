@@ -20,7 +20,7 @@ GHPAGES_SRC :=
 include Makefile.base
 
 # Exclude external code from coverage
-COVER_ARGS := --exclude src/doc/schema-markdown
+C8_ARGS := --exclude src/doc/schema-markdown
 
 clean:
 	rm -rf Makefile.base jsdoc.json package.json .eslintrc.cjs
