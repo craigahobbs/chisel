@@ -71,7 +71,7 @@ class TestApplication(TestCase):
             'request1': request1,
             'request2': request2
         })
-        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=no-member, protected-access
+        self.assertDictEqual(app._Application__request_urls, { # pylint: disable=protected-access
             (None, '/request1'): request1,
             ('GET', '/request-two'): request2
         })
