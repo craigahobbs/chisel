@@ -94,7 +94,7 @@ requests from
 >>> application.add_requests(chisel.create_doc_requests())
 
 By default the documentation application is hosted at "/doc/". An example of of Chisel's documentation output is
-available `here <https://craigahobbs.github.io/schema-markdown/doc/>`__.
+available `here <https://craigahobbs.github.io/schema-markdown-js/doc/>`__.
 
 
 Development
