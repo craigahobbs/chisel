@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -158,15 +161,15 @@
   <div class="section" id="wsgi-applications">
 <h1>WSGI Applications<a class="headerlink" href="#wsgi-applications" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
-<dt id="chisel.Application">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">chisel.</span></code><code class="sig-name descname"><span class="pre">Application</span></code><a class="headerlink" href="#chisel.Application" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">Application</span></span><a class="headerlink" href="#chisel.Application" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application base class. Override this class if you need additional state for your application (like
 application configuration). Add functionality to your application by adding <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> or
 <a class="reference internal" href="action.html#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a> objects to it using <a class="reference internal" href="#chisel.Application.add_request" title="chisel.Application.add_request"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_request()</span></code></a> or
 <a class="reference internal" href="#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_requests()</span></code></a>).</p>
 <dl class="py method">
-<dt id="chisel.Application.__call__">
-<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">environ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">environ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application WSGI callback. When the application recieves an HTTP request, this method matches the
 appropriate <code class="xref py py-class docutils literal notranslate"><span class="pre">__call__</span></code> method. The
 application and URL path arguments (e.g. <code class="docutils literal notranslate"><span class="pre">'/documents/{id}'</span></code>) are made available to the request through the
@@ -185,8 +188,8 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Application.add_request">
-<code class="sig-name descname"><span class="pre">add_request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.add_request">
+<span class="sig-name descname"><span class="pre">add_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> to the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -196,8 +199,8 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Application.add_requests">
-<code class="sig-name descname"><span class="pre">add_requests</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.add_requests">
+<span class="sig-name descname"><span class="pre">add_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.add_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a series of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -207,28 +210,28 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Application.log_format">
-<code class="sig-name descname"><span class="pre">log_format</span></code><a class="headerlink" href="#chisel.Application.log_format" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.log_format">
+<span class="sig-name descname"><span class="pre">log_format</span></span><a class="headerlink" href="#chisel.Application.log_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>The application’s log format string. The default is <code class="docutils literal notranslate"><span class="pre">'%(levelname)s</span> <span class="pre">[%(process)s</span> <span class="pre">/</span> <span class="pre">%(thread)s]</span> <span class="pre">%(message)s'</span></code>.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Application.log_level">
-<code class="sig-name descname"><span class="pre">log_level</span></code><a class="headerlink" href="#chisel.Application.log_level" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.log_level">
+<span class="sig-name descname"><span class="pre">log_level</span></span><a class="headerlink" href="#chisel.Application.log_level" title="Permalink to this definition">¶</a></dt>
 <dd><p>The application’s <a class="reference external" href="https://docs.python.org/3/library/logging.html#levels" title="(in Python v3.9)"><span class="xref std std-ref">logging level</span></a>. The default is <code class="xref py py-data docutils literal notranslate"><span class="pre">logging.WARNING</span></code>.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Application.pretty_output">
-<code class="sig-name descname"><span class="pre">pretty_output</span></code><a class="headerlink" href="#chisel.Application.pretty_output" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.pretty_output">
+<span class="sig-name descname"><span class="pre">pretty_output</span></span><a class="headerlink" href="#chisel.Application.pretty_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set to True for “pretty” request output. Individual requests can : use this application state they see
 fit. For example, <a class="reference internal" href="action.html#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a> : requests return indented JSON when this value is True. Default is
 False.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Application.request">
-<code class="sig-name descname"><span class="pre">request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wsgi_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.request">
+<span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wsgi_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Application.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an application request</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -247,14 +250,14 @@ False.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Application.requests">
-<code class="sig-name descname"><span class="pre">requests</span></code><a class="headerlink" href="#chisel.Application.requests" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.requests">
+<span class="sig-name descname"><span class="pre">requests</span></span><a class="headerlink" href="#chisel.Application.requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chisel application’s map of request name to <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object map.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Application.validate_output">
-<code class="sig-name descname"><span class="pre">validate_output</span></code><a class="headerlink" href="#chisel.Application.validate_output" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Application.validate_output">
+<span class="sig-name descname"><span class="pre">validate_output</span></span><a class="headerlink" href="#chisel.Application.validate_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set to True to validate request output. Individual requests can use this application state as they see fit. For
 example, <a class="reference internal" href="action.html#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a> requests schema-validate return content data when this value is True.
 is True.</p>
@@ -263,8 +266,8 @@ is True.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="chisel.request">
-<code class="sig-prename descclassname"><span class="pre">&#64;</span></code><code class="sig-prename descclassname"><span class="pre">chisel.</span></code><code class="sig-name descname"><span class="pre">request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.request">
+<span class="sig-prename descclassname"><span class="pre">&#64;</span></span><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decorator for creating a <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object that wraps a WSGI application function. For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span>
 <span class="gp">... </span><span class="k">def</span> <span class="nf">my_request</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
@@ -306,8 +309,8 @@ it with that applicaton.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="chisel.Context">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">chisel.</span></code><code class="sig-name descname"><span class="pre">Context</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to encapsulate HTTP request state. <a class="reference internal" href="#chisel.Application" title="chisel.Application"><code class="xref py py-class docutils literal notranslate"><span class="pre">Application</span></code></a> passes a Context object to each request in
 the WSGI environ dict, <code class="docutils literal notranslate"><span class="pre">environ[chisel.Context.ENVIRON_CTX]</span></code>.</p>
 <dl class="field-list simple">
@@ -321,14 +324,14 @@ the WSGI environ dict, <code class="docutils literal notranslate"><span class="p
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="chisel.Context.ENVIRON_CTX">
-<code class="sig-name descname"><span class="pre">ENVIRON_CTX</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'chisel.ctx'</span></em><a class="headerlink" href="#chisel.Context.ENVIRON_CTX" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.ENVIRON_CTX">
+<span class="sig-name descname"><span class="pre">ENVIRON_CTX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'chisel.ctx'</span></em><a class="headerlink" href="#chisel.Context.ENVIRON_CTX" title="Permalink to this definition">¶</a></dt>
 <dd><p>The context WSGI environ key</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.add_cache_headers">
-<code class="sig-name descname"><span class="pre">add_cache_headers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utcnow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_cache_headers" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.add_cache_headers">
+<span class="sig-name descname"><span class="pre">add_cache_headers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utcnow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_cache_headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a cache header to the response. You can specify a public or private cache with a time-to-live. You can specify
 no-cache by passing control as None.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -365,8 +368,8 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.add_header">
-<code class="sig-name descname"><span class="pre">add_header</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.add_header">
+<span class="sig-name descname"><span class="pre">add_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a header key/value to the request’s response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
@@ -394,14 +397,14 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Context.app">
-<code class="sig-name descname"><span class="pre">app</span></code><a class="headerlink" href="#chisel.Context.app" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.app">
+<span class="sig-name descname"><span class="pre">app</span></span><a class="headerlink" href="#chisel.Context.app" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <a class="reference internal" href="#chisel.Application" title="chisel.Application"><code class="xref py py-class docutils literal notranslate"><span class="pre">Application</span></code></a> serving the request</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.create_environ">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">create_environ</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wsgi_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.create_environ" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.create_environ">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">create_environ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wsgi_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.create_environ" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a minimal, test WSGI environ dict</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -420,26 +423,26 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Context.environ">
-<code class="sig-name descname"><span class="pre">environ</span></code><a class="headerlink" href="#chisel.Context.environ" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.environ">
+<span class="sig-name descname"><span class="pre">environ</span></span><a class="headerlink" href="#chisel.Context.environ" title="Permalink to this definition">¶</a></dt>
 <dd><p>The WSGI environ dictionary</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Context.headers">
-<code class="sig-name descname"><span class="pre">headers</span></code><a class="headerlink" href="#chisel.Context.headers" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.headers">
+<span class="sig-name descname"><span class="pre">headers</span></span><a class="headerlink" href="#chisel.Context.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>The request’s header map. These headers are added to the response.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Context.log">
-<code class="sig-name descname"><span class="pre">log</span></code><a class="headerlink" href="#chisel.Context.log" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.log">
+<span class="sig-name descname"><span class="pre">log</span></span><a class="headerlink" href="#chisel.Context.log" title="Permalink to this definition">¶</a></dt>
 <dd><p>The python logger instance. Write log messages using this object directly.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.reconstruct_url">
-<code class="sig-name descname"><span class="pre">reconstruct_url</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.reconstruct_url">
+<span class="sig-name descname"><span class="pre">reconstruct_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reconstruct the request’s URL</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">create_environ</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/hello&#39;</span><span class="p">))</span>
@@ -459,8 +462,8 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.response">
-<code class="sig-name descname"><span class="pre">response</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.response">
+<span class="sig-name descname"><span class="pre">response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response" title="Permalink to this definition">¶</a></dt>
 <dd><p>A generic WSGI response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
@@ -494,8 +497,8 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.response_json">
-<code class="sig-name descname"><span class="pre">response_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'application/json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jsonp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_json" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.response_json">
+<span class="sig-name descname"><span class="pre">response_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'application/json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jsonp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>A JSON response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
@@ -528,8 +531,8 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.response_text">
-<code class="sig-name descname"><span class="pre">response_text</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'text/plain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_text" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.response_text">
+<span class="sig-name descname"><span class="pre">response_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'text/plain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.response_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>A plain-text WSGI response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
@@ -561,8 +564,8 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Context.start_response">
-<code class="sig-name descname"><span class="pre">start_response</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.start_response" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.start_response">
+<span class="sig-name descname"><span class="pre">start_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.start_response" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call start response on the WSGI request’s start_response function. Any headers added using
 <a class="reference internal" href="#chisel.Context.add_header" title="chisel.Context.add_header"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_header()</span></code></a> are included.</p>
 <dl class="field-list simple">
@@ -576,16 +579,16 @@ no-cache by passing control as None.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Context.url_args">
-<code class="sig-name descname"><span class="pre">url_args</span></code><a class="headerlink" href="#chisel.Context.url_args" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Context.url_args">
+<span class="sig-name descname"><span class="pre">url_args</span></span><a class="headerlink" href="#chisel.Context.url_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>The URL path arguments, if any</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="chisel.Request">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">chisel.</span></code><code class="sig-name descname"><span class="pre">Request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">Request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Chisel Request object is a wrapper that associates hosting metadata with a WSGI application function.
 See the <a class="reference internal" href="#chisel.request" title="chisel.request"><code class="xref py py-func docutils literal notranslate"><span class="pre">request()</span></code></a> decorator for a common way to create Request objects.</p>
 <dl class="field-list simple">
@@ -601,8 +604,8 @@ or None to match any. The second value is the URL path or None to use the defaul
 </dd>
 </dl>
 <dl class="py method">
-<dt id="chisel.Request.__call__">
-<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">environ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">environ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The request WSGI application method. By default the wrapped wsgi_callback is called. Sub-classes may override this
 method without calling this method.</p>
 <dl class="field-list simple">
@@ -616,8 +619,8 @@ method without calling this method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Request.decorate_module">
-<code class="sig-name descname"><span class="pre">decorate_module</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.decorate_module">
+<span class="sig-name descname"><span class="pre">decorate_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wsgi_callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.decorate_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper method to update a collection requests on the request’s module. This information is used by
 <a class="reference internal" href="#chisel.Request.import_requests" title="chisel.Request.import_requests"><code class="xref py py-meth docutils literal notranslate"><span class="pre">import_requests()</span></code></a>.</p>
 <dl class="field-list simple">
@@ -628,20 +631,20 @@ method without calling this method.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Request.doc">
-<code class="sig-name descname"><span class="pre">doc</span></code><a class="headerlink" href="#chisel.Request.doc" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.doc">
+<span class="sig-name descname"><span class="pre">doc</span></span><a class="headerlink" href="#chisel.Request.doc" title="Permalink to this definition">¶</a></dt>
 <dd><p>The documentation markdown text lines</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Request.doc_group">
-<code class="sig-name descname"><span class="pre">doc_group</span></code><a class="headerlink" href="#chisel.Request.doc_group" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.doc_group">
+<span class="sig-name descname"><span class="pre">doc_group</span></span><a class="headerlink" href="#chisel.Request.doc_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>The documentation group</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="chisel.Request.import_requests">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">import_requests</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.import_requests">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">import_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Request.import_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import reqeusts from a package.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -654,20 +657,20 @@ method without calling this method.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Request.name">
-<code class="sig-name descname"><span class="pre">name</span></code><a class="headerlink" href="#chisel.Request.name" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#chisel.Request.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>The request name</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Request.urls">
-<code class="sig-name descname"><span class="pre">urls</span></code><a class="headerlink" href="#chisel.Request.urls" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.urls">
+<span class="sig-name descname"><span class="pre">urls</span></span><a class="headerlink" href="#chisel.Request.urls" title="Permalink to this definition">¶</a></dt>
 <dd><p>The list of URL method/path tuples</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="chisel.Request.wsgi_callback">
-<code class="sig-name descname"><span class="pre">wsgi_callback</span></code><a class="headerlink" href="#chisel.Request.wsgi_callback" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="chisel.Request.wsgi_callback">
+<span class="sig-name descname"><span class="pre">wsgi_callback</span></span><a class="headerlink" href="#chisel.Request.wsgi_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>The WSGI application function</p>
 </dd></dl>
 
