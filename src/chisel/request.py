@@ -182,9 +182,9 @@ class RedirectRequest(Request):
 
 class StaticRequest(Request):
     """
-    A static resoruce request
+    A static resource request
 
-    :param str name: The request name. By default the name is "static_<redirect_url>".
+    :param str name: The request name. The default name is the callback function's name.
     :param str content: The static content
     :param str content_type: Optional content type string. If None, the content type is auto-determined.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
