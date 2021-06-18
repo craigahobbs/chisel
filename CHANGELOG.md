@@ -1,3 +1,7 @@
+## 1.0.1 (2021-06-18)
+
+- [092dca4](https://github.com/craigahobbs/chisel/commit/092dca4) - chisel 1.0.1
+
 ## 1.0.0 (2021-06-18)
 
 - [d6b4d09](https://github.com/craigahobbs/chisel/commit/d6b4d09) - chisel 1.0.0
