@@ -14,7 +14,26 @@ from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
 
 
-def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css=True, cache=True):
+# The chisel-doc application's HTML stub
+CHISEL_DOC_HTML = '''\
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/app.css">
+    </head>
+    <body>
+    </body>
+    <script type="module">
+        import {ChiselDoc} from 'https://craigahobbs.github.io/chisel-doc/chisel-doc/index.js';
+        ChiselDoc.run(window);
+    </script>
+</html>
+'''
+
+
+def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
     """
     Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
     documentation application. By default, the documenation application is hosted at "/doc/".
@@ -25,9 +44,6 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
         "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation client application.
-    :param bool css: If True, and "app" is True, include "/doc/doc.css" and "/doc/doc.svg". If you exclude CSS,
-        you can add your own versions of these requests to customize the documentation styling.
-    :param bool cache: If True, cache static request content.
     :returns: Generator of :class:`~chisel.Request`
     """
 
@@ -36,29 +52,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, css
         yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
     if app:
         yield RedirectRequest((('GET', root_path),), root_path + '/')
-        yield StaticRequest('chisel', 'static/doc.html', urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')), cache=cache)
-        if css:
-            yield StaticRequest('chisel', 'static/doc.css', urls=(('GET', root_path + '/doc.css'),), cache=cache)
-            yield StaticRequest('chisel', 'static/doc.svg', urls=(('GET', root_path + '/doc.svg'),), cache=cache)
-        yield StaticRequest('chisel', 'static/doc.js', urls=(('GET', root_path + '/doc.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/doc.js',
-                            urls=(('GET', root_path + '/schema-markdown/doc.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/element.js',
-                            urls=(('GET', root_path + '/schema-markdown/element.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/encode.js',
-                            urls=(('GET', root_path + '/schema-markdown/encode.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/index.js',
-                            urls=(('GET', root_path + '/schema-markdown/index.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/markdown.js',
-                            urls=(('GET', root_path + '/schema-markdown/markdown.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/parser.js',
-                            urls=(('GET', root_path + '/schema-markdown/parser.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/schema.js',
-                            urls=(('GET', root_path + '/schema-markdown/schema.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/schemaUtil.js',
-                            urls=(('GET', root_path + '/schema-markdown/schemaUtil.js'),), cache=cache)
-        yield StaticRequest('chisel', 'static/schema-markdown/typeModel.js',
-                            urls=(('GET', root_path + '/schema-markdown/typeModel.js'),), cache=cache)
+        yield StaticRequest('chisel_doc', CHISEL_DOC_HTML, urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')))
 
 
 class DocIndex(Action):

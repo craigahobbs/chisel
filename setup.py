@@ -47,7 +47,6 @@ def main():
         ],
         package_dir={'': 'src'},
         packages=[MODULE_NAME],
-        package_data={'': ['static/*', 'static/*/*']},
         install_requires=[
             'schema-markdown >= 0.9.14'
         ]

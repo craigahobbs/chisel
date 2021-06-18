@@ -344,119 +344,65 @@ class TestRedirect(TestCase):
 
 class TestStatic(TestCase):
 
-    def test_default(self):
-        static = StaticRequest('chisel', 'static/doc.html')
-        app = Application()
-        app.add_request(static)
+    def test_init(self):
+        static = StaticRequest('index.html', '<!DOCTYPE html>')
+        self.assertEqual(static.name, 'index.html')
+        self.assertEqual(static.urls, (('GET', '/index.html'),))
+        self.assertEqual(static.doc, ('The static resource "index.html"',))
+        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
+        self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/static/doc.html')
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
+    def test_init_doc(self):
+        static = StaticRequest('index.html', '<!DOCTYPE html>', doc=('This is the doc!',))
+        self.assertEqual(static.name, 'index.html')
+        self.assertEqual(static.urls, (('GET', '/index.html'),))
+        self.assertEqual(static.doc, ('This is the doc!',))
+        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
+        self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
-    def test_name(self):
-        static = StaticRequest('chisel', 'static/doc.html', name='doc_html')
-        app = Application()
-        app.add_request(static)
-
-        self.assertEqual(static.name, 'doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/static/doc.html')
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
-
-    def test_urls(self):
-        static = StaticRequest('chisel', 'static/doc.html', urls=(('GET', '/doc.html'),))
-        app = Application()
-        app.add_request(static)
-
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/doc.html')
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
-
-    def test_doc(self):
-        static = StaticRequest('chisel', 'static/doc.html', doc=('doc.html',))
-        app = Application()
-        app.add_request(static)
-
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, ('doc.html',))
-        status, headers, response = app.request('GET', '/static/doc.html')
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
+    def test_init_urls(self):
+        static = StaticRequest('index', '<!DOCTYPE html>', urls=(('GET', '/index.html'),))
+        self.assertEqual(static.name, 'index')
+        self.assertEqual(static.urls, (('GET', '/index.html'),))
+        self.assertEqual(static.doc, ('The static resource "index"',))
+        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
+        self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_content_type(self):
-        static = StaticRequest('chisel', 'static/doc.html', content_type='text/plain')
-        app = Application()
-        app.add_request(static)
+        static = StaticRequest('index', '<!DOCTYPE html>', content_type='text/html')
+        self.assertEqual(static.name, 'index')
+        self.assertEqual(static.urls, (('GET', '/index'),))
+        self.assertEqual(static.doc, ('The static resource "index"',))
+        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
+        self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/static/doc.html')
+    def test_content_type_unknown(self):
+        with self.assertRaises(AssertionError) as cm_exc:
+            StaticRequest('index.unknown', '<!DOCTYPE html>')
+        self.assertEqual(str(cm_exc.exception), 'Unknown content type for static resource "index.unknown"')
+
+    def test_request(self):
+        app = Application()
+        static = StaticRequest('chisel-doc', '<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
+        app.add_request(static)
+        status, headers, response = app.request('GET', '/doc/index.html')
         self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/plain'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
+        self.assertListEqual(headers, [('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')])
+        self.assertEqual(response, b'<!DOCTYPE html>')
 
-    def test_cache(self):
-        static = StaticRequest('chisel', 'static/doc.html', cache=False)
+    def test_request_not_modified(self):
         app = Application()
+        static = StaticRequest('chisel-doc', '<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
         app.add_request(static)
-
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/static/doc.html')
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))
-
-    def test_etag(self):
-        static = StaticRequest('chisel', 'static/doc.html')
-        app = Application()
-        app.add_request(static)
-
-        self.assertEqual(static.name, 'static_doc_html')
-        self.assertTupleEqual(static.urls, (('GET', '/static/doc.html'),))
-        self.assertEqual(static.doc, 'The "chisel" package\'s static resource, "static/doc.html".')
-        status, headers, response = app.request('GET', '/static/doc.html',
-                                                environ={'HTTP_IF_NONE_MATCH': 'a4b3f849671524939d56c1ed9ae84d80'})
+        status, headers, response = app.request(
+            'GET',
+            '/doc/index.html',
+            environ={'HTTP_IF_NONE_MATCH': 'fe364450e1391215f596d043488f989f'}
+        )
         self.assertEqual(status, '304 Not Modified')
         self.assertListEqual(headers, [])
         self.assertEqual(response, b'')
-        status, headers, response = app.request('GET', '/static/doc.html', environ={'HTTP_IF_NONE_MATCH': 'wrong'})
-        self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [
-            ('Content-Type', 'text/html'),
-            ('ETag', 'a4b3f849671524939d56c1ed9ae84d80')
-        ])
-        self.assertTrue(response.startswith(b'<!DOCTYPE html>'))

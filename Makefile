@@ -19,13 +19,3 @@ include Makefile.base
 
 clean:
 	rm -rf Makefile.base pylintrc
-	$(MAKE) -C static clean
-
-superclean:
-	$(MAKE) -C static superclean
-
-.PHONY: commit-static
-commit-static:
-	$(MAKE) -C static commit
-
-commit: commit-static

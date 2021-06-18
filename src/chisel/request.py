@@ -184,12 +184,9 @@ class StaticRequest(Request):
     """
     A static resoruce request
 
-    :param str package: The package containing the static resource
-    :param str resource_name: The resource name (path)
-    :param bool cache: If True, cache the static content. Otherwise, the content is loaded each request.
-    :param str content_type: Optional content type string. If None, the content type is auto-determined.
-    :param list(tuple) headers: Optional list of key/value header tuples
     :param str name: The request name. By default the name is "static_<redirect_url>".
+    :param str content: The static content
+    :param str content_type: Optional content type string. If None, the content type is auto-determined.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
     :param doc: The documentation markdown text lines
@@ -197,7 +194,7 @@ class StaticRequest(Request):
     :param str doc_group: The documentation group
     """
 
-    __slots__ = ('_package', '_resource_name', '_cache', '_headers', '_content', '_etag')
+    __slots__ = ('headers', 'content', 'etag')
 
     EXT_TO_CONTENT_TYPE = {
         '.css': 'text/css',
@@ -212,49 +209,45 @@ class StaticRequest(Request):
 
     def __init__(
             self,
-            package,
-            resource_name,
-            cache=True,
+            name,
+            content,
             content_type=None,
-            headers=None,
-            name=None,
             urls=None,
             doc=None,
             doc_group='Statics'
     ):
-        if name is None:
-            name = re.sub(r'[^\w]+', '_', resource_name)
-        if urls is None:
-            urls = [('GET', f'/{resource_name}')]
         if doc is None:
-            doc = f'The "{package}" package\'s static resource, "{resource_name}".'
+            doc = (f'The static resource "{name}"',)
+        if urls is None:
+            urls = (('GET', f'/{name}'),)
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
-        self._package = package
-        self._resource_name = resource_name
-        self._cache = cache
-        if content_type is None:
-            content_type = self.EXT_TO_CONTENT_TYPE.get(posixpath.splitext(resource_name)[1].lower())
-            assert content_type, f'Unknown content type for "{package}" package\'s "{resource_name}" resource'
-        self._headers = tuple(chain(headers or (), [('Content-Type', content_type)]))
-        if cache:
-            self._content, self._etag = self._load_content()
 
-    def _load_content(self):
-        content = pkgutil.get_data(self._package, self._resource_name)
+        # Encode the content
+        self.content = content.encode('utf-8')
+
+        # Compute the etag
         md5 = hashlib.md5()
-        md5.update(content)
-        return content, md5.hexdigest()
+        md5.update(self.content)
+        self.etag = md5.hexdigest()
+
+        # Compute the content type
+        if content_type is None:
+            content_ext = next(
+                (ext for ext in (posixpath.splitext(path)[1] for path in (url for _, url in self.urls))if ext in self.EXT_TO_CONTENT_TYPE),
+                ''
+            ).lower()
+            content_type = self.EXT_TO_CONTENT_TYPE.get(content_ext)
+            assert content_type, f'Unknown content type for static resource "{name}"'
+
+        # Compute the headers
+        self.headers = (('Content-Type', content_type), ('ETag', self.etag))
 
     def __call__(self, environ, start_response):
 
         # Check the etag - is the resource modified?
-        if self._cache:
-            content, etag = self._content, self._etag
-        else:
-            content, etag = self._load_content()
-        if etag == environ.get('HTTP_IF_NONE_MATCH'):
+        if self.etag == environ.get('HTTP_IF_NONE_MATCH'):
             start_response(HTTPStatus.NOT_MODIFIED, [])
             return []
 
-        start_response(HTTPStatus.OK, list(chain(self._headers, [('ETag', etag)])))
-        return [content]
+        start_response(HTTPStatus.OK, self.headers)
+        return [self.content]

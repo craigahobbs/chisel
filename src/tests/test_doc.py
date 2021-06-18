@@ -34,56 +34,8 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_doc_html',
+                    'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'static_doc_css',
-                    'urls': (('GET', '/doc/doc.css'),)
-                },
-                {
-                    'name': 'static_doc_svg',
-                    'urls': (('GET', '/doc/doc.svg'),)
-                },
-                {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_doc_js',
-                    'urls': (('GET', '/doc/schema-markdown/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_element_js',
-                    'urls': (('GET', '/doc/schema-markdown/element.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_encode_js',
-                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_index_js',
-                    'urls': (('GET', '/doc/schema-markdown/index.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_markdown_js',
-                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_parser_js',
-                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schema_js',
-                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_typeModel_js',
-                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 }
             ]
         )
@@ -103,56 +55,8 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc'),)
                 },
                 {
-                    'name': 'static_doc_html',
+                    'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'static_doc_css',
-                    'urls': (('GET', '/doc/doc.css'),)
-                },
-                {
-                    'name': 'static_doc_svg',
-                    'urls': (('GET', '/doc/doc.svg'),)
-                },
-                {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_doc_js',
-                    'urls': (('GET', '/doc/schema-markdown/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_element_js',
-                    'urls': (('GET', '/doc/schema-markdown/element.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_encode_js',
-                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_index_js',
-                    'urls': (('GET', '/doc/schema-markdown/index.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_markdown_js',
-                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_parser_js',
-                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schema_js',
-                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_typeModel_js',
-                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 }
             ]
         )
@@ -174,75 +78,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'chisel_doc_request',
                     'urls': (('GET', '/doc/doc_request'),)
-                }
-            ]
-        )
-
-    def test_no_static_css(self):
-        self.assertListEqual(
-            [
-                {
-                    'name': request.name,
-                    'urls': request.urls,
-                }
-                for request in create_doc_requests(css=False)
-            ],
-            [
-                {
-                    'name': 'chisel_doc_index',
-                    'urls': (('GET', '/doc/doc_index'),)
-                },
-                {
-                    'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request'),)
-                },
-                {
-                    'name': 'redirect_doc',
-                    'urls': (('GET', '/doc'),)
-                },
-                {
-                    'name': 'static_doc_html',
-                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'static_doc_js',
-                    'urls': (('GET', '/doc/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_doc_js',
-                    'urls': (('GET', '/doc/schema-markdown/doc.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_element_js',
-                    'urls': (('GET', '/doc/schema-markdown/element.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_encode_js',
-                    'urls': (('GET', '/doc/schema-markdown/encode.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_index_js',
-                    'urls': (('GET', '/doc/schema-markdown/index.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_markdown_js',
-                    'urls': (('GET', '/doc/schema-markdown/markdown.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_parser_js',
-                    'urls': (('GET', '/doc/schema-markdown/parser.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schema_js',
-                    'urls': (('GET', '/doc/schema-markdown/schema.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_schemaUtil_js',
-                    'urls': (('GET', '/doc/schema-markdown/schemaUtil.js'),)
-                },
-                {
-                    'name': 'static_schema_markdown_typeModel_js',
-                    'urls': (('GET', '/doc/schema-markdown/typeModel.js'),)
                 }
             ]
         )
@@ -279,19 +114,7 @@ class TestIndex(TestCase):
                     'redirect_doc'
                 ],
                 'Statics': [
-                    'static_doc_css',
-                    'static_doc_html',
-                    'static_doc_js',
-                    'static_doc_svg',
-                    'static_schema_markdown_doc_js',
-                    'static_schema_markdown_element_js',
-                    'static_schema_markdown_encode_js',
-                    'static_schema_markdown_index_js',
-                    'static_schema_markdown_markdown_js',
-                    'static_schema_markdown_parser_js',
-                    'static_schema_markdown_schemaUtil_js',
-                    'static_schema_markdown_schema_js',
-                    'static_schema_markdown_typeModel_js'
+                    'chisel_doc'
                 ]
             }
         })
