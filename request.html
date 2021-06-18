@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Built-in Requests &mdash; chisel 0.9.128 documentation</title>
+  <title>Built-in Requests &mdash; chisel 0.9.129 documentation</title>
   
 
   
@@ -41,7 +41,6 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Change Log" href="changes.html" />
     <link rel="prev" title="Schema-Validated JSON Requests" href="action.html" /> 
 </head>
 
@@ -92,7 +91,6 @@
 <li class="toctree-l1"><a class="reference internal" href="app.html">WSGI Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="action.html">Schema-Validated JSON Requests</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Built-in Requests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
 </ul>
 
             
@@ -162,7 +160,7 @@
 <h1>Built-in Requests<a class="headerlink" href="#built-in-requests" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="chisel.create_doc_requests">
-<span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">create_doc_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/doc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">css</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">create_doc_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/doc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yield a series of requests for use with <a class="reference internal" href="app.html#chisel.Application.add_requests" title="chisel.Application.add_requests"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_requests()</span></code></a> comprising the Chisel
 documentation application. By default, the documenation application is hosted at “/doc/”.</p>
 <dl class="field-list simple">
@@ -173,9 +171,6 @@ documentation application. By default, the documenation application is hosted at
 <li><p><strong>api</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, include the documentation APIs. Two documentation APIs are added,
 “/doc/doc_index” and “<a class="reference external" href="doc/#name=chisel_doc_request">/doc/doc_request</a>”.</p></li>
 <li><p><strong>app</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, include the documentation client application.</p></li>
-<li><p><strong>css</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, and “app” is True, include “/doc/doc.css” and “/doc/doc.svg”. If you exclude CSS,
-you can add your own versions of these requests to customize the documentation styling.</p></li>
-<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, cache static request content.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -206,18 +201,15 @@ or None to match any. The second value is the URL path or None to use the defaul
 
 <dl class="py class">
 <dt class="sig sig-object py" id="chisel.StaticRequest">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">StaticRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Statics'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">StaticRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Statics'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="app.html#chisel.Request" title="chisel.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></a></p>
 <p>A static resoruce request</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The package containing the static resource</p></li>
-<li><p><strong>resource_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The resource name (path)</p></li>
-<li><p><strong>cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, cache the static content. Otherwise, the content is loaded each request.</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional content type string. If None, the content type is auto-determined.</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples</p></li>
 <li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The request name. By default the name is “static_&lt;redirect_url&gt;”.</p></li>
+<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The static content</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional content type string. If None, the content type is auto-determined.</p></li>
 <li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
 or None to match any. The second value is the URL path or None to use the default path.</p></li>
 <li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>)</em>) – The documentation markdown text lines</p></li>
@@ -235,7 +227,6 @@ or None to match any. The second value is the URL path or None to use the defaul
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="changes.html" class="btn btn-neutral float-right" title="Change Log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="action.html" class="btn btn-neutral float-left" title="Schema-Validated JSON Requests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
