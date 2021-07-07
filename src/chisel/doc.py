@@ -22,6 +22,8 @@ CHISEL_DOC_HTML = '''\
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/app.css">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/markdown-model.css">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/schema-markdown-doc.css">
     </head>
     <body>
     </body>
