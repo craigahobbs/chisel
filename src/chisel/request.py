@@ -185,7 +185,7 @@ class StaticRequest(Request):
     A static resource request
 
     :param str name: The request name. The default name is the callback function's name.
-    :param str content: The static content
+    :param bytes content: The static content
     :param str content_type: Optional content type string. If None, the content type is auto-determined.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
@@ -222,9 +222,7 @@ class StaticRequest(Request):
         if urls is None:
             urls = (('GET', f'/{name}'),)
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
-
-        # Encode the content
-        self.content = content.encode('utf-8')
+        self.content = content
 
         # Compute the etag
         md5 = hashlib.md5()

@@ -342,10 +342,11 @@ class TestRedirect(TestCase):
         ])
         self.assertEqual(response, b'/new')
 
+
 class TestStatic(TestCase):
 
     def test_init(self):
-        static = StaticRequest('index.html', '<!DOCTYPE html>')
+        static = StaticRequest('index.html', b'<!DOCTYPE html>')
         self.assertEqual(static.name, 'index.html')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('The static resource "index.html"',))
@@ -354,7 +355,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_init_doc(self):
-        static = StaticRequest('index.html', '<!DOCTYPE html>', doc=('This is the doc!',))
+        static = StaticRequest('index.html', b'<!DOCTYPE html>', doc=('This is the doc!',))
         self.assertEqual(static.name, 'index.html')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('This is the doc!',))
@@ -363,7 +364,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_init_urls(self):
-        static = StaticRequest('index', '<!DOCTYPE html>', urls=(('GET', '/index.html'),))
+        static = StaticRequest('index', b'<!DOCTYPE html>', urls=(('GET', '/index.html'),))
         self.assertEqual(static.name, 'index')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('The static resource "index"',))
@@ -372,7 +373,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_content_type(self):
-        static = StaticRequest('index', '<!DOCTYPE html>', content_type='text/html')
+        static = StaticRequest('index', b'<!DOCTYPE html>', content_type='text/html')
         self.assertEqual(static.name, 'index')
         self.assertEqual(static.urls, (('GET', '/index'),))
         self.assertEqual(static.doc, ('The static resource "index"',))
@@ -382,12 +383,12 @@ class TestStatic(TestCase):
 
     def test_content_type_unknown(self):
         with self.assertRaises(AssertionError) as cm_exc:
-            StaticRequest('index.unknown', '<!DOCTYPE html>')
+            StaticRequest('index.unknown', b'<!DOCTYPE html>')
         self.assertEqual(str(cm_exc.exception), 'Unknown content type for static resource "index.unknown"')
 
     def test_request(self):
         app = Application()
-        static = StaticRequest('chisel-doc', '<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
+        static = StaticRequest('chisel-doc', b'<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
         app.add_request(static)
         status, headers, response = app.request('GET', '/doc/index.html')
         self.assertEqual(status, '200 OK')
@@ -396,7 +397,7 @@ class TestStatic(TestCase):
 
     def test_request_not_modified(self):
         app = Application()
-        static = StaticRequest('chisel-doc', '<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
+        static = StaticRequest('chisel-doc', b'<!DOCTYPE html>', urls=(('GET', '/doc/index.html'),))
         app.add_request(static)
         status, headers, response = app.request(
             'GET',

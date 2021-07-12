@@ -15,7 +15,7 @@ from .request import RedirectRequest, StaticRequest
 
 
 # The chisel-doc application's HTML stub
-CHISEL_DOC_HTML = '''\
+CHISEL_DOC_HTML = b'''\
 <!DOCTYPE html>
 <html lang="en">
     <head>
