@@ -107,14 +107,10 @@ class TestIndex(TestCase):
             'title': 'localhost:80',
             'groups': {
                 'Documentation': [
+                    'chisel_doc',
                     'chisel_doc_index',
-                    'chisel_doc_request'
-                ],
-                'Redirects': [
+                    'chisel_doc_request',
                     'redirect_doc'
-                ],
-                'Statics': [
-                    'chisel_doc'
                 ]
             }
         })

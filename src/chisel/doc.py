@@ -53,8 +53,13 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
         yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
         yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
     if app:
-        yield RedirectRequest((('GET', root_path),), root_path + '/')
-        yield StaticRequest('chisel_doc', CHISEL_DOC_HTML, urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')))
+        yield RedirectRequest((('GET', root_path),), root_path + '/', doc_group='Documentation')
+        yield StaticRequest(
+            'chisel_doc',
+            CHISEL_DOC_HTML,
+            urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')),
+            doc_group='Documentation'
+        )
 
 
 class DocIndex(Action):
