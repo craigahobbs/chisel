@@ -1,3 +1,7 @@
+## 1.0.3 (2021-07-12)
+
+- [65937ec](https://github.com/craigahobbs/chisel/commit/65937ec) - move doc static and redirect to docuementation doc group
+
 ## 1.0.2 (2021-07-07)
 
 - [c09b6f6](https://github.com/craigahobbs/chisel/commit/c09b6f6) - update chisel-doc
