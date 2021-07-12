@@ -1,3 +1,7 @@
+## 1.0.4 (2021-07-12)
+
+- [de1f231](https://github.com/craigahobbs/chisel/commit/de1f231) - StaticRequest content is bytes
+
 ## 1.0.3 (2021-07-12)
 
 - [65937ec](https://github.com/craigahobbs/chisel/commit/65937ec) - move doc static and redirect to docuementation doc group
