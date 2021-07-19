@@ -544,6 +544,30 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
+    def test_error_inherited_error(self):
+
+        @action(spec='''\
+enum MyErrors
+    Invalid
+
+action my_action
+    urls
+        GET
+    errors (MyErrors)
+''')
+        def my_action(unused_app, unused_req):
+            raise ActionError('Invalid')
+
+        app = Application()
+        app.add_request(my_action)
+
+        environ = {'wsgi.errors': StringIO()}
+        status, headers, response = app.request('GET', '/my_action')
+        self.assertEqual(status, '400 Bad Request')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"Invalid"}')
+        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 

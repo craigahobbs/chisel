@@ -10,7 +10,7 @@ from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
-from schema_markdown import SchemaMarkdownParser, ValidationError, decode_query_string, validate_type
+from schema_markdown import SchemaMarkdownParser, ValidationError, decode_query_string, get_referenced_types, validate_type
 
 from .app import Context
 from .request import Request
@@ -205,22 +205,21 @@ class Action(Request):
         output_type_name = f'{model["name"]}_output_error'
         if 'errors' in model:
             error_type_name = model['errors']
-            error_type = self.types[error_type_name]
+            output_types = get_referenced_types(self.types, error_type_name)
         else:
             error_type_name = f'{model["name"]}_errors'
-            error_type = {'enum': {'name': error_type_name}}
-        output_types = {
-            error_type_name: error_type,
-            output_type_name: {
-                'struct': {
-                    'name': output_type_name,
-                    'members': [
-                        {'name': 'error', 'type': {'user': error_type_name}},
-                        {'name': 'message', 'type': {'builtin': 'string'}, 'optional': True}
-                    ]
-                }
+            output_types = {error_type_name: {'enum': {'name': error_type_name}}}
+
+        output_types[output_type_name] = {
+            'struct': {
+                'name': output_type_name,
+                'members': [
+                    {'name': 'error', 'type': {'user': error_type_name}},
+                    {'name': 'message', 'type': {'builtin': 'string'}, 'optional': True}
+                ]
             }
         }
+
         return output_types, output_type_name
 
     def __call__(self, environ, unused_start_response):
