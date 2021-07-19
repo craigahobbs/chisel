@@ -1,3 +1,7 @@
+## 1.0.5 (2021-07-18)
+
+- [03dc963](https://github.com/craigahobbs/chisel/commit/03dc963) - fix inherited action error type
+
 ## 1.0.4 (2021-07-12)
 
 - [de1f231](https://github.com/craigahobbs/chisel/commit/de1f231) - StaticRequest content is bytes
