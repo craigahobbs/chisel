@@ -1,0 +1,69 @@
+{
+  "name": "chisel_doc_index",
+  "types": {
+    "StringArray": {
+      "typedef": {
+        "attr": {
+          "lenGT": 0
+        },
+        "doc": [
+          "A non-empty string array"
+        ],
+        "docGroup": "Documentation",
+        "name": "StringArray",
+        "type": {
+          "array": {
+            "type": {
+              "builtin": "string"
+            }
+          }
+        }
+      }
+    },
+    "chisel_doc_index": {
+      "action": {
+        "doc": [
+          "Get the documentation index"
+        ],
+        "docGroup": "Documentation",
+        "name": "chisel_doc_index",
+        "output": "chisel_doc_index_output"
+      }
+    },
+    "chisel_doc_index_output": {
+      "struct": {
+        "members": [
+          {
+            "doc": [
+              "The documentation index title"
+            ],
+            "name": "title",
+            "type": {
+              "builtin": "string"
+            }
+          },
+          {
+            "doc": [
+              "The dictionary of documentation group titles to array of request names"
+            ],
+            "name": "groups",
+            "type": {
+              "dict": {
+                "type": {
+                  "user": "StringArray"
+                }
+              }
+            }
+          }
+        ],
+        "name": "chisel_doc_index_output"
+      }
+    }
+  },
+  "urls": [
+    {
+      "method": "GET",
+      "url": "/doc/doc_index"
+    }
+  ]
+}
