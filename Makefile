@@ -42,9 +42,7 @@ endef
 
 export DUMP_DOC_APIS
 
-.phony: dump-doc-apis
-doc: dump-doc-apis
-dump-doc-apis: $(DOC_DEFAULT_VENV_BUILD)
+doc:
 	mkdir -p build/doc/html/chisel_doc_index build/doc/html/chisel_doc_request
 	cd build/doc/html/chisel_doc_index && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/index.html)
 	cd build/doc/html/chisel_doc_request && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/index.html)
