@@ -1,3 +1,7 @@
+## 1.0.6 (2021-07-20)
+
+- [85a0475](https://github.com/craigahobbs/chisel/commit/85a0475) - fix readme doc link
+
 ## 1.0.5 (2021-07-18)
 
 - [03dc963](https://github.com/craigahobbs/chisel/commit/03dc963) - fix inherited action error type
