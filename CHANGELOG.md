@@ -1,3 +1,7 @@
+## 1.0.7 (2021-07-21)
+
+- [798b775](https://github.com/craigahobbs/chisel/commit/798b775) - update example doc link
+
 ## 1.0.6 (2021-07-20)
 
 - [85a0475](https://github.com/craigahobbs/chisel/commit/85a0475) - fix readme doc link
