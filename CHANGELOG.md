@@ -1,3 +1,7 @@
+## 1.1.0 (2021-07-22)
+
+- [d7f8ff7](https://github.com/craigahobbs/chisel/commit/d7f8ff7) - rename __version__ to VERSION
+
 ## 1.0.7 (2021-07-21)
 
 - [798b775](https://github.com/craigahobbs/chisel/commit/798b775) - update example doc link
@@ -30,6 +34,6 @@
 
 - [d6b4d09](https://github.com/craigahobbs/chisel/commit/d6b4d09) - chisel 1.0.0
 
-## chisel 0.9.129 (2021-06-18)
+## 0.9.129 (2021-06-18)
 
 - [4d73381](https://github.com/craigahobbs/chisel/commit/4d73381) - use chisel-doc
