@@ -1,6 +1,6 @@
 ## 1.1.0 (2021-07-22)
 
-- [d7f8ff7](https://github.com/craigahobbs/chisel/commit/d7f8ff7) - rename __version__ to VERSION
+- [d7f8ff7](https://github.com/craigahobbs/chisel/commit/d7f8ff7) - rename \_\_version\_\_ to VERSION
 
 ## 1.0.7 (2021-07-21)
 
