@@ -23,7 +23,7 @@ author = 'Craig Hobbs'
 
 # The full version, including alpha/beta/rc tags
 import chisel
-release = chisel.__version__
+release = chisel.VERSION
 
 
 # -- General configuration ---------------------------------------------------
