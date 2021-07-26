@@ -1,3 +1,7 @@
+## 1.1.1 (2021-07-26)
+
+- [19265ff](https://github.com/craigahobbs/chisel/commit/19265ff) - simplify setup.py
+
 ## 1.1.0 (2021-07-22)
 
 - [d7f8ff7](https://github.com/craigahobbs/chisel/commit/d7f8ff7) - rename \_\_version\_\_ to VERSION
