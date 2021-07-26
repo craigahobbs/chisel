@@ -23,6 +23,3 @@ from .request import \
     Request, \
     StaticRequest, \
     request
-
-
-VERSION = '1.1.0'
