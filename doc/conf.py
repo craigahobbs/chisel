@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'chisel'
-copyright = '2012, Craig Hobbs'
-author = 'Craig Hobbs'
+copyright = '2012, Craig A. Hobbs'
+author = 'Craig A. Hobbs'
 
 # The full version, including alpha/beta/rc tags
 import os

@@ -7,8 +7,6 @@ import os
 
 from setuptools import setup
 
-MODULE_NAME = 'chisel'
-PACKAGE_NAME = MODULE_NAME
 
 def main():
     # Read the readme for use as the long description
@@ -17,15 +15,15 @@ def main():
 
     # Do the setup
     setup(
-        name=PACKAGE_NAME,
+        name='chisel',
         description='Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.',
         long_description=long_description,
         long_description_content_type='text/x-rst',
         version='1.1.1',
-        author='Craig Hobbs',
+        author='Craig A. Hobbs',
         author_email='craigahobbs@gmail.com',
         keywords='api json framework schema wsgi',
-        url='https://github.com/craigahobbs/' + PACKAGE_NAME,
+        url='https://github.com/craigahobbs/chisel',
         license='MIT',
         classifiers=[
             'Development Status :: 5 - Production/Stable',
@@ -41,11 +39,12 @@ def main():
             'Topic :: Software Development :: Libraries :: Application Frameworks'
         ],
         package_dir={'': 'src'},
-        packages=[MODULE_NAME],
+        packages=['chisel'],
         install_requires=[
             'schema-markdown >= 1.0.0'
         ]
     )
+
 
 if __name__ == '__main__':
     main()
