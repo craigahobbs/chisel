@@ -1,3 +1,7 @@
+## 1.1.2 (2021-08-12)
+
+- [a589512](https://github.com/craigahobbs/chisel/commit/a589512) - updates from python-package-template
+
 ## 1.1.1 (2021-07-26)
 
 - [19265ff](https://github.com/craigahobbs/chisel/commit/19265ff) - simplify setup.py
