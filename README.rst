@@ -101,7 +101,9 @@ Development
 -----------
 
 This project is developed using `Python Build <https://github.com/craigahobbs/python-build#readme>`__. It was started
-using `python-package-template <https://github.com/craigahobbs/python-package-template#readme>`__ as follows::
+using `python-package-template <https://github.com/craigahobbs/python-package-template#readme>`__ as follows:
+
+.. code-block::
 
     template-specialize python-package-template/template/ chisel/ \
         -k package chisel \
