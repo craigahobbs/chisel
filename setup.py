@@ -16,7 +16,7 @@ def main():
     # Do the setup
     setup(
         name='chisel',
-        description='Light-weight WSGI application framework, schema-validated JSON APIs, and API documentation.',
+        description='Lightweight WSGI application framework, schema-validated JSON APIs, and API documentation.',
         long_description=long_description,
         long_description_content_type='text/x-rst',
         version='1.1.3',

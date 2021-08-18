@@ -1,7 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
-# pylint: disable=missing-docstring
+# pylint: disable=missing-class-docstring, missing-function-docstring, missing-module-docstring
 
 from http import HTTPStatus
 from io import StringIO
