@@ -1,3 +1,7 @@
+## 1.1.5 (2021-08-24)
+
+- [7f6b93e](https://github.com/craigahobbs/chisel/commit/7f6b93e) - update readme
+
 ## 1.1.4 (2021-08-18)
 
 - [79c82d2](https://github.com/craigahobbs/chisel/commit/79c82d2) - updates from python-package-template
