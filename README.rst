@@ -101,6 +101,6 @@ Development
 -----------
 
 This project is developed using `Python Build <https://github.com/craigahobbs/python-build#readme>`__. It was started
-using `python-package-template <https://github.com/craigahobbs/python-package-template#readme>`__ as follows::
+using `python-package-template <https://github.com/craigahobbs/python-template#readme>`__ as follows::
 
-    template-specialize python-package-template/template/ chisel/ -k package chisel -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k nomain 1
+    template-specialize python-template/template/ chisel/ -k package chisel -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k nomain 1
