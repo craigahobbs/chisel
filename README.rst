@@ -100,7 +100,7 @@ available `here <https://craigahobbs.github.io/chisel/chisel_doc_request#name=ch
 Development
 -----------
 
-This project is developed using `Python Build <https://github.com/craigahobbs/python-build#readme>`__. It was started
+This project is developed using `python-build <https://github.com/craigahobbs/python-build#readme>`__. It was started
 using `python-template <https://github.com/craigahobbs/python-template#readme>`__ as follows::
 
     template-specialize python-template/template/ chisel/ -k package chisel -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k nomain 1
