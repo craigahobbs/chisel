@@ -8,7 +8,7 @@ $$(info Downloading $(notdir $(1)))
 _WGET := $$(shell $(call WGET_CMD, $(1)))
 endif
 endef
-WGET_CMD = if which wget; then wget -q -c $(1); else curl -Os $(1); fi
+WGET_CMD = if which wget; then wget -q -c $(1); else curl -f -Os $(1); fi
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/python-build/main/Makefile.base))
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/python-build/main/pylintrc))
 
@@ -47,6 +47,6 @@ export DUMP_DOC_APIS
 
 doc:
 	mkdir -p build/doc/html/chisel_doc_index build/doc/html/chisel_doc_request
-	cd build/doc/html/chisel_doc_index && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/index.html)
-	cd build/doc/html/chisel_doc_request && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/index.html)
+	cd build/doc/html/chisel_doc_index && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/static/index.html)
+	cd build/doc/html/chisel_doc_request && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/static/index.html)
 	$(DOC_DEFAULT_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS"
