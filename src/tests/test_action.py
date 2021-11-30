@@ -577,6 +577,7 @@ action my_action
         GET
     query
         int a
+        int b
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -584,7 +585,7 @@ action my_action
         app = Application()
         app.add_request(my_action)
 
-        status, headers, response = app.request('GET', '/my_action', query_string='a')
+        status, headers, response = app.request('GET', '/my_action', query_string='a&b=1')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
@@ -598,6 +599,7 @@ action my_action
         GET
     query
         int a
+        int b
 ''')
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
@@ -606,7 +608,7 @@ action my_action
         app.add_request(my_action)
 
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('GET', '/my_action', query_string='a' * 2000, environ=environ)
+        status, headers, response = app.request('GET', '/my_action', query_string='a' * 2000 + '&b=1', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 99 + '"}')
