@@ -1,3 +1,7 @@
+## 1.1.6 (2021-12-02)
+
+- [cd312e4](https://github.com/craigahobbs/chisel/commit/cd312e4) - update chisel-doc stub
+
 ## 1.1.5 (2021-08-24)
 
 - [7f6b93e](https://github.com/craigahobbs/chisel/commit/7f6b93e) - update readme
