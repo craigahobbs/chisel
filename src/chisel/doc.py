@@ -28,8 +28,9 @@ CHISEL_DOC_HTML = b'''\
     <body>
     </body>
     <script type="module">
-        import {ChiselDoc} from 'https://craigahobbs.github.io/chisel-doc/chisel-doc/index.js';
-        ChiselDoc.run(window);
+        import {ChiselDoc} from 'https://craigahobbs.github.io/chisel-doc/lib/app.js';
+        const app = new ChiselDoc(window);
+        app.run();
     </script>
 </html>
 '''
