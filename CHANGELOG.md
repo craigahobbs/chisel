@@ -1,3 +1,9 @@
+## 1.1.7 (2022-05-10)
+
+- [9ed9d44](https://github.com/craigahobbs/chisel/commit/9ed9d44) - schema-markdown 1.1.12
+
+- [342606b](https://github.com/craigahobbs/chisel/commit/342606b) - add python 3.11 support
+
 ## 1.1.6 (2021-12-02)
 
 - [cd312e4](https://github.com/craigahobbs/chisel/commit/cd312e4) - update chisel-doc stub
