@@ -161,7 +161,7 @@ action chisel_doc_request
 '''
 
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
-        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(TYPE_MODEL['types']), spec=self.SPEC)
+        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(TYPE_MODEL), spec=self.SPEC)
         if requests is not None:
             #: Optional list of requests to document or None. If None, the applications request collection is used.
             self.requests = {request.name: request for request in requests}
