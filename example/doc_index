@@ -1,5 +1,5 @@
 {
-  "title": "Chisel Documentation Application",
+  "title": "Chisel Documentation Example",
   "groups": {
     "Documentation": [
       "chisel_doc_request"
