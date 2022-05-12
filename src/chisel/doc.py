@@ -19,17 +19,80 @@ CHISEL_DOC_HTML = b'''\
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <title>Chisel</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/app.css">
-        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/markdown-model.css">
-        <link rel="stylesheet" href="https://craigahobbs.github.io/chisel-doc/schema-markdown-doc.css">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/markdown-model.css">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">
     </head>
     <body>
     </body>
     <script type="module">
-        import {ChiselDoc} from 'https://craigahobbs.github.io/chisel-doc/lib/app.js';
-        const app = new ChiselDoc(window);
+        import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/app.js';
+        const app = new MarkdownUp(window, {
+            'markdownText': `\
+~~~ markdown-script
+async function indexPage()
+    # Fetch the documentation index API
+    docIndex = fetch('doc_index')
+    title = arrayGet(docIndex, 'title')
+    groups = arrayGet(docIndex, 'groups')
+    groupNames = objectKeys(groups)
+
+    # Render the index page
+    setDocumentTitle(title)
+    markdownPrint('# ' + markdownEncode(title))
+    ixGroup = 0
+    groupLoop:
+        groupName = arrayGet(groupNames, ixGroup)
+        groupRequests = objectGet(groups, groupName)
+        markdownPrint('', '### ' + markdownEncode(groupName))
+        ixRequest = 0
+        requestLoop:
+            requestName = arrayGet(groupRequests, ixRequest)
+            markdownPrint('', '[' + markdownEncode(requestName) + "](#var.vName='" + encodeURIComponent(requestName) + "')")
+            ixRequest = ixRequest + 1
+        jumpif (ixRequest < arrayLength(groupRequests)) requestLoop
+        ixGroup = ixGroup + 1
+    jumpif (ixGroup < arrayLength(groupNames)) groupLoop
+endfunction
+
+async function requestPage(typeName)
+    # Fetch the request API
+    docRequest = fetch('doc_request?name=' + encodeURIComponent(typeName))
+    doc = objectGet(docRequest, 'doc')
+    urls = objectGet(docRequest, 'urls')
+    types = objectGet(docRequest, 'types')
+
+    # Render the request page
+    setDocumentTitle(typeName)
+    markdownPrint('[Index](#var=)')
+
+    # Action request?
+    jumpif (types == null) nonAction
+    schemaPrint(types, typeName, urls)
+    return
+
+    # Non-action request
+    nonAction:
+    markdownPrint('', '# ' + markdownEncode(typeName))
+    if(doc != null, markdownPrint('', doc))
+    jumpif(urls == null || arrayLength(urls) == 0) noURLs
+        markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
+        ixURL = 0
+        urlLoop:
+            requestURL = arrayGet(urls, ixURL)
+            method = objectGet(requestURL, 'method')
+            url = objectGet(requestURL, 'url')
+            markdownPrint('', fromCharCode(160, 160) + '[' + markdownEncode(method) + ' ' + markdownEncode(url) + '](' + url + ')')
+            ixURL = ixURL + 1
+        jumpif (ixURL < arrayLength(urls)) urlLoop
+    noURLs:
+endfunction
+
+if(vName != null, requestPage(vName), indexPage())
+~~~
+`});
         app.run();
     </script>
 </html>

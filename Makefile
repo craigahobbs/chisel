@@ -24,26 +24,23 @@ clean:
 # Dump documentation API responses
 define DUMP_DOC_APIS
 import chisel
+from chisel.doc import CHISEL_DOC_HTML
 import json
 
-def dump_doc_request(name):
-    app = chisel.Application()
-    app.pretty_output = True
-    app.add_requests(chisel.create_doc_requests())
-    _, _, response = app.request('GET', '/doc/doc_request', query_string=f'name={name}')
-    with open(f'build/doc/html/{name}/doc_request', 'wb') as request_file:
-        request_file.write(response)
-    with open(f'build/doc/html/{name}/doc_index', 'w') as index_file:
-        json.dump({'title': 'Chisel Documentation Application', 'groups': {'Documentation': [name]}}, index_file, indent=2)
-
-dump_doc_request('chisel_doc_index')
-dump_doc_request('chisel_doc_request')
+app = chisel.Application()
+app.pretty_output = True
+app.add_requests(chisel.create_doc_requests())
+_, _, response = app.request('GET', '/doc/doc_request', query_string=f'name=chisel_doc_request')
+with open(f'build/doc/html/example/index.html', 'wb') as request_file:
+    request_file.write(CHISEL_DOC_HTML)
+with open(f'build/doc/html/example/doc_request', 'wb') as request_file:
+    request_file.write(response)
+with open(f'build/doc/html/example/doc_index', 'w') as index_file:
+    json.dump({'title': 'Chisel Documentation Example', 'groups': {'Documentation': ['chisel_doc_request']}}, index_file, indent=2)
 endef
 
 export DUMP_DOC_APIS
 
 doc:
-	mkdir -p build/doc/html/chisel_doc_index build/doc/html/chisel_doc_request
-	cd build/doc/html/chisel_doc_index && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/static/index.html)
-	cd build/doc/html/chisel_doc_request && $(call WGET_CMD, https://craigahobbs.github.io/chisel-doc/static/index.html)
+	mkdir -p build/doc/html/example
 	$(DOC_DEFAULT_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS"

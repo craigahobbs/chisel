@@ -169,7 +169,7 @@ class RedirectRequest(Request):
         if name is None:
             name = re.sub(r'([^\w]|_)+', '_', f'redirect_{redirect_url}').rstrip('_')
         if doc is None:
-            doc = f'Redirect to {redirect_url}.'
+            doc = f'Redirect to {redirect_url}'
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
         self._status = HTTPStatus.MOVED_PERMANENTLY if permanent else HTTPStatus.FOUND
         self._redirect_url = redirect_url

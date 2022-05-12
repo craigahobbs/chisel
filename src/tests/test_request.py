@@ -288,7 +288,7 @@ class TestRedirect(TestCase):
         app.add_request(redirect)
 
         self.assertEqual(redirect.name, 'redirect_new')
-        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        self.assertEqual(redirect.doc, 'Redirect to /new')
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '301 Moved Permanently')
         self.assertListEqual(headers, [
@@ -303,7 +303,7 @@ class TestRedirect(TestCase):
         app.add_request(redirect)
 
         self.assertEqual(redirect.name, 'redirect_old_to_new')
-        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        self.assertEqual(redirect.doc, 'Redirect to /new')
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '301 Moved Permanently')
         self.assertListEqual(headers, [
@@ -333,7 +333,7 @@ class TestRedirect(TestCase):
         app.add_request(redirect)
 
         self.assertEqual(redirect.name, 'redirect_new')
-        self.assertEqual(redirect.doc, 'Redirect to /new.')
+        self.assertEqual(redirect.doc, 'Redirect to /new')
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '302 Found')
         self.assertListEqual(headers, [
