@@ -1,3 +1,7 @@
+## 1.1.8 (2022-05-12)
+
+- [2322939](https://github.com/craigahobbs/chisel/commit/2322939) - port chisel documentation to markdown-script
+
 ## 1.1.7 (2022-05-10)
 
 - [9ed9d44](https://github.com/craigahobbs/chisel/commit/9ed9d44) - schema-markdown 1.1.12
