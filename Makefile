@@ -22,7 +22,7 @@ clean:
 	rm -rf Makefile.base pylintrc
 
 # Dump documentation API responses
-define DUMP_DOC_APIS
+define DUMP_EXAMPLE
 import chisel
 from chisel.doc import CHISEL_DOC_HTML
 import json
@@ -39,8 +39,8 @@ with open(f'build/doc/html/example/doc_index', 'w') as index_file:
     json.dump({'title': 'Chisel Documentation Example', 'groups': {'Documentation': ['chisel_doc_request']}}, index_file, indent=2)
 endef
 
-export DUMP_DOC_APIS
+export DUMP_EXAMPLE
 
 doc:
 	mkdir -p build/doc/html/example
-	$(DOC_DEFAULT_VENV_CMD)/python3 -c "$$DUMP_DOC_APIS"
+	$(DOC_DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"

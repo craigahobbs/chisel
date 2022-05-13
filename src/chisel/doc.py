@@ -32,6 +32,18 @@ CHISEL_DOC_HTML = b'''\
         const app = new MarkdownUp(window, {
             'markdownText': `\
 ~~~ markdown-script
+# Licensed under the MIT License
+# https://github.com/craigahobbs/chisel/blob/main/LICENSE
+
+
+#
+# The Chisel documentation application
+#
+async function chiselDoc()
+    if(vName != null, requestPage(vName), indexPage())
+endfunction
+
+
 async function indexPage()
     # Fetch the documentation index API
     docIndex = fetch('doc_index')
@@ -56,6 +68,7 @@ async function indexPage()
         ixGroup = ixGroup + 1
     jumpif (ixGroup < arrayLength(groupNames)) groupLoop
 endfunction
+
 
 async function requestPage(typeName)
     # Fetch the request API
@@ -90,7 +103,9 @@ async function requestPage(typeName)
     noURLs:
 endfunction
 
-if(vName != null, requestPage(vName), indexPage())
+
+# Execute the application
+chiselDoc()
 ~~~
 `});
         app.run();
