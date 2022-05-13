@@ -1,3 +1,7 @@
+## 1.1.9 (2022-05-13)
+
+- [ce5ec9a](https://github.com/craigahobbs/chisel/commit/ce5ec9a) - cleanup doc app
+
 ## 1.1.8 (2022-05-12)
 
 - [2322939](https://github.com/craigahobbs/chisel/commit/2322939) - port chisel documentation to markdown-script
