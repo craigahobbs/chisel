@@ -1,4 +1,3 @@
-~~~ markdown-script
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
@@ -71,8 +70,3 @@ async function requestPage(typeName)
         jumpif (ixURL < arrayLength(urls)) urlLoop
     noURLs:
 endfunction
-
-
-# Execute the application
-chiselDoc()
-~~~
