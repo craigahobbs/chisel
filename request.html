@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -67,7 +68,7 @@
            <div itemprop="articleBody">
              
   <section id="built-in-requests">
-<h1>Built-in Requests<a class="headerlink" href="#built-in-requests" title="Permalink to this headline"></a></h1>
+<h1>Built-in Requests<a class="headerlink" href="#built-in-requests" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="chisel.create_doc_requests">
 <span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">create_doc_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requests</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/doc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.create_doc_requests" title="Permalink to this definition"></a></dt>
@@ -92,7 +93,7 @@ documentation application. By default, the documenation application is hosted at
 <dl class="py class">
 <dt class="sig sig-object py" id="chisel.RedirectRequest">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">RedirectRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redirect_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permanent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Redirects'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.RedirectRequest" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="app.html#chisel.Request" title="chisel.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="app.html#chisel.Request" title="chisel.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></p>
 <p>A redirect reqeust</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -112,7 +113,7 @@ or None to match any. The second value is the URL path or None to use the defaul
 <dl class="py class">
 <dt class="sig sig-object py" id="chisel.StaticRequest">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">StaticRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">urls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Statics'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.StaticRequest" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="app.html#chisel.Request" title="chisel.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">chisel.request.Request</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="app.html#chisel.Request" title="chisel.request.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a></p>
 <p>A static resource request</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
