@@ -30,7 +30,7 @@ async function indexPage()
         ixRequest = 0
         requestLoop:
             requestName = arrayGet(groupRequests, ixRequest)
-            markdownPrint('', '[' + markdownEncode(requestName) + "](#var.vName='" + encodeURIComponent(requestName) + "')")
+            markdownPrint('', '[' + markdownEncode(requestName) + "](#var.vName='" + stringEncodeURL(requestName) + "')")
             ixRequest = ixRequest + 1
         jumpif (ixRequest < arrayLength(groupRequests)) requestLoop
         ixGroup = ixGroup + 1
@@ -40,7 +40,7 @@ endfunction
 
 async function requestPage(typeName)
     # Fetch the request API
-    docRequest = fetch('doc_request?name=' + encodeURIComponent(typeName))
+    docRequest = fetch('doc_request?name=' + stringEncodeURL(typeName))
     doc = objectGet(docRequest, 'doc')
     urls = objectGet(docRequest, 'urls')
     types = objectGet(docRequest, 'types')
@@ -65,7 +65,7 @@ async function requestPage(typeName)
             requestURL = arrayGet(urls, ixURL)
             method = objectGet(requestURL, 'method')
             url = objectGet(requestURL, 'url')
-            markdownPrint('', fromCharCode(160, 160) + '[' + markdownEncode(method) + ' ' + markdownEncode(url) + '](' + url + ')')
+            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEncode(method) + ' ' + markdownEncode(url) + '](' + url + ')')
             ixURL = ixURL + 1
         jumpif (ixURL < arrayLength(urls)) urlLoop
     noURLs:
