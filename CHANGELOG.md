@@ -1,3 +1,7 @@
+## 1.1.11 (2022-07-28)
+
+- [2528da3](https://github.com/craigahobbs/chisel/commit/2528da3) - use correct definition of ActionURL
+
 ## 1.1.10 (2022-05-23)
 
 - [7bc2773](https://github.com/craigahobbs/chisel/commit/7bc2773) - add static doc/app.mds
