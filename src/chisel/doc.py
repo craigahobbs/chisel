@@ -140,7 +140,7 @@ struct RequestURL
     optional string method
 
     # The request URL path
-    string url
+    string path
 
 # Get a request's documentation information
 action chisel_doc_request
@@ -184,7 +184,7 @@ action chisel_doc_request
             'name': request.name
         }
         if request.urls:
-            response['urls'] = [self._url_dict(method, url) for method, url in request.urls]
+            response['urls'] = [self._url_dict(method, path) for method, path in request.urls]
         if isinstance(request, Action):
             response['types'] = get_referenced_types(request.types, request.name)
         elif request.doc is not None:
@@ -193,8 +193,8 @@ action chisel_doc_request
         return response
 
     @staticmethod
-    def _url_dict(method, url):
-        url_dict = {'url': url}
+    def _url_dict(method, path):
+        url_dict = {'path': path}
         if method is not None:
             url_dict['method'] = method
         return url_dict

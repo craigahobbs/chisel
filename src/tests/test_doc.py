@@ -253,7 +253,7 @@ action my_action2
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action/{a}'}],
+            'urls': [{'method': 'POST', 'path': '/my_action/{a}'}],
             'types': {
                 'my_action': {
                     'action': {
@@ -508,7 +508,7 @@ action my_action2
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action2',
-            'urls': [{'method': 'POST', 'url': '/my_action2'}],
+            'urls': [{'method': 'POST', 'path': '/my_action2'}],
             'types': {
                 'my_action2': {
                     'action': {
@@ -523,14 +523,14 @@ action my_action2
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'doc': ['Request doc.'],
             'name': 'my_request',
-            'urls': [{'url': '/my_request'}]
+            'urls': [{'path': '/my_request'}]
         })
 
         status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_request2',
-            'urls': [{'url': '/my_request2'}]
+            'urls': [{'path': '/my_request2'}]
         })
 
     def test_attr(self):
@@ -566,7 +566,7 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'urls': [{'method': 'POST', 'path': '/my_action'}],
             'types': {
                 'IntDict': {
                     'typedef': {
@@ -646,7 +646,7 @@ action my_action2
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'urls': [{'method': 'POST', 'path': '/my_action'}],
             'types': {
                 'my_action': {'action': {'name': 'my_action'}}
             }
@@ -685,7 +685,7 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
-            'urls': [{'method': 'POST', 'url': '/my_action'}],
+            'urls': [{'method': 'POST', 'path': '/my_action'}],
             'types': {
                 'my_action': {'action': {'name': 'my_action'}}
             }
