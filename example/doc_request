@@ -468,7 +468,7 @@
             "doc": [
               "The request URL path"
             ],
-            "name": "url",
+            "name": "path",
             "type": {
               "builtin": "string"
             }
@@ -882,7 +882,7 @@
   "urls": [
     {
       "method": "GET",
-      "url": "/doc/doc_request"
+      "path": "/doc/doc_request"
     }
   ]
 }
