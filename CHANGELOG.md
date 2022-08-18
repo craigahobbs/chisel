@@ -1,3 +1,7 @@
+## 1.1.12 (2022-08-18)
+
+- [dd76316](https://github.com/craigahobbs/chisel/commit/dd76316) - simplify MarkdownUp app stub
+
 ## 1.1.11 (2022-07-28)
 
 - [2528da3](https://github.com/craigahobbs/chisel/commit/2528da3) - use correct definition of ActionURL
