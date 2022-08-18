@@ -64,8 +64,8 @@ async function requestPage(typeName)
         urlLoop:
             requestURL = arrayGet(urls, ixURL)
             method = objectGet(requestURL, 'method')
-            url = objectGet(requestURL, 'url')
-            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscape(method) + ' ' + markdownEscape(url) + '](' + url + ')')
+            path = objectGet(requestURL, 'path')
+            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
             ixURL = ixURL + 1
         jumpif (ixURL < arrayLength(urls)) urlLoop
     noURLs:
