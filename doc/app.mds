@@ -21,16 +21,16 @@ async function indexPage()
 
     # Render the index page
     setDocumentTitle(title)
-    markdownPrint('# ' + markdownEscapeText(title))
+    markdownPrint('# ' + markdownEscape(title))
     ixGroup = 0
     groupLoop:
         groupName = arrayGet(groupNames, ixGroup)
         groupRequests = objectGet(groups, groupName)
-        markdownPrint('', '### ' + markdownEscapeText(groupName))
+        markdownPrint('', '### ' + markdownEscape(groupName))
         ixRequest = 0
         requestLoop:
             requestName = arrayGet(groupRequests, ixRequest)
-            markdownPrint('', '[' + markdownEscapeText(requestName) + "](#var.vName='" + markdownEscapeURLComponent(requestName) + "')")
+            markdownPrint('', '[' + markdownEscape(requestName) + "](#var.vName='" + encodeURIComponent(requestName) + "')")
             ixRequest = ixRequest + 1
         jumpif (ixRequest < arrayLength(groupRequests)) requestLoop
         ixGroup = ixGroup + 1
@@ -40,7 +40,7 @@ endfunction
 
 async function requestPage(typeName)
     # Fetch the request API
-    docRequest = fetch('doc_request?name=' + markdownEscapeURLComponent(typeName))
+    docRequest = fetch('doc_request?name=' + encodeURIComponent(typeName))
     doc = objectGet(docRequest, 'doc')
     urls = objectGet(docRequest, 'urls')
     types = objectGet(docRequest, 'types')
@@ -56,7 +56,7 @@ async function requestPage(typeName)
 
     # Non-action request
     nonAction:
-    markdownPrint('', '# ' + markdownEscapeText(typeName))
+    markdownPrint('', '# ' + markdownEscape(typeName))
     if(doc != null, markdownPrint('', doc))
     jumpif(urls == null || arrayLength(urls) == 0) noURLs
         markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
@@ -65,7 +65,7 @@ async function requestPage(typeName)
             requestURL = arrayGet(urls, ixURL)
             method = objectGet(requestURL, 'method')
             path = objectGet(requestURL, 'path')
-            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscapeText(method) + ' ' + markdownEscapeText(path) + '](' + path + ')')
+            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
             ixURL = ixURL + 1
         jumpif (ixURL < arrayLength(urls)) urlLoop
     noURLs:
