@@ -19,7 +19,7 @@ def main():
         description='Lightweight WSGI application framework, schema-validated JSON APIs, and API documentation.',
         long_description=long_description,
         long_description_content_type='text/x-rst',
-        version='1.1.14',
+        version='1.2.0',
         author='Craig A. Hobbs',
         author_email='craigahobbs@gmail.com',
         keywords='api json framework schema wsgi',
