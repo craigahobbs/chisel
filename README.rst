@@ -19,26 +19,19 @@ chisel
 
 |badge-status| |badge-version| |badge-license| |badge-python|
 
-**Chisel** is a light-weight Python WSGI application framework built for creating
-well-documented, schema-validated JSON web APIs. Here are its features at a glance:
-
-- Light-weight WSGI application framework
-- Schema-validated JSON APIs
-- API documentation with Markdown support
-- Written in pure Python
-- Zero dependencies
+Chisel is a light-weight Python WSGI application framework built for creating well-documented,
+schema-validated JSON web APIs.
 
 
 Links
 -----
 
 - `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`__
-- `Package on pypi <https://pypi.org/project/chisel/>`__
-- `Source code on GitHub <https://github.com/craigahobbs/chisel>`__
+- `Source code <https://github.com/craigahobbs/chisel>`__
 
 
-Schema-Validated JSON APIs
---------------------------
+JSON APIs
+---------
 
 Chisel provides the `action <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__
 decorator for easily implementing schema-validated JSON APIs.
