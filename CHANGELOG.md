@@ -1,3 +1,7 @@
+## 1.1.13 (2022-08-22)
+
+- [613adf1](https://github.com/craigahobbs/chisel/commit/613adf1) - schema-markdown 1.2
+
 ## 1.1.12 (2022-08-18)
 
 - [dd76316](https://github.com/craigahobbs/chisel/commit/dd76316) - simplify MarkdownUp app stub
