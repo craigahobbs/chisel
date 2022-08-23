@@ -1,15 +1,9 @@
 .. include:: ../README.rst
 
 .. toctree::
-   :caption: Contents:
-   :maxdepth: 1
+   :maxdepth: 2
+   :hidden:
 
    app
    action
    request
-
-
-Index
------
-
-* :ref:`genindex`
