@@ -10,7 +10,7 @@ from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
 
-from schema_markdown import SchemaMarkdownParser, ValidationError, decode_query_string, get_referenced_types, validate_type
+from schema_markdown import ValidationError, decode_query_string, get_referenced_types, parse_schema_markdown, validate_type
 
 from .app import Context
 from .request import Request
@@ -133,7 +133,7 @@ class Action(Request):
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
     :param dict types: Optional dictionary of user type models
-    :param str spec: Optional action :ref:`schema-markdown:Schema Markdown` specification.
+    :param str spec: Optional action `Schema Markdown <https://craigahobbs.github.io/schema-markdown-js/language/>`__ specification.
         If a specification isn't provided it can be provided through the "types" argument.
     :param bool wsgi_response: If True, the callback function's response is a WSGI application function
         response. Default is False.
@@ -152,7 +152,7 @@ class Action(Request):
         if types is None:
             types = {}
         if spec is not None:
-            SchemaMarkdownParser(spec, types=types)
+            parse_schema_markdown(spec, types=types)
 
         # Assert that the action model exists
         model_type = types.get(name)

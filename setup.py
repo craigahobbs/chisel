@@ -42,7 +42,7 @@ def main():
         package_dir={'': 'src'},
         packages=['chisel'],
         install_requires=[
-            'schema-markdown >= 1.1.12'
+            'schema-markdown >= 1.2.0'
         ]
     )
 

@@ -7,7 +7,7 @@ from http import HTTPStatus
 from io import StringIO
 from unittest import TestCase
 
-from schema_markdown import SchemaMarkdownParser, SchemaMarkdownParserError
+from schema_markdown import SchemaMarkdownParserError, parse_schema_markdown
 
 from chisel import action, Action, ActionError, Application, Request
 
@@ -66,10 +66,10 @@ action my_action
     # Action decorator with spec parser
     def test_decorator_types(self):
 
-        spec_parser = SchemaMarkdownParser('''\
+        types = parse_schema_markdown('''\
 action my_action
 ''')
-        @action(types=spec_parser.types)
+        @action(types=types)
         def my_action(unused_app, unused_req):
             pass # pragma: no cover
 
@@ -87,10 +87,10 @@ action my_action
     # Action decorator with spec parser and a spec
     def test_decorator_types_and_spec(self):
 
-        spec_parser = SchemaMarkdownParser('''\
+        types = parse_schema_markdown('''\
 typedef int(> 0) PositiveInteger
 ''')
-        @action(types=spec_parser.types, spec='''\
+        @action(types=types, spec='''\
 action my_action
     input
         PositiveInteger value
