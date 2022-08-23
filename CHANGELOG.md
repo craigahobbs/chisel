@@ -1,3 +1,9 @@
+## 2022-08-22
+
+- [4d5773f](https://github.com/craigahobbs/chisel/commit/4d5773f) - use sphinx alibaster theme for docs
+
+- [ee9974c](https://github.com/craigahobbs/chisel/commit/ee9974c) - chisel 1.1.13
+
 ## 1.1.13 (2022-08-22)
 
 - [613adf1](https://github.com/craigahobbs/chisel/commit/613adf1) - schema-markdown 1.2
