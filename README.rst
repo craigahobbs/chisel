@@ -26,7 +26,7 @@ schema-validated JSON web APIs.
 Links
 -----
 
-- `Documentation on GitHub Pages <https://craigahobbs.github.io/chisel/>`__
+- `API Documentation <https://craigahobbs.github.io/chisel/>`__
 - `Source code <https://github.com/craigahobbs/chisel>`__
 
 
@@ -59,7 +59,7 @@ decorator for easily implementing schema-validated JSON APIs.
 ('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
 
 Each action defines an ``action`` definition using
-`Schema Markdown <https://craigahobbs.github.io/schema-markdown/schema-markdown.html>`__.
+`Schema Markdown <https://craigahobbs.github.io/schema-markdown-js/language/>`__.
 The action callback is passed two arguments, a request
 `Context <https://craigahobbs.github.io/chisel/app.html#chisel.Context>`__
 and the schema-validated request input dictionary. The input request dictionary is created by
