@@ -61,7 +61,7 @@ def action(action_callback=None, **kwargs):
 
     if action_callback is None:
         return partial(action, **kwargs)
-    return Action(action_callback, **kwargs).decorate_module(action_callback)
+    return Action(action_callback, **kwargs)
 
 
 class ActionError(Exception):

@@ -3,32 +3,10 @@
 
 # pylint: disable=missing-class-docstring, missing-function-docstring, missing-module-docstring
 
-from contextlib import contextmanager
 from http import HTTPStatus
-import os
-import sys
-from tempfile import TemporaryDirectory
 from unittest import TestCase
-import unittest.mock
 
 from chisel import request, Application, Request, RedirectRequest, StaticRequest
-
-
-# Helper context manager to create a list of files in a temporary directory
-@contextmanager
-def create_test_files(file_defs):
-    tempdir = TemporaryDirectory()
-    try:
-        for path_parts, content in file_defs:
-            if isinstance(path_parts, str):
-                path_parts = [path_parts]
-            path = os.path.join(tempdir.name, *path_parts)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'w', encoding='utf-8') as file_:
-                file_.write(content)
-        yield tempdir.name
-    finally:
-        tempdir.cleanup()
 
 
 class TestRequest(TestCase):
@@ -196,65 +174,6 @@ class TestRequest(TestCase):
         self.assertEqual(my_request.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/foo')))
         self.assertEqual(my_request.doc, ('doc line 1', 'doc line 2'))
         self.assertEqual(my_request({}, lambda status, headers: None), [b'ok'])
-
-    def test_import_requests(self):
-
-        test_files = (
-            (
-                '__init__.py',
-                ''
-            ),
-            (
-                ('test_package', '__init__.py',),
-                ''
-            ),
-            (
-                ('test_package', 'module.py',),
-                '''\
-from chisel import request
-
-@request
-def request1(environ, start_response):
-    return [b'request1']
-
-@request
-def request2(environ, start_response):
-    return [b'request2']
-'''
-            ),
-            (
-                ('test_package', 'module2.py',),
-                ''
-            ),
-            (
-                ('test_package', 'sub', '__init__.py'),
-                ''
-            ),
-            (
-                ('test_package', 'sub', 'subsub', '__init__.py'),
-                ''
-            ),
-            (
-                ('test_package', 'sub', 'subsub', 'submodule.py'),
-                '''\
-from chisel import request
-
-@request
-def request3(environ, start_response):
-    return [b'request3']
-'''
-            )
-        )
-        with create_test_files(test_files) as requests_dir:
-            with unittest.mock.patch('sys.path', [requests_dir] + sys.path):
-                self.assertListEqual(
-                    sorted(request.name for request in Request.import_requests('test_package')),
-                    [
-                        'request1',
-                        'request2',
-                        'request3'
-                    ]
-                )
 
     def test_request_subclass(self):
 

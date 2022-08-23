@@ -82,6 +82,5 @@ autosectionlabel_maxdepth = 2
 doctest_global_setup = 'import chisel'
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'schema-markdown': ('https://craigahobbs.github.io/schema-markdown/', None)
+    'python': ('https://docs.python.org/3', None)
 }

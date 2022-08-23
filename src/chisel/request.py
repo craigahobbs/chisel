@@ -8,17 +8,11 @@ Chisel request base class and common request classes
 from functools import partial
 import hashlib
 from http import HTTPStatus
-import importlib
 from itertools import chain
-import pkgutil
 import posixpath
 import re
-import sys
 
 from .app import Context
-
-
-REQUESTS_MODULE_ATTR = '__chisel_requests__'
 
 
 def request(wsgi_callback=None, **kwargs):
@@ -59,7 +53,7 @@ def request(wsgi_callback=None, **kwargs):
 
     if wsgi_callback is None:
         return partial(request, **kwargs)
-    return Request(wsgi_callback, **kwargs).decorate_module(wsgi_callback)
+    return Request(wsgi_callback, **kwargs)
 
 
 class Request:
@@ -114,39 +108,6 @@ class Request:
 
         assert self.wsgi_callback is not None, 'wsgi_callback required when using Request directly'
         return self.wsgi_callback(environ, start_response)
-
-    def decorate_module(self, wsgi_callback):
-        """
-        Helper method to update a collection requests on the request's module. This information is used by
-        :meth:`~chisel.Request.import_requests`.
-
-        :param ~collections.abc.Callable wsgi_callback: The wrapped WSGI application function
-        """
-
-        if wsgi_callback.__module__: # pragma: no branch
-            module = sys.modules[wsgi_callback.__module__]
-            requests = getattr(module, REQUESTS_MODULE_ATTR, None)
-            if requests is None:
-                requests = {}
-                setattr(module, REQUESTS_MODULE_ATTR, requests)
-            requests[self.name] = self
-        return self
-
-    @staticmethod
-    def import_requests(package, parent_package=None):
-        """
-        Import reqeusts from a package.
-
-        :param str package: The package in which to recursively load requests
-        :param str parent_package: The parent package
-        """
-
-        package = importlib.import_module(package, parent_package)
-        for _, name, _ in pkgutil.walk_packages(package.__path__, package.__name__ + '.'):
-            module = importlib.import_module(name)
-            requests = getattr(module, REQUESTS_MODULE_ATTR, None)
-            if requests is not None:
-                yield from iter(requests.values())
 
 
 class RedirectRequest(Request):
