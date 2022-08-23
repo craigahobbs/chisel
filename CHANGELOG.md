@@ -1,3 +1,7 @@
+## 1.2.0 (2022-08-23)
+
+- [9c2b871](https://github.com/craigahobbs/chisel/commit/9c2b871) - remove Request.import_requests method
+
 ## 1.1.14 (2022-08-23)
 
 - [be98214](https://github.com/craigahobbs/chisel/commit/be98214) - update readme
