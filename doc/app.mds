@@ -51,7 +51,7 @@ async function requestPage(typeName)
 
     # Action request?
     jumpif (types == null) nonAction
-    schemaPrint(types, typeName, urls)
+    elementModelRender(schemaElements(types, typeName, urls))
     return
 
     # Non-action request
