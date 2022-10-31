@@ -5,7 +5,7 @@
 Chisel action class
 """
 
-from cgi import parse_header
+from cgi import parse_header # pylint: disable=deprecated-module
 from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads

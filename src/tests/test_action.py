@@ -39,8 +39,8 @@ action my_action_default
 
         with self.assertRaises(AssertionError) as cm_exc:
             @action
-            def unused_my_action(unused_app, unused_req):
-                pass # pragma: no cover
+            def unused_my_action(unused_app, unused_req): # pragma: no cover
+                pass
         self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
 
     # Action decorator with spec
@@ -136,8 +136,8 @@ action my_action
             @action(spec='''\
 action my_action
 ''')
-            def unused_my_action(unused_app, unused_req):
-                pass # pragma: no cover
+            def unused_my_action(unused_app, unused_req): # pragma: no cover
+                pass
         self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
 
     # Action decorator with spec with syntax errors
@@ -146,8 +146,8 @@ action my_action
             @action(spec='''\
 asdfasdf
 ''')
-            def unused_my_action(unused_app, unused_req):
-                pass # pragma: no cover
+            def unused_my_action(unused_app, unused_req): # pragma: no cover
+                pass
         self.assertEqual(str(cm_exc.exception), ':1: error: Syntax error')
 
     # Action decorator with name and spec
