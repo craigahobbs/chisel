@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2 (2022-10-31)
+
+- [c700381](https://github.com/craigahobbs/chisel/commit/c700381) - eliminate use of deprecated cgi module
+
 ## 1.2.1 (2022-10-31)
 
 - [eebd742](https://github.com/craigahobbs/chisel/commit/eebd742) - add setup.cfg long_description_content_type
