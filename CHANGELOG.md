@@ -2,6 +2,8 @@
 
 ## 1.2.1 (2022-10-31)
 
+- [eebd742](https://github.com/craigahobbs/chisel/commit/eebd742) - add setup.cfg long_description_content_type
+
 - [9c29d74](https://github.com/craigahobbs/chisel/commit/9c29d74) - add pyproject.toml and setup.cfg, remove setup.py
 
 ## 1.2.0 (2022-08-23)
