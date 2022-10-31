@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 (2022-10-31)
+
+- [9c29d74](https://github.com/craigahobbs/chisel/commit/9c29d74) - add pyproject.toml and setup.cfg, remove setup.py
+
 ## 1.2.0 (2022-08-23)
 
 - [9c2b871](https://github.com/craigahobbs/chisel/commit/9c2b871) - remove Request.import_requests method
