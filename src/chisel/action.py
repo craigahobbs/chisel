@@ -5,15 +5,19 @@
 Chisel action class
 """
 
-from cgi import parse_header # pylint: disable=deprecated-module
 from functools import partial
 from http import HTTPStatus
 from json import loads as json_loads
+import re
 
 from schema_markdown import ValidationError, decode_query_string, get_referenced_types, parse_schema_markdown, validate_type
 
 from .app import Context
 from .request import Request
+
+
+# Regex for parsing the Content-Type header
+RE_CONTENT_TYPE_HEADER = re.compile(r'\bcharset\s*=\s*(?P<charset>\S+)')
 
 
 def action(action_callback=None, **kwargs):
@@ -240,7 +244,8 @@ class Action(Request):
             try:
                 if content:
                     content_type = environ.get('CONTENT_TYPE')
-                    content_charset = ('utf-8' if content_type is None else parse_header(content_type)[1].get('charset', 'utf-8'))
+                    match_charset = None if content_type is None else RE_CONTENT_TYPE_HEADER.search(content_type)
+                    content_charset = 'utf-8' if match_charset is None else match_charset.group('charset')
                     content_json = content.decode(content_charset)
                     request = json_loads(content_json)
                 else:

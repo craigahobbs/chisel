@@ -5,8 +5,6 @@
 Chisel documentation application
 """
 
-from collections import defaultdict
-
 from schema_markdown import get_referenced_types
 from schema_markdown.type_model import TYPE_MODEL
 
@@ -106,9 +104,12 @@ action chisel_doc_index
 
     def _doc_index(self, ctx, unused_req):
         requests = self.requests if self.requests is not None else ctx.app.requests
-        groups = defaultdict(list)
+        groups = {}
         for request in requests.values():
-            groups[request.doc_group or 'Uncategorized'].append(request.name)
+            request_group = request.doc_group or 'Uncategorized'
+            if request_group not in groups:
+                groups[request_group] = []
+            groups[request_group].append(request.name)
         return {
             'title': ctx.environ['HTTP_HOST'],
             'groups': {group: sorted(names) for group, names in groups.items()}
