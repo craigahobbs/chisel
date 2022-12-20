@@ -93,7 +93,9 @@ available `here <https://craigahobbs.github.io/chisel/example/#var.vName='chisel
 Development
 -----------
 
-This project is developed using `python-build <https://github.com/craigahobbs/python-build#readme>`__. It was started
-using `python-template <https://github.com/craigahobbs/python-template#readme>`__ as follows::
+This package is developed using `python-build <https://github.com/craigahobbs/python-build#readme>`__.
+It was started using `python-template <https://github.com/craigahobbs/python-template#readme>`__ as follows:
+
+.. code-block:: sh
 
     template-specialize python-template/template/ chisel/ -k package chisel -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k nomain 1
