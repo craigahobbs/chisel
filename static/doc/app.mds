@@ -8,7 +8,11 @@
 
 
 async function chiselDoc()
-    if(vName != null, requestPage(vName), indexPage())
+    if vName != null then
+        requestPage(vName)
+    else then
+        indexPage()
+    endif
 endfunction
 
 
@@ -17,24 +21,16 @@ async function indexPage()
     docIndex = fetch('doc_index')
     title = objectGet(docIndex, 'title')
     groups = objectGet(docIndex, 'groups')
-    groupNames = objectKeys(groups)
 
     # Render the index page
     setDocumentTitle(title)
     markdownPrint('# ' + markdownEscape(title))
-    ixGroup = 0
-    groupLoop:
-        groupName = arrayGet(groupNames, ixGroup)
-        groupRequests = objectGet(groups, groupName)
+    foreach groupName in arraySort(objectKeys(groups)) do
         markdownPrint('', '### ' + markdownEscape(groupName))
-        ixRequest = 0
-        requestLoop:
-            requestName = arrayGet(groupRequests, ixRequest)
+        foreach requestName in objectGet(groups, groupName) do
             markdownPrint('', '[' + markdownEscape(requestName) + "](#var.vName='" + encodeURIComponent(requestName) + "')")
-            ixRequest = ixRequest + 1
-        jumpif (ixRequest < arrayLength(groupRequests)) requestLoop
-        ixGroup = ixGroup + 1
-    jumpif (ixGroup < arrayLength(groupNames)) groupLoop
+        endforeach
+    endforeach
 endfunction
 
 
@@ -50,23 +46,22 @@ async function requestPage(typeName)
     markdownPrint('[Index](#var=)')
 
     # Action request?
-    jumpif (types == null) nonAction
-    elementModelRender(schemaElements(types, typeName, urls))
-    return
+    if types != null then
+        elementModelRender(schemaElements(types, typeName, urls))
+        return
+    endif
 
     # Non-action request
-    nonAction:
     markdownPrint('', '# ' + markdownEscape(typeName))
-    if(doc != null, markdownPrint('', doc))
-    jumpif(urls == null || arrayLength(urls) == 0) noURLs
+    if doc != null then
+        markdownPrint('', doc)
+    endif
+    if urls != null && arrayLength(urls) > 0 then
         markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
-        ixURL = 0
-        urlLoop:
-            requestURL = arrayGet(urls, ixURL)
+        foreach requestURL in urls do
             method = objectGet(requestURL, 'method')
             path = objectGet(requestURL, 'path')
             markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
-            ixURL = ixURL + 1
-        jumpif (ixURL < arrayLength(urls)) urlLoop
-    noURLs:
+        endforeach
+    endif
 endfunction
