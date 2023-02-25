@@ -59,9 +59,9 @@ async function requestPage(typeName)
     if urls != null && arrayLength(urls) > 0 then
         markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
         foreach requestURL in urls do
-            method = objectGet(requestURL, 'method', '*')
+            method = objectGet(requestURL, 'method', '')
             path = objectGet(requestURL, 'path')
-            markdownPrint('', stringFromCharCode(160, 160) + '[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
+            markdownPrint('', '&nbsp;&nbsp;[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
         endforeach
     endif
 endfunction
