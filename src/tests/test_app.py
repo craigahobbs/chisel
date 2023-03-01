@@ -205,6 +205,7 @@ class TestApplication(TestCase):
     def test_request_exception(self):
 
         def request1(unused_environ, unused_start_response):
+            # pylint: disable=broad-exception-raised
             raise Exception('')
 
         app = Application()
