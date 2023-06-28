@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3 (2023-06-28)
+
+- [ea4e4ac](https://github.com/craigahobbs/chisel/commit/ea4e4ac) - add python 3.12 support, remove python 3.7 support \(end-of-life\)
+
 ## 1.2.2 (2022-10-31)
 
 - [c700381](https://github.com/craigahobbs/chisel/commit/c700381) - eliminate use of deprecated cgi module
