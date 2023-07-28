@@ -44,4 +44,4 @@ export DUMP_EXAMPLE
 doc:
 	cp -R static/* build/doc/html/
 	mkdir -p build/doc/html/example
-	$(DOC_DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"
+	$(DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"
