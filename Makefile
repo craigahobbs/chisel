@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
+
 # Download python-build
 define WGET
 ifeq '$$(wildcard $(notdir $(1)))' ''
@@ -12,16 +13,26 @@ WGET_CMD = if which wget; then wget -q -c $(1); else curl -f -Os $(1); fi
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/python-build/main/Makefile.base))
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/python-build/main/pylintrc))
 
+
 # Sphinx documentation directory
 SPHINX_DOC := doc
+
 
 # Include python-build
 include Makefile.base
 
-clean:
-	rm -rf Makefile.base pylintrc
 
-# Dump documentation API responses
+clean:
+	rm -rf Makefile.base pylintrc package.json package-lock.json node_modules/
+
+
+doc:
+	cp -R static/* build/doc/html/
+	mkdir -p build/doc/html/example
+	$(DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"
+
+
+# Python to dump documentation API responses
 define DUMP_EXAMPLE
 import chisel
 from chisel.doc import CHISEL_DOC_HTML
@@ -38,10 +49,18 @@ with open(f'build/doc/html/example/doc_request', 'wb') as request_file:
 with open(f'build/doc/html/example/doc_index', 'w') as index_file:
     json.dump({'title': 'Chisel Documentation Example', 'groups': {'Documentation': ['chisel_doc_request']}}, index_file, indent=2)
 endef
-
 export DUMP_EXAMPLE
 
-doc:
-	cp -R static/* build/doc/html/
-	mkdir -p build/doc/html/example
-	$(DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"
+
+.PHONY: test-doc
+commit: test-doc
+test-doc: build/npm.build
+	$(NODE_DOCKER) npx bare -s static/doc/*.mds static/doc/test/*.mds
+	$(NODE_DOCKER) npx bare -c 'include <markdownUp.bare>' static/doc/test/runTests.mds
+
+
+build/npm.build:
+	echo '{"type":"module","devDependencies":{"bare-script":"*"}}' > package.json
+	$(NODE_DOCKER) npm install
+	mkdir -p $(dir $@)
+	touch $@

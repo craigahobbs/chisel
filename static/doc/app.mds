@@ -19,6 +19,10 @@ endfunction
 async function indexPage():
     # Fetch the documentation index API
     docIndex = systemFetch('doc_index')
+    if docIndex == null:
+        markdownPrint('**Error:** Failed to fetch chisel index API')
+        return
+    endif
     title = objectGet(docIndex, 'title')
     groups = objectGet(docIndex, 'groups')
 
@@ -27,7 +31,7 @@ async function indexPage():
     markdownPrint('# ' + markdownEscape(title))
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '### ' + markdownEscape(groupName))
-        for requestName in objectGet(groups, groupName):
+        for requestName in arraySort(objectGet(groups, groupName)):
             markdownPrint('', '[' + markdownEscape(requestName) + "](#var.vName='" + urlEncodeComponent(requestName) + "')")
         endfor
     endfor
@@ -37,6 +41,10 @@ endfunction
 async function requestPage(typeName):
     # Fetch the request API
     docRequest = systemFetch('doc_request?name=' + urlEncodeComponent(typeName))
+    if docRequest == null:
+        markdownPrint('**Error:** Failed to fetch chisel request API for "' + typeName + '"')
+        return
+    endif
     doc = objectGet(docRequest, 'doc')
     urls = objectGet(docRequest, 'urls')
     types = objectGet(docRequest, 'types')
