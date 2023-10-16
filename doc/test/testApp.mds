@@ -1,0 +1,181 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/chisel/blob/main/LICENSE
+
+include '../app.mds'
+
+
+async function testChiselDoc_index():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'doc_index', objectNew( \
+                'title', 'localhost:8080', \
+                'groups', objectNew( \
+                    '2 Group', arrayNew('3action'), \
+                    '1_Group', arrayNew('2+action', '1_action') \
+                ) \
+            ) \
+        ) \
+    ))
+
+    # Render the index
+    chiselDoc()
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_index')), \
+        arrayNew('documentSetTitle', arrayNew('localhost:8080')), \
+        arrayNew('markdownPrint', arrayNew('# localhost:8080')), \
+        arrayNew('markdownPrint', arrayNew('', '### 1\\_Group')), \
+        arrayNew('markdownPrint', arrayNew('', "[1\\_action](#var.vName='1_action')")), \
+        arrayNew('markdownPrint', arrayNew('', "[2\\+action](#var.vName='2%2Baction')")), \
+        arrayNew('markdownPrint', arrayNew('', '### 2 Group')), \
+        arrayNew('markdownPrint', arrayNew('', "[3action](#var.vName='3action')")) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_index')
+
+
+async function testChiselDoc_index_urlError():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    chiselDoc()
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_index')), \
+        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel index API')) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_index_urlError')
+
+
+async function testChiselDoc_request():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'doc_request?name=test%2Brequest', objectNew( \
+                'doc', 'The test request', \
+                'urls', arrayNew(objectNew('path', '/url1'), objectNew('method', 'GET', 'path', '/url2')) \
+            ) \
+        ) \
+    ))
+
+    # Render the index
+    systemGlobalSet('vName', 'test+request')
+    chiselDoc()
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('documentSetTitle', arrayNew('test+request')), \
+        arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
+        arrayNew('markdownPrint', arrayNew('','# test\\+request')), \
+        arrayNew('markdownPrint', arrayNew('','The test request')), \
+        arrayNew('markdownPrint', arrayNew('','**Note:** The request is exposed at the following URLs:')), \
+        arrayNew('markdownPrint', arrayNew('','&nbsp;&nbsp;[ /url1](/url1)')), \
+        arrayNew('markdownPrint', arrayNew('','&nbsp;&nbsp;[GET /url2](/url2)')) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_request')
+
+
+async function testChiselDoc_request_noDocNoURLs():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'doc_request?name=test%2Brequest', objectNew() \
+        ) \
+    ))
+
+    # Render the index
+    systemGlobalSet('vName', 'test+request')
+    chiselDoc()
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('documentSetTitle', arrayNew('test+request')), \
+        arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
+        arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_request_noDocNoURLs')
+
+
+async function testChiselDoc_request_noDocEmptyURLs():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'doc_request?name=test%2Brequest', objectNew('urls', arrayNew()) \
+        ) \
+    ))
+
+    # Render the index
+    systemGlobalSet('vName', 'test+request')
+    chiselDoc()
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('documentSetTitle', arrayNew('test+request')), \
+        arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
+        arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_request_noDocEmptyURLs')
+
+
+async function testChiselDoc_request_action():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'doc_request?name=testAction', objectNew( \
+                'types', objectNew( \
+                    'testAction', objectNew( \
+                        'action', objectNew( \
+                            'name', 'testAction' \
+                        ) \
+                    ) \
+                ) \
+            ) \
+        ) \
+    ))
+
+    # Render the index
+    systemGlobalSet('vName', 'testAction')
+    chiselDoc()
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_request?name=testAction')), \
+        arrayNew('documentSetTitle', arrayNew('testAction')), \
+        arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
+        arrayNew('elementModelRender', arrayNew(arrayNew(arrayNew(objectNew('elem', objectNew('text', 'action testAction'), 'html', 'h1'))))) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_request_action')
+
+
+async function testChiselDoc_request_urlError():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    systemGlobalSet('vName', 'testAction')
+    chiselDoc()
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew('doc_request?name=testAction')), \
+        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel request API for "testAction"')) \
+    ))
+endfunction
+unittestRunTestAsync('testChiselDoc_request_urlError')

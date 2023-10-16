@@ -1,0 +1,11 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/chisel/blob/main/LICENSE
+
+include <unittest.mds>
+include <unittestMock.mds>
+
+# Test includes
+include 'testApp.mds'
+
+# Test report
+return unittestReport()
