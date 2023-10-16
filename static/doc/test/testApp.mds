@@ -46,7 +46,7 @@ async function testChiselDoc_index_urlError():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew('doc_index')), \
-        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel index API')) \
+        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel index API "doc_index"')) \
     ))
 endfunction
 unittestRunTestAsync('testChiselDoc_index_urlError')
@@ -175,7 +175,7 @@ async function testChiselDoc_request_urlError():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew('doc_request?name=testAction')), \
-        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel request API for "testAction"')) \
+        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel request API "doc_request?name=testAction"')) \
     ))
 endfunction
 unittestRunTestAsync('testChiselDoc_request_urlError')
