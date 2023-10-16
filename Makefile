@@ -26,6 +26,12 @@ clean:
 	rm -rf Makefile.base pylintrc package.json package-lock.json node_modules/
 
 
+superclean:
+ifeq '$(NO_DOCKER)' ''
+	-docker rmi -f $(NODE_IMAGE)
+endif
+
+
 doc:
 	cp -R static/* build/doc/html/
 	mkdir -p build/doc/html/example
@@ -52,7 +58,7 @@ endef
 export DUMP_EXAMPLE
 
 
-# Node
+# Node (for doc app testing)
 NODE_IMAGE ?= node:current-slim
 NODE_DOCKER := $(if $(NO_DOCKER),,docker run -i --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE))
 
