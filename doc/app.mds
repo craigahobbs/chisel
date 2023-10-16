@@ -18,9 +18,10 @@ endfunction
 
 async function indexPage():
     # Fetch the documentation index API
-    docIndex = systemFetch('doc_index')
+    indexURL = 'doc_index'
+    docIndex = systemFetch(indexURL)
     if docIndex == null:
-        markdownPrint('**Error:** Failed to fetch chisel index API')
+        markdownPrint('**Error:** Failed to fetch chisel index API "' + indexURL + '"')
         return
     endif
     title = objectGet(docIndex, 'title')
@@ -40,9 +41,10 @@ endfunction
 
 async function requestPage(typeName):
     # Fetch the request API
-    docRequest = systemFetch('doc_request?name=' + urlEncodeComponent(typeName))
+    requestURL = 'doc_request?name=' + urlEncodeComponent(typeName)
+    docRequest = systemFetch(requestURL)
     if docRequest == null:
-        markdownPrint('**Error:** Failed to fetch chisel request API for "' + typeName + '"')
+        markdownPrint('**Error:** Failed to fetch chisel request API "' + requestURL + '"')
         return
     endif
     doc = objectGet(docRequest, 'doc')
