@@ -52,6 +52,11 @@ endef
 export DUMP_EXAMPLE
 
 
+# Node
+NODE_IMAGE ?= node:current-slim
+NODE_DOCKER := $(if $(NO_DOCKER),,docker run -i --rm -u `id -u`:`id -g` -v `pwd`:`pwd` -w `pwd` -e HOME=`pwd`/build $(NODE_IMAGE))
+
+
 .PHONY: test-doc
 commit: test-doc
 test-doc: build/npm.build
@@ -60,6 +65,9 @@ test-doc: build/npm.build
 
 
 build/npm.build:
+ifeq '$(NO_DOCKER)' ''
+	if [ "$$(docker images -q $(NODE_IMAGE))" = "" ]; then docker pull -q $(NODE_IMAGE); fi
+endif
 	echo '{"type":"module","devDependencies":{"bare-script":"*"}}' > package.json
 	$(NODE_DOCKER) npm install
 	mkdir -p $(dir $@)
