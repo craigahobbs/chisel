@@ -22,6 +22,10 @@ SPHINX_DOC := doc
 include Makefile.base
 
 
+help:
+	@echo "            [test-doc]"
+
+
 clean:
 	rm -rf Makefile.base pylintrc package.json package-lock.json node_modules/
 
@@ -67,7 +71,7 @@ NODE_DOCKER := $(if $(NO_DOCKER),,docker run -i --rm -u `id -u`:`id -g` -v `pwd`
 commit: test-doc
 test-doc: build/npm.build
 	$(NODE_DOCKER) npx bare -s static/doc/*.mds static/doc/test/*.mds
-	$(NODE_DOCKER) npx bare -c 'include <markdownUp.bare>' static/doc/test/runTests.mds
+	$(NODE_DOCKER) npx bare -c 'include <markdownUp.bare>' static/doc/test/runTests.mds$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 build/npm.build:
