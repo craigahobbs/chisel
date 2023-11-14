@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 (2023-11-14)
+
+- [0a3cc68](https://github.com/craigahobbs/chisel/commit/0a3cc68) - doc app - add html preloads
+
 ## 1.2.3 (2023-06-28)
 
 - [ea4e4ac](https://github.com/craigahobbs/chisel/commit/ea4e4ac) - add python 3.12 support, remove python 3.7 support \(end-of-life\)
