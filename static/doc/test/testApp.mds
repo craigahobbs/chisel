@@ -26,10 +26,10 @@ async function testChiselDoc_index():
         arrayNew('systemFetch', arrayNew('doc_index')), \
         arrayNew('documentSetTitle', arrayNew('localhost:8080')), \
         arrayNew('markdownPrint', arrayNew('# localhost:8080')), \
-        arrayNew('markdownPrint', arrayNew('', '### 1\\_Group')), \
+        arrayNew('markdownPrint', arrayNew('', '## 1\\_Group')), \
         arrayNew('markdownPrint', arrayNew('', "[1\\_action](#var.vName='1_action')")), \
         arrayNew('markdownPrint', arrayNew('', "[2\\+action](#var.vName='2%2Baction')")), \
-        arrayNew('markdownPrint', arrayNew('', '### 2 Group')), \
+        arrayNew('markdownPrint', arrayNew('', '## 2 Group')), \
         arrayNew('markdownPrint', arrayNew('', "[3action](#var.vName='3action')")) \
     ))
 endfunction
