@@ -31,7 +31,7 @@ async function indexPage():
     documentSetTitle(title)
     markdownPrint('# ' + markdownEscape(title))
     for groupName in arraySort(objectKeys(groups)):
-        markdownPrint('', '### ' + markdownEscape(groupName))
+        markdownPrint('', '## ' + markdownEscape(groupName))
         for requestName in arraySort(objectGet(groups, groupName)):
             markdownPrint('', '[' + markdownEscape(requestName) + "](#var.vName='" + urlEncodeComponent(requestName) + "')")
         endfor
