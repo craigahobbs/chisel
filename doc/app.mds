@@ -1,22 +1,29 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
-
-#
-# The Chisel documentation application
-#
+include <args.mds>
 
 
+# The Chisel documentation application main entry point
 async function chiselDoc():
-    if vName != null:
-        requestPage(vName)
+    args = argsParse(chiselDocArguments)
+    name = objectGet(args, 'name')
+    if name != null:
+        chiselDocRequestPage(name)
     else:
-        indexPage()
+        chiselDocIndexPage()
     endif
 endfunction
 
 
-async function indexPage():
+# The Chisel documentation application arguments
+chiselDocArguments = argsValidate(arrayNew( \
+    objectNew('name', 'name') \
+))
+
+
+# Render the Chisel documentation application index page
+async function chiselDocIndexPage():
     # Fetch the documentation index API
     indexURL = 'doc_index'
     docIndex = systemFetch(indexURL)
@@ -33,13 +40,14 @@ async function indexPage():
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '## ' + markdownEscape(groupName))
         for requestName in arraySort(objectGet(groups, groupName)):
-            markdownPrint('', '[' + markdownEscape(requestName) + "](#var.vName='" + urlEncodeComponent(requestName) + "')")
+            markdownPrint('', argsLink(chiselDocArguments, requestName, objectNew('name', requestName)))
         endfor
     endfor
 endfunction
 
 
-async function requestPage(typeName):
+# Render the Chisel documentation application request page
+async function chiselDocRequestPage(typeName):
     # Fetch the request API
     requestURL = 'doc_request?name=' + urlEncodeComponent(typeName)
     docRequest = systemFetch(requestURL)
@@ -53,7 +61,7 @@ async function requestPage(typeName):
 
     # Render the request page
     documentSetTitle(typeName)
-    markdownPrint('[Index](#var=)')
+    markdownPrint(argsLink(chiselDocArguments, 'Index', objectNew('name', null)))
 
     # Action request?
     if types != null:
