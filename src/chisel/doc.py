@@ -56,6 +56,7 @@ CHISEL_DOC_HTML = b'''\
             'markdownText': `\
 ~~~ markdown-script
 include 'https://craigahobbs.github.io/chisel/doc/app.mds'
+
 chiselDoc()
 ~~~
 `});
