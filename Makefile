@@ -39,7 +39,7 @@ endif
 doc:
 	cp -R static/* build/doc/html/
 	mkdir -p build/doc/html/example
-	$(DEFAULT_VENV_CMD)/python3 -c "$$DUMP_EXAMPLE"
+	$(DEFAULT_VENV_PYTHON) -c "$$DUMP_EXAMPLE"
 
 
 # Python to dump documentation API responses
