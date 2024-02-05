@@ -26,7 +26,7 @@ chiselDocArguments = argsValidate(arrayNew( \
 async function chiselDocIndexPage():
     # Fetch the documentation index API
     indexURL = 'doc_index'
-    docIndex = systemFetch(indexURL)
+    docIndex = jsonParse(systemFetch(indexURL, null, true))
     if docIndex == null:
         markdownPrint('**Error:** Failed to fetch chisel index API "' + indexURL + '"')
         return
@@ -50,7 +50,7 @@ endfunction
 async function chiselDocRequestPage(typeName):
     # Fetch the request API
     requestURL = 'doc_request?name=' + urlEncodeComponent(typeName)
-    docRequest = systemFetch(requestURL)
+    docRequest = jsonParse(systemFetch(requestURL, null, true))
     if docRequest == null:
         markdownPrint('**Error:** Failed to fetch chisel request API "' + requestURL + '"')
         return

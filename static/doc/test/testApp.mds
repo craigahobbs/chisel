@@ -8,13 +8,13 @@ async function testChiselDoc_index():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'doc_index', objectNew( \
+            'doc_index', jsonStringify(objectNew( \
                 'title', 'localhost:8080', \
                 'groups', objectNew( \
                     '2 Group', arrayNew('3action'), \
                     '1_Group', arrayNew('2+action', '1_action') \
                 ) \
-            ) \
+            )) \
         ) \
     ))
 
@@ -23,7 +23,7 @@ async function testChiselDoc_index():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_index')), \
+        arrayNew('systemFetch', arrayNew('doc_index', null, true)), \
         arrayNew('documentSetTitle', arrayNew('localhost:8080')), \
         arrayNew('markdownPrint', arrayNew('# localhost:8080')), \
         arrayNew('markdownPrint', arrayNew('', '## 1\\_Group')), \
@@ -45,7 +45,7 @@ async function testChiselDoc_index_urlError():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_index')), \
+        arrayNew('systemFetch', arrayNew('doc_index', null, true)), \
         arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel index API "doc_index"')) \
     ))
 endfunction
@@ -56,10 +56,10 @@ async function testChiselDoc_request():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'doc_request?name=test%2Brequest', objectNew( \
+            'doc_request?name=test%2Brequest', jsonStringify(objectNew( \
                 'doc', 'The test request', \
                 'urls', arrayNew(objectNew('path', '/url1'), objectNew('method', 'GET', 'path', '/url2')) \
-            ) \
+            )) \
         ) \
     ))
 
@@ -70,7 +70,7 @@ async function testChiselDoc_request():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest', null, true)), \
         arrayNew('documentSetTitle', arrayNew('test+request')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
         arrayNew('markdownPrint', arrayNew('','# test\\+request')), \
@@ -87,7 +87,7 @@ async function testChiselDoc_request_noDocNoURLs():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'doc_request?name=test%2Brequest', objectNew() \
+            'doc_request?name=test%2Brequest', jsonStringify(objectNew()) \
         ) \
     ))
 
@@ -98,7 +98,7 @@ async function testChiselDoc_request_noDocNoURLs():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest', null, true)), \
         arrayNew('documentSetTitle', arrayNew('test+request')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
         arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
@@ -111,7 +111,7 @@ async function testChiselDoc_request_noDocEmptyURLs():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'doc_request?name=test%2Brequest', objectNew('urls', arrayNew()) \
+            'doc_request?name=test%2Brequest', jsonStringify(objectNew('urls', arrayNew())) \
         ) \
     ))
 
@@ -122,7 +122,7 @@ async function testChiselDoc_request_noDocEmptyURLs():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest')), \
+        arrayNew('systemFetch', arrayNew('doc_request?name=test%2Brequest', null, true)), \
         arrayNew('documentSetTitle', arrayNew('test+request')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
         arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
@@ -135,7 +135,7 @@ async function testChiselDoc_request_action():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'doc_request?name=testAction', objectNew( \
+            'doc_request?name=testAction', jsonStringify(objectNew( \
                 'types', objectNew( \
                     'testAction', objectNew( \
                         'action', objectNew( \
@@ -143,7 +143,7 @@ async function testChiselDoc_request_action():
                         ) \
                     ) \
                 ) \
-            ) \
+            )) \
         ) \
     ))
 
@@ -154,7 +154,7 @@ async function testChiselDoc_request_action():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_request?name=testAction')), \
+        arrayNew('systemFetch', arrayNew('doc_request?name=testAction', null, true)), \
         arrayNew('documentSetTitle', arrayNew('testAction')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)')), \
         arrayNew('elementModelRender', arrayNew(arrayNew(arrayNew(objectNew('elem', objectNew('text', 'action testAction'), 'html', 'h1'))))) \
@@ -174,7 +174,7 @@ async function testChiselDoc_request_urlError():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew('doc_request?name=testAction')), \
+        arrayNew('systemFetch', arrayNew('doc_request?name=testAction', null, true)), \
         arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel request API "doc_request?name=testAction"')) \
     ))
 endfunction
