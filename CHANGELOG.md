@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5 (2024-02-10)
+
+- [e274b09](https://github.com/craigahobbs/chisel/commit/e274b09) - add Application.match_request method
+
 ## 1.2.4 (2023-11-14)
 
 - [0a3cc68](https://github.com/craigahobbs/chisel/commit/0a3cc68) - doc app - add html preloads
