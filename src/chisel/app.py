@@ -97,6 +97,59 @@ class Application:
         for request in requests:
             self.add_request(request)
 
+    def match_request(self, request_method, path_info):
+        """
+        Match an application request by request method and path
+
+        :param request_method: The request method
+        :type request_method: str
+        :param path_info: The request path
+        :type path_info: str
+        :return: A tuple of :class:`~chisel.Request` and URL argument :class:`dict`. If the request is None,
+            there is no matching request. If the URL argument dict is None, there are no URL arguments.
+        :rtype: tuple(chisel.Request or None, dict or None)
+        """
+
+        # Exact match?
+        request = self.__request_urls.get((request_method, path_info))
+        if request is not None:
+            return request, None
+
+        # Match the request by method and URL regex
+        request, url_args = next(
+            (
+                (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
+                for request, request_match in
+                (
+                    (request, regex.match(path_info)) for method, regex, request in self.__request_regex
+                    if method is not None and method == request_method
+                )
+                if request_match
+            ),
+            (None, None)
+        )
+        if request is not None:
+            return request, url_args
+
+        # Match the request by exact URL (any method)
+        request, url_args = self.__request_urls.get((None, path_info)), None
+        if request is None:
+
+            # Match the request by URL regex (any method)
+            request, url_args = next(
+                (
+                    (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
+                    for request, request_match in
+                    (
+                        (request, regex.match(path_info)) for method, regex, request in self.__request_regex
+                        if method is None
+                    )
+                    if request_match
+                ),
+                (None, None)
+            )
+        return request, url_args
+
     def __call__(self, environ, start_response):
         """
         The chisel application WSGI callback. When the application recieves an HTTP request, this method matches the
@@ -109,47 +162,15 @@ class Application:
         :returns: The WSGI content iterable
         """
 
-        # Match the request by method and exact URL
-        path_info = environ['PATH_INFO']
+        # HEAD request?
         request_method = environ['REQUEST_METHOD'].upper()
         is_head = (request_method == 'HEAD')
         if is_head:
             request_method = environ['REQUEST_METHOD'] = 'GET'
-        request, url_args = self.__request_urls.get((request_method, path_info)), None
-        if request is None:
 
-            # Match the request by method and URL regex
-            request, url_args = next(
-                (
-                    (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
-                    for request, request_match in
-                    (
-                        (request, regex.match(path_info)) for method, regex, request in self.__request_regex
-                        if method is not None and method == request_method
-                    )
-                    if request_match
-                ),
-                (None, None)
-            )
-            if request is None:
-
-                # Match the request by exact URL (any method)
-                request, url_args = self.__request_urls.get((None, path_info)), None
-                if request is None:
-
-                    # Match the request by URL regex (any method)
-                    request, url_args = next(
-                        (
-                            (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
-                            for request, request_match in
-                            (
-                                (request, regex.match(path_info)) for method, regex, request in self.__request_regex
-                                if method is None
-                            )
-                            if request_match
-                        ),
-                        (None, None)
-                    )
+        # Match the request by method and exact URL
+        path_info = environ['PATH_INFO']
+        request, url_args = self.match_request(request_method, path_info)
 
         # Create the request context
         ctx = environ[Context.ENVIRON_CTX] = Context(self, environ, start_response, url_args)
