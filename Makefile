@@ -45,7 +45,7 @@ doc:
 commit: test-doc
 test-doc: $(DEFAULT_VENV_BUILD)
 	$(DEFAULT_VENV_BIN)/bare -s static/doc/*.mds static/doc/test/*.mds
-	$(DEFAULT_VENV_BIN)/bare -c 'include <markdownUp.bare>' static/doc/test/runTests.mds$(if $(TEST), -v vTest "'$(TEST)'")
+	$(DEFAULT_VENV_BIN)/bare -c 'include <markdownUp.bare>' static/doc/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Python to dump documentation API responses
