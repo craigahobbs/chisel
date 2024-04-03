@@ -1,24 +1,26 @@
-Built-in Requests
-=================
+# Built-in Requests
 
 
-create_doc_requests
--------------------
+## create_doc_requests
 
+~~~ {eval-rst}
 .. autofunction:: chisel.create_doc_requests
+~~~
 
 
-RedirectRequest
----------------
+## RedirectRequest
 
+~~~ {eval-rst}
 .. autoclass:: chisel.RedirectRequest
    :show-inheritance:
    :members:
+~~~
 
 
-StaticRequest
--------------
+## StaticRequest
 
+~~~ {eval-rst}
 .. autoclass:: chisel.StaticRequest
    :show-inheritance:
    :members:
+~~~
