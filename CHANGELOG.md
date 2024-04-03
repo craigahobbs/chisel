@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.6 (2024-04-03)
+
+- [220ce24](https://github.com/craigahobbs/chisel/commit/220ce24) - use markdown in setup.cfg
+
+- [4033f9c](https://github.com/craigahobbs/chisel/commit/4033f9c) - convert docs to markdown
+
 ## 1.2.5 (2024-02-10)
 
 - [e274b09](https://github.com/craigahobbs/chisel/commit/e274b09) - add Application.match_request method
