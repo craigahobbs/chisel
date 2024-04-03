@@ -36,27 +36,34 @@ JSON APIs
 Chisel provides the `action <https://craigahobbs.github.io/chisel/action.html#chisel.action>`__
 decorator for easily implementing schema-validated JSON APIs.
 
->>> @chisel.action(spec='''
-... # Sum a list of numbers
-... action sum_numbers
-...     urls
-...        GET
-...
-...     query
-...         # The list of numbers
-...         float[len > 0] numbers
-...
-...     output
-...         # The sum of the numbers
-...         float sum
-... ''')
-... def sum_numbers(ctx, req):
-...     return {'sum': sum(req['numbers'])}
-...
->>> application = chisel.Application()
->>> application.add_request(sum_numbers)
->>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=4')
-('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
+.. code-block:: python
+
+    @chisel.action(spec='''
+    # Sum a list of numbers
+    action sum_numbers
+        urls
+           GET
+
+        query
+            # The list of numbers
+            float[len > 0] numbers
+
+        output
+            # The sum of the numbers
+            float sum
+    ''')
+    def sum_numbers(ctx, req):
+        return {'sum': sum(req['numbers'])}
+
+    application = chisel.Application()
+    application.add_request(sum_numbers)
+    application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=4')
+
+This returns:
+
+.. code-block:: text
+
+    ('200 OK', [('Content-Type', 'application/json')], b'{"sum":7.0}')
 
 Each action defines an ``action`` definition using
 `Schema Markdown <https://craigahobbs.github.io/schema-markdown-js/language/>`__.
@@ -68,12 +75,16 @@ parameters.
 
 If there is a schema validation error the appropriate error code is automatically returned.
 
->>> status, _, content_bytes = application.request('GET', '/sum_numbers')
->>> status
-'400 Bad Request'
+.. code-block:: python
 
->>> content_bytes
-b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
+    status, _, content_bytes = application.request('GET', '/sum_numbers')
+
+This returns:
+
+.. code-block:: text
+
+    '400 Bad Request'
+    b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
 
 
 API Documentation
@@ -83,8 +94,10 @@ You can add API documentation to your application by adding the Chisel documenta
 requests from
 `create_doc_requests <https://craigahobbs.github.io/chisel/request.html#chisel.create_doc_requests>`__.
 
->>> application = chisel.Application()
->>> application.add_requests(chisel.create_doc_requests())
+.. code-block:: python
+
+    application = chisel.Application()
+    application.add_requests(chisel.create_doc_requests())
 
 By default the documentation application is hosted at "/doc/". An example of of Chisel's documentation output is
 available `here <https://craigahobbs.github.io/chisel/example/#var.vName='chisel_doc_request'>`__.
