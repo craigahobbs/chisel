@@ -1,23 +1,25 @@
-JSON APIs
-=========
+# JSON APIs
 
 
-action decorator
-----------------
+## action decorator
 
+~~~ {eval-rst}
 .. autodecorator:: chisel.action
+~~~
 
 
-Action
-------
+## Action
 
+~~~ {eval-rst}
 .. autoclass:: chisel.Action
    :show-inheritance:
    :members:
+~~~
 
 
-ActionError
------------
+## ActionError
 
+~~~ {eval-rst}
 .. autoexception:: chisel.ActionError
    :members:
+~~~

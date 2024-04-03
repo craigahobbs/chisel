@@ -1,33 +1,36 @@
-WSGI Applications
-=================
+# WSGI Applications
 
 
-Application
------------
+## Application
 
+~~~ {eval-rst}
 .. autoclass:: chisel.Application
    :members:
 
    .. automethod:: __call__
+~~~
 
 
-request decorator
------------------
+## request decorator
 
+~~~ {eval-rst}
 .. autodecorator:: chisel.request
+~~~
 
 
-Context
--------
+## Context
 
+~~~ {eval-rst}
 .. autoclass:: chisel.Context
    :members:
+~~~
 
 
-Request
--------
+## Request
 
+~~~ {eval-rst}
 .. autoclass:: chisel.Request
    :members:
 
    .. automethod:: __call__
+~~~
