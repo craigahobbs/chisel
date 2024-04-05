@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.7 (2024-04-05)
+
+- [0b620c0](https://github.com/craigahobbs/chisel/commit/0b620c0) - update chisel doc app stub
+
 ## 1.2.6 (2024-04-03)
 
 - [220ce24](https://github.com/craigahobbs/chisel/commit/220ce24) - use markdown in setup.cfg
