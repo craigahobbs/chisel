@@ -53,7 +53,7 @@ class Application:
 
         #: Set to True to validate request output. Individual requests can use this application state as they see fit. For
         #: example, :class:`~chisel.Action` requests schema-validate return content data when this value is True.
-        #: is True.
+        #: Default is True.
         self.validate_output = True
 
         #: The chisel application's map of request name to :class:`~chisel.Request` object map.
