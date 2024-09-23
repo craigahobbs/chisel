@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 (2024-09-23)
+
+- [a78f126](https://github.com/craigahobbs/chisel/commit/a78f126) - embed chisel documentation front-end application
+
 ## 1.2.7 (2024-04-05)
 
 - [0b620c0](https://github.com/craigahobbs/chisel/commit/0b620c0) - update chisel doc app stub
