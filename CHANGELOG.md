@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2024-09-23)
+
+- [03f0e0e](https://github.com/craigahobbs/chisel/commit/03f0e0e) - fix Python 3.9, remove Python 3.8
+
 ## 1.3.0 (2024-09-23)
 
 - [a78f126](https://github.com/craigahobbs/chisel/commit/a78f126) - embed chisel documentation front-end application
