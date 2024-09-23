@@ -39,8 +39,9 @@
     <script type="module">
         import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/app.js';
         const app = new MarkdownUp(window, {
-            'markdownText': `~~~ markdown-script
-include 'https://craigahobbs.github.io/chisel/doc/app.mds'
+            'markdownText': `\
+~~~ markdown-script
+include 'chiselDoc.bare'
 
 chiselDoc()
 ~~~
