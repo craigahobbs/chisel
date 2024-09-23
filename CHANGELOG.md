@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (2024-09-23)
+
+- [9c75dce](https://github.com/craigahobbs/chisel/commit/9c75dce) - fix distribution for Python 3.9
+
 ## 1.3.1 (2024-09-23)
 
 - [03f0e0e](https://github.com/craigahobbs/chisel/commit/03f0e0e) - fix Python 3.9, remove Python 3.8
