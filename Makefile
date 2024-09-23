@@ -17,11 +17,13 @@ $(eval $(call WGET, https://craigahobbs.github.io/python-build/pylintrc))
 # Sphinx documentation directory
 SPHINX_DOC := doc
 
-# Development dependencies
-TESTS_REQUIRE := bare-script
 
 # Include python-build
 include Makefile.base
+
+
+# Development dependencies
+TESTS_REQUIRE := bare-script
 
 
 help:
