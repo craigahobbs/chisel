@@ -30,12 +30,16 @@ class TestGetDocRequests(TestCase):
                     'urls': (('GET', '/doc/doc_request'),)
                 },
                 {
-                    'name': 'redirect_doc',
+                    'name': 'chisel_doc_redirect',
                     'urls': (('GET', '/doc'),)
                 },
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                },
+                {
+                    'name': 'chisel_doc_app',
+                    'urls': (('GET', '/doc/chiselDoc.bare'),)
                 }
             ]
         )
@@ -51,12 +55,16 @@ class TestGetDocRequests(TestCase):
             ],
             [
                 {
-                    'name': 'redirect_doc',
+                    'name': 'chisel_doc_redirect',
                     'urls': (('GET', '/doc'),)
                 },
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                },
+                {
+                    'name': 'chisel_doc_app',
+                    'urls': (('GET', '/doc/chiselDoc.bare'),)
                 }
             ]
         )
@@ -108,9 +116,10 @@ class TestIndex(TestCase):
             'groups': {
                 'Documentation': [
                     'chisel_doc',
+                    'chisel_doc_app',
                     'chisel_doc_index',
-                    'chisel_doc_request',
-                    'redirect_doc'
+                    'chisel_doc_redirect',
+                    'chisel_doc_request'
                 ]
             }
         })

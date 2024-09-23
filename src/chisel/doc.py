@@ -5,67 +5,13 @@
 Chisel documentation application
 """
 
+import importlib.resources
+
 from schema_markdown import get_referenced_types
 from schema_markdown.type_model import TYPE_MODEL
 
 from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
-
-
-# The chisel-doc application's HTML stub
-CHISEL_DOC_HTML = b'''\
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Chisel Documentation Application</title>
-        <meta charset="UTF-8">
-        <meta name="description" content="Chisel Documentation Application">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">
-
-        <!-- Preloads -->
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/data.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/library.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/model.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/options.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/parser.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/runtime.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/runtimeAsync.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/bare-script/lib/value.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/element-model/lib/elementModel.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/app.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/dataTable.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/dataUtil.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/lineChart.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/script.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/scriptLibrary.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/markdown-model/lib/elements.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/markdown-model/lib/parser.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown-doc/lib/schemaMarkdownDoc.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown/lib/encode.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown/lib/parser.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown/lib/schema.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown/lib/schemaUtil.js" as="script">
-        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/schema-markdown/lib/typeModel.js" as="script">
-        <link rel="preload" href="https://craigahobbs.github.io/markdown-up/app.css" as="style">
-        <link rel="preload" href="https://craigahobbs.github.io/markdown-up/markdown-model/static/markdown-model.css" as="style">
-    </head>
-    <body>
-    </body>
-    <script type="module">
-        import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/app.js';
-        const app = new MarkdownUp(window, {
-            'markdownText': `\
-~~~ markdown-script
-include 'https://craigahobbs.github.io/chisel/doc/app.mds'
-
-chiselDoc()
-~~~
-`});
-        app.run();
-    </script>
-</html>
-'''
 
 
 def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
@@ -86,13 +32,25 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
         yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
         yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
     if app:
-        yield RedirectRequest((('GET', root_path),), root_path + '/', doc_group='Documentation')
-        yield StaticRequest(
-            'chisel_doc',
-            CHISEL_DOC_HTML,
-            urls=(('GET', root_path + '/'), ('GET', root_path + '/index.html')),
-            doc_group='Documentation'
-        )
+        yield RedirectRequest((('GET', root_path),), root_path + '/', name='chisel_doc_redirect', doc_group='Documentation')
+        with importlib.resources.files('chisel.static').joinpath('index.html').open('rb') as fh:
+            yield StaticRequest(
+                'chisel_doc',
+                fh.read(),
+                'text/html; charset=utf-8',
+                (('GET', root_path + '/'), ('GET', root_path + '/index.html')),
+                'The Chisel documentation HTML',
+                'Documentation'
+            )
+        with importlib.resources.files('chisel.static').joinpath('chiselDoc.bare').open('rb') as fh:
+            yield StaticRequest(
+                'chisel_doc_app',
+                fh.read(),
+                'text/plain; charset=utf-8',
+                (('GET', root_path + '/chiselDoc.bare'),),
+                'The Chisel documentation application',
+                'Documentation'
+            )
 
 
 class DocIndex(Action):

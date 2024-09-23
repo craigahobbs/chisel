@@ -1,0 +1,87 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/chisel/blob/main/LICENSE
+
+include <args.mds>
+
+
+# The Chisel documentation application main entry point
+async function chiselDoc():
+    args = argsParse(chiselDocArguments)
+    name = objectGet(args, 'name')
+    if name != null:
+        chiselDocRequestPage(name)
+    else:
+        chiselDocIndexPage()
+    endif
+endfunction
+
+
+# The Chisel documentation application arguments
+chiselDocArguments = argsValidate(arrayNew( \
+    objectNew('name', 'name') \
+))
+
+
+# Render the Chisel documentation application index page
+async function chiselDocIndexPage():
+    # Fetch the documentation index API
+    indexURL = 'doc_index'
+    docIndexJSON = systemFetch(indexURL)
+    docIndex = if(docIndexJSON != null, jsonParse(docIndexJSON))
+    if docIndex == null:
+        markdownPrint('**Error:** Failed to fetch chisel index API "' + indexURL + '"')
+        return
+    endif
+    title = objectGet(docIndex, 'title')
+    groups = objectGet(docIndex, 'groups')
+
+    # Render the index page
+    documentSetTitle(title)
+    markdownPrint('# ' + markdownEscape(title))
+    for groupName in arraySort(objectKeys(groups)):
+        markdownPrint('', '## ' + markdownEscape(groupName))
+        for requestName in arraySort(objectGet(groups, groupName)):
+            markdownPrint('', argsLink(chiselDocArguments, requestName, objectNew('name', requestName)))
+        endfor
+    endfor
+endfunction
+
+
+# Render the Chisel documentation application request page
+async function chiselDocRequestPage(typeName):
+    # Fetch the request API
+    requestURL = 'doc_request?name=' + urlEncodeComponent(typeName)
+    docRequestJSON = systemFetch(requestURL)
+    docRequest = if(docRequestJSON != null, jsonParse(docRequestJSON))
+    if docRequest == null:
+        markdownPrint('**Error:** Failed to fetch chisel request API "' + requestURL + '"')
+        return
+    endif
+    doc = objectGet(docRequest, 'doc')
+    urls = objectGet(docRequest, 'urls')
+    types = objectGet(docRequest, 'types')
+
+    # Render the request page
+    documentSetTitle(typeName)
+    markdownPrint(argsLink(chiselDocArguments, 'Index', objectNew('name', null)))
+
+    # Action request?
+    if types != null:
+        elementModelRender(schemaElements(types, typeName, urls))
+        return
+    endif
+
+    # Non-action request
+    markdownPrint('', '# ' + markdownEscape(typeName))
+    if doc != null:
+        markdownPrint('', doc)
+    endif
+    if urls != null && arrayLength(urls) > 0:
+        markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
+        for requestURL in urls:
+            method = objectGet(requestURL, 'method', '')
+            path = objectGet(requestURL, 'path')
+            markdownPrint('', '&nbsp;&nbsp;[' + markdownEscape(method) + ' ' + markdownEscape(path) + '](' + path + ')')
+        endfor
+    endif
+endfunction

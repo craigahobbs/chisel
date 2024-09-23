@@ -5,7 +5,7 @@ include <unittest.mds>
 include <unittestMock.mds>
 
 # Test includes
-include 'testApp.mds'
+include 'testChiselDoc.bare'
 
 # Test report
 return unittestReport()
