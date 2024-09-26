@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.4 (2024-09-26)
+
+- [2db4e5a](https://github.com/craigahobbs/chisel/commit/2db4e5a) - update markdown-up stub
+
+- [d9cb8cb](https://github.com/craigahobbs/chisel/commit/d9cb8cb) - improved fix for distribution for Python 3.9
+
 ## 1.3.3 (2024-09-23)
 
 - [bdfccf2](https://github.com/craigahobbs/chisel/commit/bdfccf2) - improved fix for distribution for Python 3.9
