@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.5 (2024-10-02)
+
+- [e842861](https://github.com/craigahobbs/chisel/commit/e842861) - add Python 3.13, remove Python 3.8 \(end-of-life\)
+
 ## 1.3.4 (2024-09-26)
 
 - [2db4e5a](https://github.com/craigahobbs/chisel/commit/2db4e5a) - update markdown-up stub
