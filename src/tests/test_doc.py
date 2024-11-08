@@ -237,7 +237,7 @@ action my_action
         datetime m3
         float m4
         int m5
-        object m6
+        any m6
         string m7
         uuid m8
         int[] m9
@@ -324,7 +324,7 @@ action my_action2
                             },
                             {
                                 'name': 'm6',
-                                'type': {'builtin': 'object'}
+                                'type': {'builtin': 'any'}
                             },
                             {
                                 'name': 'm7',
