@@ -311,9 +311,9 @@
           },
           {
             "doc": [
-              "An object of any type"
+              "An value of any type"
             ],
-            "name": "object"
+            "name": "any"
           }
         ]
       }
