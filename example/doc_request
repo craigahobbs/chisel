@@ -311,7 +311,7 @@
           },
           {
             "doc": [
-              "An value of any type"
+              "A value of any type"
             ],
             "name": "any"
           }
