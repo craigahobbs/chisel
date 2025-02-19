@@ -69,6 +69,33 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+    def test_markdown_up(self):
+        requests = list(create_doc_requests(api=False, markdown_up='../markdown-up/'))
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in requests
+            ],
+            [
+                {
+                    'name': 'chisel_doc_redirect',
+                    'urls': (('GET', '/doc'),)
+                },
+                {
+                    'name': 'chisel_doc',
+                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
+                },
+                {
+                    'name': 'chisel_doc_app',
+                    'urls': (('GET', '/doc/chiselDoc.bare'),)
+                }
+            ]
+        )
+        self.assertTrue(b"'systemPrefix': '../markdown-up/include/', " in requests[1].content)
+
     def test_no_static(self):
         self.assertListEqual(
             [

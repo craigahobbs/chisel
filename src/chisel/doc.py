@@ -14,7 +14,7 @@ from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
 
 
-def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
+def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, markdown_up=None):
     """
     Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
     documentation application. By default, the documenation application is hosted at "/doc/".
@@ -25,6 +25,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
         "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation client application.
+    :param str markdown_up: Optional, the relative path to the MarkdownUp application.
     :returns: Generator of :class:`~chisel.Request`
     """
 
@@ -34,9 +35,15 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
     if app:
         yield RedirectRequest((('GET', root_path),), root_path + '/', name='chisel_doc_redirect', doc_group='Documentation')
         with importlib.resources.files('chisel.static').joinpath('index.html').open('rb') as fh:
+            index_bytes = fh.read()
+            if markdown_up:
+                index_str = index_bytes.decode(encoding='utf-8')
+                index_str = index_str.replace('https://craigahobbs.github.io/markdown-up/', markdown_up)
+                index_str = index_str.replace("'markdownText':", f"'systemPrefix': '{markdown_up}include/', 'markdownText':")
+                index_bytes = index_str.encode(encoding='utf-8')
             yield StaticRequest(
                 'chisel_doc',
-                fh.read(),
+                index_bytes,
                 'text/html; charset=utf-8',
                 (('GET', root_path + '/'), ('GET', root_path + '/index.html')),
                 'The Chisel documentation HTML',
