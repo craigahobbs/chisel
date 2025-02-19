@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.7 (2025-02-19)
+
+- [8ab414f](https://github.com/craigahobbs/chisel/commit/8ab414f) - add create_doc_requests function markdown_up argument
+
 ## 1.3.6 (2024-10-02)
 
 - [023b58c](https://github.com/craigahobbs/chisel/commit/023b58c) - add Python 3.13 \(really this time\)
