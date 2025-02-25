@@ -49,7 +49,7 @@ doc:
 commit: test-doc
 test-doc: $(DEFAULT_VENV_BUILD)
 	$(DEFAULT_VENV_BIN)/bare -s src/chisel/static/*.bare src/chisel/static/test/*.bare
-	$(DEFAULT_VENV_BIN)/bare -c 'include <markdownUp.bare>' src/chisel/static/test/runTests.bare$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
+	$(DEFAULT_VENV_BIN)/bare -m src/chisel/static/test/runTests.bare$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Python to dump documentation API responses
