@@ -6,6 +6,9 @@ Chisel documentation application
 """
 
 import importlib.resources
+import os
+from pathlib import PosixPath
+import tarfile
 
 from schema_markdown import get_referenced_types
 from schema_markdown.type_model import TYPE_MODEL
@@ -14,7 +17,7 @@ from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
 
 
-def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, markdown_up=None):
+def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
     """
     Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
     documentation application. By default, the documenation application is hosted at "/doc/".
@@ -25,27 +28,23 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
         "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation client application.
-    :param str markdown_up: Optional, the relative path to the MarkdownUp application.
     :returns: Generator of :class:`~chisel.Request`
     """
 
+    root_noslash = root_path.rstrip('/')
+    root_slash = root_noslash + '/'
     if api:
-        yield DocIndex(requests=requests, urls=(('GET', root_path + '/doc_index'),))
-        yield DocRequest(requests=requests, urls=(('GET', root_path + '/doc_request'),))
+        yield DocIndex(requests=requests, urls=(('GET', root_slash + 'doc_index'),))
+        yield DocRequest(requests=requests, urls=(('GET', root_slash + 'doc_request'),))
     if app:
-        yield RedirectRequest((('GET', root_path),), root_path + '/', name='chisel_doc_redirect', doc_group='Documentation')
+        if root_noslash:
+            yield RedirectRequest((('GET', root_noslash),), root_slash, name='chisel_doc_redirect', doc_group='Documentation')
         with importlib.resources.files('chisel.static').joinpath('index.html').open('rb') as fh:
-            index_bytes = fh.read()
-            if markdown_up:
-                index_str = index_bytes.decode(encoding='utf-8')
-                index_str = index_str.replace('https://craigahobbs.github.io/markdown-up/', markdown_up)
-                index_str = index_str.replace("'markdownText':", f"'systemPrefix': '{markdown_up}include/', 'markdownText':")
-                index_bytes = index_str.encode(encoding='utf-8')
             yield StaticRequest(
                 'chisel_doc',
-                index_bytes,
+                fh.read(),
                 'text/html; charset=utf-8',
-                (('GET', root_path + '/'), ('GET', root_path + '/index.html')),
+                (('GET', root_slash), ('GET', root_slash + 'index.html')),
                 'The Chisel documentation HTML',
                 'Documentation'
             )
@@ -54,10 +53,41 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
                 'chisel_doc_app',
                 fh.read(),
                 'text/plain; charset=utf-8',
-                (('GET', root_path + '/chiselDoc.bare'),),
+                (('GET', root_slash + 'chiselDoc.bare'),),
                 'The Chisel documentation application',
                 'Documentation'
             )
+        yield from create_markdown_up_requests(str(PosixPath(root_path).parent))
+
+
+def create_markdown_up_requests(parent_path='/'):
+    """
+    Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the
+    MarkdownUp application. By default, the MarkdownUp application is hosted at "/markdown-up/".
+
+    :param str parent_path: The MarkdownUp application URL parent path. The default is "/".
+    :returns: Generator of :class:`~chisel.Request`
+    """
+
+    parent_posix = PosixPath(parent_path)
+    with importlib.resources.files('chisel.static').joinpath('markdown-up.tar.gz').open('rb') as tgz:
+        with tarfile.open(fileobj=tgz, mode='r:gz') as tar:
+            for member in tar.getmembers():
+                if member.isfile():
+                    yield StaticRequest(
+                        member.name,
+                        tar.extractfile(member).read(),
+                        content_type=_CONTENT_TYPES.get(os.path.splitext(member.name)[1], 'text/plain; charset=utf-8'),
+                        urls=(('GET', str(parent_posix.joinpath(member.name))),),
+                        doc_group='MarkdownUp Statics'
+                    )
+
+
+_CONTENT_TYPES = {
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.html': 'text/html; charset=utf-8'
+}
 
 
 class DocIndex(Action):

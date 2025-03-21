@@ -68,3 +68,9 @@ with open('build/doc/html/example/doc_index', 'w') as index_file:
     json.dump({'title': 'Chisel Documentation Example', 'groups': {'Documentation': ['chisel_doc_request']}}, index_file, indent=2)
 endef
 export DUMP_EXAMPLE_PY
+
+
+# Update the MarkdownUp application tarball
+.PHONY: markdown-up
+markdown-up:
+	cd src/chisel/static && $(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz)

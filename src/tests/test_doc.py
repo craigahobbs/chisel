@@ -12,6 +12,7 @@ from chisel import Action, Application, Request, create_doc_requests
 class TestGetDocRequests(TestCase):
 
     def test_default(self):
+        self.assertTrue(sum(1 for request in create_doc_requests() if request.name.startswith('markdown-up')))
         self.assertListEqual(
             [
                 {
@@ -19,6 +20,7 @@ class TestGetDocRequests(TestCase):
                     'urls': request.urls
                 }
                 for request in create_doc_requests()
+                if request.name.startswith('chisel_doc')
             ],
             [
                 {
@@ -44,7 +46,74 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
-    def test_no_request_api(self):
+    def test_slash(self):
+        self.assertTrue(sum(1 for request in create_doc_requests(root_path='/info/') if request.name.startswith('markdown-up')))
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in create_doc_requests(root_path='/info/')
+                if request.name.startswith('chisel_doc')
+            ],
+            [
+                {
+                    'name': 'chisel_doc_index',
+                    'urls': (('GET', '/info/doc_index'),)
+                },
+                {
+                    'name': 'chisel_doc_request',
+                    'urls': (('GET', '/info/doc_request'),)
+                },
+                {
+                    'name': 'chisel_doc_redirect',
+                    'urls': (('GET', '/info'),)
+                },
+                {
+                    'name': 'chisel_doc',
+                    'urls': (('GET', '/info/'), ('GET', '/info/index.html'))
+                },
+                {
+                    'name': 'chisel_doc_app',
+                    'urls': (('GET', '/info/chiselDoc.bare'),)
+                }
+            ]
+        )
+
+    def test_root(self):
+        self.assertTrue(sum(1 for request in create_doc_requests(root_path='/') if request.name.startswith('markdown-up')))
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in create_doc_requests(root_path='/')
+                if request.name.startswith('chisel_doc')
+            ],
+            [
+                {
+                    'name': 'chisel_doc_index',
+                    'urls': (('GET', '/doc_index'),)
+                },
+                {
+                    'name': 'chisel_doc_request',
+                    'urls': (('GET', '/doc_request'),)
+                },
+                {
+                    'name': 'chisel_doc',
+                    'urls': (('GET', '/'), ('GET', '/index.html'))
+                },
+                {
+                    'name': 'chisel_doc_app',
+                    'urls': (('GET', '/chiselDoc.bare'),)
+                }
+            ]
+        )
+
+    def test_no_api(self):
+        self.assertTrue(sum(1 for request in create_doc_requests(api=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
             [
                 {
@@ -52,6 +121,7 @@ class TestGetDocRequests(TestCase):
                     'urls': request.urls
                 }
                 for request in create_doc_requests(api=False)
+                if request.name.startswith('chisel_doc')
             ],
             [
                 {
@@ -69,34 +139,8 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
-    def test_markdown_up(self):
-        requests = list(create_doc_requests(api=False, markdown_up='../markdown-up/'))
-        self.assertListEqual(
-            [
-                {
-                    'name': request.name,
-                    'urls': request.urls
-                }
-                for request in requests
-            ],
-            [
-                {
-                    'name': 'chisel_doc_redirect',
-                    'urls': (('GET', '/doc'),)
-                },
-                {
-                    'name': 'chisel_doc',
-                    'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'chisel_doc_app',
-                    'urls': (('GET', '/doc/chiselDoc.bare'),)
-                }
-            ]
-        )
-        self.assertTrue(b"'systemPrefix': '../markdown-up/include/', " in requests[1].content)
-
-    def test_no_static(self):
+    def test_no_app(self):
+        self.assertFalse(sum(1 for request in create_doc_requests(app=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
             [
                 {
@@ -118,6 +162,7 @@ class TestGetDocRequests(TestCase):
         )
 
     def test_none(self):
+        self.assertFalse(sum(1 for request in create_doc_requests(api=False, app=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
             [
                 {
@@ -138,7 +183,10 @@ class TestIndex(TestCase):
 
         status, _, response = app.request('GET', '/doc/doc_index')
         self.assertEqual(status, '200 OK')
-        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+        response = json.loads(response.decode('utf-8'))
+        self.assertTrue(len(response['groups']['MarkdownUp Statics']))
+        del response['groups']['MarkdownUp Statics']
+        self.assertDictEqual(response, {
             'title': 'localhost:80',
             'groups': {
                 'Documentation': [

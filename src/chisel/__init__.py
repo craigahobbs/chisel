@@ -16,7 +16,8 @@ from .app import \
     Context
 
 from .doc import \
-    create_doc_requests
+    create_doc_requests, \
+    create_markdown_up_requests
 
 from .request import \
     RedirectRequest, \
