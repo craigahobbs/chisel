@@ -8,6 +8,13 @@
 ~~~
 
 
+## create_markdown_up_requests
+
+~~~ {eval-rst}
+.. autofunction:: chisel.create_markdown_up_requests
+~~~
+
+
 ## RedirectRequest
 
 ~~~ {eval-rst}
