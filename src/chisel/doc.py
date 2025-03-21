@@ -7,7 +7,7 @@ Chisel documentation application
 
 import importlib.resources
 import os
-from pathlib import PosixPath
+from pathlib import PurePosixPath
 import tarfile
 
 from schema_markdown import get_referenced_types
@@ -59,7 +59,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
                 'Documentation'
             )
     if markdown_up or app:
-        parent_posix = PosixPath(root_path).parent
+        parent_posix = PurePosixPath(root_path).parent
         with importlib.resources.files('chisel.static').joinpath('markdown-up.tar.gz').open('rb') as tgz:
             with tarfile.open(fileobj=tgz, mode='r:gz') as tar:
                 for member in tar.getmembers():
