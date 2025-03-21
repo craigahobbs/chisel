@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 (2025-03-21)
+
+- [e5e9de9](https://github.com/craigahobbs/chisel/commit/e5e9de9) - fix create_doc_requests on windows
+
 ## 1.4.1 (2025-03-21)
 
 - [1f30210](https://github.com/craigahobbs/chisel/commit/1f30210) - add create_doc_requests markdown_up argument
