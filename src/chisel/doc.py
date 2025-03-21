@@ -17,7 +17,7 @@ from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
 
 
-def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
+def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, markdown_up=False):
     """
     Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
     documentation application. By default, the documenation application is hosted at "/doc/".
@@ -27,7 +27,8 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
     :param str root_path: The documentation application URL root path. The default is "/doc".
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
         "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
-    :param bool app: If True, include the documentation client application.
+    :param bool app: If True, include the documentation application.
+    :param bool markdown_up: If True, include the MarkdownUp application.
     :returns: Generator of :class:`~chisel.Request`
     """
 
@@ -57,30 +58,19 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True):
                 'The Chisel documentation application',
                 'Documentation'
             )
-        yield from create_markdown_up_requests(str(PosixPath(root_path).parent))
-
-
-def create_markdown_up_requests(parent_path='/'):
-    """
-    Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the
-    MarkdownUp application. By default, the MarkdownUp application is hosted at "/markdown-up/".
-
-    :param str parent_path: The MarkdownUp application URL parent path. The default is "/".
-    :returns: Generator of :class:`~chisel.Request`
-    """
-
-    parent_posix = PosixPath(parent_path)
-    with importlib.resources.files('chisel.static').joinpath('markdown-up.tar.gz').open('rb') as tgz:
-        with tarfile.open(fileobj=tgz, mode='r:gz') as tar:
-            for member in tar.getmembers():
-                if member.isfile():
-                    yield StaticRequest(
-                        member.name,
-                        tar.extractfile(member).read(),
-                        content_type=_CONTENT_TYPES.get(os.path.splitext(member.name)[1], 'text/plain; charset=utf-8'),
-                        urls=(('GET', str(parent_posix.joinpath(member.name))),),
-                        doc_group='MarkdownUp Statics'
-                    )
+    if markdown_up or app:
+        parent_posix = PosixPath(root_path).parent
+        with importlib.resources.files('chisel.static').joinpath('markdown-up.tar.gz').open('rb') as tgz:
+            with tarfile.open(fileobj=tgz, mode='r:gz') as tar:
+                for member in tar.getmembers():
+                    if member.isfile():
+                        yield StaticRequest(
+                            member.name,
+                            tar.extractfile(member).read(),
+                            content_type=_CONTENT_TYPES.get(os.path.splitext(member.name)[1], 'text/plain; charset=utf-8'),
+                            urls=(('GET', str(parent_posix.joinpath(member.name))),),
+                            doc_group='MarkdownUp Statics'
+                        )
 
 
 _CONTENT_TYPES = {

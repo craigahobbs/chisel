@@ -161,6 +161,22 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+    def test_markdown_up(self):
+        self.assertTrue(
+            sum(1 for request in create_doc_requests(api=False, app=False, markdown_up=True) if request.name.startswith('markdown-up'))
+        )
+        self.assertListEqual(
+            [
+                {
+                    'name': request.name,
+                    'urls': request.urls
+                }
+                for request in create_doc_requests(api=False, app=False, markdown_up=True)
+                if request.name.startswith('chisel_doc')
+            ],
+            []
+        )
+
     def test_none(self):
         self.assertFalse(sum(1 for request in create_doc_requests(api=False, app=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
