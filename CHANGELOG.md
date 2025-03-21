@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 (2025-03-21)
+
+- [587f7b8](https://github.com/craigahobbs/chisel/commit/587f7b8) - add MarkdownUp statics to create_doc_requests - enables offline docs
+
 ## 1.3.7 (2025-02-19)
 
 - [8ab414f](https://github.com/craigahobbs/chisel/commit/8ab414f) - add create_doc_requests function markdown_up argument
