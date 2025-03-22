@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.3 (2025-03-22)
+
+- [06468da](https://github.com/craigahobbs/chisel/commit/06468da) - update markdown-up tarball
+
 ## 1.4.2 (2025-03-21)
 
 - [e5e9de9](https://github.com/craigahobbs/chisel/commit/e5e9de9) - fix create_doc_requests on windows
