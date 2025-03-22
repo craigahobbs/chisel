@@ -73,4 +73,6 @@ export DUMP_EXAMPLE_PY
 # Update the MarkdownUp application tarball
 .PHONY: markdown-up
 markdown-up:
-	cd src/chisel/static && $(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz)
+	cd src/chisel/static && \
+		rm -f markdown-up.tar.gz && \
+		$(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz)
