@@ -38,7 +38,7 @@ clean:
 doc:
     # Dump the documentation example
 	mkdir -p build/doc/html/example
-	cp src/chisel/static/index.html build/doc/html/example/
+	sed -E "s/\.\.\//https:\/\/craigahobbs.github.io\//g" src/chisel/static/index.html > build/doc/html/example/index.html
 	cp src/chisel/static/chiselDoc.bare build/doc/html/example/
 	$(DEFAULT_VENV_PYTHON) -c "$$DUMP_EXAMPLE_PY"
 
