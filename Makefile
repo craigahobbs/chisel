@@ -36,9 +36,6 @@ clean:
 
 
 doc:
-    # Copy statics
-	cp -R static/* build/doc/html/
-
     # Dump the documentation example
 	mkdir -p build/doc/html/example
 	cp src/chisel/static/index.html build/doc/html/example/
