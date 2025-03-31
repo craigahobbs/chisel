@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.6 (2025-03-31)
+
+- [c5eeefa](https://github.com/craigahobbs/chisel/commit/c5eeefa) - eliminate use of .mds
+
 ## 1.4.5 (2025-03-31)
 
 - [0f12296](https://github.com/craigahobbs/chisel/commit/0f12296) - update markdown-up tarball
