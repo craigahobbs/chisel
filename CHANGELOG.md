@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.5 (2025-03-31)
+
+- [0f12296](https://github.com/craigahobbs/chisel/commit/0f12296) - update markdown-up tarball
+
+- [4c85dc5](https://github.com/craigahobbs/chisel/commit/4c85dc5) - remove setup.cfg license classifier
+
 ## 1.4.4 (2025-03-23)
 
 - [2d71582](https://github.com/craigahobbs/chisel/commit/2d71582) - update markdown-up tarball
