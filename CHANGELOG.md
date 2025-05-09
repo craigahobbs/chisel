@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.8 (2025-05-09)
+
+- [47598da](https://github.com/craigahobbs/chisel/commit/47598da) - add Python 3.14
+
 ## 1.4.7 (2025-04-30)
 
 - [a056f35](https://github.com/craigahobbs/chisel/commit/a056f35) - update markdown-up tarball
