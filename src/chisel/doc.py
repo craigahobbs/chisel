@@ -63,7 +63,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
         with importlib.resources.files('chisel.static').joinpath('markdown-up.tar.gz').open('rb') as tgz:
             with tarfile.open(fileobj=tgz, mode='r:gz') as tar:
                 for member in tar.getmembers():
-                    if member.isfile():
+                    if member.isfile(): # pragma: no branch
                         yield StaticRequest(
                             member.name,
                             tar.extractfile(member).read(),
