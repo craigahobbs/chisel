@@ -12,8 +12,6 @@ from itertools import chain
 import posixpath
 import re
 
-from .app import Context
-
 
 def request(wsgi_callback=None, **kwargs):
     """
@@ -124,7 +122,7 @@ class RedirectRequest(Request):
     :param str doc_group: The documentation group
     """
 
-    __slots__ = ('_status', '_redirect_url')
+    __slots__ = ('status', 'redirect_url', 'content')
 
     def __init__(self, urls, redirect_url, permanent=True, name=None, doc=None, doc_group='Redirects'):
         if name is None:
@@ -132,13 +130,14 @@ class RedirectRequest(Request):
         if doc is None:
             doc = f'Redirect to {redirect_url}'
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
-        self._status = HTTPStatus.MOVED_PERMANENTLY if permanent else HTTPStatus.FOUND
-        self._redirect_url = redirect_url
+        status = HTTPStatus.MOVED_PERMANENTLY if permanent else HTTPStatus.FOUND
+        self.status = f'{status.value} {status.phrase}'
+        self.redirect_url = redirect_url
+        self.content = redirect_url.encode('utf-8')
 
-    def __call__(self, environ, unused_start_response):
-        ctx = environ[Context.ENVIRON_CTX]
-        ctx.add_header('Location', self._redirect_url)
-        return ctx.response_text(self._status, self._redirect_url)
+    def __call__(self, environ, start_response):
+        start_response(self.status, [('Content-Type', 'text/plain; charset=utf-8'), ('Location', self.redirect_url)])
+        return [self.content]
 
 
 class StaticRequest(Request):
@@ -155,29 +154,34 @@ class StaticRequest(Request):
     :param str doc_group: The documentation group
     """
 
-    __slots__ = ('headers', 'content', 'etag')
+    __slots__ = ('content', 'content_type', 'etag')
 
     EXT_TO_CONTENT_TYPE = {
-        '.css': 'text/css',
-        '.html': 'text/html',
+        '.bare': 'text/plain; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.csv': 'text/csv; charset=utf-8',
+        '.gif': 'image/gif',
+        '.htm': 'text/html; charset=utf-8',
+        '.html': 'text/html; charset=utf-8',
+        '.jpeg': 'image/jpeg',
         '.jpg': 'image/jpeg',
-        '.js': 'application/javascript',
-        '.json': 'application/json',
-        '.md': 'text/plain',
+        '.js': 'application/javascript; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.markdown': 'text/markdown; charset=utf-8',
+        '.md': 'text/markdown; charset=utf-8',
+        '.pdf': 'application/pdf',
         '.png': 'image/png',
-        '.svg': 'image/svg+xml',
-        '.txt': 'text/plain'
+        '.smd': 'text/plain; charset=utf-8',
+        '.svg': 'image/svg+xml; charset=utf-8',
+        '.tif': 'image/tiff',
+        '.tiff': 'image/tiff',
+        '.txt': 'text/plain; charset=utf-8',
+        '.webp': 'image/webp'
     }
+    STATUS_OK = f'{HTTPStatus.OK.value} {HTTPStatus.OK.phrase}'
+    STATUS_NOT_MODIFIED = f'{HTTPStatus.NOT_MODIFIED.value} {HTTPStatus.NOT_MODIFIED.phrase}'
 
-    def __init__(
-            self,
-            name,
-            content,
-            content_type=None,
-            urls=None,
-            doc=None,
-            doc_group='Statics'
-    ):
+    def __init__(self, name, content, content_type=None, urls=None, doc=None, doc_group='Statics'):
         if doc is None:
             doc = (f'The static resource "{name}"',)
         if urls is None:
@@ -185,29 +189,27 @@ class StaticRequest(Request):
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
         self.content = content
 
+        # Compute the content type
+        if content_type is None:
+            content_ext = next(
+                (ext for ext in (posixpath.splitext(path)[1] for _, path in self.urls) if ext in self.EXT_TO_CONTENT_TYPE),
+                ''
+            )
+            content_type = self.EXT_TO_CONTENT_TYPE.get(content_ext)
+            assert content_type, f'Unknown content type for static resource "{name}"'
+        self.content_type = content_type
+
         # Compute the etag
         md5 = hashlib.md5()
         md5.update(self.content)
         self.etag = md5.hexdigest()
 
-        # Compute the content type
-        if content_type is None:
-            content_ext = next(
-                (ext for ext in (posixpath.splitext(path)[1] for path in (url for _, url in self.urls))if ext in self.EXT_TO_CONTENT_TYPE),
-                ''
-            ).lower()
-            content_type = self.EXT_TO_CONTENT_TYPE.get(content_ext)
-            assert content_type, f'Unknown content type for static resource "{name}"'
-
-        # Compute the headers
-        self.headers = (('Content-Type', content_type), ('ETag', self.etag))
-
     def __call__(self, environ, start_response):
 
         # Check the etag - is the resource modified?
         if self.etag == environ.get('HTTP_IF_NONE_MATCH'):
-            start_response(HTTPStatus.NOT_MODIFIED, [])
+            start_response(self.STATUS_NOT_MODIFIED, [])
             return []
 
-        start_response(HTTPStatus.OK, self.headers)
+        start_response(self.STATUS_OK, [('Content-Type', self.content_type), ('ETag', self.etag)])
         return [self.content]

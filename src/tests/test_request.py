@@ -188,7 +188,7 @@ class TestRequest(TestCase):
 
             def __call__(self, environ, start_response):
                 # Note: Do NOT call Request __call__ method in a subclass
-                start_response(HTTPStatus.OK, [('Content-Type', 'text/plain')])
+                start_response(HTTPStatus.OK, [('Content-Type', 'text/plain; charset=utf-8')])
                 return [f'This is request # {self.index}'.encode('utf-8')]
 
         req = MyRequest(1)
@@ -211,7 +211,7 @@ class TestRedirect(TestCase):
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '301 Moved Permanently')
         self.assertListEqual(headers, [
-            ('Content-Type', 'text/plain'),
+            ('Content-Type', 'text/plain; charset=utf-8'),
             ('Location', '/new')
         ])
         self.assertEqual(response, b'/new')
@@ -226,7 +226,7 @@ class TestRedirect(TestCase):
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '301 Moved Permanently')
         self.assertListEqual(headers, [
-            ('Content-Type', 'text/plain'),
+            ('Content-Type', 'text/plain; charset=utf-8'),
             ('Location', '/new')
         ])
         self.assertEqual(response, b'/new')
@@ -241,7 +241,7 @@ class TestRedirect(TestCase):
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '301 Moved Permanently')
         self.assertListEqual(headers, [
-            ('Content-Type', 'text/plain'),
+            ('Content-Type', 'text/plain; charset=utf-8'),
             ('Location', '/new')
         ])
         self.assertEqual(response, b'/new')
@@ -256,10 +256,24 @@ class TestRedirect(TestCase):
         status, headers, response = app.request('GET', '/old')
         self.assertEqual(status, '302 Found')
         self.assertListEqual(headers, [
-            ('Content-Type', 'text/plain'),
+            ('Content-Type', 'text/plain; charset=utf-8'),
             ('Location', '/new')
         ])
         self.assertEqual(response, b'/new')
+
+    def test_raw_wsgi(self):
+        redirect = RedirectRequest((('GET', '/old'),), '/new', permanent=False)
+
+        start_response_calls = []
+        def start_response(status, headers):
+            start_response_calls.append((status, headers))
+
+        environ = {}
+        result = redirect(environ, start_response)
+        self.assertListEqual(start_response_calls, [
+            ('302 Found', [('Content-Type', 'text/plain; charset=utf-8'), ('Location', '/new')])
+        ])
+        self.assertListEqual(list(result), [b'/new'])
 
 
 class TestStatic(TestCase):
@@ -269,8 +283,8 @@ class TestStatic(TestCase):
         self.assertEqual(static.name, 'index.html')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('The static resource "index.html"',))
-        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.content_type, 'text/html; charset=utf-8')
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_init_doc(self):
@@ -278,8 +292,8 @@ class TestStatic(TestCase):
         self.assertEqual(static.name, 'index.html')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('This is the doc!',))
-        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.content_type, 'text/html; charset=utf-8')
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_init_urls(self):
@@ -287,17 +301,17 @@ class TestStatic(TestCase):
         self.assertEqual(static.name, 'index')
         self.assertEqual(static.urls, (('GET', '/index.html'),))
         self.assertEqual(static.doc, ('The static resource "index"',))
-        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.content_type, 'text/html; charset=utf-8')
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_content_type(self):
-        static = StaticRequest('index', b'<!DOCTYPE html>', content_type='text/html')
+        static = StaticRequest('index', b'<!DOCTYPE html>', content_type='text/html; charset=utf-8')
         self.assertEqual(static.name, 'index')
         self.assertEqual(static.urls, (('GET', '/index'),))
         self.assertEqual(static.doc, ('The static resource "index"',))
-        self.assertEqual(static.headers, (('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
+        self.assertEqual(static.content_type, 'text/html; charset=utf-8')
         self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
 
     def test_content_type_unknown(self):
@@ -311,7 +325,7 @@ class TestStatic(TestCase):
         app.add_request(static)
         status, headers, response = app.request('GET', '/doc/index.html')
         self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [('Content-Type', 'text/html'), ('ETag', 'fe364450e1391215f596d043488f989f')])
+        self.assertListEqual(headers, [('Content-Type', 'text/html; charset=utf-8'), ('ETag', 'fe364450e1391215f596d043488f989f')])
         self.assertEqual(response, b'<!DOCTYPE html>')
 
     def test_request_not_modified(self):
@@ -326,3 +340,31 @@ class TestStatic(TestCase):
         self.assertEqual(status, '304 Not Modified')
         self.assertListEqual(headers, [])
         self.assertEqual(response, b'')
+
+    def test_raw_wsgi(self):
+        redirect = StaticRequest('test.txt', b'Hello!')
+
+        start_response_calls = []
+        def start_response(status, headers):
+            start_response_calls.append((status, headers))
+
+        environ = {}
+        result = redirect(environ, start_response)
+        self.assertListEqual(start_response_calls, [
+            ('200 OK', [('Content-Type', 'text/plain; charset=utf-8'), ('ETag', '952d2c56d0485958336747bcdd98590d')])
+        ])
+        self.assertListEqual(list(result), [b'Hello!'])
+
+    def test_raw_wsgi_not_modified(self):
+        redirect = StaticRequest('test.txt', b'Hello!')
+
+        start_response_calls = []
+        def start_response(status, headers):
+            start_response_calls.append((status, headers))
+
+        environ = {'HTTP_IF_NONE_MATCH': '952d2c56d0485958336747bcdd98590d'}
+        result = redirect(environ, start_response)
+        self.assertListEqual(start_response_calls, [
+            ('304 Not Modified', [])
+        ])
+        self.assertListEqual(list(result), [])
