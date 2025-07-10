@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 (2025-07-10)
+
+- [487678c](https://github.com/craigahobbs/chisel/commit/487678c) - RedirectRequest and StaticRequest now work in non-chisel WSGI applications
+
 ## 1.4.10 (2025-06-11)
 
 - [043728e](https://github.com/craigahobbs/chisel/commit/043728e) - update markdown-up tarball
