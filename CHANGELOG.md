@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 (2025-07-12)
+
+- [da8f5ca](https://github.com/craigahobbs/chisel/commit/da8f5ca) - simplify doc static request creation
+
 ## 1.5.0 (2025-07-10)
 
 - [487678c](https://github.com/craigahobbs/chisel/commit/487678c) - RedirectRequest and StaticRequest now work in non-chisel WSGI applications
