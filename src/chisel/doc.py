@@ -6,7 +6,6 @@ Chisel documentation application
 """
 
 import importlib.resources
-import os
 from pathlib import PurePosixPath
 import tarfile
 
@@ -67,17 +66,9 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
                         yield StaticRequest(
                             member.name,
                             tar.extractfile(member).read(),
-                            content_type=_CONTENT_TYPES.get(os.path.splitext(member.name)[1], 'text/plain; charset=utf-8'),
                             urls=(('GET', str(parent_posix.joinpath(member.name))),),
                             doc_group='MarkdownUp Statics'
                         )
-
-
-_CONTENT_TYPES = {
-    '.css': 'text/css; charset=utf-8',
-    '.js': 'text/javascript; charset=utf-8',
-    '.html': 'text/html; charset=utf-8'
-}
 
 
 class DocIndex(Action):
