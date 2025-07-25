@@ -337,7 +337,7 @@ class Action(Request):
                 raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'UnexpectedError')
 
             # Validate the response
-            if validate_output and ctx.app.validate_output:
+            if not self.wsgi_response and validate_output and ctx.app.validate_output:
                 try:
                     validate_type(output_types, output_type, response)
                 except ValidationError as exc:

@@ -46,6 +46,7 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+
     def test_slash(self):
         self.assertTrue(sum(1 for request in create_doc_requests(root_path='/info/') if request.name.startswith('markdown-up')))
         self.assertListEqual(
@@ -81,6 +82,7 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+
     def test_root(self):
         self.assertTrue(sum(1 for request in create_doc_requests(root_path='/') if request.name.startswith('markdown-up')))
         self.assertListEqual(
@@ -112,6 +114,7 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+
     def test_no_api(self):
         self.assertTrue(sum(1 for request in create_doc_requests(api=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
@@ -139,6 +142,7 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+
     def test_no_app(self):
         self.assertFalse(sum(1 for request in create_doc_requests(app=False) if request.name.startswith('markdown-up')))
         self.assertListEqual(
@@ -161,6 +165,7 @@ class TestGetDocRequests(TestCase):
             ]
         )
 
+
     def test_markdown_up(self):
         self.assertTrue(
             sum(1 for request in create_doc_requests(api=False, app=False, markdown_up=True) if request.name.startswith('markdown-up'))
@@ -176,6 +181,7 @@ class TestGetDocRequests(TestCase):
             ],
             []
         )
+
 
     def test_none(self):
         self.assertFalse(sum(1 for request in create_doc_requests(api=False, app=False) if request.name.startswith('markdown-up')))
@@ -633,6 +639,7 @@ action my_action2
             'urls': [{'path': '/my_request2'}]
         })
 
+
     def test_attr(self):
         app = Application()
         app.add_requests(create_doc_requests())
@@ -711,6 +718,7 @@ action my_action
             }
         })
 
+
     def test_unkown_name(self):
         app = Application()
         app.add_requests(create_doc_requests())
@@ -720,6 +728,7 @@ action my_action
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
         })
+
 
     def test_requests(self):
         app = Application()
@@ -758,6 +767,7 @@ action my_action2
             'error': 'UnknownName'
         })
 
+
     def test_no_urls(self):
         app = Application()
         app.add_requests(create_doc_requests())
@@ -773,6 +783,7 @@ action my_action
                 'my_action': {'action': {'name': 'my_action'}}
             }
         })
+
 
     def test_wsgi_response(self):
         app = Application()

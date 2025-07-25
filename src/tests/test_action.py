@@ -34,6 +34,7 @@ action my_action_default
         self.assertEqual(my_action_default.model['name'], 'my_action_default')
         self.assertEqual(my_action_default.wsgi_response, False)
 
+
     # Default action decorator with missing spec
     def test_decorator_unknown_action(self):
 
@@ -42,6 +43,7 @@ action my_action_default
             def unused_my_action(unused_app, unused_req): # pragma: no cover
                 pass
         self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
+
 
     # Action decorator with spec
     def test_decorator_spec(self):
@@ -63,6 +65,7 @@ action my_action
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
+
     # Action decorator with spec parser
     def test_decorator_types(self):
 
@@ -83,6 +86,7 @@ action my_action
         self.assertTrue(isinstance(my_action.model, dict))
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
+
 
     # Action decorator with spec parser and a spec
     def test_decorator_types_and_spec(self):
@@ -109,6 +113,7 @@ action my_action
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
+
     # Action decorator with parser
     def test_decorator_parser(self):
 
@@ -129,6 +134,7 @@ action my_action
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertEqual(my_action.wsgi_response, False)
 
+
     # Action decorator with spec with unknown action
     def test_decorator_spec_no_actions(self):
 
@@ -140,6 +146,7 @@ action my_action
                 pass
         self.assertEqual(str(cm_exc.exception), 'Unknown action "unused_my_action"')
 
+
     # Action decorator with spec with syntax errors
     def test_decorator_spec_error(self):
         with self.assertRaises(SchemaMarkdownParserError) as cm_exc:
@@ -149,6 +156,7 @@ asdfasdf
             def unused_my_action(unused_app, unused_req): # pragma: no cover
                 pass
         self.assertEqual(str(cm_exc.exception), ':1: error: Syntax error')
+
 
     # Action decorator with name and spec
     def test_decorator_named_spec(self):
@@ -170,6 +178,7 @@ action theAction
         self.assertTrue(isinstance(my_action.model, dict))
         self.assertEqual(my_action.model['name'], 'theAction')
         self.assertEqual(my_action.wsgi_response, False)
+
 
     def test_decorator_url_spec(self):
 
@@ -193,6 +202,7 @@ action my_action
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertFalse(my_action.wsgi_response)
 
+
     def test_decorator_url_spec_default(self):
 
         # Action decorator with urls, custom response callback, and validate response bool
@@ -210,6 +220,7 @@ action my_action
         self.assertTrue(isinstance(my_action.model, dict))
         self.assertEqual(my_action.model['name'], 'my_action')
         self.assertFalse(my_action.wsgi_response)
+
 
     # Test successful action get
     def test_get(self):
@@ -234,6 +245,7 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"c":15}')
+
 
     # Test successful action get
     def test_get_no_validate_output(self):
@@ -260,6 +272,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"c":15}')
 
+
     # Test successful action get with JSONP
     def test_get_jsonp(self):
 
@@ -283,6 +296,7 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), 'foo({"c":15});')
+
 
     # Test successful action post
     def test_post(self):
@@ -330,6 +344,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'b\' missing (query string)"}')
 
+
     # Test successful action get with headers
     def test_headers(self):
 
@@ -349,6 +364,7 @@ action my_action
         self.assertEqual(headers, [('Content-Type', 'application/json'), ('MyHeader', 'MyValue')])
         self.assertEqual(response.decode('utf-8'), '{}')
 
+
     # Test successful action with custom response
     def test_custom_response(self):
 
@@ -356,8 +372,6 @@ action my_action
 action my_action
     input
         string a
-    output
-        string b
 ''')
         def my_action(ctx, req):
             return ctx.response_text(HTTPStatus.OK, 'Hello ' + str(req['a'].upper()))
@@ -369,6 +383,27 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
         self.assertEqual(response.decode('utf-8'), 'Hello WORLD')
+
+
+    # Test action error with custom response
+    def test_custom_response_error(self):
+
+        @action(wsgi_response=True, spec='''\
+action my_action
+    input
+        string a
+''')
+        def my_action(ctx, req):
+            raise ActionError('BAD', status='500 Internal Server Error')
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": "world"}')
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"error":"BAD"}')
+
 
     # Test action error response (invalid)
     def test_error_response(self):
@@ -389,6 +424,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Unknown member \'error\'"}')
 
+
     # Test action error response with message
     def test_error_message(self):
 
@@ -407,6 +443,7 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
+
 
     # Test action raised-error response
     def test_error_raised(self):
@@ -427,6 +464,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError"}')
 
+
     # Test action raised-error response with message
     def test_error_raised_message(self):
 
@@ -445,6 +483,7 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
+
 
     # Test action raised-error response with status
     def test_error_raised_status(self):
@@ -465,6 +504,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyError","message":"My message"}')
 
+
     # Test action raising builtin error enum value
     def test_error_raise_builtin(self):
 
@@ -483,6 +523,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+
 
     # Test action raising an unknown error enum value
     def test_error_unknown_error(self):
@@ -515,6 +556,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
+
     # Test action raising an undefined error enum value (no errors type)
     def test_error_undefined_error(self):
 
@@ -544,6 +586,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
+
     def test_error_inherited_error(self):
 
         @action(spec='''\
@@ -568,6 +611,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"Invalid"}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
+
     # Test action query string decode error
     def test_error_invalid_query_string(self):
 
@@ -589,6 +633,7 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
+
 
     # Test action long query string decode error
     def test_error_invalid_query_string_long(self):
@@ -616,6 +661,7 @@ action my_action
             environ['wsgi.errors'].getvalue(),
             r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$"
         )
+
 
     # Test action url arg
     def test_url_arg(self):
@@ -655,6 +701,7 @@ action my_action
             r"WARNING \[\d+ / \d+\] Invalid query string for action 'my_action': Unknown member 'a'"
         )
 
+
     # Test action with invalid json content
     def test_error_invalid_json(self):
 
@@ -677,6 +724,7 @@ action my_action
             '{"error":"InvalidInput","message":"Invalid request JSON:'
         )
 
+
     # Test action with invalid HTTP method
     def test_error_invalid_method(self):
 
@@ -695,6 +743,7 @@ action my_action
         self.assertEqual(status, '405 Method Not Allowed')
         self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
         self.assertEqual(response.decode('utf-8'), 'Method Not Allowed')
+
 
     # Test action with invalid input
     def test_error_invalid_input(self):
@@ -716,6 +765,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
                          'for member \'a\', expected type \'string\' (content)"}')
+
 
     # Test action with invalid array input
     def test_error_invalid_input_array_query_string(self):
@@ -743,6 +793,7 @@ action my_action
             r"Invalid value \[\] \(type 'list'\), expected type 'my_action_input'"
         )
 
+
     # Test action with invalid output
     def test_error_invalid_output(self):
 
@@ -764,6 +815,7 @@ action my_action
                          '{"error":"InvalidOutput","member":"a","message":"Invalid value \'asdf\' (type \'str\') '
                          'for member \'a\', expected type \'int\'"}')
 
+
     # Test action with invalid None output
     def test_error_none_output(self):
 
@@ -780,6 +832,7 @@ action my_action
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{}')
+
 
     # Test action with invalid array output
     def test_error_array_output(self):
@@ -800,6 +853,7 @@ action my_action
                          '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), '
                          'expected type \'my_action_output\'"}')
 
+
     # Test action with unexpected error
     def test_error_unexpected(self):
 
@@ -817,6 +871,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"UnexpectedError"}')
+
 
     # Test action HTTP post IO error handling
     def test_error_io(self):
@@ -840,6 +895,7 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"IOError","message":"Error reading request content"}')
 
+
     # Test action JSON serialization error handling
     def test_error_json(self):
 
@@ -862,6 +918,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
         self.assertEqual(response, b'Internal Server Error')
+
 
     # Test action unexpected error response with custom response
     def test_error_unexpected_custom(self):

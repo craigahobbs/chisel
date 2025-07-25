@@ -57,6 +57,7 @@ class TestApplication(TestCase):
             ]
         )
 
+
     def test_add_requests(self):
         request1 = Request(name='request1')
         request2 = Request(name='request2', urls=(('GET', '/request-two'),))
@@ -76,6 +77,7 @@ class TestApplication(TestCase):
             ('GET', '/request-two'): request2
         })
 
+
     def test_add_request_redefinition(self):
         app = Application()
         app.add_request(Request(name='my_request'))
@@ -83,12 +85,14 @@ class TestApplication(TestCase):
             app.add_request(Request(name='my_request'))
         self.assertEqual(str(raises.exception), 'redefinition of request "my_request"')
 
+
     def test_add_request_url_redefinition(self):
         app = Application()
         app.add_request(Request(name='my_request'))
         with self.assertRaises(ValueError) as raises:
             app.add_request(Request(name='my_request2', urls=[(None, '/my_request')]))
         self.assertEqual(str(raises.exception), 'redefinition of request URL "/my_request"')
+
 
     def test_request(self):
 
@@ -145,6 +149,7 @@ class TestApplication(TestCase):
         self.assertEqual(status, '404 Not Found')
         self.assertEqual(response, b'Not Found')
 
+
     def test_request_head(self):
 
         def request(environ, unused_start_response):
@@ -165,6 +170,7 @@ class TestApplication(TestCase):
         self.assertEqual(response, b'')
         self.assertListEqual(headers, [('Content-Type', 'text/plain')])
 
+
     def test_request_args(self):
 
         def request1(environ, unused_start_response):
@@ -182,6 +188,7 @@ class TestApplication(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'request1')
         self.assertIn('in request1', environ['wsgi.errors'].getvalue())
+
 
     def test_request_nested(self):
 
@@ -202,6 +209,7 @@ class TestApplication(TestCase):
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'12')
 
+
     def test_request_exception(self):
 
         def request1(unused_environ, unused_start_response):
@@ -215,6 +223,7 @@ class TestApplication(TestCase):
         self.assertEqual(status, '500 Internal Server Error')
         self.assertTrue(('Content-Type', 'text/plain') in headers)
         self.assertEqual(response, b'Internal Server Error')
+
 
     def test_request_string_response(self):
 
@@ -231,6 +240,7 @@ class TestApplication(TestCase):
         self.assertListEqual(headers, [('Content-Type', 'text/plain')])
         self.assertEqual(response, b'Internal Server Error')
         self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
+
 
     def test_log_format_callable(self):
 
@@ -274,6 +284,7 @@ class TestContext(TestCase):
         self.assertEqual(ctx.headers['Cache-Control'], 'no-cache')
         self.assertNotIn('Expires', ctx.headers)
 
+
     def test_add_cache_headers_public(self):
         app = Application()
         ctx = Context(app, environ={
@@ -286,6 +297,7 @@ class TestContext(TestCase):
             ctx.add_cache_headers('public', 60)
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
+
 
     def test_add_cache_headers_private(self):
         app = Application()
@@ -300,6 +312,7 @@ class TestContext(TestCase):
         self.assertEqual(ctx.headers['Cache-Control'], 'private,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
+
     def test_add_cache_headers_non_get(self):
         app = Application()
         ctx = Context(app, environ={
@@ -310,6 +323,7 @@ class TestContext(TestCase):
         ctx.add_cache_headers('private', 60)
         self.assertNotIn('Cache-Control', ctx.headers)
         self.assertNotIn('Expires', ctx.headers)
+
 
     def test_add_cache_headers_utcnow(self):
         app = Application()
@@ -322,6 +336,7 @@ class TestContext(TestCase):
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
+
     def test_response(self):
         app = Application()
         start_response = StartResponse()
@@ -330,6 +345,7 @@ class TestContext(TestCase):
         self.assertEqual(response, [b'Hello, World!'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
 
     def test_response_text(self):
         app = Application()
@@ -340,6 +356,7 @@ class TestContext(TestCase):
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
+
     def test_response_text_status(self):
         app = Application()
         start_response = StartResponse()
@@ -348,6 +365,7 @@ class TestContext(TestCase):
         self.assertEqual(response, [b'OK'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+
 
     def test_response_text_status_str(self):
         app = Application()
@@ -358,6 +376,7 @@ class TestContext(TestCase):
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
 
+
     def test_response_json(self):
         app = Application()
         start_response = StartResponse()
@@ -366,6 +385,7 @@ class TestContext(TestCase):
         self.assertEqual(response, [b'{"a":7,"b":"abc","c":"2018-02-24"}'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
+
 
     def test_response_json_jsonp(self):
         app = Application()
@@ -376,6 +396,7 @@ class TestContext(TestCase):
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
 
+
     def test_response_headers(self):
         app = Application()
         start_response = StartResponse()
@@ -384,6 +405,7 @@ class TestContext(TestCase):
         self.assertEqual(response, [b'Hello, World!'])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'text/plain'), (('MY_HEADER', 'MY_VALUE'))])
+
 
     def test_context_reconstruct_url(self):
         app = Application()
