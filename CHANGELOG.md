@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 (2025-07-25)
+
+- [acfe761](https://github.com/craigahobbs/chisel/commit/acfe761) - don't validate wsgi_response action output
+
 ## 1.5.1 (2025-07-12)
 
 - [da8f5ca](https://github.com/craigahobbs/chisel/commit/da8f5ca) - simplify doc static request creation
