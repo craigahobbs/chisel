@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1 (2025-07-30)
+
+- [4997169](https://github.com/craigahobbs/chisel/commit/4997169) - add _top hash param to chisel doc index links
+
 ## 1.6.0 (2025-07-25)
 
 - [acfe761](https://github.com/craigahobbs/chisel/commit/acfe761) - don't validate wsgi_response action output
