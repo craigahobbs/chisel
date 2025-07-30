@@ -41,7 +41,7 @@ async function chiselDocIndexPage():
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '## ' + markdownEscape(groupName))
         for requestName in arraySort(objectGet(groups, groupName)):
-            markdownPrint('', argsLink(chiselDocArguments, requestName, objectNew('name', requestName)))
+            markdownPrint('', argsLink(chiselDocArguments, requestName, objectNew('name', requestName), false, '_top'))
         endfor
     endfor
 endfunction
