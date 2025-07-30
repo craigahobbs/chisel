@@ -186,7 +186,7 @@ class Application:
             # Handle the request
             try:
                 response = request(ctx.environ, ctx.start_response)
-            except: # pylint: disable=bare-except
+            except:
                 ctx.log.exception('exception raised by request "%s"', request.name)
                 response = ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
 

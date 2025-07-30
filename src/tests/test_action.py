@@ -861,7 +861,6 @@ action my_action
 action my_action
 ''')
         def my_action(unused_app, unused_req):
-            # pylint: disable=broad-exception-raised
             raise Exception('My unexpected error')
 
         app = Application()
@@ -927,7 +926,6 @@ action my_action
 action my_action
 ''')
         def my_action(unused_app, unused_req):
-            # pylint: disable=broad-exception-raised
             raise Exception('FAIL')
 
         app = Application()
