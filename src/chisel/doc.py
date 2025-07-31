@@ -166,6 +166,9 @@ action chisel_doc_request
         # The map of the action's type name's to type models. This member is only present for JSON APIs.
         optional Types types
 
+        # If true, the action has a custom response
+        optional bool custom
+
     errors
         # The request name is unknown
         UnknownName
@@ -192,6 +195,8 @@ action chisel_doc_request
             response['urls'] = [self._url_dict(method, path) for method, path in request.urls]
         if isinstance(request, Action):
             response['types'] = get_referenced_types(request.types, request.name)
+            if request.wsgi_response:
+                response['custom'] = True
         elif request.doc is not None:
             response['doc'] = [request.doc] if isinstance(request.doc, str) else request.doc
 

@@ -797,6 +797,7 @@ action my_action
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
             'urls': [{'method': 'POST', 'path': '/my_action'}],
+            'custom': True,
             'types': {
                 'my_action': {'action': {'name': 'my_action'}}
             }
