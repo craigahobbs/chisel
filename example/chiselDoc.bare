@@ -60,6 +60,7 @@ async function chiselDocRequestPage(typeName):
     doc = objectGet(docRequest, 'doc')
     urls = objectGet(docRequest, 'urls')
     types = objectGet(docRequest, 'types')
+    custom = objectGet(docRequest, 'custom', false)
 
     # Render the request page
     documentSetTitle(typeName)
@@ -67,7 +68,7 @@ async function chiselDocRequestPage(typeName):
 
     # Action request?
     if types != null:
-        elementModelRender(schemaElements(types, typeName, urls))
+        elementModelRender(schemaElements(types, typeName, urls, custom))
         return
     endif
 

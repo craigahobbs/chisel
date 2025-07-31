@@ -857,6 +857,16 @@
             "type": {
               "user": "Types"
             }
+          },
+          {
+            "doc": [
+              "If true, the action has a custom response"
+            ],
+            "name": "custom",
+            "optional": true,
+            "type": {
+              "builtin": "bool"
+            }
           }
         ],
         "name": "chisel_doc_request_output"
