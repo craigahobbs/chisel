@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2 (2025-07-31)
+
+- [be1188f](https://github.com/craigahobbs/chisel/commit/be1188f) - improve chisel doc for wsgi_response actions
+
 ## 1.6.1 (2025-07-30)
 
 - [4997169](https://github.com/craigahobbs/chisel/commit/4997169) - add _top hash param to chisel doc index links
