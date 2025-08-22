@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3 (2025-08-22)
+
+- [89e097e](https://github.com/craigahobbs/chisel/commit/89e097e) - update markdown-up tarball
+
 ## 1.6.2 (2025-07-31)
 
 - [be1188f](https://github.com/craigahobbs/chisel/commit/be1188f) - improve chisel doc for wsgi_response actions
