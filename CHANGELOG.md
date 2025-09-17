@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.6 (2025-09-17)
+
+- [9503de1](https://github.com/craigahobbs/chisel/commit/9503de1) - update markdown-up tarball
+
 ## 1.6.5 (2025-09-16)
 
 - [4d12f17](https://github.com/craigahobbs/chisel/commit/4d12f17) - update markdown-up tarball
