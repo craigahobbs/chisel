@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.10 (2025-09-24)
+
+- [7410cfc](https://github.com/craigahobbs/chisel/commit/7410cfc) - update markdown-up tarball \(element-model 1.2.3\)
+
 ## 1.6.9 (2025-09-24)
 
 - [2103929](https://github.com/craigahobbs/chisel/commit/2103929) - update markdown-up tarball
