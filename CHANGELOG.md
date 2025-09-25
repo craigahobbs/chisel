@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.10 (2025-09-25)
+
+- [0dfc80d](https://github.com/craigahobbs/chisel/commit/0dfc80d) - update markdown-up tarball \(pager.bare keyboard commands\)
+
 ## 1.6.10 (2025-09-24)
 
 - [7410cfc](https://github.com/craigahobbs/chisel/commit/7410cfc) - update markdown-up tarball \(element-model 1.2.3\)
