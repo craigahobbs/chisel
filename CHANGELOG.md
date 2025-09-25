@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.13 (2025-09-25)
+
+- [40f48cb](https://github.com/craigahobbs/chisel/commit/40f48cb) - update markdown-up tarball \(bug fixes\)
+
 ## 1.6.12 (2025-09-25)
 
 - [b097dde](https://github.com/craigahobbs/chisel/commit/b097dde) - update markdown-up tarball \(bare-script end-of-line comments\)
