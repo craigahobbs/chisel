@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.6.10 (2025-09-25)
+## 1.6.12 (2025-09-25)
+
+- [b097dde](https://github.com/craigahobbs/chisel/commit/b097dde) - update markdown-up tarball \(bare-script end-of-line comments\)
+
+## 1.6.11 (2025-09-25)
 
 - [0dfc80d](https://github.com/craigahobbs/chisel/commit/0dfc80d) - update markdown-up tarball \(pager.bare keyboard commands\)
 
