@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.15 (2025-09-26)
+
+- [1755d73](https://github.com/craigahobbs/chisel/commit/1755d73) - update markdown-up tarball \(fix numberParseInt issues\)
+
 ## 1.6.14 (2025-09-26)
 
 - [ca6143b](https://github.com/craigahobbs/chisel/commit/ca6143b) - update markdown-up tarb all \(update help link\)
