@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.14 (2025-09-26)
+
+- [ca6143b](https://github.com/craigahobbs/chisel/commit/ca6143b) - update markdown-up tarb all \(update help link\)
+
 ## 1.6.13 (2025-09-25)
 
 - [40f48cb](https://github.com/craigahobbs/chisel/commit/40f48cb) - update markdown-up tarball \(bug fixes\)
