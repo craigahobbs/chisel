@@ -116,8 +116,8 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary</p></li>
-<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><em>Callable</em></a>) – The <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a>) – The <span class="target" id="index-1"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -143,7 +143,7 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 <dd><p>Add a series of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects to the application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><em>Iterable</em></a><em>(</em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A list of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects.</p>
+<dd class="field-odd"><p><strong>requests</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>(</em><a class="reference internal" href="#chisel.Request" title="chisel.Request"><em>Request</em></a><em>)</em>) – A list of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> objects.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -157,7 +157,7 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 <dl class="py attribute">
 <dt class="sig sig-object py" id="chisel.Application.log_level">
 <span class="sig-name descname"><span class="pre">log_level</span></span><a class="headerlink" href="#chisel.Application.log_level" title="Link to this definition">¶</a></dt>
-<dd><p>The application’s <a class="reference external" href="https://docs.python.org/3/library/logging.html#levels" title="(in Python v3.13)"><span class="xref std std-ref">logging level</span></a>. The default is <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>.</p>
+<dd><p>The application’s <a class="reference external" href="https://docs.python.org/3/library/logging.html#levels" title="(in Python v3.14)"><span class="xref std std-ref">logging level</span></a>. The default is <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -167,16 +167,16 @@ request’s <a class="reference internal" href="#chisel.Context" title="chisel.C
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The request method</p></li>
-<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The request path</p></li>
+<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The request method</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The request path</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> and URL argument <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>. If the request is None,
+<dd class="field-even"><p>A tuple of <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> and URL argument <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>. If the request is None,
 there is no matching request. If the URL argument dict is None, there are no URL arguments.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>(<a class="reference internal" href="#chisel.Request" title="chisel.Request">chisel.Request</a> or None, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a> or None)</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>(<a class="reference internal" href="#chisel.Request" title="chisel.Request">chisel.Request</a> or None, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a> or None)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -196,11 +196,11 @@ False.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The HTTP request method string (e.g. <code class="docutils literal notranslate"><span class="pre">'GET'</span></code>)</p></li>
-<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The request URL path (e.g. <code class="docutils literal notranslate"><span class="pre">'/doc/'</span></code>)</p></li>
-<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Optional query string</p></li>
-<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a>) – Optional request content</p></li>
-<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Optional environ dict. If not provided, a minimal default environ is created.</p></li>
+<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The HTTP request method string (e.g. <code class="docutils literal notranslate"><span class="pre">'GET'</span></code>)</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The request URL path (e.g. <code class="docutils literal notranslate"><span class="pre">'/doc/'</span></code>)</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional query string</p></li>
+<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a>) – Optional request content</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Optional environ dict. If not provided, a minimal default environ is created.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -263,7 +263,7 @@ it with that applicaton.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><em>Callable</em></a>) – A WSGI application function</p>
+<dd class="field-odd"><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a>) – A WSGI application function</p>
 </dd>
 <dt class="field-even">Returns Request<span class="colon">:</span></dt>
 <dd class="field-even"><p>The created Request object</p>
@@ -283,9 +283,9 @@ the WSGI environ dict, <code class="docutils literal notranslate"><span class="p
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>app</strong> (<a class="reference internal" href="#chisel.Application" title="chisel.Application"><em>Application</em></a>) – The chisel application object</p></li>
-<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary</p></li>
-<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><em>Callable</em></a>) – The <span class="target" id="index-3"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable</p></li>
-<li><p><strong>url_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The parsed URL arguments dictionary</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The <span class="target" id="index-2"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a>) – The <span class="target" id="index-3"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable</p></li>
+<li><p><strong>url_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The parsed URL arguments dictionary</p></li>
 </ul>
 </dd>
 </dl>
@@ -325,9 +325,9 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>control</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">'public'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, or None (for no-cache)</p></li>
-<li><p><strong>ttl_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Cache duration in seconds. Do not specify for no-cache.</p></li>
-<li><p><strong>utcnow</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><em>datetime</em></a>) – A <code class="xref py py-func docutils literal notranslate"><span class="pre">datetime()</span></code> to use as the current datetime</p></li>
+<li><p><strong>control</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">'public'</span></code>, <code class="docutils literal notranslate"><span class="pre">'private'</span></code>, or None (for no-cache)</p></li>
+<li><p><strong>ttl_seconds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Cache duration in seconds. Do not specify for no-cache.</p></li>
+<li><p><strong>utcnow</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><em>datetime</em></a>) – A <code class="xref py py-func docutils literal notranslate"><span class="pre">datetime()</span></code> to use as the current datetime</p></li>
 </ul>
 </dd>
 </dl>
@@ -355,8 +355,8 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The header key</p></li>
-<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The header value</p></li>
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The header key</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The header value</p></li>
 </ul>
 </dd>
 </dl>
@@ -375,11 +375,11 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The HTTP request method (e.g. <code class="docutils literal notranslate"><span class="pre">'GET'</span></code>)</p></li>
-<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The request URL path (e.g. <code class="docutils literal notranslate"><span class="pre">'/doc/'</span></code>)</p></li>
-<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Optional query string</p></li>
-<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a>) – Optional request content</p></li>
-<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Optional environ dict. If not provided, a minimal default environ is created.</p></li>
+<li><p><strong>request_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The HTTP request method (e.g. <code class="docutils literal notranslate"><span class="pre">'GET'</span></code>)</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The request URL path (e.g. <code class="docutils literal notranslate"><span class="pre">'/doc/'</span></code>)</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional query string</p></li>
+<li><p><strong>wsgi_input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a>) – Optional request content</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Optional environ dict. If not provided, a minimal default environ is created.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -419,9 +419,9 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Optional replacement for the URL path</p></li>
-<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Optional replacement for the query string</p></li>
-<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, creates a relative URL. Default is False.</p></li>
+<li><p><strong>path_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional replacement for the URL path</p></li>
+<li><p><strong>query_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional replacement for the query string</p></li>
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, creates a relative URL. Default is False.</p></li>
 </ul>
 </dd>
 </dl>
@@ -450,10 +450,10 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.13)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The HTTP response status</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The response content type</p></li>
-<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a><em>)</em>) – The WSGI response content</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The HTTP response status</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The response content type</p></li>
+<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em>)</em>) – The WSGI response content</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -485,12 +485,12 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.13)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The HTTP response status</p></li>
-<li><p><strong>response</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The response dictionary</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The response content type. The default is “application/json”.</p></li>
-<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The content encoding. The default is “utf-8”.</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
-<li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Optional JSONP key</p></li>
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The HTTP response status</p></li>
+<li><p><strong>response</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The response dictionary</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The response content type. The default is “application/json”.</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The content encoding. The default is “utf-8”.</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
+<li><p><strong>jsonp</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional JSONP key</p></li>
 </ul>
 </dd>
 </dl>
@@ -519,11 +519,11 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.13)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The HTTP response status</p></li>
-<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The response text</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The response content type. The default is “text/plain”.</p></li>
-<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The content encoding. The default is “utf-8”.</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The HTTP response status</p></li>
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The response text</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The response content type. The default is “text/plain”.</p></li>
+<li><p><strong>encoding</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The content encoding. The default is “utf-8”.</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>)</em>) – Optional list of key/value header tuples to add to the response</p></li>
 </ul>
 </dd>
 </dl>
@@ -537,8 +537,8 @@ no-cache by passing control as None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.13)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The response HTTP status (e.g. “HTTPStatus.OK”)</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>)</em>) – List of key/value header tuples</p></li>
+<li><p><strong>status</strong> (<a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><em>HTTPStatus</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The response HTTP status (e.g. “HTTPStatus.OK”)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>)</em>) – List of key/value header tuples</p></li>
 </ul>
 </dd>
 </dl>
@@ -563,12 +563,12 @@ See the <a class="reference internal" href="#chisel.request" title="chisel.reque
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><em>Callable</em></a>) – A WSGI application function</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The request name. The default name is the callback function’s name.</p></li>
-<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
+<li><p><strong>wsgi_callback</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a>) – A WSGI application function</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The request name. The default name is the callback function’s name.</p></li>
+<li><p><strong>urls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>)</em>) – The list of URL method/path tuples. The first value is the HTTP request method (e.g. ‘GET’)
 or None to match any. The second value is the URL path or None to use the default path.</p></li>
-<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>)</em>) – The documentation markdown text lines</p></li>
-<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The documentation group</p></li>
+<li><p><strong>doc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>)</em>) – The documentation markdown text lines</p></li>
+<li><p><strong>doc_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The documentation group</p></li>
 </ul>
 </dd>
 </dl>
@@ -580,8 +580,8 @@ method without calling this method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – The <span class="target" id="index-4"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary.</p></li>
-<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><em>Callable</em></a>) – The <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable.</p></li>
+<li><p><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – The <span class="target" id="index-4"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> environ dictionary.</p></li>
+<li><p><strong>start_response</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a>) – The <span class="target" id="index-5"></span><a class="pep reference external" href="https://peps.python.org/pep-3333/"><strong>WSGI</strong></a> start-response callable.</p></li>
 </ul>
 </dd>
 </dl>
