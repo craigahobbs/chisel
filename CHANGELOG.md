@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 (2025-10-15)
+
+- [7234835](https://github.com/craigahobbs/chisel/commit/7234835) - enable coverage for doc app tests
+
 ## 1.6.15 (2025-09-26)
 
 - [1755d73](https://github.com/craigahobbs/chisel/commit/1755d73) - update markdown-up tarball \(fix numberParseInt issues\)
