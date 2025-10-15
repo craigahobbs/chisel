@@ -4,8 +4,18 @@
 include <unittest.bare>
 include <unittestMock.bare>
 
+
+# Start coverage
+coverageStart()
+
 # Test includes
 include 'testChiselDoc.bare'
 
+# Stop coverage
+coverageStop()
+
 # Test report
-return unittestReport()
+return unittestReport(objectNew( \
+    'coverageExclude', arrayNew('runTests.bare'), \
+    'coverageMin', 100 \
+))

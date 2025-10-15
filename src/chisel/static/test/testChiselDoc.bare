@@ -33,7 +33,7 @@ async function testChiselDoc_index():
         arrayNew('markdownPrint', arrayNew('', "[3action](#var.vName='3action'&_top)")) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_index')
+unittestRunTest('testChiselDoc_index')
 
 
 async function testChiselDoc_index_urlError():
@@ -49,7 +49,7 @@ async function testChiselDoc_index_urlError():
         arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel index API "doc_index"')) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_index_urlError')
+unittestRunTest('testChiselDoc_index_urlError')
 
 
 async function testChiselDoc_request():
@@ -80,7 +80,7 @@ async function testChiselDoc_request():
         arrayNew('markdownPrint', arrayNew('','&nbsp;&nbsp;[GET /url2](/url2)')) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_request')
+unittestRunTest('testChiselDoc_request')
 
 
 async function testChiselDoc_request_noDocNoURLs():
@@ -104,7 +104,7 @@ async function testChiselDoc_request_noDocNoURLs():
         arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_request_noDocNoURLs')
+unittestRunTest('testChiselDoc_request_noDocNoURLs')
 
 
 async function testChiselDoc_request_noDocEmptyURLs():
@@ -128,7 +128,7 @@ async function testChiselDoc_request_noDocEmptyURLs():
         arrayNew('markdownPrint', arrayNew('','# test\\+request')) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_request_noDocEmptyURLs')
+unittestRunTest('testChiselDoc_request_noDocEmptyURLs')
 
 
 async function testChiselDoc_request_action():
@@ -160,7 +160,7 @@ async function testChiselDoc_request_action():
         arrayNew('elementModelRender', arrayNew(arrayNew(arrayNew(objectNew('elem', objectNew('text', 'action testAction'), 'html', 'h1'))))) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_request_action')
+unittestRunTest('testChiselDoc_request_action')
 
 
 async function testChiselDoc_request_urlError():
@@ -178,4 +178,4 @@ async function testChiselDoc_request_urlError():
         arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch chisel request API "doc_request?name=testAction"')) \
     ))
 endfunction
-unittestRunTestAsync('testChiselDoc_request_urlError')
+unittestRunTest('testChiselDoc_request_urlError')
