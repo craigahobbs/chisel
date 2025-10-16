@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1 (2025-10-16)
+
+- [c4d1a68](https://github.com/craigahobbs/chisel/commit/c4d1a68) - markdown-up 3.10.1
+
 ## 1.7.0 (2025-10-15)
 
 - [7234835](https://github.com/craigahobbs/chisel/commit/7234835) - enable coverage for doc app tests
