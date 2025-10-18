@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0 (2025-10-18)
+
+- [4958459](https://github.com/craigahobbs/chisel/commit/4958459) - update markdown-up tarball
+
 ## 1.7.1 (2025-10-16)
 
 - [c4d1a68](https://github.com/craigahobbs/chisel/commit/c4d1a68) - markdown-up 3.10.1
