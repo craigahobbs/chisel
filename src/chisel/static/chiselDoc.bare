@@ -17,9 +17,9 @@ endfunction
 
 
 # The Chisel documentation application arguments
-chiselDocArguments = argsValidate(arrayNew( \
-    objectNew('name', 'name') \
-))
+chiselDocArguments = argsValidate([ \
+    {'name': 'name'} \
+])
 
 
 # Render the Chisel documentation application index page
@@ -41,7 +41,7 @@ async function chiselDocIndexPage():
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '## ' + markdownEscape(groupName))
         for requestName in arraySort(objectGet(groups, groupName)):
-            markdownPrint('', argsLink(chiselDocArguments, requestName, objectNew('name', requestName), false, '_top'))
+            markdownPrint('', argsLink(chiselDocArguments, requestName, {'name': requestName}, false, '_top'))
         endfor
     endfor
 endfunction
@@ -64,7 +64,7 @@ async function chiselDocRequestPage(typeName):
 
     # Render the request page
     documentSetTitle(typeName)
-    markdownPrint(argsLink(chiselDocArguments, 'Index', objectNew('name', null)))
+    markdownPrint(argsLink(chiselDocArguments, 'Index', {'name': null}))
 
     # Action request?
     if types != null:
