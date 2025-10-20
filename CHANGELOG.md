@@ -2,6 +2,8 @@
 
 ## 1.8.1 (2025-10-20)
 
+- [7696248](https://github.com/craigahobbs/chisel/commit/7696248) - use barescript object syntax
+
 - [02db8d6](https://github.com/craigahobbs/chisel/commit/02db8d6) - update markdown-up tarball \(markdown-up 3.11.1\)
 
 ## 1.8.0 (2025-10-18)
