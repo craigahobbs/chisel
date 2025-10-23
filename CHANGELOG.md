@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.5 (2025-10-23)
+
+- [770e13a](https://github.com/craigahobbs/chisel/commit/770e13a) - update markdown-up tarball \(bare-script 3.7.6\)
+
+- [67d55aa](https://github.com/craigahobbs/chisel/commit/67d55aa) - use string escapes
+
 ## 1.8.4 (2025-10-22)
 
 - [5cc435b](https://github.com/craigahobbs/chisel/commit/5cc435b) - update markdown-up tarball
