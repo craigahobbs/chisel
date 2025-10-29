@@ -1,6 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
+include <unittest.bare>
+include <unittestMock.bare>
+
 include '../chiselDoc.bare'
 
 
