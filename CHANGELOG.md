@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.7 (2025-11-14)
+
+- [9e1ecf1](https://github.com/craigahobbs/chisel/commit/9e1ecf1) - update markdown-up tarball \(markdown-model 2.2.17\)
+
 ## 1.9.6 (2025-11-13)
 
 - [80169c3](https://github.com/craigahobbs/chisel/commit/80169c3) - update markdown-up tarball \(markdown-model 2.2.16\)
