@@ -160,7 +160,28 @@ async function testChiselDoc_request_action():
         ['systemFetch', ['doc_request?name=testAction']], \
         ['documentSetTitle', ['testAction']], \
         ['markdownPrint', ['[Index](#var=)']], \
-        ['elementModelRender', [[[{'elem': {'text': 'action testAction'}, 'html': 'h1'}]]]] \
+        ['markdownPrint', [ \
+             [ \
+                "# action testAction", \
+                "", \
+                "## Error Codes", \
+                "", \
+                "If an application error occurs, the response is of the form:", \
+                "", \
+                "```json", \
+                "{", \
+                "    \"error\": \"<error>\",", \
+                "    \"message\": \"<message>\"", \
+                "}", \
+                "```", \
+                "", \
+                "`message` is optional. `error` is one of the following values:", \
+                "", \
+                "| Value           |", \
+                "|-----------------|", \
+                "| UnexpectedError |" \
+            ] \
+        ]] \
     ])
 endfunction
 unittestRunTest('testChiselDoc_request_action')

@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/chisel/blob/main/LICENSE
 
 include <args.bare>
+include <schemaDoc.bare>
 
 
 # The Chisel documentation application main entry point
@@ -68,7 +69,7 @@ async function chiselDocRequestPage(typeName):
 
     # Action request?
     if types != null:
-        elementModelRender(schemaElements(types, typeName, urls, custom))
+        markdownPrint(schemaDocMarkdown(types, typeName, {'actionURLs': urls, 'actionCustom': custom}))
         return
     endif
 
