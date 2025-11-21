@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.12 (2025-11-20)
+
+- [f584da6](https://github.com/craigahobbs/chisel/commit/f584da6) - chisel documentation application use schemaDoc.bare
+
 ## 1.9.11 (2025-11-19)
 
 - [2bf4e4f](https://github.com/craigahobbs/chisel/commit/2bf4e4f) - update markdown-up tarball \(bare-script 3.8.9\)
