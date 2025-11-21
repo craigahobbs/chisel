@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.14 (2025-11-21)
+
+- [7f43931](https://github.com/craigahobbs/chisel/commit/7f43931) - cleanup markdown-up stubs
+
 ## 1.9.13 (2025-11-21)
 
 - [26e30cf](https://github.com/craigahobbs/chisel/commit/26e30cf) - update markdown-up tarball \(markdown-up 3.12.1\)
