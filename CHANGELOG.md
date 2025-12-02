@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.18 (2025-12-02)
+
+- [4c83313](https://github.com/craigahobbs/chisel/commit/4c83313) - update markdown-up tarball \(bare-script 3.8.13\)
+
 ## 1.9.17 (2025-11-24)
 
 - [24c361a](https://github.com/craigahobbs/chisel/commit/24c361a) - update markdown-up tarball \(bare-script 3.8.11\)
