@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.23 (2026-01-08)
+
+- [7cf54b0](https://github.com/craigahobbs/chisel/commit/7cf54b0) - update markdown-up tarball \(markdown-up 3.12.2\)
+
 ## 1.9.22 (2026-01-08)
 
 - [08f2dcc](https://github.com/craigahobbs/chisel/commit/08f2dcc) - update markdown-up tarball \(bare-script 3.8.17\)
