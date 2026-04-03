@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.27 (2026-04-03)
+
+- [b26af8b](https://github.com/craigahobbs/chisel/commit/b26af8b) - update markdown-up tarball \(bare-script 3.8.21\)
+
 ## 1.9.26 (2026-03-18)
 
 - [ba7cb9b](https://github.com/craigahobbs/chisel/commit/ba7cb9b) - update markdown-up tarball \(bare-script 3.8.20\)
