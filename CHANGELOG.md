@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 (2026-04-23)
+
+- [457b0b3](https://github.com/craigahobbs/chisel/commit/457b0b3) - update markdown-up html stubs
+
 ## 2.0.0 (2026-04-23)
 
 - [086b9d6](https://github.com/craigahobbs/chisel/commit/086b9d6) - update markdown-up tarball \(markdown-up 4.0\)
