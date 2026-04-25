@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.3 (2026-04-25)
+
+- [af35adf](https://github.com/craigahobbs/chisel/commit/af35adf) - update markdown-up tarball \(bare-script 4.0.3\)
+
 ## 2.0.2 (2026-04-24)
 
 - [a050171](https://github.com/craigahobbs/chisel/commit/a050171) - update markdown-up tarball \(bare-script 4.0.2\)
