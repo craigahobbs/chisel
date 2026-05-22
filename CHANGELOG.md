@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.11 (2026-05-22)
+
+- [1bebcfd](https://github.com/craigahobbs/chisel/commit/1bebcfd) - update markdown-up tarball \(bare-script 4.1.7\)
+
 ## 2.0.10 (2026-05-22)
 
 - [ff4c736](https://github.com/craigahobbs/chisel/commit/ff4c736) - update markdown-up tarball \(bare-script 4.1.6\)
