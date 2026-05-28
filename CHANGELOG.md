@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.18 (2026-05-27)
+
+- [a4259ad](https://github.com/craigahobbs/chisel/commit/a4259ad) - update markdown-up tarball \(markdown-up 4.1.1\)
+
 ## 2.0.17 (2026-05-26)
 
 - [9b9586c](https://github.com/craigahobbs/chisel/commit/9b9586c) - update markdown-up tarball \(markdown-up 4.1.0\)
