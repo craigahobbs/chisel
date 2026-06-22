@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.23 (2026-06-22)
+
+- [70abbf6](https://github.com/craigahobbs/chisel/commit/70abbf6) - update markdown-up tarball \(bare-script 4.2.8\)
+
 ## 2.0.22 (2026-06-14)
 
 - [a8dcc1f](https://github.com/craigahobbs/chisel/commit/a8dcc1f) - update markdown-up tarball \(element-model 1.2.4\)
