@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.24 (2026-06-29)
+
+- [ba405d3](https://github.com/craigahobbs/chisel/commit/ba405d3) - update markdown-up tarball \(bare-script 4.2.9\)
+
 ## 2.0.23 (2026-06-22)
 
 - [70abbf6](https://github.com/craigahobbs/chisel/commit/70abbf6) - update markdown-up tarball \(bare-script 4.2.8\)
