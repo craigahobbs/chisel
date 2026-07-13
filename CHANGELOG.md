@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 (2026-07-13)
+
+- [2394699](https://github.com/craigahobbs/chisel/commit/2394699) - schema-markdown 1.3
+
 ## 2.0.26 (2026-07-13)
 
 - [7e8c9c5](https://github.com/craigahobbs/chisel/commit/7e8c9c5) - tighten scheme-markdown dependency
