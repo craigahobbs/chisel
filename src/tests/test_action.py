@@ -330,19 +330,19 @@ action my_action
         status, headers, response = app.request('POST', '/my_action', query_string='a=7', wsgi_input=b'{"b": 8}')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'c\' missing (content)"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \\"c\\" missing (content)"}')
 
         # Mixed content and query string #2
         status, headers, response = app.request('POST', '/my_action', query_string='b=8', wsgi_input=b'{"c": 8}')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'a\' missing (path)"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \\"a\\" missing (path)"}')
 
         # Mixed content and query string #3
         status, headers, response = app.request('POST', '/my/5', wsgi_input=b'{"c": 8}')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \'b\' missing (query string)"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \\"b\\" missing (query string)"}')
 
 
     # Test successful action get with headers
@@ -422,7 +422,7 @@ action my_action
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Unknown member \'error\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidOutput","message":"Unknown member \\"error\\""}')
 
 
     # Test action error response with message
@@ -544,8 +544,8 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
-                         'for member \'error\', expected type \'my_action_errors\'"}')
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
+                         'for member \\"error\\", expected type \\"my_action_errors\\""}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
         app.validate_output = False
@@ -574,8 +574,8 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \'MyBadError\' (type \'str\') '
-                         'for member \'error\', expected type \'my_action_errors\'"}')
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
+                         'for member \\"error\\", expected type \\"my_action_errors\\""}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
         app.validate_output = False
@@ -659,7 +659,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 99 + '"}')
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
-            r"^WARNING \[\d+ / \d+\] Error decoding query string for action 'my_action': 'a{999}$"
+            r"^WARNING \[\d+ / \d+\] Error decoding query string for action \"my_action\": 'a{999}$"
         )
 
 
@@ -695,10 +695,10 @@ action my_action
         status, headers, response = app.request('GET', '/my_action/5', query_string='a=3&b=7', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Unknown member \'a\' (query string)"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Unknown member \\"a\\" (query string)"}')
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
-            r"WARNING \[\d+ / \d+\] Invalid query string for action 'my_action': Unknown member 'a'"
+            r'WARNING \[\d+ / \d+\] Invalid query string for action "my_action": Unknown member "a"'
         )
 
 
@@ -763,8 +763,8 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \'int\') '
-                         'for member \'a\', expected type \'string\' (content)"}')
+                         '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \\"int\\") '
+                         'for member \\"a\\", expected type \\"string\\" (content)"}')
 
 
     # Test action with invalid array input
@@ -785,12 +785,12 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(
             response.decode('utf-8'),
-            '{"error":"InvalidInput","message":"Invalid value [] (type \'list\'), expected type \'my_action_input\' (content)"}'
+            '{"error":"InvalidInput","message":"Invalid value [] (type \\"list\\"), expected type \\"my_action_input\\" (content)"}'
         )
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
-            r"WARNING \[\d+ / \d+\] Invalid content for action 'my_action': "
-            r"Invalid value \[\] \(type 'list'\), expected type 'my_action_input'"
+            r'WARNING \[\d+ / \d+\] Invalid content for action "my_action": '
+            r'Invalid value \[\] \(type "list"\), expected type "my_action_input"'
         )
 
 
@@ -812,8 +812,8 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"a","message":"Invalid value \'asdf\' (type \'str\') '
-                         'for member \'a\', expected type \'int\'"}')
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value \\"asdf\\" (type \\"str\\") '
+                         'for member \\"a\\", expected type \\"int\\""}')
 
 
     # Test action with invalid None output
@@ -850,8 +850,8 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","message":"Invalid value [] (type \'list\'), '
-                         'expected type \'my_action_output\'"}')
+                         '{"error":"InvalidOutput","message":"Invalid value [] (type \\"list\\"), '
+                         'expected type \\"my_action_output\\""}')
 
 
     # Test action with unexpected error

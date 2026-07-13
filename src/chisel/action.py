@@ -55,8 +55,8 @@ def action(action_callback=None, **kwargs):
     >>> pprint(json.loads(response.decode('utf-8')))
     {'error': 'InvalidInput',
      'member': 'numbers',
-     'message': "Invalid value '1' (type 'str') for member 'numbers', expected "
-                "type 'array' (query string)"}
+     'message': 'Invalid value "1" (type "str") for member "numbers", expected '
+                'type "array" (query string)'}
 
     When :attr:`~chisel.Application.validate_output` the response dictionary is also validated to the output schema.
 
@@ -251,7 +251,7 @@ class Action(Request):
                 else:
                     request = {}
             except Exception as exc:
-                ctx.log.warning("Error decoding JSON content for action '%s'", self.name)
+                ctx.log.warning('Error decoding JSON content for action "%s"', self.name)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'Invalid request JSON: {exc}')
 
             # Validate the content
@@ -259,12 +259,12 @@ class Action(Request):
             try:
                 request = validate_type(input_types, input_type, request)
             except ValidationError as exc:
-                ctx.log.warning("Invalid content for action '%s': %s", self.name, f'{exc}')
+                ctx.log.warning('Invalid content for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
                     message=f'{exc} (content)',
-                    member=exc.member
+                    member=exc.member_fqn
                 )
 
             # Decode the query string
@@ -272,7 +272,7 @@ class Action(Request):
             try:
                 request_query = decode_query_string(query_string)
             except Exception as exc:
-                ctx.log.warning("Error decoding query string for action '%s': %.1000r", self.name, query_string)
+                ctx.log.warning('Error decoding query string for action "%s": %.1000r', self.name, query_string)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'{exc}')
 
             # JSONP?
@@ -285,12 +285,12 @@ class Action(Request):
             try:
                 request_query = validate_type(query_types, query_type, request_query)
             except ValidationError as exc:
-                ctx.log.warning("Invalid query string for action '%s': %s", self.name, f'{exc}')
+                ctx.log.warning('Invalid query string for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
                     message=f'{exc} (query string)',
-                    member=exc.member
+                    member=exc.member_fqn
                 )
 
             # Validate the path args
@@ -299,12 +299,12 @@ class Action(Request):
             try:
                 request_path = validate_type(path_types, path_type, request_path)
             except ValidationError as exc:
-                ctx.log.warning("Invalid path for action '%s': %s", self.name, f'{exc}')
+                ctx.log.warning('Invalid path for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
                     'InvalidInput',
                     message=f'{exc} (path)',
-                    member=exc.member
+                    member=exc.member_fqn
                 )
 
             # Copy top-level path keys and query string keys
@@ -333,7 +333,7 @@ class Action(Request):
                     else:
                         output_types, output_type = self._get_error_type()
             except Exception as exc:
-                ctx.log.exception("Unexpected error in action '%s'", self.name)
+                ctx.log.exception('Unexpected error in action "%s"', self.name)
                 raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'UnexpectedError')
 
             # Validate the response
@@ -341,8 +341,8 @@ class Action(Request):
                 try:
                     validate_type(output_types, output_type, response)
                 except ValidationError as exc:
-                    ctx.log.error("Invalid output returned from action '%s': %s", self.name, f'{exc}')
-                    raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=f'{exc}', member=exc.member)
+                    ctx.log.error('Invalid output returned from action "%s": %s', self.name, f'{exc}')
+                    raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=f'{exc}', member=exc.member_fqn)
 
         except _ActionErrorInternal as exc:
             status = exc.status

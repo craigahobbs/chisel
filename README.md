@@ -59,7 +59,7 @@ If there is a schema validation error the appropriate error code is automaticall
 status, _, content_bytes = application.request('GET', '/sum_numbers')
 
 '400 Bad Request'
-b'{"error":"InvalidInput","message":"Required member \'numbers\' missing (query string)"}'
+b'{"error":"InvalidInput","message":"Required member \\"numbers\\" missing (query string)"}'
 ~~~
 
 
