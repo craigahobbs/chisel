@@ -326,7 +326,7 @@
         "members": [
           {
             "doc": [
-              "The contained key type"
+              "The contained value type"
             ],
             "name": "type",
             "type": {
@@ -335,7 +335,7 @@
           },
           {
             "doc": [
-              "The contained key type's attributes"
+              "The contained value type's attributes"
             ],
             "name": "attr",
             "optional": true,
@@ -345,7 +345,7 @@
           },
           {
             "doc": [
-              "The contained value type"
+              "The contained key type"
             ],
             "name": "keyType",
             "optional": true,
@@ -355,7 +355,7 @@
           },
           {
             "doc": [
-              "The contained value type's attributes"
+              "The contained key type's attributes"
             ],
             "name": "keyAttr",
             "optional": true,

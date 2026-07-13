@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>JSON APIs &#8212; chisel 2.0.26 documentation</title>
+    <title>JSON APIs &#8212; chisel 2.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
-    <script src="_static/documentation_options.js?v=8f69a947"></script>
+    <script src="_static/documentation_options.js?v=20623aea"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -134,8 +134,8 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
 <span class="go">{&#39;error&#39;: &#39;InvalidInput&#39;,</span>
 <span class="go"> &#39;member&#39;: &#39;numbers&#39;,</span>
-<span class="go"> &#39;message&#39;: &quot;Invalid value &#39;1&#39; (type &#39;str&#39;) for member &#39;numbers&#39;, expected &quot;</span>
-<span class="go">            &quot;type &#39;array&#39; (query string)&quot;}</span>
+<span class="go"> &#39;message&#39;: &#39;Invalid value &quot;1&quot; (type &quot;str&quot;) for member &quot;numbers&quot;, expected &#39;</span>
+<span class="go">            &#39;type &quot;array&quot; (query string)&#39;}</span>
 </pre></div>
 </div>
 <p>When <a class="reference internal" href="app.html#chisel.Application.validate_output" title="chisel.Application.validate_output"><code class="xref py py-attr docutils literal notranslate"><span class="pre">validate_output</span></code></a> the response dictionary is also validated to the output schema.</p>
