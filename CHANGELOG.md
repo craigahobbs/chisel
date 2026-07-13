@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.26 (2026-07-13)
+
+- [7e8c9c5](https://github.com/craigahobbs/chisel/commit/7e8c9c5) - tighten scheme-markdown dependency
+
 ## 2.0.25 (2026-06-29)
 
 - [6ba499e](https://github.com/craigahobbs/chisel/commit/6ba499e) - update markdown-up tarball \(bare-script 4.2.10\)
