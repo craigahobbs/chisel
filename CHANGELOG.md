@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2 (2026-07-14)
+
+- [87d1fae](https://github.com/craigahobbs/chisel/commit/87d1fae) - update markdown-up tarball \(schema-markdown 1.3.1\)
+
 ## 2.1.1 (2026-07-13)
 
 - [692eaf2](https://github.com/craigahobbs/chisel/commit/692eaf2) - update markdown-up tarball \(markdown-up 4.2\)
