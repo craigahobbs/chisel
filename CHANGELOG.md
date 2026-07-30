@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1 (2026-07-30)
+
+- [bd971c6](https://github.com/craigahobbs/chisel/commit/bd971c6) - update markdown-up tarball \(bare-script 5.0.3\)
+
+- [3fe75e2](https://github.com/craigahobbs/chisel/commit/3fe75e2) - cleanup barescript includes
+
 ## 2.2.0 (2026-07-29)
 
 - [5c3d73d](https://github.com/craigahobbs/chisel/commit/5c3d73d) - update markdown-up tarball \(bare-script 5.0.0\)
