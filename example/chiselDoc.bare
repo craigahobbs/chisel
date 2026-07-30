@@ -3,6 +3,7 @@
 
 include <args.bare>
 include <schemaDoc.bare>
+include <url.bare>
 
 
 # The Chisel documentation application main entry point
