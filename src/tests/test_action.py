@@ -7,7 +7,7 @@ from http import HTTPStatus
 from io import StringIO
 from unittest import TestCase
 
-from schema_markdown import SchemaMarkdownParserError, parse_schema_markdown
+from bare_script.include import SchemaParserError, schema_parse
 
 from chisel import action, Action, ActionError, Application, Request
 
@@ -69,7 +69,7 @@ action my_action
     # Action decorator with spec parser
     def test_decorator_types(self):
 
-        types = parse_schema_markdown('''\
+        types = schema_parse('''\
 action my_action
 ''')
         @action(types=types)
@@ -91,7 +91,7 @@ action my_action
     # Action decorator with spec parser and a spec
     def test_decorator_types_and_spec(self):
 
-        types = parse_schema_markdown('''\
+        types = schema_parse('''\
 typedef int(> 0) PositiveInteger
 ''')
         @action(types=types, spec='''\
@@ -149,7 +149,7 @@ action my_action
 
     # Action decorator with spec with syntax errors
     def test_decorator_spec_error(self):
-        with self.assertRaises(SchemaMarkdownParserError) as cm_exc:
+        with self.assertRaises(SchemaParserError) as cm_exc:
             @action(spec='''\
 asdfasdf
 ''')
@@ -544,7 +544,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"string\\") '
                          'for member \\"error\\", expected type \\"my_action_errors\\""}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
@@ -574,7 +574,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
+                         '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"string\\") '
                          'for member \\"error\\", expected type \\"my_action_errors\\""}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
@@ -763,7 +763,7 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \\"int\\") '
+                         '{"error":"InvalidInput","member":"a","message":"Invalid value 7 (type \\"number\\") '
                          'for member \\"a\\", expected type \\"string\\" (content)"}')
 
 
@@ -785,12 +785,12 @@ action my_action
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(
             response.decode('utf-8'),
-            '{"error":"InvalidInput","message":"Invalid value [] (type \\"list\\"), expected type \\"my_action_input\\" (content)"}'
+            '{"error":"InvalidInput","message":"Invalid value [] (type \\"array\\"), expected type \\"my_action_input\\" (content)"}'
         )
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
             r'WARNING \[\d+ / \d+\] Invalid content for action "my_action": '
-            r'Invalid value \[\] \(type "list"\), expected type "my_action_input"'
+            r'Invalid value \[\] \(type "array"\), expected type "my_action_input"'
         )
 
 
@@ -812,7 +812,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","member":"a","message":"Invalid value \\"asdf\\" (type \\"str\\") '
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value \\"asdf\\" (type \\"string\\") '
                          'for member \\"a\\", expected type \\"int\\""}')
 
 
@@ -850,7 +850,7 @@ action my_action
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
-                         '{"error":"InvalidOutput","message":"Invalid value [] (type \\"list\\"), '
+                         '{"error":"InvalidOutput","message":"Invalid value [] (type \\"array\\"), '
                          'expected type \\"my_action_output\\""}')
 
 

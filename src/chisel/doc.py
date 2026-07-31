@@ -9,8 +9,7 @@ import importlib.resources
 from pathlib import PurePosixPath
 import tarfile
 
-from schema_markdown import get_referenced_types
-from schema_markdown.type_model import TYPE_MODEL
+from bare_script.include import schema_get_referenced_types, schema_type_model
 
 from .action import Action, ActionError
 from .request import RedirectRequest, StaticRequest
@@ -175,7 +174,7 @@ action chisel_doc_request
 '''
 
     def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
-        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(TYPE_MODEL), spec=self.SPEC)
+        super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(schema_type_model()), spec=self.SPEC)
         if requests is not None:
             #: Optional list of requests to document or None. If None, the applications request collection is used.
             self.requests = {request.name: request for request in requests}
@@ -194,7 +193,7 @@ action chisel_doc_request
         if request.urls:
             response['urls'] = [self._url_dict(method, path) for method, path in request.urls]
         if isinstance(request, Action):
-            response['types'] = get_referenced_types(request.types, request.name)
+            response['types'] = schema_get_referenced_types(request.types, request.name)
             if request.wsgi_response:
                 response['custom'] = True
         elif request.doc is not None:

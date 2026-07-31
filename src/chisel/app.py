@@ -12,7 +12,8 @@ import logging
 import re
 from urllib.parse import quote, unquote
 
-from schema_markdown import encode_query_string, JSONEncoder
+from bare_script.include import url_encode_query_string
+from bare_script.value import value_json
 
 
 # Regular expression for matching URL arguments
@@ -275,7 +276,7 @@ class Context:
             environ = {}
         environ.setdefault('HTTP_HOST', 'localhost:80')
         environ.setdefault('PATH_INFO', path_info)
-        environ.setdefault('QUERY_STRING', query_string if isinstance(query_string, str) else encode_query_string(query_string))
+        environ.setdefault('QUERY_STRING', query_string if isinstance(query_string, str) else url_encode_query_string(query_string))
         environ.setdefault('REQUEST_METHOD', request_method)
         environ.setdefault('SCRIPT_NAME', '')
         environ.setdefault('SERVER_NAME', 'localhost')
@@ -466,14 +467,7 @@ class Context:
         :param str jsonp: Optional JSONP key
         """
 
-        encoder = JSONEncoder(
-            check_circular=self.app.validate_output,
-            allow_nan=False,
-            sort_keys=True,
-            indent=2 if self.app.pretty_output else None,
-            separators=(',', ': ') if self.app.pretty_output else (',', ':')
-        )
-        content = encoder.encode(response)
+        content = value_json(response, indent=2 if self.app.pretty_output else None)
         if jsonp:
             content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
         else:
@@ -524,7 +518,7 @@ class Context:
                 if isinstance(query_string, str):
                     url += '?' + query_string
                 else:
-                    url += '?' + encode_query_string(query_string)
+                    url += '?' + url_encode_query_string(query_string)
 
         return url
 

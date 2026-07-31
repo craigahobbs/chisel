@@ -10,7 +10,7 @@ from http import HTTPStatus
 from json import loads as json_loads
 import re
 
-from schema_markdown import ValidationError, decode_query_string, get_referenced_types, parse_schema_markdown, validate_type
+from bare_script.include import SchemaValidationError, url_decode_query_string, schema_get_referenced_types, schema_parse, schema_validate
 
 from .app import Context
 from .request import Request
@@ -156,7 +156,7 @@ class Action(Request):
         if types is None:
             types = {}
         if spec is not None:
-            parse_schema_markdown(spec, types=types)
+            schema_parse(spec, types)
 
         # Assert that the action model exists
         model_type = types.get(name)
@@ -209,7 +209,7 @@ class Action(Request):
         output_type_name = f'{model["name"]}_output_error'
         if 'errors' in model:
             error_type_name = model['errors']
-            output_types = get_referenced_types(self.types, error_type_name)
+            output_types = schema_get_referenced_types(self.types, error_type_name)
         else:
             error_type_name = f'{model["name"]}_errors'
             output_types = {error_type_name: {'enum': {'name': error_type_name}}}
@@ -257,8 +257,8 @@ class Action(Request):
             # Validate the content
             input_types, input_type = self._get_section_type('input')
             try:
-                request = validate_type(input_types, input_type, request)
-            except ValidationError as exc:
+                request = schema_validate(input_types, input_type, request)
+            except SchemaValidationError as exc:
                 ctx.log.warning('Invalid content for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
@@ -270,7 +270,7 @@ class Action(Request):
             # Decode the query string
             query_string = environ.get('QUERY_STRING', '')
             try:
-                request_query = decode_query_string(query_string)
+                request_query = url_decode_query_string(query_string)
             except Exception as exc:
                 ctx.log.warning('Error decoding query string for action "%s": %.1000r', self.name, query_string)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'{exc}')
@@ -283,8 +283,8 @@ class Action(Request):
             # Validate the query string
             query_types, query_type = self._get_section_type('query')
             try:
-                request_query = validate_type(query_types, query_type, request_query)
-            except ValidationError as exc:
+                request_query = schema_validate(query_types, query_type, request_query)
+            except SchemaValidationError as exc:
                 ctx.log.warning('Invalid query string for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
@@ -297,8 +297,8 @@ class Action(Request):
             path_types, path_type = self._get_section_type('path')
             request_path = ctx.url_args if ctx.url_args is not None else {}
             try:
-                request_path = validate_type(path_types, path_type, request_path)
-            except ValidationError as exc:
+                request_path = schema_validate(path_types, path_type, request_path)
+            except SchemaValidationError as exc:
                 ctx.log.warning('Invalid path for action "%s": %s', self.name, f'{exc}')
                 raise _ActionErrorInternal(
                     HTTPStatus.BAD_REQUEST,
@@ -339,8 +339,8 @@ class Action(Request):
             # Validate the response
             if not self.wsgi_response and validate_output and ctx.app.validate_output:
                 try:
-                    validate_type(output_types, output_type, response)
-                except ValidationError as exc:
+                    schema_validate(output_types, output_type, response)
+                except SchemaValidationError as exc:
                     ctx.log.error('Invalid output returned from action "%s": %s', self.name, f'{exc}')
                     raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'InvalidOutput', message=f'{exc}', member=exc.member_fqn)
 
