@@ -5,20 +5,39 @@
 Chisel WSGI application base class and utilities
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from http import HTTPStatus
 from io import BytesIO
+from json import JSONEncoder
 import logging
 import re
 from urllib.parse import quote, unquote
+from uuid import UUID
 
 from bare_script.include import url_encode_query_string
-from bare_script.value import value_json
 
 
 # Regular expression for matching URL arguments
 RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
 RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
+
+
+# JSON encoder with support for datetime, date, Decimal, and UUID objects - raises
+# TypeError for unsupported value types (bare-script's value_json serializes them as null)
+class _JSONEncoder(JSONEncoder):
+    __slots__ = ()
+
+    def default(self, o):
+        if isinstance(o, datetime):
+            return (o if o.tzinfo else o.replace(tzinfo=timezone.utc)).isoformat()
+        if isinstance(o, date):
+            return o.isoformat()
+        if isinstance(o, Decimal):
+            return float(o)
+        if isinstance(o, UUID):
+            return f'{o}'
+        return super().default(o)
 
 
 class Application:
@@ -467,7 +486,14 @@ class Context:
         :param str jsonp: Optional JSONP key
         """
 
-        content = value_json(response, indent=2 if self.app.pretty_output else None)
+        encoder = _JSONEncoder(
+            allow_nan=False,
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2 if self.app.pretty_output else None,
+            separators=(',', ': ') if self.app.pretty_output else (',', ':')
+        )
+        content = encoder.encode(response)
         if jsonp:
             content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
         else:

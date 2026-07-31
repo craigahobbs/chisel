@@ -42,7 +42,7 @@ def action(action_callback=None, **kwargs):
     >>> application = chisel.Application()
     >>> application.add_request(sum_numbers)
     >>> application.request('GET', '/sum_numbers', query_string='numbers.0=1&numbers.1=2&numbers.2=3')
-    ('200 OK', [('Content-Type', 'application/json')], b'{"sum":6}')
+    ('200 OK', [('Content-Type', 'application/json')], b'{"sum":6.0}')
 
     Chisel actions schema-validate their input before calling the callback function. For example:
 
@@ -55,7 +55,7 @@ def action(action_callback=None, **kwargs):
     >>> pprint(json.loads(response.decode('utf-8')))
     {'error': 'InvalidInput',
      'member': 'numbers',
-     'message': 'Invalid value "1" (type "str") for member "numbers", expected '
+     'message': 'Invalid value "1" (type "string") for member "numbers", expected '
                 'type "array" (query string)'}
 
     When :attr:`~chisel.Application.validate_output` the response dictionary is also validated to the output schema.
@@ -269,11 +269,10 @@ class Action(Request):
 
             # Decode the query string
             query_string = environ.get('QUERY_STRING', '')
-            try:
-                request_query = url_decode_query_string(query_string)
-            except Exception as exc:
+            request_query = url_decode_query_string(query_string)
+            if request_query is None:
                 ctx.log.warning('Error decoding query string for action "%s": %.1000r', self.name, query_string)
-                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'{exc}')
+                raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message='Invalid query string')
 
             # JSONP?
             if is_get and self.jsonp and self.jsonp in request_query:

@@ -4,10 +4,12 @@
 # pylint: disable=missing-class-docstring, missing-function-docstring, missing-module-docstring
 
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from http import HTTPStatus
 from io import StringIO
 from unittest import TestCase
 import unittest.mock
+from uuid import UUID
 
 from chisel import Application, Context, Request
 from chisel.app import StartResponse
@@ -380,8 +382,19 @@ class TestContext(TestCase):
         app = Application()
         start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
-        response = ctx.response_json(HTTPStatus.OK, {'a': 7, 'b': 'abc', 'c': date(2018, 2, 24)})
-        self.assertEqual(response, [b'{"a":7,"b":"abc","c":"2018-02-24"}'])
+        response = ctx.response_json(HTTPStatus.OK, {
+            'a': 7,
+            'b': 'abc',
+            'c': date(2018, 2, 24),
+            'd': datetime(2018, 2, 24, 10, 30),
+            'e': datetime(2018, 2, 24, 10, 30, tzinfo=timezone.utc),
+            'f': Decimal('7.5'),
+            'g': UUID('8daeb11e-3a83-4554-8593-f9291b1cf491')
+        })
+        self.assertEqual(response, [
+            b'{"a":7,"b":"abc","c":"2018-02-24","d":"2018-02-24T10:30:00+00:00","e":"2018-02-24T10:30:00+00:00",'
+            b'"f":7.5,"g":"8daeb11e-3a83-4554-8593-f9291b1cf491"}'
+        ])
         self.assertEqual(start_response.status, '200 OK')
         self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
 

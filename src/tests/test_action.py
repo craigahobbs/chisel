@@ -244,7 +244,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
+        self.assertEqual(response.decode('utf-8'), '{"c":15.0}')
 
 
     # Test successful action get
@@ -270,7 +270,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"c":15}')
+        self.assertEqual(response.decode('utf-8'), '{"c":15.0}')
 
 
     # Test successful action get with JSONP
@@ -295,7 +295,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8&jsonp=foo')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), 'foo({"c":15});')
+        self.assertEqual(response.decode('utf-8'), 'foo({"c":15.0});')
 
 
     # Test successful action post
@@ -324,7 +324,7 @@ action my_action
         status, headers, response = app.request('POST', '/my/5', query_string='b=7', wsgi_input=b'{"c": 8}')
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"d":20}')
+        self.assertEqual(response.decode('utf-8'), '{"d":20.0}')
 
         # Mixed content and query string
         status, headers, response = app.request('POST', '/my_action', query_string='a=7', wsgi_input=b'{"b": 8}')
@@ -632,7 +632,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a&b=1')
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'a\'"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid query string"}')
 
 
     # Test action long query string decode error
@@ -656,7 +656,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action', query_string='a' * 2000 + '&b=1', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid key/value pair \'' + 'a' * 99 + '"}')
+        self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Invalid query string"}')
         self.assertRegex(
             environ['wsgi.errors'].getvalue(),
             r"^WARNING \[\d+ / \d+\] Error decoding query string for action \"my_action\": 'a{999}$"
@@ -688,7 +688,7 @@ action my_action
         status, headers, response = app.request('GET', '/my_action/5', query_string='b=7', environ=environ)
         self.assertEqual(status, '200 OK')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"sum":12}')
+        self.assertEqual(response.decode('utf-8'), '{"sum":12.0}')
         self.assertEqual(environ['wsgi.errors'].getvalue(), '')
 
         environ = {'wsgi.errors': StringIO()}
