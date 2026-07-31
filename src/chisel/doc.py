@@ -197,7 +197,7 @@ action chisel_doc_request
             if request.wsgi_response:
                 response['custom'] = True
         elif request.doc is not None:
-            response['doc'] = [request.doc] if isinstance(request.doc, str) else request.doc
+            response['doc'] = [request.doc] if isinstance(request.doc, str) else list(request.doc)
 
         return response
 

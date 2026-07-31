@@ -639,6 +639,15 @@ action my_action2
             'urls': [{'path': '/my_request2'}]
         })
 
+        # Redirect request - the default doc is a tuple of strings
+        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=chisel_doc_redirect')
+        self.assertEqual(status, '200 OK')
+        self.assertDictEqual(json.loads(response.decode('utf-8')), {
+            'doc': ['Redirect to /doc/'],
+            'name': 'chisel_doc_redirect',
+            'urls': [{'method': 'GET', 'path': '/doc'}]
+        })
+
 
     def test_attr(self):
         app = Application()
