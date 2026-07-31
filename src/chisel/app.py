@@ -487,8 +487,8 @@ class Context:
         """
 
         encoder = _JSONEncoder(
+            check_circular=self.app.validate_output,
             allow_nan=False,
-            ensure_ascii=False,
             sort_keys=True,
             indent=2 if self.app.pretty_output else None,
             separators=(',', ': ') if self.app.pretty_output else (',', ':')
