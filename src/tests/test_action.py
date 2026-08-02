@@ -3,9 +3,13 @@
 
 # pylint: disable=missing-class-docstring, missing-function-docstring, missing-module-docstring
 
+from collections import OrderedDict
+from datetime import date, datetime, timezone
+from decimal import Decimal
 from http import HTTPStatus
 from io import StringIO
 from unittest import TestCase
+from uuid import UUID
 
 from bare_script.include import SchemaParserError, schema_parse
 
@@ -343,6 +347,173 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \\"b\\" missing (query string)"}')
+
+
+    # Test action output validation with date and datetime object values
+    def test_output_date_datetime(self):
+
+        @action(spec='''\
+action my_action
+    output
+        date a
+        datetime b
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': date(2020, 6, 17), 'b': datetime(2020, 6, 17, 13, 11, tzinfo=timezone.utc)}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":"2020-06-17","b":"2020-06-17T13:11:00+00:00"}')
+
+
+    # Test action output validation with a UUID object value
+    def test_output_uuid(self):
+
+        @action(spec='''\
+action my_action
+    output
+        uuid a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': UUID('8252121c-7f41-4dcd-95a0-a3c4d59d0b0d')}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":"8252121c-7f41-4dcd-95a0-a3c4d59d0b0d"}')
+
+
+    # Test action output validation with a Decimal object value for a float member
+    def test_output_decimal_float(self):
+
+        @action(spec='''\
+action my_action
+    output
+        float a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': Decimal('7.5')}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":7.5}')
+
+
+    # Test action output validation with a Decimal object value for an int member
+    def test_output_decimal_int(self):
+
+        @action(spec='''\
+action my_action
+    output
+        int a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': Decimal('7')}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":7.0}')
+
+
+    # Test action output validation with a tuple value for an array member
+    def test_output_tuple(self):
+
+        @action(spec='''\
+action my_action
+    output
+        int[] a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': (1, 2, 3)}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":[1,2,3]}')
+
+
+    # Test action output validation with a dict subclass value
+    def test_output_dict_subclass(self):
+
+        @action(spec='''\
+action my_action
+    output
+        int a
+''')
+        def my_action(unused_app, unused_req):
+            return OrderedDict(a=1)
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":1}')
+
+
+    # Test action output validation with a list subclass value for an array member
+    def test_output_list_subclass(self):
+
+        class MyList(list):
+            pass
+
+        @action(spec='''\
+action my_action
+    output
+        int[] a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': MyList([1, 2])}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":[1,2]}')
+
+
+    # Test action output validation with a str subclass value for a string member
+    def test_output_str_subclass(self):
+
+        class MyStr(str):
+            pass
+
+        @action(spec='''\
+action my_action
+    output
+        string a
+''')
+        def my_action(unused_app, unused_req):
+            return {'a': MyStr('abc')}
+
+        app = Application()
+        app.add_request(my_action)
+
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
+        self.assertEqual(response.decode('utf-8'), '{"a":"abc"}')
 
 
     # Test successful action get with headers
