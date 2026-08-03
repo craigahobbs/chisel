@@ -23,10 +23,6 @@ SPHINX_DOC := doc
 include Makefile.base
 
 
-# Development dependencies
-TESTS_REQUIRE := bare-script
-
-
 help:
 	@echo "            [test-doc]"
 
