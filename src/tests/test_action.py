@@ -370,7 +370,7 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"a":"2020-06-17","b":"2020-06-17T13:11:00+00:00"}')
 
 
-    # Test action output validation with a UUID object value
+    # Test action output validation with a UUID object value - not a BareScript value type, so output validation fails
     def test_output_uuid(self):
 
         @action(spec='''\
@@ -385,12 +385,15 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
+        self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"a":"8252121c-7f41-4dcd-95a0-a3c4d59d0b0d"}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value null (type \\"null\\") '
+                         'for member \\"a\\", expected type \\"uuid\\""}')
 
 
-    # Test action output validation with a Decimal object value for a float member
+    # Test action output validation with a Decimal object value for a float member - not a BareScript value type,
+    # so output validation fails
     def test_output_decimal_float(self):
 
         @action(spec='''\
@@ -405,12 +408,15 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
+        self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"a":7.5}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value null (type \\"null\\") '
+                         'for member \\"a\\", expected type \\"float\\""}')
 
 
-    # Test action output validation with a Decimal object value for an int member
+    # Test action output validation with a Decimal object value for an int member - not a BareScript value type,
+    # so output validation fails
     def test_output_decimal_int(self):
 
         @action(spec='''\
@@ -425,12 +431,15 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
+        self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"a":7.0}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value null (type \\"null\\") '
+                         'for member \\"a\\", expected type \\"int\\""}')
 
 
-    # Test action output validation with a tuple value for an array member
+    # Test action output validation with a tuple value for an array member - not a BareScript value type,
+    # so output validation fails
     def test_output_tuple(self):
 
         @action(spec='''\
@@ -445,9 +454,11 @@ action my_action
         app.add_request(my_action)
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
-        self.assertEqual(status, '200 OK')
+        self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), '{"a":[1,2,3]}')
+        self.assertEqual(response.decode('utf-8'),
+                         '{"error":"InvalidOutput","member":"a","message":"Invalid value [1,2,3] (type \\"null\\") '
+                         'for member \\"a\\", expected type \\"array\\""}')
 
 
     # Test action output validation with a dict subclass value
