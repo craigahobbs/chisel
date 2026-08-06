@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.1 (2026-08-06)
+
+- [218f760](https://github.com/craigahobbs/chisel/commit/218f760) - migrate package metadata from setup.cfg to pyproject.toml
+
 ## 2.3.0 (2026-08-04)
 
 - [bd0bbd0](https://github.com/craigahobbs/chisel/commit/bd0bbd0) - bare-script 5.1
