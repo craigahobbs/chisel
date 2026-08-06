@@ -26,9 +26,9 @@ Common commands:
 - `make doc` — Sphinx build **including doctests**; the `>>>` examples in docstrings (e.g. in `app.py`, `action.py`) are executed and must pass
 - `make commit` — runs `test lint doc cover` plus `test-doc` (the full pre-commit gate)
 - `make clean` / `make superclean`
-- `make changelog`, `make publish` — release tasks; version is set in `setup.cfg` and `CHANGELOG.md` is generated from git history
+- `make changelog`, `make publish` — release tasks; version is set in `pyproject.toml` and `CHANGELOG.md` is generated from git history
 
-Supported Python versions are 3.10–3.14. To test across versions in containers, use
+Supported Python versions are 3.11–3.15. To test across versions in containers, use
 `make test USE_DOCKER=1` (or `USE_PODMAN=1`).
 
 ## Front-end / BareScript tests
