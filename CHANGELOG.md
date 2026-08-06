@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.2 (2026-08-06)
+
+- [01362e2](https://github.com/craigahobbs/chisel/commit/01362e2) - update markdown-up tarball \(bare-script 5.1.3\)
+
 ## 2.3.1 (2026-08-06)
 
 - [218f760](https://github.com/craigahobbs/chisel/commit/218f760) - migrate package metadata from setup.cfg to pyproject.toml
