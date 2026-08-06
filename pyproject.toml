@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chisel"
-version = "2.3.0"
+version = "2.3.1"
 description = "Lightweight WSGI application framework, schema-validated JSON APIs, and API documentation"
 readme = "README.md"
 license = "MIT"
