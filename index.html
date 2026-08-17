@@ -106,7 +106,7 @@ schema-validated JSON web APIs.</p>
 <h2>JSON APIs<a class="headerlink" href="#json-apis" title="Link to this heading">¶</a></h2>
 <p>Chisel provides the <a class="reference external" href="https://craigahobbs.github.io/chisel/action.html#chisel.action">action</a>
 decorator for easily implementing schema-validated JSON APIs.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="s1"># Sum a list of numbers</span>
 <span class="s1">action sum_numbers</span>
 <span class="s1">    urls</span>
@@ -119,15 +119,15 @@ decorator for easily implementing schema-validated JSON APIs.</p>
 <span class="s1">    output</span>
 <span class="s1">        # The sum of the numbers</span>
 <span class="s1">        float sum</span>
-<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="s1">'''</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">sum_numbers</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">])}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">'sum'</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">'numbers'</span><span class="p">])}</span>
 
 <span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">sum_numbers</span><span class="p">)</span>
-<span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=4&#39;</span><span class="p">)</span>
+<span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/sum_numbers'</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">'numbers.0=1&amp;numbers.1=2&amp;numbers.2=4'</span><span class="p">)</span>
 
-<span class="p">(</span><span class="s1">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;application/json&#39;</span><span class="p">)],</span> <span class="sa">b</span><span class="s1">&#39;{&quot;sum&quot;:7.0}&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="s1">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">)],</span> <span class="sa">b</span><span class="s1">'{"sum":7.0}'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Each action defines an <code class="docutils literal notranslate"><span class="pre">action</span></code> definition using
@@ -138,10 +138,10 @@ and the schema-validated request input dictionary. The input request dictionary 
 combining the request’s URL path parameters, query string parameters, and input JSON content
 parameters.</p>
 <p>If there is a schema validation error the appropriate error code is automatically returned.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/sum_numbers'</span><span class="p">)</span>
 
-<span class="s1">&#39;400 Bad Request&#39;</span>
-<span class="sa">b</span><span class="s1">&#39;{&quot;error&quot;:&quot;InvalidInput&quot;,&quot;message&quot;:&quot;Required member </span><span class="se">\\</span><span class="s1">&quot;numbers</span><span class="se">\\</span><span class="s1">&quot; missing (query string)&quot;}&#39;</span>
+<span class="s1">'400 Bad Request'</span>
+<span class="sa">b</span><span class="s1">'{"error":"InvalidInput","message":"Required member </span><span class="se">\\</span><span class="s1">"numbers</span><span class="se">\\</span><span class="s1">" missing (query string)"}'</span>
 </pre></div>
 </div>
 </section>
@@ -161,7 +161,7 @@ available <a class="reference external" href="https://craigahobbs.github.io/chis
 <h2>Development<a class="headerlink" href="#development" title="Link to this heading">¶</a></h2>
 <p>This package is developed using <a class="reference external" href="https://github.com/craigahobbs/python-build#readme">python-build</a>.
 It was started using <a class="reference external" href="https://github.com/craigahobbs/python-template#readme">python-template</a> as follows:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>template-specialize<span class="w"> </span>python-template/template/<span class="w"> </span>chisel/<span class="w"> </span>-k<span class="w"> </span>package<span class="w"> </span>chisel<span class="w"> </span>-k<span class="w"> </span>name<span class="w"> </span><span class="s1">&#39;Craig A. Hobbs&#39;</span><span class="w"> </span>-k<span class="w"> </span>email<span class="w"> </span><span class="s1">&#39;craigahobbs@gmail.com&#39;</span><span class="w"> </span>-k<span class="w"> </span>github<span class="w"> </span><span class="s1">&#39;craigahobbs&#39;</span><span class="w"> </span>-k<span class="w"> </span>nomain<span class="w"> </span><span class="m">1</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>template-specialize<span class="w"> </span>python-template/template/<span class="w"> </span>chisel/<span class="w"> </span>-k<span class="w"> </span>package<span class="w"> </span>chisel<span class="w"> </span>-k<span class="w"> </span>name<span class="w"> </span><span class="s1">'Craig A. Hobbs'</span><span class="w"> </span>-k<span class="w"> </span>email<span class="w"> </span><span class="s1">'craigahobbs@gmail.com'</span><span class="w"> </span>-k<span class="w"> </span>github<span class="w"> </span><span class="s1">'craigahobbs'</span><span class="w"> </span>-k<span class="w"> </span>nomain<span class="w"> </span><span class="m">1</span>
 </pre></div>
 </div>
 <div class="toctree-wrapper compound">

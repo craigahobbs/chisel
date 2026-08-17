@@ -102,7 +102,7 @@
 <dt class="sig sig-object py" id="chisel.action">
 <span class="sig-prename descclassname"><span class="pre">&#64;</span></span><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.action" title="Link to this definition">¶</a></dt>
 <dd><p>Decorator for creating an <a class="reference internal" href="#chisel.Action" title="chisel.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a> object that wraps an action callback function. For example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1"># Sum a list of numbers</span>
 <span class="gp">... </span><span class="s1">action sum_numbers</span>
 <span class="gp">... </span><span class="s1">    urls</span>
@@ -113,29 +113,29 @@
 <span class="gp">... </span><span class="s1">    output</span>
 <span class="gp">... </span><span class="s1">        # The sum of the numbers</span>
 <span class="gp">... </span><span class="s1">        int sum</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">sum_numbers</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">&#39;numbers&#39;</span><span class="p">])}</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">{</span><span class="s1">'sum'</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">'numbers'</span><span class="p">])}</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">sum_numbers</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers.0=1&amp;numbers.1=2&amp;numbers.2=3&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;sum&quot;:6}&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/sum_numbers'</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">'numbers.0=1&amp;numbers.1=2&amp;numbers.2=3'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'application/json')], b'{"sum":6}')</span>
 </pre></div>
 </div>
 <p>Chisel actions schema-validate their input before calling the callback function. For example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/sum_numbers&#39;</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">&#39;numbers=1&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">status</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/sum_numbers'</span><span class="p">,</span> <span class="n">query_string</span><span class="o">=</span><span class="s1">'numbers=1'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">status</span>
-<span class="go">&#39;400 Bad Request&#39;</span>
+<span class="go">'400 Bad Request'</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
-<span class="go">{&#39;error&#39;: &#39;InvalidInput&#39;,</span>
-<span class="go"> &#39;member&#39;: &#39;numbers&#39;,</span>
-<span class="go"> &#39;message&#39;: &#39;Invalid value &quot;1&quot; (type &quot;str&quot;) for member &quot;numbers&quot;, expected &#39;</span>
-<span class="go">            &#39;type &quot;array&quot; (query string)&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'utf-8'</span><span class="p">)))</span>
+<span class="go">{'error': 'InvalidInput',</span>
+<span class="go"> 'member': 'numbers',</span>
+<span class="go"> 'message': 'Invalid value "1" (type "str") for member "numbers", expected '</span>
+<span class="go">            'type "array" (query string)'}</span>
 </pre></div>
 </div>
 <p>When <a class="reference internal" href="app.html#chisel.Application.validate_output" title="chisel.Application.validate_output"><code class="xref py py-attr docutils literal notranslate"><span class="pre">validate_output</span></code></a> the response dictionary is also validated to the output schema.</p>
@@ -217,20 +217,20 @@ response. Default is False.</p></li>
 <dt class="sig sig-object py" id="chisel.ActionError">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">chisel.</span></span><span class="sig-name descname"><span class="pre">ActionError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.ActionError" title="Link to this definition">¶</a></dt>
 <dd><p>An action error exception. Raise this exception within an action callback function to respond with an error.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
 <span class="gp">... </span><span class="s1">    errors</span>
 <span class="gp">... </span><span class="s1">        AlwaysError</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">raise</span> <span class="n">chisel</span><span class="o">.</span><span class="n">ActionError</span><span class="p">(</span><span class="s1">&#39;AlwaysError&#39;</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="k">raise</span> <span class="n">chisel</span><span class="o">.</span><span class="n">ActionError</span><span class="p">(</span><span class="s1">'AlwaysError'</span><span class="p">)</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
-<span class="go">(&#39;400 Bad Request&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;error&quot;:&quot;AlwaysError&quot;}&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">)</span>
+<span class="go">('400 Bad Request', [('Content-Type', 'application/json')], b'{"error":"AlwaysError"}')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

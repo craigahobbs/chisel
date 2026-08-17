@@ -234,31 +234,31 @@ Default is True.</p>
 <dd><p>Decorator for creating a <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object that wraps a WSGI application function. For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_request</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="n">start_response</span><span class="p">(</span><span class="s1">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">)])</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="p">[</span><span class="sa">b</span><span class="s1">&#39;Hello, World!&#39;</span><span class="p">]</span>
+<span class="gp">... </span>   <span class="n">start_response</span><span class="p">(</span><span class="s1">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'text/plain'</span><span class="p">)])</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">[</span><span class="sa">b</span><span class="s1">'Hello, World!'</span><span class="p">]</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">my_request</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">urls</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">doc_group</span>
 <span class="gp">...</span>
-<span class="go">(&#39;my_request&#39;, ((None, &#39;/my_request&#39;),), None, None)</span>
+<span class="go">('my_request', ((None, '/my_request'),), None, None)</span>
 </pre></div>
 </div>
 <p>You can also pass <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> initialization parameters to the request decorator:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;This is my request&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">urls</span><span class="o">=</span><span class="p">[(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'This is my request'</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_request</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="n">start_response</span><span class="p">(</span><span class="s1">&#39;200 OK&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">)])</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="p">[</span><span class="sa">b</span><span class="s1">&#39;Hello, World!&#39;</span><span class="p">]</span>
+<span class="gp">... </span>   <span class="n">start_response</span><span class="p">(</span><span class="s1">'200 OK'</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'text/plain'</span><span class="p">)])</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="p">[</span><span class="sa">b</span><span class="s1">'Hello, World!'</span><span class="p">]</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">my_request</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">urls</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="n">my_request</span><span class="o">.</span><span class="n">doc_group</span>
 <span class="gp">...</span>
-<span class="go">(&#39;my_request&#39;, ((&#39;GET&#39;, &#39;/my_request&#39;),), &#39;This is my request&#39;, None)</span>
+<span class="go">('my_request', (('GET', '/my_request'),), 'This is my request', None)</span>
 </pre></div>
 </div>
 <p>The created <a class="reference internal" href="#chisel.Request" title="chisel.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> object is passed to an application’s <code class="xref py py-meth docutils literal notranslate"><span class="pre">add_request()</span></code> method to host
 it with that applicaton.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_request</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_request&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;text/plain&#39;)], b&#39;Hello, World!&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_request'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'text/plain')], b'Hello, World!')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -303,23 +303,23 @@ no-cache by passing control as None.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span>
 <span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="n">ctx</span><span class="o">.</span><span class="n">add_cache_headers</span><span class="p">(</span><span class="s1">&#39;private&#39;</span><span class="p">,</span> <span class="n">ttl_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">utcnow</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="s1">&#39;2020-05-19T17:19:00-07:00&#39;</span><span class="p">))</span>
+<span class="gp">... </span>   <span class="n">ctx</span><span class="o">.</span><span class="n">add_cache_headers</span><span class="p">(</span><span class="s1">'private'</span><span class="p">,</span> <span class="n">ttl_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">utcnow</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="s1">'2020-05-19T17:19:00-07:00'</span><span class="p">))</span>
 <span class="gp">... </span>   <span class="k">return</span> <span class="p">{}</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">))</span>
-<span class="go">(&#39;200 OK&#39;,</span>
-<span class="go"> [(&#39;Cache-Control&#39;, &#39;private,max-age=300&#39;),</span>
-<span class="go">  (&#39;Content-Type&#39;, &#39;application/json&#39;),</span>
-<span class="go">  (&#39;Expires&#39;, &#39;Wed, 20 May 2020 00:24:00 GMT&#39;)],</span>
-<span class="go"> b&#39;{}&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">))</span>
+<span class="go">('200 OK',</span>
+<span class="go"> [('Cache-Control', 'private,max-age=300'),</span>
+<span class="go">  ('Content-Type', 'application/json'),</span>
+<span class="go">  ('Expires', 'Wed, 20 May 2020 00:24:00 GMT')],</span>
+<span class="go"> b'{}')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -337,19 +337,19 @@ no-cache by passing control as None.</p>
 <dt class="sig sig-object py" id="chisel.Context.add_header">
 <span class="sig-name descname"><span class="pre">add_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.add_header" title="Link to this definition">¶</a></dt>
 <dd><p>Add a header key/value to the request’s response</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="n">ctx</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s1">&#39;ETag&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="n">ctx</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s1">'ETag'</span><span class="p">,</span> <span class="s1">'foo'</span><span class="p">)</span>
 <span class="gp">... </span>   <span class="k">return</span> <span class="p">{}</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;), (&#39;ETag&#39;, &#39;foo&#39;)], b&#39;{}&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'application/json'), ('ETag', 'foo')], b'{}')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -411,9 +411,9 @@ no-cache by passing control as None.</p>
 <span class="sig-name descname"><span class="pre">reconstruct_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#chisel.Context.reconstruct_url" title="Link to this definition">¶</a></dt>
 <dd><p>Reconstruct the request’s URL</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">create_environ</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/hello&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">create_environ</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/hello'</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">reconstruct_url</span><span class="p">()</span>
-<span class="go">&#39;http://localhost:80/hello&#39;</span>
+<span class="go">'http://localhost:80/hello'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -433,18 +433,18 @@ no-cache by passing control as None.</p>
 <dd><p>A generic WSGI response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">,</span> <span class="p">[</span><span class="sa">b</span><span class="s1">&#39;Hello&#39;</span><span class="p">])</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="s1">'text/plain'</span><span class="p">,</span> <span class="p">[</span><span class="sa">b</span><span class="s1">'Hello'</span><span class="p">])</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;text/plain&#39;)], b&#39;Hello&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'text/plain')], b'Hello')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -468,18 +468,18 @@ no-cache by passing control as None.</p>
 <dd><p>A JSON response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response_json</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response_json</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="p">{</span><span class="s1">'a'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;application/json&#39;)], b&#39;{&quot;a&quot;:5,&quot;b&quot;:7}&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'application/json')], b'{"a":5,"b":7}')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -502,18 +502,18 @@ no-cache by passing control as None.</p>
 <dd><p>A plain-text WSGI response</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@chisel</span><span class="o">.</span><span class="n">action</span><span class="p">(</span><span class="n">wsgi_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">'''</span>
 <span class="gp">... </span><span class="s1">action my_action</span>
 <span class="gp">... </span><span class="s1">    urls</span>
 <span class="gp">... </span><span class="s1">        GET</span>
-<span class="gp">... </span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">'''</span><span class="p">)</span>
 <span class="gp">... </span><span class="k">def</span><span class="w"> </span><span class="nf">my_action</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response_text</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">response_text</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="p">,</span> <span class="s2">"Hello"</span><span class="p">)</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span> <span class="o">=</span> <span class="n">chisel</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">add_request</span><span class="p">(</span><span class="n">my_action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/my_action&#39;</span><span class="p">)</span>
-<span class="go">(&#39;200 OK&#39;, [(&#39;Content-Type&#39;, &#39;text/plain&#39;)], b&#39;Hello&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">application</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/my_action'</span><span class="p">)</span>
+<span class="go">('200 OK', [('Content-Type', 'text/plain')], b'Hello')</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
