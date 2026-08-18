@@ -7,6 +7,7 @@ Chisel WSGI application base class and utilities
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from email.utils import format_datetime
 from http import HTTPStatus
 from io import BytesIO
 from json import JSONEncoder
@@ -18,9 +19,8 @@ from uuid import UUID
 from bare_script.include import url_encode_query_string
 
 
-# Regular expression for matching URL arguments
-RE_URL_ARG = re.compile(r'/\{([A-Za-z]\w*)\}')
-RE_URL_ARG_ESC = re.compile(r'/\\{([A-Za-z]\w*)\\}')
+# Regular expression for matching a URL argument path segment (e.g. "{id}")
+RE_URL_ARG = re.compile(r'\{([A-Za-z][A-Za-z0-9_]*)\}')
 
 
 # JSON encoder with support for datetime, date, Decimal, and UUID objects - raises
@@ -55,7 +55,9 @@ class Application:
         'validate_output',
         'requests',
         '__request_urls',
-        '__request_regex'
+        '__request_paths',
+        '__request_regex',
+        '__request_regex_urls'
     )
 
     def __init__(self):
@@ -66,8 +68,8 @@ class Application:
         #: The application's log format string. The default is ``'%(levelname)s [%(process)s / %(thread)s] %(message)s'``.
         self.log_format = '%(levelname)s [%(process)s / %(thread)s] %(message)s'
 
-        #: Set to True for "pretty" request output. Individual requests can : use this application state they see
-        #: fit. For example, :class:`~chisel.Action` : requests return indented JSON when this value is True. Default is
+        #: Set to True for "pretty" request output. Individual requests can use this application state as they see
+        #: fit. For example, :class:`~chisel.Action` requests return indented JSON when this value is True. Default is
         #: False.
         self.pretty_output = False
 
@@ -80,32 +82,67 @@ class Application:
         self.requests = {}
 
         self.__request_urls = {}
+        self.__request_paths = set()
         self.__request_regex = []
+        self.__request_regex_urls = set()
 
     def add_request(self, request):
         """
-        Add a :class:`~chisel.Request` to the application.
+        Add a :class:`~chisel.Request` to the application. URL arguments (e.g. ``'/documents/{id}'``) must span an
+        entire path segment.
 
         :param ~chisel.Request request: The request object.
+        :raises ValueError: If the request name or a request URL is redefined, or if a request URL contains an
+            invalid URL argument
         """
 
         # Duplicate request name?
         if request.name in self.requests:
             raise ValueError(f'redefinition of request "{request.name}"')
-        self.requests[request.name] = request
 
-        # Add the request URLs
+        # Validate the request URLs - the request is added only if the entire request is valid
+        request_urls = {}
+        request_regex = []
         for method, url in request.urls:
 
             # URL with arguments?
-            if RE_URL_ARG.search(url):
-                request_regex = '^' + RE_URL_ARG_ESC.sub(r'/(?P<\1>[^/]+)', re.escape(url)) + '$'
-                self.__request_regex.append((method, re.compile(request_regex), request))
-            else:
-                request_key = (method, url)
-                if request_key in self.__request_urls:
+            if '{' in url or '}' in url:
+
+                # Compute the URL regular expression - it is matched with fullmatch
+                url_args = []
+                regex_segments = []
+                for segment in url.split('/'):
+                    match_url_arg = RE_URL_ARG.fullmatch(segment)
+                    if match_url_arg is not None:
+                        url_arg = match_url_arg.group(1)
+                        if url_arg in url_args:
+                            raise ValueError(f'duplicate URL argument "{segment}" in URL "{url}" of request "{request.name}"')
+                        url_args.append(url_arg)
+                        regex_segments.append(f'(?P<{url_arg}>[^/]+)')
+                    elif '{' in segment or '}' in segment:
+                        raise ValueError(f'invalid URL argument "{segment}" in URL "{url}" of request "{request.name}"')
+                    else:
+                        regex_segments.append(re.escape(segment))
+
+                # Duplicate request URL? URL argument URLs match regardless of argument names.
+                url_key = (method, RE_URL_ARG.sub('{}', url))
+                if url_key in self.__request_regex_urls or any(key == url_key for key, _ in request_regex):
                     raise ValueError(f'redefinition of request URL "{url}"')
-                self.__request_urls[request_key] = request
+                request_regex.append((url_key, re.compile('/'.join(regex_segments))))
+            else:
+                # Duplicate request URL?
+                url_key = (method, url)
+                if url_key in self.__request_urls or url_key in request_urls:
+                    raise ValueError(f'redefinition of request URL "{url}"')
+                request_urls[url_key] = request
+
+        # Add the request and its URLs
+        self.requests[request.name] = request
+        self.__request_urls.update(request_urls)
+        self.__request_paths.update(path for _, path in request_urls)
+        for url_key, url_regex in request_regex:
+            self.__request_regex_urls.add(url_key)
+            self.__request_regex.append((url_key[0], url_regex, request))
 
     def add_requests(self, requests):
         """
@@ -130,50 +167,37 @@ class Application:
         :rtype: tuple(chisel.Request or None, dict or None)
         """
 
-        # Exact match?
+        # Match the request by exact URL and method
         request = self.__request_urls.get((request_method, path_info))
         if request is not None:
             return request, None
 
-        # Match the request by method and URL regex
-        request, url_args = next(
-            (
-                (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
-                for request, request_match in
-                (
-                    (request, regex.match(path_info)) for method, regex, request in self.__request_regex
-                    if method is not None and method == request_method
-                )
-                if request_match
-            ),
-            (None, None)
-        )
-        if request is not None:
-            return request, url_args
+        # Match the request by URL regular expression and method
+        for method, regex, request in self.__request_regex:
+            if method is not None and method == request_method:
+                match_path = regex.fullmatch(path_info)
+                if match_path is not None:
+                    return request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in match_path.groupdict().items()}
 
         # Match the request by exact URL (any method)
-        request, url_args = self.__request_urls.get((None, path_info)), None
-        if request is None:
+        request = self.__request_urls.get((None, path_info))
+        if request is not None:
+            return request, None
 
-            # Match the request by URL regex (any method)
-            request, url_args = next(
-                (
-                    (request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in request_match.groupdict().items()})
-                    for request, request_match in
-                    (
-                        (request, regex.match(path_info)) for method, regex, request in self.__request_regex
-                        if method is None
-                    )
-                    if request_match
-                ),
-                (None, None)
-            )
-        return request, url_args
+        # Match the request by URL regular expression (any method)
+        for method, regex, request in self.__request_regex:
+            if method is None:
+                match_path = regex.fullmatch(path_info)
+                if match_path is not None:
+                    return request, {unquote(url_arg): unquote(url_value) for url_arg, url_value in match_path.groupdict().items()}
+
+        # No matching request
+        return None, None
 
     def __call__(self, environ, start_response):
         """
-        The chisel application WSGI callback. When the application recieves an HTTP request, this method matches the
-        appropriate :class:`~chisel.Request' object and then calls its :func:`~chisel.Request.__call__` method. The
+        The chisel application WSGI callback. When the application receives an HTTP request, this method matches the
+        appropriate :class:`~chisel.Request` object and then calls its :func:`~chisel.Request.__call__` method. The
         application and URL path arguments (e.g. ``'/documents/{id}'``) are made available to the request through the
         request's :class:`~chisel.Context` object.
 
@@ -195,10 +219,12 @@ class Application:
         # Create the request context
         ctx = environ[Context.ENVIRON_CTX] = Context(self, environ, start_response, url_args)
 
-        # Request not found?
+        # Request not found? The request path exists if it matches an exact URL under any method or a URL regular
+        # expression under another method - match_request already tried this method's and any-method's regexes.
         if request is None:
-            if any(path == path_info for _, path in self.__request_urls) or \
-               any(regex.match(path_info) for _, regex, _ in self.__request_regex):
+            if path_info in self.__request_paths or \
+               any(regex.fullmatch(path_info)
+                   for method, regex, _ in self.__request_regex if method is not None and method != request_method):
                 response = ctx.response_text(HTTPStatus.METHOD_NOT_ALLOWED)
             else:
                 response = ctx.response_text(HTTPStatus.NOT_FOUND)
@@ -206,11 +232,22 @@ class Application:
             # Handle the request
             try:
                 response = request(ctx.environ, ctx.start_response)
-            except:
-                ctx.log.exception('exception raised by request "%s"', request.name)
+            except Exception:
+                # A logging failure (e.g. invalid log_format) must not suppress the error response
+                try:
+                    ctx.log.exception('exception raised by request "%s"', request.name)
+                except Exception:
+                    pass
                 response = ctx.response_text(HTTPStatus.INTERNAL_SERVER_ERROR)
 
         if is_head:
+            # PEP 3333 - the discarded response content must be closed. A close failure must not
+            # suppress the HEAD response.
+            if hasattr(response, 'close'):
+                try:
+                    response.close()
+                except Exception:
+                    pass
             return []
         return response
 
@@ -243,7 +280,7 @@ class Context:
     :param dict url_args: The parsed URL arguments dictionary
     """
 
-    __slots__ = ('app', 'environ', '_start_response', 'url_args', 'log', 'headers')
+    __slots__ = ('app', 'environ', '_start_response', 'url_args', '_log', 'headers')
 
     #: The context WSGI environ key
     ENVIRON_CTX = 'chisel.ctx'
@@ -264,19 +301,39 @@ class Context:
         #: The request's header map. These headers are added to the response.
         self.headers = {}
 
-        #: The python logger instance. Write log messages using this object directly.
-        self.log = logging.getLoggerClass()('')
-        self.log.setLevel(app.log_level)
-        wsgi_errors = environ.get('wsgi.errors') if environ else None
-        if wsgi_errors is None:
-            handler = logging.NullHandler()
-        else:
-            handler = logging.StreamHandler(wsgi_errors)
-        if callable(app.log_format):
-            handler.setFormatter(app.log_format(self))
-        else:
-            handler.setFormatter(logging.Formatter(app.log_format))
-        self.log.addHandler(handler)
+        self._log = None
+
+    @property
+    def log(self):
+        """
+        The python logger instance. Write log messages using this object directly. The logger is created lazily on
+        first access using the application's :attr:`~chisel.Application.log_level` and
+        :attr:`~chisel.Application.log_format`.
+        """
+
+        if self._log is None:
+            # Assign the logger before formatting so a callable log_format may access it
+            log = self._log = logging.getLoggerClass()('')
+            log.setLevel(self.app.log_level)
+            wsgi_errors = self.environ.get('wsgi.errors')
+            if wsgi_errors is None:
+                handler = logging.NullHandler()
+            else:
+                handler = logging.StreamHandler(wsgi_errors)
+            if callable(self.app.log_format):
+                handler.setFormatter(self.app.log_format(self))
+            else:
+                handler.setFormatter(logging.Formatter(self.app.log_format))
+            log.addHandler(handler)
+        return self._log
+
+    @log.setter
+    def log(self, log):
+        self._log = log
+
+    @log.deleter
+    def log(self):
+        self._log = None
 
     @staticmethod
     def create_environ(request_method, path_info, query_string='', wsgi_input=b'', environ=None):
@@ -288,7 +345,7 @@ class Context:
         :param str query_string: Optional query string
         :param bytes wsgi_input: Optional request content
         :param dict environ: Optional environ dict. If not provided, a minimal default environ is created.
-        :returns: The created :class:`~chisel.Context` object
+        :returns: The created environ dict
         """
 
         if environ is None:
@@ -322,7 +379,8 @@ class Context:
 
     def add_header(self, key, value):
         """
-        Add a header key/value to the request's response
+        Add a header key/value to the request's response. Adding a header key again replaces its value - repeated
+        response headers (e.g. multiple "Set-Cookie" headers) are not supported.
 
         >>> @chisel.action(spec='''
         ... action my_action
@@ -374,7 +432,8 @@ class Context:
 
         :param str control: ``'public'``, ``'private'``, or None (for no-cache)
         :param int ttl_seconds: Cache duration in seconds. Do not specify for no-cache.
-        :param ~datetime.datetime utcnow: A :func:`~datetime.datetime` to use as the current datetime
+        :param ~datetime.datetime utcnow: A :func:`~datetime.datetime` to use as the current datetime. A naive
+            datetime is assumed to be UTC.
         """
 
         if self.environ.get('REQUEST_METHOD') == 'GET':
@@ -382,13 +441,15 @@ class Context:
                 self.add_header('Cache-Control', 'no-cache')
             else:
                 assert control in ('public', 'private')
-                assert isinstance(ttl_seconds, int) and ttl_seconds > 0
+                assert isinstance(ttl_seconds, int) and not isinstance(ttl_seconds, bool) and ttl_seconds > 0
                 self.add_header('Cache-Control', f'{control},max-age={ttl_seconds}')
                 if utcnow is None:
-                    utcnow = datetime.utcnow()
+                    utcnow = datetime.now(timezone.utc)
+                elif utcnow.tzinfo is None:
+                    utcnow = utcnow.replace(tzinfo=timezone.utc)
                 else:
                     utcnow = utcnow.astimezone(timezone.utc)
-                self.add_header('Expires', (utcnow + timedelta(seconds=ttl_seconds)).strftime('%a, %d %b %Y %H:%M:%S GMT'))
+                self.add_header('Expires', format_datetime(utcnow + timedelta(seconds=ttl_seconds), usegmt=True))
 
     def response(self, status, content_type, content, headers=None):
         """
@@ -424,7 +485,7 @@ class Context:
         self.start_response(status, response_headers)
         return content
 
-    def response_text(self, status, text=None, content_type='text/plain', encoding='utf-8', headers=None):
+    def response_text(self, status, text=None, content_type=None, encoding='utf-8', headers=None):
         """
         A plain-text WSGI response
 
@@ -441,16 +502,19 @@ class Context:
         >>> application = chisel.Application()
         >>> application.add_request(my_action)
         >>> application.request('GET', '/my_action')
-        ('200 OK', [('Content-Type', 'text/plain')], b'Hello')
+        ('200 OK', [('Content-Type', 'text/plain; charset=utf-8')], b'Hello')
 
         :param status: The HTTP response status
         :type status: ~http.HTTPStatus or str
         :param str text: The response text
-        :param str content_type: The response content type. The default is "text/plain".
+        :param str content_type: The response content type. The default is "text/plain" with the
+            "encoding" parameter's charset.
         :param str encoding: The content encoding. The default is "utf-8".
         :param list(tuple) headers: Optional list of key/value header tuples to add to the response
         """
 
+        if content_type is None:
+            content_type = f'text/plain; charset={encoding}'
         if text is None:
             if isinstance(status, str):
                 text = status
@@ -458,7 +522,7 @@ class Context:
                 text = status.phrase
         return self.response(status, content_type, [text.encode(encoding)], headers=headers)
 
-    def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None, jsonp=None):
+    def response_json(self, status, response, content_type='application/json', encoding='utf-8', headers=None):
         """
         A JSON response
 
@@ -483,7 +547,6 @@ class Context:
         :param str content_type: The response content type. The default is "application/json".
         :param str encoding: The content encoding. The default is "utf-8".
         :param list(tuple) headers: Optional list of key/value header tuples to add to the response
-        :param str jsonp: Optional JSONP key
         """
 
         encoder = _JSONEncoder(
@@ -494,11 +557,7 @@ class Context:
             separators=(',', ': ') if self.app.pretty_output else (',', ':')
         )
         content = encoder.encode(response)
-        if jsonp:
-            content_list = [jsonp.encode(encoding), b'(', content.encode(encoding), b');']
-        else:
-            content_list = [content.encode(encoding)]
-        return self.response(status, content_type, content_list, headers=headers)
+        return self.response(status, content_type, [content.encode(encoding)], headers=headers)
 
     def reconstruct_url(self, path_info=None, query_string=None, relative=False):
         """
@@ -558,12 +617,9 @@ class StartResponse:
     ...     return [b'Hello']
     >>> start_response = chisel.app.StartResponse()
     >>> application({}, start_response)
+    [b'Hello']
     >>> start_response.status, start_response.headers
     ('200 OK', [('Content-Type', 'text/plain')])
-
-    :param status: The HTTP response status
-    :type status: ~http.HTTPStatus or str
-    :param list(tuple) headers: Optional list of key/value header tuples to add to the response
     """
 
     __slots__ = ('status', 'headers')

@@ -18,7 +18,7 @@ from .request import RedirectRequest, StaticRequest
 def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, markdown_up=False):
     """
     Yield a series of requests for use with :meth:`~chisel.Application.add_requests` comprising the Chisel
-    documentation application. By default, the documenation application is hosted at "/doc/".
+    documentation application. By default, the documentation application is hosted at "/doc/".
 
     :param requests: A list of requests or None to use the application's requests
     :type requests: list(~chisel.Request)
@@ -111,18 +111,16 @@ action chisel_doc_index
         groups = {}
         for request in requests.values():
             request_group = request.doc_group or 'Uncategorized'
-            if request_group not in groups:
-                groups[request_group] = []
-            groups[request_group].append(request.name)
+            groups.setdefault(request_group, []).append(request.name)
         return {
-            'title': ctx.environ['HTTP_HOST'],
+            'title': ctx.environ.get('HTTP_HOST') or ctx.environ['SERVER_NAME'],
             'groups': {group: sorted(names) for group, names in groups.items()}
         }
 
 
 class DocRequest(Action):
     """
-    The documentation request API. This API provides all the information the documentation applicaton needs to render
+    The documentation request API. This API provides all the information the documentation application needs to render
     the request documentation page. The documentation request API's documentation is `here
     <doc/#name=chisel_doc_request>`__.
 

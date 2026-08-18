@@ -7,6 +7,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from http import HTTPStatus
 from io import StringIO
+import logging
 from unittest import TestCase
 import unittest.mock
 from uuid import UUID
@@ -53,9 +54,9 @@ class TestApplication(TestCase):
                 for method, regex, request in app._Application__request_regex # pylint: disable= protected-access
             ],
             [
-                (None, '^/request4/(?P<arg>[^/]+)$', request4),
-                ('GET', '^/request5/(?P<arg>[^/]+)$', request5),
-                ('POST', '^/request5/(?P<arg>[^/]+)/foo$', request5)
+                (None, '/request4/(?P<arg>[^/]+)', request4),
+                ('GET', '/request5/(?P<arg>[^/]+)', request5),
+                ('POST', '/request5/(?P<arg>[^/]+)/foo', request5)
             ]
         )
 
@@ -94,6 +95,90 @@ class TestApplication(TestCase):
         with self.assertRaises(ValueError) as raises:
             app.add_request(Request(name='my_request2', urls=[(None, '/my_request')]))
         self.assertEqual(str(raises.exception), 'redefinition of request URL "/my_request"')
+        self.assertNotIn('my_request2', app.requests)
+
+        # Duplicate URL within a single request
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request2', urls=[(None, '/other'), (None, '/other')]))
+        self.assertEqual(str(raises.exception), 'redefinition of request URL "/other"')
+        self.assertNotIn('my_request2', app.requests)
+
+
+    def test_add_request_url_arg_redefinition(self):
+        app = Application()
+        app.add_request(Request(name='my_request', urls=[('GET', '/doc/{id}')]))
+
+        # URL argument URLs match regardless of argument name
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request2', urls=[('GET', '/doc/{name}')]))
+        self.assertEqual(str(raises.exception), 'redefinition of request URL "/doc/{name}"')
+        self.assertNotIn('my_request2', app.requests)
+
+        # Duplicate URL argument URL within a single request
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request3', urls=[('GET', '/thing/{a}'), ('GET', '/thing/{b}')]))
+        self.assertEqual(str(raises.exception), 'redefinition of request URL "/thing/{b}"')
+        self.assertNotIn('my_request3', app.requests)
+
+
+    def test_add_request_url_invalid_argument(self):
+        app = Application()
+
+        # URL argument not spanning an entire path segment
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/api/v{version}/thing')]))
+        self.assertEqual(str(raises.exception), 'invalid URL argument "v{version}" in URL "/api/v{version}/thing" of request "my_request"')
+
+        # URL argument with a trailing suffix
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/docs/{id}.json')]))
+        self.assertEqual(str(raises.exception), 'invalid URL argument "{id}.json" in URL "/docs/{id}.json" of request "my_request"')
+
+        # Stray closing brace
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/api/thing}')]))
+        self.assertEqual(str(raises.exception), 'invalid URL argument "thing}" in URL "/api/thing}" of request "my_request"')
+
+        # Invalid URL argument name
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/api/{1arg}')]))
+        self.assertEqual(str(raises.exception), 'invalid URL argument "{1arg}" in URL "/api/{1arg}" of request "my_request"')
+
+        # Duplicate URL argument name
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/api/{a}/{a}')]))
+        self.assertEqual(str(raises.exception), 'duplicate URL argument "{a}" in URL "/api/{a}/{a}" of request "my_request"')
+
+        # Mid-segment URL argument alongside a valid URL argument
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/api/v{version}/thing/{id}')]))
+        self.assertEqual(
+            str(raises.exception),
+            'invalid URL argument "v{version}" in URL "/api/v{version}/thing/{id}" of request "my_request"'
+        )
+
+        # The application is unmodified - the request name can be reused with valid URLs
+        self.assertDictEqual(app.requests, {})
+        app.add_request(Request(name='my_request', urls=[('GET', '/api/{version}/thing')]))
+        self.assertIn('my_request', app.requests)
+
+
+    def test_add_request_url_invalid_argument_atomic(self):
+        app = Application()
+
+        # Valid URLs before the invalid URL are not registered
+        with self.assertRaises(ValueError) as raises:
+            app.add_request(Request(name='my_request', urls=[('GET', '/ok'), ('GET', '/ok/{a}'), ('GET', '/bad/v{x}/c')]))
+        self.assertEqual(str(raises.exception), 'invalid URL argument "v{x}" in URL "/bad/v{x}/c" of request "my_request"')
+        self.assertDictEqual(app.requests, {})
+        self.assertEqual(app.match_request('GET', '/ok'), (None, None))
+        self.assertEqual(app.match_request('GET', '/ok/foo'), (None, None))
+
+        # The request can be re-added with corrected URLs
+        request = Request(name='my_request', urls=[('GET', '/ok'), ('GET', '/ok/{a}')])
+        app.add_request(request)
+        self.assertEqual(app.match_request('GET', '/ok'), (request, None))
+        self.assertEqual(app.match_request('GET', '/ok/foo'), (request, {'a': 'foo'}))
 
 
     def test_request(self):
@@ -165,9 +250,68 @@ class TestApplication(TestCase):
         status, headers, response = app.request('GET', '/request')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'the response')
-        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+        self.assertListEqual(headers, [('Content-Type', 'text/plain; charset=utf-8')])
 
         status, headers, response = app.request('HEAD', '/request')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain; charset=utf-8')])
+
+
+    def test_request_head_close(self):
+
+        class CloseableResponse:
+            def __init__(self):
+                self.closed = False
+
+            def __iter__(self):
+                return iter([b'the response'])
+
+            def close(self):
+                self.closed = True
+
+        response_content = CloseableResponse()
+
+        def request(unused_environ, start_response):
+            start_response('200 OK', [('Content-Type', 'text/plain')])
+            return response_content
+
+        app = Application()
+        app.add_request(Request(request, urls=(('GET', None),)))
+
+        # GET returns the response content
+        status, headers, response = app.request('GET', '/request')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'the response')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+        self.assertFalse(response_content.closed)
+
+        # The discarded HEAD response content is closed
+        status, headers, response = app.request('HEAD', '/request')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+        self.assertTrue(response_content.closed)
+
+        # A close failure must not suppress the HEAD response
+        class CloseErrorResponse:
+            def __iter__(self):
+                return iter([b'the response'])
+
+            def close(self):
+                raise Exception('close failure')
+
+        def request2(unused_environ, start_response):
+            start_response('200 OK', [('Content-Type', 'text/plain')])
+            return CloseErrorResponse()
+
+        app.add_request(Request(request2, urls=(('GET', '/request2'),)))
+        status, headers, response = app.request('GET', '/request2')
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response, b'the response')
+        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+
+        status, headers, response = app.request('HEAD', '/request2')
         self.assertEqual(status, '200 OK')
         self.assertEqual(response, b'')
         self.assertListEqual(headers, [('Content-Type', 'text/plain')])
@@ -222,7 +366,36 @@ class TestApplication(TestCase):
 
         status, headers, response = app.request('GET', '/request1')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertTrue(('Content-Type', 'text/plain') in headers)
+        self.assertTrue(('Content-Type', 'text/plain; charset=utf-8') in headers)
+        self.assertEqual(response, b'Internal Server Error')
+
+
+    def test_request_exception_base_exception(self):
+
+        def request1(unused_environ, unused_start_response):
+            raise KeyboardInterrupt()
+
+        app = Application()
+        app.add_request(Request(request1))
+
+        # Base exceptions are not converted to an error response
+        with self.assertRaises(KeyboardInterrupt):
+            app.request('GET', '/request1')
+
+
+    def test_request_exception_log_format_invalid(self):
+
+        def request1(unused_environ, unused_start_response):
+            raise Exception('FAIL')
+
+        app = Application()
+        app.add_request(Request(request1))
+        app.log_format = '%(levelname'
+
+        # An invalid log format must not suppress the error response
+        status, headers, response = app.request('GET', '/request1')
+        self.assertEqual(status, '500 Internal Server Error')
+        self.assertTrue(('Content-Type', 'text/plain; charset=utf-8') in headers)
         self.assertEqual(response, b'Internal Server Error')
 
 
@@ -238,7 +411,7 @@ class TestApplication(TestCase):
         environ = {'wsgi.errors': StringIO()}
         status, headers, response = app.request('GET', '/string_response', environ=environ)
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertListEqual(headers, [('Content-Type', 'text/plain')])
+        self.assertListEqual(headers, [('Content-Type', 'text/plain; charset=utf-8')])
         self.assertEqual(response, b'Internal Server Error')
         self.assertIn('response content cannot be of type str or bytes', environ['wsgi.errors'].getvalue())
 
@@ -254,7 +427,8 @@ class TestApplication(TestCase):
         class MyFormatter:
 
             def __init__(self, ctx):
-                assert ctx is not None
+                # The context's logger is assigned and accessible during formatter creation
+                assert isinstance(ctx.log, logging.Logger)
 
             @staticmethod
             def format(record):
@@ -294,8 +468,9 @@ class TestContext(TestCase):
         ctx.environ[Context.ENVIRON_CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
+            mock_datetime.now.return_value = datetime(2017, 1, 15, 20, 39, 32, tzinfo=timezone.utc)
             ctx.add_cache_headers('public', 60)
+        mock_datetime.now.assert_called_once_with(timezone.utc)
         self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
@@ -308,8 +483,9 @@ class TestContext(TestCase):
         ctx.environ[Context.ENVIRON_CTX] = ctx
 
         with unittest.mock.patch('chisel.app.datetime') as mock_datetime:
-            mock_datetime.utcnow.return_value = datetime(2017, 1, 15, 20, 39, 32)
+            mock_datetime.now.return_value = datetime(2017, 1, 15, 20, 39, 32, tzinfo=timezone.utc)
             ctx.add_cache_headers('private', 60)
+        mock_datetime.now.assert_called_once_with(timezone.utc)
         self.assertEqual(ctx.headers['Cache-Control'], 'private,max-age=60')
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
@@ -338,6 +514,50 @@ class TestContext(TestCase):
         self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
 
 
+    def test_add_cache_headers_utcnow_naive(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[Context.ENVIRON_CTX] = ctx
+
+        # A naive datetime is assumed to be UTC
+        ctx.add_cache_headers('public', 60, utcnow=datetime(2017, 1, 15, 20, 39, 32))
+        self.assertEqual(ctx.headers['Cache-Control'], 'public,max-age=60')
+        self.assertEqual(ctx.headers['Expires'], 'Sun, 15 Jan 2017 20:40:32 GMT')
+
+
+    def test_add_cache_headers_ttl_invalid(self):
+        app = Application()
+        ctx = Context(app, environ={
+            'REQUEST_METHOD': 'GET'
+        })
+        ctx.environ[Context.ENVIRON_CTX] = ctx
+
+        # A boolean ttl_seconds is not an integer
+        with self.assertRaises(AssertionError):
+            ctx.add_cache_headers('public', True)
+        self.assertNotIn('Cache-Control', ctx.headers)
+        self.assertNotIn('Expires', ctx.headers)
+
+
+    def test_log_lazy(self):
+        app = Application()
+        ctx = Context(app, environ={})
+        log = ctx.log
+        self.assertIs(ctx.log, log)
+
+        # The log attribute may be set directly
+        other_log = logging.getLoggerClass()('other')
+        ctx.log = other_log
+        self.assertIs(ctx.log, other_log)
+
+        # Deleting the log attribute resets it to lazy creation
+        del ctx.log
+        self.assertIsNot(ctx.log, other_log)
+        self.assertIsInstance(ctx.log, logging.Logger)
+
+
     def test_response(self):
         app = Application()
         start_response = StartResponse()
@@ -355,7 +575,7 @@ class TestContext(TestCase):
         response = ctx.response_text(HTTPStatus.OK, 'Hello, World!')
         self.assertEqual(response, [b'Hello, World!'])
         self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain; charset=utf-8')])
 
 
     def test_response_text_status(self):
@@ -365,7 +585,7 @@ class TestContext(TestCase):
         response = ctx.response_text(HTTPStatus.OK)
         self.assertEqual(response, [b'OK'])
         self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain; charset=utf-8')])
 
 
     def test_response_text_status_str(self):
@@ -375,7 +595,29 @@ class TestContext(TestCase):
         response = ctx.response_text('200 OK')
         self.assertEqual(response, [b'200 OK'])
         self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain')])
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain; charset=utf-8')])
+
+
+    def test_response_text_content_type(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+        response = ctx.response_text(HTTPStatus.OK, 'Hello', content_type='text/html')
+        self.assertEqual(response, [b'Hello'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/html')])
+
+
+    def test_response_text_encoding(self):
+        app = Application()
+        start_response = StartResponse()
+        ctx = Context(app, start_response=start_response)
+
+        # The default content type's charset follows the encoding
+        response = ctx.response_text(HTTPStatus.OK, 'Hello', encoding='latin-1')
+        self.assertEqual(response, [b'Hello'])
+        self.assertEqual(start_response.status, '200 OK')
+        self.assertEqual(start_response.headers, [('Content-Type', 'text/plain; charset=latin-1')])
 
 
     def test_response_json(self):
@@ -399,14 +641,14 @@ class TestContext(TestCase):
         self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
 
 
-    def test_response_json_jsonp(self):
+    def test_response_json_content_type(self):
         app = Application()
         start_response = StartResponse()
         ctx = Context(app, start_response=start_response)
-        response = ctx.response_json(HTTPStatus.OK, {'a': 7, 'b': 'abc', 'c': date(2018, 2, 24)}, jsonp='jsonp')
-        self.assertEqual(response, [b'jsonp', b'(', b'{"a":7,"b":"abc","c":"2018-02-24"}', b');'])
+        response = ctx.response_json(HTTPStatus.OK, {'a': 7}, content_type='application/schema+json')
+        self.assertEqual(response, [b'{"a":7}'])
         self.assertEqual(start_response.status, '200 OK')
-        self.assertEqual(start_response.headers, [('Content-Type', 'application/json')])
+        self.assertEqual(start_response.headers, [('Content-Type', 'application/schema+json')])
 
 
     def test_response_headers(self):

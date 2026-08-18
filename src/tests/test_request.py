@@ -11,7 +11,7 @@ from chisel import request, Application, Request, RedirectRequest, StaticRequest
 
 class TestRequest(TestCase):
 
-    def test_reqeust(self):
+    def test_request(self):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
@@ -44,22 +44,6 @@ class TestRequest(TestCase):
 
 
     def test_request_urls(self):
-
-        def my_request(environ, start_response):
-            assert isinstance(environ, dict)
-            assert callable(start_response)
-            start_response('OK', [])
-            return [b'ok']
-
-        req = Request(my_request, urls=[('GET', '/bar'), ('post', '/thud'), (None, '/bonk'), None])
-        self.assertEqual(req.wsgi_callback, my_request)
-        self.assertEqual(req.name, 'my_request')
-        self.assertEqual(req.urls, (('GET', '/bar'), ('POST', '/thud'), (None, '/bonk'), (None, '/my_request')))
-        self.assertEqual(req.doc, None)
-        self.assertEqual(req({}, lambda status, headers: None), [b'ok'])
-
-
-    def test_request_method_urls(self):
 
         def my_request(environ, start_response):
             assert isinstance(environ, dict)
@@ -299,7 +283,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.doc, ('The static resource "index.html"',))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
         self.assertEqual(static.content_type, 'text/html; charset=utf-8')
-        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
+        self.assertEqual(static.etag, '"fe364450e1391215f596d043488f989f"')
 
 
     def test_init_doc(self):
@@ -309,7 +293,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.doc, ('This is the doc!',))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
         self.assertEqual(static.content_type, 'text/html; charset=utf-8')
-        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
+        self.assertEqual(static.etag, '"fe364450e1391215f596d043488f989f"')
 
 
     def test_init_urls(self):
@@ -319,7 +303,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.doc, ('The static resource "index"',))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
         self.assertEqual(static.content_type, 'text/html; charset=utf-8')
-        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
+        self.assertEqual(static.etag, '"fe364450e1391215f596d043488f989f"')
 
 
     def test_content_type(self):
@@ -329,7 +313,7 @@ class TestStatic(TestCase):
         self.assertEqual(static.doc, ('The static resource "index"',))
         self.assertEqual(static.content, b'<!DOCTYPE html>')
         self.assertEqual(static.content_type, 'text/html; charset=utf-8')
-        self.assertEqual(static.etag, 'fe364450e1391215f596d043488f989f')
+        self.assertEqual(static.etag, '"fe364450e1391215f596d043488f989f"')
 
 
     def test_content_type_unknown(self):
@@ -344,7 +328,7 @@ class TestStatic(TestCase):
         app.add_request(static)
         status, headers, response = app.request('GET', '/doc/index.html')
         self.assertEqual(status, '200 OK')
-        self.assertListEqual(headers, [('Content-Type', 'text/html; charset=utf-8'), ('ETag', 'fe364450e1391215f596d043488f989f')])
+        self.assertListEqual(headers, [('Content-Type', 'text/html; charset=utf-8'), ('ETag', '"fe364450e1391215f596d043488f989f"')])
         self.assertEqual(response, b'<!DOCTYPE html>')
 
 
@@ -355,38 +339,38 @@ class TestStatic(TestCase):
         status, headers, response = app.request(
             'GET',
             '/doc/index.html',
-            environ={'HTTP_IF_NONE_MATCH': 'fe364450e1391215f596d043488f989f'}
+            environ={'HTTP_IF_NONE_MATCH': '"fe364450e1391215f596d043488f989f"'}
         )
         self.assertEqual(status, '304 Not Modified')
-        self.assertListEqual(headers, [])
+        self.assertListEqual(headers, [('ETag', '"fe364450e1391215f596d043488f989f"')])
         self.assertEqual(response, b'')
 
 
     def test_raw_wsgi(self):
-        redirect = StaticRequest('test.txt', b'Hello!')
+        static = StaticRequest('test.txt', b'Hello!')
 
         start_response_calls = []
         def start_response(status, headers):
             start_response_calls.append((status, headers))
 
         environ = {}
-        result = redirect(environ, start_response)
+        result = static(environ, start_response)
         self.assertListEqual(start_response_calls, [
-            ('200 OK', [('Content-Type', 'text/plain; charset=utf-8'), ('ETag', '952d2c56d0485958336747bcdd98590d')])
+            ('200 OK', [('Content-Type', 'text/plain; charset=utf-8'), ('ETag', '"952d2c56d0485958336747bcdd98590d"')])
         ])
         self.assertListEqual(list(result), [b'Hello!'])
 
 
     def test_raw_wsgi_not_modified(self):
-        redirect = StaticRequest('test.txt', b'Hello!')
+        static = StaticRequest('test.txt', b'Hello!')
 
         start_response_calls = []
         def start_response(status, headers):
             start_response_calls.append((status, headers))
 
-        environ = {'HTTP_IF_NONE_MATCH': '952d2c56d0485958336747bcdd98590d'}
-        result = redirect(environ, start_response)
+        environ = {'HTTP_IF_NONE_MATCH': '"952d2c56d0485958336747bcdd98590d"'}
+        result = static(environ, start_response)
         self.assertListEqual(start_response_calls, [
-            ('304 Not Modified', [])
+            ('304 Not Modified', [('ETag', '"952d2c56d0485958336747bcdd98590d"')])
         ])
         self.assertListEqual(list(result), [])
