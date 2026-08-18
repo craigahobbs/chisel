@@ -222,6 +222,16 @@ class TestIndex(TestCase):
         })
 
 
+    def test_doc_index_no_host(self):
+        app = Application()
+        app.add_requests(create_doc_requests())
+
+        status, _, response = app.request('GET', '/doc/doc_index', environ={'HTTP_HOST': ''})
+        self.assertEqual(status, '200 OK')
+        response = json.loads(response.decode('utf-8'))
+        self.assertEqual(response['title'], 'localhost')
+
+
 class TestRequest(TestCase):
 
     def test_types(self):
@@ -719,7 +729,7 @@ action my_action
         })
 
 
-    def test_unkown_name(self):
+    def test_unknown_name(self):
         app = Application()
         app.add_requests(create_doc_requests())
 

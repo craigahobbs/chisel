@@ -17,7 +17,7 @@ from .request import Request
 
 
 # Regex for parsing the Content-Type header
-RE_CONTENT_TYPE_HEADER = re.compile(r'\bcharset\s*=\s*(?P<charset>\S+)')
+RE_CONTENT_TYPE_HEADER = re.compile(r'(?:^|[;\s])charset\s*=\s*"?(?P<charset>[^";\s]+)', re.IGNORECASE)
 
 
 def action(action_callback=None, **kwargs):
@@ -58,7 +58,8 @@ def action(action_callback=None, **kwargs):
      'message': 'Invalid value "1" (type "str") for member "numbers", expected '
                 'type "array" (query string)'}
 
-    When :attr:`~chisel.Application.validate_output` the response dictionary is also validated to the output schema.
+    When :attr:`~chisel.Application.validate_output` is True, the response dictionary is also validated against the
+    output schema.
 
     :param ~collections.abc.Callable action_callback: The action callback function
     """
@@ -128,25 +129,34 @@ class Action(Request):
     >>> def my_action(ctx, req):
     ...    return {}
 
-    The first arugument, "ctx", is the :class:`~chisel.Context` object. The second argument is the request object which
-    contiains the schema-validated, combined path parameters, query string parameters, and JSON request content
+    The first argument, "ctx", is the :class:`~chisel.Context` object. The second argument is the request object which
+    contains the schema-validated, combined path parameters, query string parameters, and JSON request content
     parameters.
 
     :param ~collections.abc.Callable action_callback: The action callback function
     :param str name: The action request name
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
-        or None to match any. The second value is the URL path or None to use the default path.
+        or None to match any. The second value is the URL path or None to use the default path. If the action's
+        specification contains a "urls" section, the specification's URLs take precedence.
     :param dict types: Optional dictionary of user type models
     :param str spec: Optional action `Schema Markdown <https://craigahobbs.github.io/schema-markdown-js/language/>`__ specification.
         If a specification isn't provided it can be provided through the "types" argument.
     :param bool wsgi_response: If True, the callback function's response is a WSGI application function
         response. Default is False.
-    :param str jsonp: Optional JSONP key
     """
 
-    __slots__ = ('action_callback', 'types', 'wsgi_response', 'jsonp')
+    __slots__ = (
+        'action_callback',
+        'types',
+        'wsgi_response',
+        '_input_type',
+        '_query_type',
+        '_path_type',
+        '_output_type',
+        '_error_type'
+    )
 
-    def __init__(self, action_callback, name=None, urls=(('POST', None),), types=None, spec=None, wsgi_response=False, jsonp=None):
+    def __init__(self, action_callback, name=None, urls=(('POST', None),), types=None, spec=None, wsgi_response=False):
 
         # Use the action callback name if no name is provided
         if name is None:
@@ -179,8 +189,12 @@ class Action(Request):
         #: If True, the callback function's response is a WSGI application function response.
         self.wsgi_response = wsgi_response
 
-        #: JSONP key or None
-        self.jsonp = jsonp
+        # Pre-compute the section types and the error response type
+        self._input_type = self._get_section_type('input')
+        self._query_type = self._get_section_type('query')
+        self._path_type = self._get_section_type('path')
+        self._output_type = self._get_section_type('output')
+        self._error_type = self._get_error_type()
 
     @property
     def model(self):
@@ -231,13 +245,13 @@ class Action(Request):
 
         # Handle the action
         is_get = (environ['REQUEST_METHOD'] == 'GET')
-        jsonp = None
+        app_validate_output = ctx.app.validate_output
         validate_output = True
         try:
             # Read the request content
             try:
                 content = None if is_get else environ['wsgi.input'].read()
-            except:
+            except Exception:
                 raise _ActionErrorInternal(HTTPStatus.REQUEST_TIMEOUT, 'IOError', message='Error reading request content')
 
             # De-serialize the JSON content
@@ -255,7 +269,7 @@ class Action(Request):
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'Invalid request JSON: {exc}')
 
             # Validate the content
-            input_types, input_type = self._get_section_type('input')
+            input_types, input_type = self._input_type
             try:
                 request = validate_type(input_types, input_type, request)
             except ValidationError as exc:
@@ -275,13 +289,8 @@ class Action(Request):
                 ctx.log.warning('Error decoding query string for action "%s": %.1000r', self.name, query_string)
                 raise _ActionErrorInternal(HTTPStatus.BAD_REQUEST, 'InvalidInput', message=f'{exc}')
 
-            # JSONP?
-            if is_get and self.jsonp and self.jsonp in request_query:
-                jsonp = f'{request_query[self.jsonp]}'
-                del request_query[self.jsonp]
-
             # Validate the query string
-            query_types, query_type = self._get_section_type('query')
+            query_types, query_type = self._query_type
             try:
                 request_query = validate_type(query_types, query_type, request_query)
             except ValidationError as exc:
@@ -294,7 +303,7 @@ class Action(Request):
                 )
 
             # Validate the path args
-            path_types, path_type = self._get_section_type('path')
+            path_types, path_type = self._path_type
             request_path = ctx.url_args if ctx.url_args is not None else {}
             try:
                 request_path = validate_type(path_types, path_type, request_path)
@@ -321,23 +330,23 @@ class Action(Request):
                     return response
                 if response is None:
                     response = {}
-                output_types, output_type = self._get_section_type('output')
+                output_types, output_type = self._output_type
             except ActionError as exc:
                 status = exc.status or HTTPStatus.BAD_REQUEST
                 response = {'error': exc.error}
                 if exc.message is not None:
                     response['message'] = exc.message
-                if ctx.app.validate_output:
-                    if exc.error in ('UnexpectedError',):
+                if app_validate_output:
+                    if exc.error == 'UnexpectedError':
                         validate_output = False
                     else:
-                        output_types, output_type = self._get_error_type()
-            except Exception as exc:
+                        output_types, output_type = self._error_type
+            except Exception:
                 ctx.log.exception('Unexpected error in action "%s"', self.name)
                 raise _ActionErrorInternal(HTTPStatus.INTERNAL_SERVER_ERROR, 'UnexpectedError')
 
             # Validate the response
-            if not self.wsgi_response and validate_output and ctx.app.validate_output:
+            if not self.wsgi_response and validate_output and app_validate_output:
                 try:
                     validate_type(output_types, output_type, response)
                 except ValidationError as exc:
@@ -353,4 +362,4 @@ class Action(Request):
                 response['member'] = exc.member
 
         # Serialize the response as JSON
-        return ctx.response_json(status, response, jsonp=jsonp)
+        return ctx.response_json(status, response)

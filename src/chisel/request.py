@@ -8,7 +8,6 @@ Chisel request base class and common request classes
 from functools import partial
 import hashlib
 from http import HTTPStatus
-from itertools import chain
 import posixpath
 import re
 
@@ -37,8 +36,8 @@ def request(wsgi_callback=None, **kwargs):
     ...
     ('my_request', (('GET', '/my_request'),), 'This is my request', None)
 
-    The created :class:`~chisel.Request` object is passed to an application's :meth:`~chisel.add_request` method to host
-    it with that applicaton.
+    The created :class:`~chisel.Request` object is passed to an application's :meth:`~chisel.Application.add_request`
+    method to host it with that application.
 
     >>> application = chisel.Application()
     >>> application.add_request(my_request)
@@ -89,11 +88,10 @@ class Request:
             #: The list of URL method/path tuples
             self.urls = ((None, '/' + self.name),)
         else:
-            self.urls = tuple(chain.from_iterable(
-                ((None, '/' + self.name),) if url is None else \
-                ((url[0] and url[0].upper(), url[1] or '/' + self.name),)
+            self.urls = tuple(
+                (None, '/' + self.name) if url is None else (url[0] and url[0].upper(), url[1] or '/' + self.name)
                 for url in urls
-            ))
+            )
 
     def __call__(self, environ, start_response):
         """
@@ -110,11 +108,11 @@ class Request:
 
 class RedirectRequest(Request):
     """
-    A redirect reqeust
+    A redirect request
 
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
         or None to match any. The second value is the URL path or None to use the default path.
-    :param str redirect_url: The redirectd URL
+    :param str redirect_url: The redirected URL
     :param bool permanent: If True, this is a permanent redirect
     :param str name: The request name. By default the name is "redirect_<redirect_url>".
     :param doc: The documentation markdown text lines
@@ -126,7 +124,7 @@ class RedirectRequest(Request):
 
     def __init__(self, urls, redirect_url, permanent=True, name=None, doc=None, doc_group='Redirects'):
         if name is None:
-            name = re.sub(r'([^\w]|_)+', '_', f'redirect_{redirect_url}').rstrip('_')
+            name = re.sub(r'[\W_]+', '_', f'redirect_{redirect_url}').rstrip('_')
         if doc is None:
             doc = (f'Redirect to {redirect_url}',)
         super().__init__(name=name, urls=urls, doc=doc, doc_group=doc_group)
@@ -144,7 +142,7 @@ class StaticRequest(Request):
     """
     A static resource request
 
-    :param str name: The request name. The default name is the callback function's name.
+    :param str name: The request name
     :param bytes content: The static content
     :param str content_type: Optional content type string. If None, the content type is auto-determined.
     :param list(tuple) urls: The list of URL method/path tuples. The first value is the HTTP request method (e.g. 'GET')
@@ -165,7 +163,7 @@ class StaticRequest(Request):
         '.html': 'text/html; charset=utf-8',
         '.jpeg': 'image/jpeg',
         '.jpg': 'image/jpeg',
-        '.js': 'application/javascript; charset=utf-8',
+        '.js': 'text/javascript; charset=utf-8',
         '.json': 'application/json; charset=utf-8',
         '.markdown': 'text/markdown; charset=utf-8',
         '.md': 'text/markdown; charset=utf-8',
@@ -199,16 +197,14 @@ class StaticRequest(Request):
             assert content_type, f'Unknown content type for static resource "{name}"'
         self.content_type = content_type
 
-        # Compute the etag
-        md5 = hashlib.md5()
-        md5.update(self.content)
-        self.etag = md5.hexdigest()
+        # Compute the ETag - a quoted entity-tag per RFC 7232
+        self.etag = f'"{hashlib.md5(self.content, usedforsecurity=False).hexdigest()}"'
 
     def __call__(self, environ, start_response):
 
         # Check the etag - is the resource modified?
         if self.etag == environ.get('HTTP_IF_NONE_MATCH'):
-            start_response(self.STATUS_NOT_MODIFIED, [])
+            start_response(self.STATUS_NOT_MODIFIED, [('ETag', self.etag)])
             return []
 
         start_response(self.STATUS_OK, [('Content-Type', self.content_type), ('ETag', self.etag)])

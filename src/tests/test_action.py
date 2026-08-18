@@ -118,27 +118,6 @@ action my_action
         self.assertEqual(my_action.wsgi_response, False)
 
 
-    # Action decorator with parser
-    def test_decorator_parser(self):
-
-        @action(spec='''\
-action my_action
-''')
-        def my_action(unused_app, unused_req):
-            pass # pragma: no cover
-
-        self.assertTrue(isinstance(my_action, Action))
-        self.assertTrue(isinstance(my_action, Request))
-
-        app = Application()
-        app.add_request(my_action)
-        self.assertEqual(my_action.name, 'my_action')
-        self.assertEqual(my_action.urls, (('POST', '/my_action'),))
-        self.assertTrue(isinstance(my_action.model, dict))
-        self.assertEqual(my_action.model['name'], 'my_action')
-        self.assertEqual(my_action.wsgi_response, False)
-
-
     # Action decorator with spec with unknown action
     def test_decorator_spec_no_actions(self):
 
@@ -277,31 +256,6 @@ action my_action
         self.assertEqual(response.decode('utf-8'), '{"c":15}')
 
 
-    # Test successful action get with JSONP
-    def test_get_jsonp(self):
-
-        @action(jsonp='jsonp', spec='''\
-action my_action
-    urls
-        GET
-    query
-        int a
-        int b
-    output
-        int c
-''')
-        def my_action(unused_app, req):
-            return {'c': req['a'] + req['b']}
-
-        app = Application()
-        app.add_request(my_action)
-
-        status, headers, response = app.request('GET', '/my_action', query_string='a=7&b=8&jsonp=foo')
-        self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
-        self.assertEqual(response.decode('utf-8'), 'foo({"c":15});')
-
-
     # Test successful action post
     def test_post(self):
 
@@ -347,6 +301,71 @@ action my_action
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"InvalidInput","message":"Required member \\"b\\" missing (query string)"}')
+
+
+    # Test action content type charset handling
+    def test_content_charset(self):
+
+        @action(spec='''\
+action my_action
+    input
+        string a
+    output
+        string a
+''')
+        def my_action(unused_app, req):
+            return {'a': req['a']}
+
+        app = Application()
+        app.add_request(my_action)
+
+        # Simple charset
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('utf-8'),
+            environ={'CONTENT_TYPE': 'application/json; charset=utf-8'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
+
+        # Quoted charset
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('utf-8'),
+            environ={'CONTENT_TYPE': 'application/json; charset="utf-8"'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
+
+        # Charset followed by another parameter without whitespace
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('utf-8'),
+            environ={'CONTENT_TYPE': 'application/json; charset=utf-8;odd=x'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
+
+        # Non-UTF-8 charset
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('latin-1'),
+            environ={'CONTENT_TYPE': 'application/json; charset=iso-8859-1'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
+
+        # Case-insensitive charset parameter name
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('utf-16'),
+            environ={'CONTENT_TYPE': 'application/json; Charset=UTF-16'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
+
+        # The charset parameter name must be delimited - "x-charset" does not match
+        status, _, response = app.request(
+            'POST', '/my_action', wsgi_input='{"a": "caf\u00e9"}'.encode('utf-8'),
+            environ={'CONTENT_TYPE': 'application/json; x-charset=utf-16'}
+        )
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(response.decode('utf-8'), '{"a":"caf\\u00e9"}')
 
 
     # Test action output validation with date and datetime object values
@@ -552,7 +571,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{"a": "world"}')
         self.assertEqual(status, '200 OK')
-        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain; charset=utf-8')])
         self.assertEqual(response.decode('utf-8'), 'Hello WORLD')
 
 
@@ -711,17 +730,21 @@ action my_action
         app.add_request(my_action)
 
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}', environ=environ)
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
                          'for member \\"error\\", expected type \\"my_action_errors\\""}')
-        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r'ERROR \[\d+ / \d+\] Invalid output returned from action "my_action": Invalid value "MyBadError" \(type "str"\) '
+            r'for member "error", expected type "my_action_errors"'
+        )
 
         app.validate_output = False
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
@@ -741,17 +764,21 @@ action my_action
         app.add_request(my_action)
 
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}', environ=environ)
         self.assertEqual(status, '500 Internal Server Error')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'),
                          '{"error":"InvalidOutput","member":"error","message":"Invalid value \\"MyBadError\\" (type \\"str\\") '
                          'for member \\"error\\", expected type \\"my_action_errors\\""}')
-        self.assertEqual(environ['wsgi.errors'].getvalue(), '')
+        self.assertRegex(
+            environ['wsgi.errors'].getvalue(),
+            r'ERROR \[\d+ / \d+\] Invalid output returned from action "my_action": Invalid value "MyBadError" \(type "str"\) '
+            r'for member "error", expected type "my_action_errors"'
+        )
 
         app.validate_output = False
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
+        status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"MyBadError"}')
@@ -776,7 +803,7 @@ action my_action
         app.add_request(my_action)
 
         environ = {'wsgi.errors': StringIO()}
-        status, headers, response = app.request('GET', '/my_action')
+        status, headers, response = app.request('GET', '/my_action', environ=environ)
         self.assertEqual(status, '400 Bad Request')
         self.assertEqual(sorted(headers), [('Content-Type', 'application/json')])
         self.assertEqual(response.decode('utf-8'), '{"error":"Invalid"}')
@@ -912,7 +939,7 @@ action my_action
 
         status, headers, response = app.request('FOO', '/my_action', wsgi_input=b'{"a": 7}')
         self.assertEqual(status, '405 Method Not Allowed')
-        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain; charset=utf-8')])
         self.assertEqual(response.decode('utf-8'), 'Method Not Allowed')
 
 
@@ -1086,7 +1113,7 @@ action my_action
 
         status, headers, response = app.request('POST', '/my_action', wsgi_input=b'{}')
         self.assertEqual(status, '500 Internal Server Error')
-        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain')])
+        self.assertEqual(sorted(headers), [('Content-Type', 'text/plain; charset=utf-8')])
         self.assertEqual(response, b'Internal Server Error')
 
 

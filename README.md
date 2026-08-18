@@ -5,7 +5,7 @@
 [![GitHub](https://img.shields.io/github/license/craigahobbs/chisel)](https://github.com/craigahobbs/chisel/blob/main/LICENSE)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/chisel)](https://pypi.org/project/chisel/)
 
-Chisel is a light-weight Python WSGI application framework built for creating well-documented,
+Chisel is a lightweight Python WSGI application framework built for creating well-documented,
 schema-validated JSON web APIs.
 
 
@@ -21,11 +21,13 @@ Chisel provides the [action](https://craigahobbs.github.io/chisel/action.html#ch
 decorator for easily implementing schema-validated JSON APIs.
 
 ~~~ python
+import chisel
+
 @chisel.action(spec='''
 # Sum a list of numbers
 action sum_numbers
     urls
-       GET
+        GET
 
     query
         # The list of numbers
@@ -62,6 +64,14 @@ status, _, content_bytes = application.request('GET', '/sum_numbers')
 b'{"error":"InvalidInput","message":"Required member \\"numbers\\" missing (query string)"}'
 ~~~
 
+A [chisel.Application](https://craigahobbs.github.io/chisel/app.html#chisel.Application) is a
+standard [WSGI](https://peps.python.org/pep-3333/) application object - host it with any WSGI
+server. For example:
+
+~~~ sh
+gunicorn module:application
+~~~
+
 
 ## API Documentation
 
@@ -74,8 +84,9 @@ application = chisel.Application()
 application.add_requests(chisel.create_doc_requests())
 ~~~
 
-By default the documentation application is hosted at "/doc/". An example of of Chisel's documentation output is
-available [here](https://craigahobbs.github.io/chisel/example/#var.vName='chisel_doc_request').
+By default the documentation application is hosted at "/doc/". An example of Chisel's
+[documentation output](https://craigahobbs.github.io/chisel/example/#var.vName='chisel_doc_request')
+is available.
 
 
 ## Development
