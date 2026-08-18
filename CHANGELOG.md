@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.0 (2026-08-18)
+
+- [4fb681a](https://github.com/craigahobbs/chisel/commit/4fb681a) - request handling correctness, performance, and API hardening
+
 ## 2.3.2 (2026-08-06)
 
 - [01362e2](https://github.com/craigahobbs/chisel/commit/01362e2) - update markdown-up tarball \(bare-script 5.1.3\)
