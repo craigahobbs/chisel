@@ -46,7 +46,8 @@ doc:
 .PHONY: test-doc
 commit: test-doc
 test-doc: $(DEFAULT_VENV_BUILD)
-	$(DEFAULT_VENV_BIN)/bare -x -m src/chisel/static/*.bare src/chisel/static/test/*.bare
+	$(DEFAULT_VENV_BIN)/bare -x -m src/chisel/static/*.bare src/chisel/static/test/test*.bare
+	$(DEFAULT_VENV_BIN)/bare -s -m src/chisel/static/test/runTests.bare
 	$(DEFAULT_VENV_BIN)/bare -d -m src/chisel/static/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
