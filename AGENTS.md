@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Notes for coding agents working in this repository.
 
 ## What Chisel is
 
@@ -9,41 +9,29 @@ schema-validated JSON web APIs. Its one runtime dependency is
 [schema-markdown](https://github.com/craigahobbs/schema-markdown-py), which supplies the
 Schema Markdown parser, type validator, and query-string codec that Chisel is built around.
 
-## Build system
+## python-build
 
-This package uses [python-build](https://github.com/craigahobbs/python-build). The bulk of the
-build logic lives in `Makefile.base` and `pylintrc`, which are **downloaded** from
-`craigahobbs.github.io/python-build` on first `make` run and are git-ignored — do not edit them
-(edit the top-level `Makefile` for project-specific targets). Every target runs inside an
-auto-created virtualenv under `build/venv/`; you don't manage the venv yourself.
+This is a [python-build](https://github.com/craigahobbs/python-build#readme) package. Read the python-build skill before running tests, lint, coverage, or changing the Makefile: [`../python-build/SKILL.md`](../python-build/SKILL.md) if that file exists, otherwise [https://raw.githubusercontent.com/craigahobbs/python-build/main/SKILL.md](https://raw.githubusercontent.com/craigahobbs/python-build/main/SKILL.md).
 
-Common commands:
+Local Makefile overrides:
 
-- `make test` — run the Python unit tests (`unittest discover` over `src/tests/`, with `-W error`)
-- `make test TEST=tests.test_app.TestApplication.test_add_request` — run a single test / module / class
-- `make lint` — pylint over `src`
-- `make cover` — tests with branch coverage; **enforced at 100%** (`--fail-under 100`), so new code needs full coverage
-- `make doc` — Sphinx build **including doctests**; the `>>>` examples in docstrings (e.g. in `app.py`, `action.py`) are executed and must pass
-- `make commit` — runs `test lint doc cover` plus `test-doc` (the full pre-commit gate)
-- `make clean` / `make superclean`
-- `make changelog`, `make publish` — release tasks; version is set in `pyproject.toml` and `CHANGELOG.md` is generated from git history
+- `SPHINX_DOC` — `doc` (Sphinx; `>>>` doctests in docstrings, e.g. `app.py` and `action.py`, must pass)
+- `TESTS_REQUIRE` — `bare-script`
+- `commit` also depends on `test-doc`
 
-Supported Python versions are 3.11–3.15. To test across versions in containers, use
-`make test USE_DOCKER=1` (or `USE_PODMAN=1`).
+Package-specific targets:
+
+- `make test-doc` — BareScript unit tests for `src/chisel/static/` via the `bare` CLI (`TEST=` is an exact BareScript test name)
+- `make markdown-up` — re-download vendored `src/chisel/static/markdown-up.tar.gz`
+
+When editing `.bare` files, invoke the `bare-script` skill.
 
 ## Front-end / BareScript tests
 
 `src/chisel/static/` holds the client-side documentation app, written in **BareScript**
 (`chiselDoc.bare`), plus its `index.html` bootstrap and a vendored `markdown-up.tar.gz` (the
-MarkdownUp runtime, served as static resources). These have their own test path:
-
-- `make test-doc` — runs the BareScript unit tests via the `bare` CLI (from the `bare-script` dev
-  dependency). It executes `runTests.bare`, which enforces 100% BareScript coverage.
-- `make test-doc TEST='<name>'` — run a single BareScript test.
-- `make markdown-up` — re-download / update the vendored `markdown-up.tar.gz`. Most CHANGELOG
-  entries are just this tarball being bumped.
-
-When editing `.bare` files, invoke the `bare-script` skill.
+MarkdownUp runtime, served as static resources). `make test-doc` runs `runTests.bare`, which
+enforces 100% BareScript coverage. Most CHANGELOG entries are the tarball being bumped.
 
 ## Architecture
 
