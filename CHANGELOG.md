@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.2 (2026-08-31)
+
+- [798164f](https://github.com/craigahobbs/chisel/commit/798164f) - bare-script 5.1.4
+
 ## 2.4.1 (2026-08-31)
 
 - [b3471fd](https://github.com/craigahobbs/chisel/commit/b3471fd) - bare-script 5.1.4
