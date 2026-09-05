@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.4.8 (2026-09-05)
+
+- [4cac749](https://github.com/craigahobbs/chisel/commit/4cac749) - update markdown-up tarball \(bare-script 5.1.10\)
+
+## 2.4.7 (2026-09-04)
+
+- [b1afbee](https://github.com/craigahobbs/chisel/commit/b1afbee) - update markdown-up tarball \(bare-script 5.1.9\)
+
+## 2.4.6 (2026-09-04)
+
+- [76c9ccf](https://github.com/craigahobbs/chisel/commit/76c9ccf) - update markdown-up tarball \(bare-script 5.1.8\)
+
+## 2.4.5 (2026-09-04)
+
+- [5daca96](https://github.com/craigahobbs/chisel/commit/5daca96) - update markdown-up tarball \(bare-script 5.1.7\)
+
+## 2.4.4 (2026-08-31)
+
+- [ab0e461](https://github.com/craigahobbs/chisel/commit/ab0e461) - update markdown-up tarball \(bare-script 5.1.6\)
+
+## 2.4.3 (2026-08-31)
+
+- [598885b](https://github.com/craigahobbs/chisel/commit/598885b) - update markdown-up tarball \(bare-script 5.1.5\)
+
+## 2.4.2 (2026-08-31)
+
+- [798164f](https://github.com/craigahobbs/chisel/commit/798164f) - bare-script 5.1.4
+
+## 2.4.1 (2026-08-31)
+
+- [b3471fd](https://github.com/craigahobbs/chisel/commit/b3471fd) - bare-script 5.1.4
+
 ## 2.4.0 (2026-08-18)
 
 - [4fb681a](https://github.com/craigahobbs/chisel/commit/4fb681a) - request handling correctness, performance, and API hardening
