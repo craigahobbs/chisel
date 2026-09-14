@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.11 (2026-09-14)
+
+- [a3cef25](https://github.com/craigahobbs/chisel/commit/a3cef25) - update markdown-up tarball \(bare-script 5.1.13\)
+
 ## 2.4.10 (2026-09-12)
 
 - [12fa05b](https://github.com/craigahobbs/chisel/commit/12fa05b) - update markdown-up tarball \(bare-script 5.1.12\)
