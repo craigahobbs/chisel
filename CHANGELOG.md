@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.15 (2026-10-04)
+
+- [4f58c93](https://github.com/craigahobbs/chisel/commit/4f58c93) - update markdown-up tarball \(bare-script 5.1.17\)
+
 ## 2.4.14 (2026-10-02)
 
 - [83f94d4](https://github.com/craigahobbs/chisel/commit/83f94d4) - update markdown-up tarball \(bare-script 5.1.16\)
