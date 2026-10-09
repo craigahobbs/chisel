@@ -12,12 +12,11 @@
     <script type="module">
         import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/appImports.js';
         const app = new MarkdownUp(window, {
-            'systemPrefix': 'https://craigahobbs.github.io/markdown-up/include/',
             'markdownText': `\
 ~~~ markdown-script
-include 'chiselDoc.bare'
+include <wsgiAPIDoc.bare>
 
-chiselDoc()
+wsgiAPIDocMain()
 ~~~
 `
         });

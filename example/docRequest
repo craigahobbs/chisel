@@ -892,7 +892,7 @@
   "urls": [
     {
       "method": "GET",
-      "path": "/doc/doc_request"
+      "path": "/doc/docRequest"
     }
   ]
 }
