@@ -23,14 +23,6 @@ SPHINX_DOC := doc
 include Makefile.base
 
 
-# Development dependencies
-TESTS_REQUIRE := bare-script
-
-
-help:
-	@echo "            [test-doc]"
-
-
 clean:
 	rm -rf Makefile.base pylintrc
 
@@ -39,16 +31,7 @@ doc:
     # Dump the documentation example
 	mkdir -p build/doc/html/example
 	sed -E "s/\.\.\//https:\/\/craigahobbs.github.io\//g" src/chisel/static/index.html > build/doc/html/example/index.html
-	cp src/chisel/static/chiselDoc.bare build/doc/html/example/
 	$(DEFAULT_VENV_PYTHON) -c "$$DUMP_EXAMPLE_PY"
-
-
-.PHONY: test-doc
-commit: test-doc
-test-doc: $(DEFAULT_VENV_BUILD)
-	$(DEFAULT_VENV_BIN)/bare -x -m src/chisel/static/*.bare src/chisel/static/test/test*.bare
-	$(DEFAULT_VENV_BIN)/bare -s -m src/chisel/static/test/runTests.bare
-	$(DEFAULT_VENV_BIN)/bare -d -m src/chisel/static/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 # Python to dump documentation API responses
@@ -59,10 +42,10 @@ import json
 app = chisel.Application()
 app.pretty_output = True
 app.add_requests(chisel.create_doc_requests())
-_, _, response = app.request('GET', '/doc/doc_request', query_string='name=chisel_doc_request')
-with open('build/doc/html/example/doc_request', 'wb') as request_file:
+_, _, response = app.request('GET', '/doc/docRequest', query_string='name=chisel_doc_request')
+with open('build/doc/html/example/docRequest', 'wb') as request_file:
     request_file.write(response)
-with open('build/doc/html/example/doc_index', 'w') as index_file:
+with open('build/doc/html/example/docIndex', 'w') as index_file:
     json.dump({'title': 'Chisel Documentation Example', 'groups': {'Documentation': ['chisel_doc_request']}}, index_file, indent=2)
 endef
 export DUMP_EXAMPLE_PY

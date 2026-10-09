@@ -25,11 +25,11 @@ class TestGetDocRequests(TestCase):
             [
                 {
                     'name': 'chisel_doc_index',
-                    'urls': (('GET', '/doc/doc_index'),)
+                    'urls': (('GET', '/doc/docIndex'),)
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request'),)
+                    'urls': (('GET', '/doc/docRequest'),)
                 },
                 {
                     'name': 'chisel_doc_redirect',
@@ -38,10 +38,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'chisel_doc_app',
-                    'urls': (('GET', '/doc/chiselDoc.bare'),)
                 }
             ]
         )
@@ -61,11 +57,11 @@ class TestGetDocRequests(TestCase):
             [
                 {
                     'name': 'chisel_doc_index',
-                    'urls': (('GET', '/info/doc_index'),)
+                    'urls': (('GET', '/info/docIndex'),)
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/info/doc_request'),)
+                    'urls': (('GET', '/info/docRequest'),)
                 },
                 {
                     'name': 'chisel_doc_redirect',
@@ -74,10 +70,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/info/'), ('GET', '/info/index.html'))
-                },
-                {
-                    'name': 'chisel_doc_app',
-                    'urls': (('GET', '/info/chiselDoc.bare'),)
                 }
             ]
         )
@@ -97,19 +89,15 @@ class TestGetDocRequests(TestCase):
             [
                 {
                     'name': 'chisel_doc_index',
-                    'urls': (('GET', '/doc_index'),)
+                    'urls': (('GET', '/docIndex'),)
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc_request'),)
+                    'urls': (('GET', '/docRequest'),)
                 },
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/'), ('GET', '/index.html'))
-                },
-                {
-                    'name': 'chisel_doc_app',
-                    'urls': (('GET', '/chiselDoc.bare'),)
                 }
             ]
         )
@@ -134,10 +122,6 @@ class TestGetDocRequests(TestCase):
                 {
                     'name': 'chisel_doc',
                     'urls': (('GET', '/doc/'), ('GET', '/doc/index.html'))
-                },
-                {
-                    'name': 'chisel_doc_app',
-                    'urls': (('GET', '/doc/chiselDoc.bare'),)
                 }
             ]
         )
@@ -156,11 +140,11 @@ class TestGetDocRequests(TestCase):
             [
                 {
                     'name': 'chisel_doc_index',
-                    'urls': (('GET', '/doc/doc_index'),)
+                    'urls': (('GET', '/doc/docIndex'),)
                 },
                 {
                     'name': 'chisel_doc_request',
-                    'urls': (('GET', '/doc/doc_request'),)
+                    'urls': (('GET', '/doc/docRequest'),)
                 }
             ]
         )
@@ -203,7 +187,7 @@ class TestIndex(TestCase):
         app = Application()
         app.add_requests(create_doc_requests())
 
-        status, _, response = app.request('GET', '/doc/doc_index')
+        status, _, response = app.request('GET', '/doc/docIndex')
         self.assertEqual(status, '200 OK')
         response = json.loads(response.decode('utf-8'))
         self.assertTrue(len(response['groups']['MarkdownUp Statics']))
@@ -213,7 +197,6 @@ class TestIndex(TestCase):
             'groups': {
                 'Documentation': [
                     'chisel_doc',
-                    'chisel_doc_app',
                     'chisel_doc_index',
                     'chisel_doc_redirect',
                     'chisel_doc_request'
@@ -226,7 +209,7 @@ class TestIndex(TestCase):
         app = Application()
         app.add_requests(create_doc_requests())
 
-        status, _, response = app.request('GET', '/doc/doc_index', environ={'HTTP_HOST': ''})
+        status, _, response = app.request('GET', '/doc/docIndex', environ={'HTTP_HOST': ''})
         self.assertEqual(status, '200 OK')
         response = json.loads(response.decode('utf-8'))
         self.assertEqual(response['title'], 'localhost')
@@ -365,7 +348,7 @@ action my_action2
         app.add_request(Request(None, name='my_request', doc='Request doc.'))
         app.add_request(Request(None, name='my_request2'))
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -620,7 +603,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action2',
@@ -634,7 +617,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_request')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'doc': ['Request doc.'],
@@ -642,7 +625,7 @@ action my_action2
             'urls': [{'path': '/my_request'}]
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_request2')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_request2')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_request2',
@@ -679,7 +662,7 @@ action my_action
         optional int m19
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -733,7 +716,7 @@ action my_action
         app = Application()
         app.add_requests(create_doc_requests())
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '400 Bad Request')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
@@ -750,7 +733,7 @@ action my_action2
 '''))
         app.add_requests(create_doc_requests([app.requests['my_action']]))
 
-        status, _, response = app.request('GET', '/doc/doc_index')
+        status, _, response = app.request('GET', '/doc/docIndex')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'title': 'localhost:80',
@@ -761,7 +744,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -771,7 +754,7 @@ action my_action2
             }
         })
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action2')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action2')
         self.assertEqual(status, '400 Bad Request')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'error': 'UnknownName'
@@ -785,7 +768,7 @@ action my_action2
 action my_action
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',
@@ -802,7 +785,7 @@ action my_action
 action my_action
 '''))
 
-        status, _, response = app.request('GET', '/doc/doc_request', query_string='name=my_action')
+        status, _, response = app.request('GET', '/doc/docRequest', query_string='name=my_action')
         self.assertEqual(status, '200 OK')
         self.assertDictEqual(json.loads(response.decode('utf-8')), {
             'name': 'my_action',

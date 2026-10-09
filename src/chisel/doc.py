@@ -25,7 +25,7 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
     :type requests: list(~chisel.Request)
     :param str root_path: The documentation application URL root path. The default is "/doc".
     :param bool api: If True, include the documentation APIs. Two documentation APIs are added,
-        "/doc/doc_index" and "`/doc/doc_request <doc/#name=chisel_doc_request>`__".
+        "/doc/docIndex" and "`/doc/docRequest <doc/#name=chisel_doc_request>`__".
     :param bool app: If True, include the documentation application.
     :param bool markdown_up: If True, include the MarkdownUp application.
     :returns: Generator of :class:`~chisel.Request`
@@ -34,8 +34,8 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
     root_noslash = root_path.rstrip('/')
     root_slash = root_noslash + '/'
     if api:
-        yield DocIndex(requests=requests, urls=(('GET', root_slash + 'doc_index'),))
-        yield DocRequest(requests=requests, urls=(('GET', root_slash + 'doc_request'),))
+        yield DocIndex(requests=requests, urls=(('GET', root_slash + 'docIndex'),))
+        yield DocRequest(requests=requests, urls=(('GET', root_slash + 'docRequest'),))
     if app:
         if root_noslash:
             yield RedirectRequest((('GET', root_noslash),), root_slash, name='chisel_doc_redirect', doc_group='Documentation')
@@ -46,15 +46,6 @@ def create_doc_requests(requests=None, root_path='/doc', api=True, app=True, mar
                 'text/html; charset=utf-8',
                 (('GET', root_slash), ('GET', root_slash + 'index.html')),
                 'The Chisel documentation HTML',
-                'Documentation'
-            )
-        with importlib.resources.files('chisel.static').joinpath('chiselDoc.bare').open('rb') as fh:
-            yield StaticRequest(
-                'chisel_doc_app',
-                fh.read(),
-                'text/plain; charset=utf-8',
-                (('GET', root_slash + 'chiselDoc.bare'),),
-                'The Chisel documentation application',
                 'Documentation'
             )
     if markdown_up or app:
@@ -100,7 +91,7 @@ action chisel_doc_index
         StringArray{} groups
 '''
 
-    def __init__(self, requests=None, urls=(('GET', '/doc_index'),)):
+    def __init__(self, requests=None, urls=(('GET', '/docIndex'),)):
         super().__init__(self._doc_index, name='chisel_doc_index', urls=urls, spec=self.SPEC)
         if requests is not None:
             self.requests = {request.name: request for request in requests}
@@ -172,7 +163,7 @@ action chisel_doc_request
         UnknownName
 '''
 
-    def __init__(self, requests=None, urls=(('GET', '/doc_request'),)):
+    def __init__(self, requests=None, urls=(('GET', '/docRequest'),)):
         super().__init__(self._doc_request, name='chisel_doc_request', urls=urls, types=dict(TYPE_MODEL), spec=self.SPEC)
         if requests is not None:
             #: Optional list of requests to document or None. If None, the applications request collection is used.

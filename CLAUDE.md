@@ -16,22 +16,18 @@ This is a [python-build](https://github.com/craigahobbs/python-build#readme) pac
 Local Makefile overrides:
 
 - `SPHINX_DOC` — `doc` (Sphinx; `>>>` doctests in docstrings, e.g. `app.py` and `action.py`, must pass)
-- `TESTS_REQUIRE` — `bare-script`
-- `commit` also depends on `test-doc`
 
 Package-specific targets:
 
-- `make test-doc` — BareScript unit tests for `src/chisel/static/` via the `bare` CLI (`TEST=` is an exact BareScript test name)
 - `make markdown-up` — re-download vendored `src/chisel/static/markdown-up.tar.gz`
 
-When editing `.bare` files, invoke the `bare-script` skill.
+## Front-end
 
-## Front-end / BareScript tests
-
-`src/chisel/static/` holds the client-side documentation app, written in **BareScript**
-(`chiselDoc.bare`), plus its `index.html` bootstrap and a vendored `markdown-up.tar.gz` (the
-MarkdownUp runtime, served as static resources). `make test-doc` runs `runTests.bare`, which
-enforces 100% BareScript coverage. Most CHANGELOG entries are the tarball being bumped.
+`src/chisel/static/` holds the documentation app's `index.html` bootstrap and a vendored
+`markdown-up.tar.gz` (the MarkdownUp runtime, served as static resources). The app itself is
+BareScript's `wsgiAPIDoc.bare` include library (bundled in the tarball), which fetches the
+`docIndex` and `docRequest` APIs relative to the page. Most CHANGELOG entries are the tarball being
+bumped.
 
 ## Architecture
 
@@ -71,13 +67,13 @@ offending `member`). Callbacks signal domain errors by raising `ActionError(erro
 **`doc.py` — the documentation application.** `create_doc_requests()` is a generator of `Request`
 objects (add them with `add_requests`). It yields two doc APIs — `chisel_doc_index` and
 `chisel_doc_request` (both `Action`s that introspect the app's registered requests and their type
-models) — plus the static HTML page, the `chiselDoc.bare` app, and the unpacked MarkdownUp tarball
-statics. This is how any Chisel app gets a browsable `/doc/` site for free.
+models), hosted at `docIndex` and `docRequest` — plus the static HTML page, which runs BareScript's
+`wsgiAPIDoc.bare` app, and the unpacked MarkdownUp tarball statics. This is how any Chisel app gets a
+browsable `/doc/` site for free.
 
 ## Conventions
 
 - Every source file starts with the MIT license header (two comment lines).
 - Classes use `__slots__` throughout.
 - Docstrings contain runnable doctests — keep them accurate, since `make doc` executes them.
-- Coverage is 100% for both Python (`make cover`) and BareScript (`make test-doc`); a change that
-  drops either below 100% fails `make commit`.
+- Coverage is 100% (`make cover`); a change that drops it below 100% fails `make commit`.

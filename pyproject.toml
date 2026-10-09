@@ -39,7 +39,6 @@ packages = ["chisel", "chisel.static"]
 
 [tool.setuptools.package-data]
 chisel = [
-    "static/*.bare",
     "static/*.html",
     "static/*.tar.gz"
 ]
