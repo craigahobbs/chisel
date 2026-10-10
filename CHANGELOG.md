@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.2 (2026-10-10)
+
+- [2489083](https://github.com/craigahobbs/chisel/commit/2489083) - update markdown-up tarball \(bare-script 5.2.1\)
+
 ## 2.5.1 (2026-10-09)
 
 - [cbdd364](https://github.com/craigahobbs/chisel/commit/cbdd364) - replace the chisel doc app with BareScript's wsgiAPIDoc.bare - doc APIs move to docIndex/docRequest
