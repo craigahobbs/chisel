@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.4 (2026-11-24)
+
+- [2abcb23](https://github.com/craigahobbs/chisel/commit/2abcb23) - update markdown-up tarball \(markdown-up 5.2.2\)
+
 ## 2.5.3 (2026-11-18)
 
 - [0d869c0](https://github.com/craigahobbs/chisel/commit/0d869c0) - update markdown-up tarball \(bare-script 5.2.3\)
