@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.1 (2026-11-25)
+
+- [1ac37ff](https://github.com/craigahobbs/chisel/commit/1ac37ff) - update markdown-up tarball \(markdown-up 5.3.1\)
+
 ## 2.6.0 (2026-11-25)
 
 - [7bb5d58](https://github.com/craigahobbs/chisel/commit/7bb5d58) - update markdown-up tarball \(markdown-up 5.3.0\)
